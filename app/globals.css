@@ -1291,10 +1291,11 @@ h1, h2, .menu-main a, .empty-state p:first-child, .decades a,
 .person-head .person-actions { margin-top: var(--space-12); }
 .person-links { display: flex; flex-wrap: wrap; gap: var(--space-8); }
 
-/* Profile tabs: plain text across the full width, with a line under the open tab. */
-.profile-tabs { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); margin-top: var(--space-48); border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
+/* Profile tabs: plain text, left-aligned, with a hairline across the full width and a line under
+   the open tab. */
+.profile-tabs { display: flex; gap: var(--space-32); margin-top: var(--space-48); border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
 .profile-tabs::-webkit-scrollbar { display: none; }
-.profile-tabs .chip { position: relative; height: var(--control); padding: 0 var(--space-8); border: 0; border-radius: 0; background: none; color: var(--muted); font-size: var(--t-md); }
+.profile-tabs .chip { position: relative; flex: none; height: var(--control); padding: 0; border: 0; border-radius: 0; background: none; color: var(--muted); font-size: var(--t-md); }
 .profile-tabs .chip:hover { background: none; color: var(--ink); }
 .profile-tabs .chip:active { transform: none; }
 .profile-tabs .chip[aria-selected="true"] { background: none; color: var(--ink); }
