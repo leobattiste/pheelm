@@ -22,6 +22,11 @@ if (process.env.VERCEL && (!supabaseUrl || !supabaseKey)) {
 const nextConfig: NextConfig = {
   // Posters come from many places (TMDB, Supabase storage, links pasted in the admin).
   images: { unoptimized: true },
+  // The share images read Nacelle from assets/fonts at run time, so ship those files with them.
+  outputFileTracingIncludes: {
+    "/opengraph-image": ["./assets/fonts/**"],
+    "/films/[slug]/opengraph-image": ["./assets/fonts/**"],
+  },
   staticPageGenerationTimeout: 180,
   env: {
     NEXT_PUBLIC_SUPABASE_URL: supabaseUrl.trim(),

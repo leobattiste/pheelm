@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 import { getFilms } from "@/lib/data";
 import { posterColours } from "@/lib/format";
+import { ogFonts } from "@/lib/og";
 import { SITE_NAME, SITE_TAGLINE } from "@/lib/site";
 
 export const size = { width: 1200, height: 630 };
@@ -10,20 +11,26 @@ export const revalidate = 3600;
 
 /** The site's share preview: the name, the tagline and a fan of featured films' title cards. */
 export default async function Image() {
-  const films = (await getFilms()).filter((f) => f.featured).slice(0, 4);
+  const [all, fonts] = await Promise.all([getFilms(), ogFonts()]);
+  const films = all.filter((f) => f.featured).slice(0, 4);
   return new ImageResponse(
     (
-      <div style={{ display: "flex", width: "100%", height: "100%", padding: 72, background: "#0c0c0c", color: "#f5f5f5", fontFamily: "serif", justifyContent: "space-between" }}>
+      <div style={{ display: "flex", width: "100%", height: "100%", padding: 72, background: "#0b0b0b", color: "#fafafa", fontFamily: "Nacelle", justifyContent: "space-between" }}>
         <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", width: 560 }}>
-          <div style={{ display: "flex", fontSize: 96, letterSpacing: -2 }}>{SITE_NAME}</div>
-          <div style={{ display: "flex", fontSize: 46, lineHeight: 1.1 }}>{SITE_TAGLINE}</div>
+          <div style={{ display: "flex", fontSize: 40 }}>{SITE_NAME}</div>
+          <div style={{ display: "flex", fontSize: 60, fontWeight: 700, lineHeight: 1.05, letterSpacing: -1.5 }}>{SITE_TAGLINE}</div>
         </div>
         <div style={{ display: "flex", position: "relative", width: 420 }}>
           {films.map((f, i) => {
             const c = posterColours(f.title);
+            const place = { position: "absolute" as const, left: i * 70, top: 40 + (i % 2) * 30, width: 200, height: 300, borderRadius: 10, transform: `rotate(${(i - 1.5) * 4}deg)` };
+            if (f.poster_url) {
+              // eslint-disable-next-line @next/next/no-img-element
+              return <img key={f.id} src={f.poster_url} width={200} height={300} style={{ ...place, objectFit: "cover" }} alt="" />;
+            }
             return (
-              <div key={f.id} style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", position: "absolute", left: i * 70, top: 40 + (i % 2) * 30, width: 200, height: 300, padding: 18, borderRadius: 4, background: c.bg, color: c.fg, transform: `rotate(${(i - 1.5) * 4}deg)` }}>
-                <div style={{ display: "flex", fontSize: 28, lineHeight: 1 }}>{f.title}</div>
+              <div key={f.id} style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", position: "absolute", left: i * 70, top: 40 + (i % 2) * 30, width: 200, height: 300, padding: 18, borderRadius: 10, background: c.bg, color: c.fg, transform: `rotate(${(i - 1.5) * 4}deg)` }}>
+                <div style={{ display: "flex", fontSize: 28, fontWeight: 700, lineHeight: 1.05 }}>{f.title}</div>
                 <div style={{ display: "flex", fontSize: 14 }}>{f.year}</div>
               </div>
             );
@@ -31,6 +38,6 @@ export default async function Image() {
         </div>
       </div>
     ),
-    size,
+    { ...size, fonts },
   );
 }

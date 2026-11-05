@@ -5,7 +5,6 @@ import { FilmGrid } from "@/components/FilmCard";
 import CollectionTile from "@/components/CollectionTile";
 import FilmActionBar from "@/components/FilmActionBar";
 import Poster from "@/components/Poster";
-import ReadingProgress from "@/components/ReadingProgress";
 import ShareButton from "@/components/ShareButton";
 import TrailerButton from "@/components/TrailerButton";
 import WatchSection from "@/components/WatchSection";
@@ -67,9 +66,23 @@ export default async function FilmPage({ params }: Params) {
   const inCollections = collections.filter((c) => film.collections.some((fc) => fc.slug === c.slug));
   const directorIds = new Set(film.directors.map((d) => d.id));
   const moreByDirector = all.filter((f) => f.id !== film.id && f.directors.some((d) => directorIds.has(d.id)));
+  // More like this: films that share the most with this one. A shared collection counts most,
+  // then each shared genre and country, then the same decade; closer years break ties.
+  const decade = Math.floor(film.year / 10);
   const related = all
-    .filter((f) => f.id !== film.id && !moreByDirector.includes(f) && f.collections.some((c) => film.collections.some((fc) => fc.slug === c.slug)))
-    .slice(0, 12);
+    .filter((f) => f.id !== film.id && !moreByDirector.includes(f))
+    .map((f) => ({
+      f,
+      score:
+        3 * f.collections.filter((c) => film.collections.some((fc) => fc.slug === c.slug)).length +
+        f.genres.filter((g) => film.genres.includes(g)).length +
+        f.countries.filter((c) => film.countries.includes(c)).length +
+        (Math.floor(f.year / 10) === decade ? 1 : 0),
+    }))
+    .filter((r) => r.score > 1)
+    .sort((a, b) => b.score - a.score || Math.abs(a.f.year - film.year) - Math.abs(b.f.year - film.year))
+    .slice(0, 12)
+    .map((r) => r.f);
 
   const bg = validColour(film.color);
   const cast = film.credits.filter((c) => c.role === "cast");
@@ -132,7 +145,6 @@ export default async function FilmPage({ params }: Params) {
         {/* Hands the film's colour to the whole page, header and footer included, while it's open. */}
         {bg && <style>{pageColours(bg)}</style>}
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
-        <ReadingProgress target=".film-body" />
 
         <div className="film-art">
           <Poster title={film.title} year={film.year} directors={directorNames} src={film.poster_url} sizes="(min-width: 800px) 46vw, 100vw" priority hero />
@@ -178,10 +190,9 @@ export default async function FilmPage({ params }: Params) {
               <ShareButton title={film.title} />
             </div>
 
-            {(film.synopsis || wins.length > 0) && (
+            {film.synopsis && (
               <div className="film-essay">
-                {film.synopsis?.split(/\n{2,}/).map((p, i) => <p key={i}>{p}</p>)}
-                {wins.length > 0 && <p className="film-award">{awardLine(wins)}</p>}
+                {film.synopsis.split(/\n{2,}/).map((p, i) => <p key={i}>{p}</p>)}
               </div>
             )}
           </section>
@@ -351,11 +362,3 @@ function prestige(award: string) {
   return i === -1 ? (award === "National Film Registry" ? 99 : 50) : i;
 }
 const isRegistry = (a: Award) => a.award === "National Film Registry";
-
-function awardLine(wins: Award[]) {
-  const top = wins[0];
-  if (isRegistry(top)) return "Preserved in the U.S. National Film Registry.";
-  const name = top.award === "Academy Awards" ? `Academy Award for ${top.category}` : `${top.award} ${top.category}`;
-  const prizes = wins.filter((w) => !isRegistry(w)).length;
-  return prizes === 1 ? `Winner of the ${name}.` : `Winner of ${prizes} major prizes, including the ${name}.`;
-}

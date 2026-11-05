@@ -863,7 +863,6 @@ main:has(.feature) { margin-top: calc(var(--header) * -1); }
 @keyframes pop { 50% { transform: scale(1.25); } }
 
 .film-essay { display: grid; gap: 1em; margin-top: var(--space-40); max-width: 62ch; font-size: var(--t-md); line-height: var(--lh-body); }
-.film-award { font-weight: 600; }
 
 /* Sections: Where to watch, Awards, Cast and crew, Details. Each is set apart by the same 48px
    gap, a hairline and a 24px heading; no boxes, so the film's colour stays the backdrop. */
@@ -920,7 +919,6 @@ main:has(.feature) { margin-top: calc(var(--header) * -1); }
   body:has(.film-bar[data-show="true"]) .site-footer { padding-bottom: calc(var(--space-96) + env(safe-area-inset-bottom)); }
 }
 
-.reading-progress { position: fixed; top: var(--header); left: 0; right: 0; z-index: 35; height: 3px; background: var(--ink); transform-origin: left; transform: scaleX(var(--progress, 0)); pointer-events: none; }
 
 .related { padding: var(--space-64) var(--gutter) 0; }
 .related .section-head h2 { font-size: var(--t-xl); }
