@@ -19,15 +19,14 @@ export function Portrait({ director, className = "" }: { director: PortraitPerso
 }
 
 /**
- * A director's card, built like a collection card: three of their films fanned out (with empty
+ * A director's card, built like a collection card: three of their films side by side (with empty
  * slots when they have fewer), then a small square portrait, their name, country and film count.
  */
 export default function DirectorCard({ director }: { director: DirectorSummary }) {
   const n = director.films;
   const meta = [director.country ? countryName(director.country) : null, `${n} ${n === 1 ? "film" : "films"}`].filter(Boolean).join(", ");
-  // The fan's middle poster sits in front, so the best-known film goes there, then left, then right.
-  const [a, b, c] = director.previews;
-  const slots = [b, a, c];
+  // Best-known film first; empty slots fill the row when there are fewer than three.
+  const slots = [0, 1, 2].map((i) => director.previews[i]);
   return (
     <li className="director-card">
       <Link href={`/directors/${director.slug}`} className="collection-tile">

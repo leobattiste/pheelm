@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Collection } from "@/lib/types";
 import Poster from "./Poster";
 
-/** Three posters fanned out like prints on a table, with the collection's name below. */
+/** The collection's name and description, with three of its posters side by side below. */
 export default function CollectionTile({ collection }: { collection: Collection }) {
   return (
     <li>

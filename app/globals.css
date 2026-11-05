@@ -521,7 +521,7 @@ main { width: 100%; }
 .director-card-name { overflow: hidden; color: var(--ink); font-size: var(--t-lg); font-weight: 600; line-height: 1.25; letter-spacing: -0.015em; text-overflow: ellipsis; white-space: nowrap; }
 .director-card-meta { overflow: hidden; color: var(--muted); font-size: var(--t-sm); text-overflow: ellipsis; white-space: nowrap; }
 /* An empty slot in the fan when a director has fewer than three films here. */
-.collection-fan .poster-empty { background: color-mix(in srgb, var(--surface) 60%, transparent); box-shadow: none; border: 1px dashed var(--line-strong); }
+.collection-fan .poster-empty { background: var(--raised); box-shadow: none; }
 /* Director cards in a home-page row get the same width as a collection card. */
 .row-track:has(.director-card) { grid-auto-columns: 82%; }
 @media (min-width: 640px) { .row-track:has(.director-card) { grid-auto-columns: 46%; } }
@@ -553,21 +553,24 @@ main { width: 100%; }
   flex-direction: column;
   gap: 4px;
   height: 100%;
-  padding: 16px;
+  padding: 16px 16px 0;
+  overflow: hidden;
   border: 1px solid var(--line);
   border-radius: var(--r);
   background: var(--surface);
   transition: background-color 0.2s, border-color 0.2s;
 }
 .collection-tile:hover { background: var(--raised); border-color: var(--line-strong); }
-/* Name and details on top, the fanned posters below on the card itself. */
-.collection-fan { order: 2; position: relative; display: block; aspect-ratio: 2 / 1; margin-top: auto; }
-.collection-fan .poster { position: absolute; top: 5%; width: 30%; box-shadow: var(--shadow); transition: transform 0.4s var(--ease); }
-.collection-fan .poster:nth-child(1) { left: 14%; transform: rotate(-5deg); }
-.collection-fan .poster:nth-child(2) { left: 35%; top: 0; z-index: 2; }
-.collection-fan .poster:nth-child(3) { left: 56%; transform: rotate(5deg); }
-.collection-tile:hover .poster:nth-child(1) { transform: rotate(-8deg) translateX(-6px); }
-.collection-tile:hover .poster:nth-child(3) { transform: rotate(8deg) translateX(6px); }
+/* Name and details on top; the three posters below run to the card's left, right and bottom
+   edges, and the card's rounded corners trim the outer ones. */
+.collection-fan { order: 2; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3px; margin: auto -16px 0; }
+.collection-fan .poster { border-radius: 0; box-shadow: none; }
+.collection-fan .poster img, .collection-fan .poster-card-title { transition: transform 0.5s var(--ease), opacity 0.45s var(--ease); }
+@media (hover: hover) {
+  .collection-tile:hover .collection-fan .poster img { transform: scale(1.05); }
+  .collection-tile:hover .collection-fan .poster:nth-child(2) img { transition-delay: 0.04s; }
+  .collection-tile:hover .collection-fan .poster:nth-child(3) img { transition-delay: 0.08s; }
+}
 .collection-fan .poster-card-title { font-size: 12cqi; }
 .collection-fan .poster-card-foot { display: none; }
 .collection-title { color: var(--ink); font-size: var(--t-lg); font-weight: 600; letter-spacing: -0.015em; }
