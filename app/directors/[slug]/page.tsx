@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Portrait } from "@/components/DirectorCard";
 import FollowButton from "@/components/FollowButton";
@@ -25,8 +24,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 }
 
 /**
- * A director's profile: who they are at the top, then tabs for their films, their biography
- * and their filmography.
+ * A director's profile: who they are at the top, then tabs for their films (as posters, with
+ * what they did on each) and their biography.
  */
 export default async function DirectorPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -68,21 +67,6 @@ export default async function DirectorPage({ params }: { params: Promise<{ slug:
             <PersonLinks info={{ name: director.name, imdb_id: director.imdb_id ?? null, instagram: director.instagram ?? null }} />
           </dl>
         </div>
-      ),
-    },
-    {
-      id: "filmography",
-      label: "Filmography",
-      panel: (
-        <ol className="filmography">
-          {works.map((w) => (
-            <li key={w.slug}>
-              <span className="year">{w.year}</span>
-              <Link href={`/films/${w.slug}`}>{w.title}</Link>
-              <span className="muted">{w.role}</span>
-            </li>
-          ))}
-        </ol>
       ),
     },
   ];
