@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { SITE_NAME } from "@/lib/site";
 import AccountLink from "./AccountLink";
 import { openSearch } from "./Search";
+import GridToggle from "./GridToggle";
 import ThemeToggle from "./ThemeToggle";
 import UpdatesDot from "./UpdatesDot";
 
@@ -101,8 +102,14 @@ export default function SiteHeader() {
             <AccountLink />
           </nav>
           <div className="menu-foot">
-            <span>Appearance</span>
-            <ThemeToggle />
+            <div className="menu-setting">
+              <span>Posters</span>
+              <GridToggle inMenu />
+            </div>
+            <div className="menu-setting">
+              <span>Appearance</span>
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </dialog>

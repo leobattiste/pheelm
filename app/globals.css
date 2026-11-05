@@ -290,7 +290,10 @@ svg { flex-shrink: 0; }
 .menu-main a[aria-current="page"] { color: var(--muted); }
 .menu-more { display: grid; gap: 4px; padding: 20px 0; border-top: 1px solid var(--line); }
 .menu-more a { padding: 8px 0; font-size: var(--t-lg); color: var(--text); }
-.menu-foot { display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 20px; border-top: 1px solid var(--line); font-size: var(--t-sm); color: var(--muted); }
+.menu-foot { display: grid; gap: 14px; margin-top: auto; padding-top: 20px; border-top: 1px solid var(--line); font-size: var(--t-sm); color: var(--muted); }
+.menu-setting { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+/* Where the menu exists (phones and tablets), the poster switch lives there, not beside grids. */
+@media (max-width: 899px) { .grid-toggle:not(.in-menu) { display: none; } }
 
 /* Over a full-bleed still, the header floats on the image until the page scrolls. */
 html:not([data-scrolled]) body:has(.has-still) .site-header { background: transparent; border-color: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
@@ -389,15 +392,18 @@ main { width: 100%; }
 
 /* Film grids: large or small posters, chosen with the grid switch. ------------------------ */
 
-.film-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 14px; }
-@media (min-width: 640px) { .film-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+/* Phones: one poster per row (large) or two (small). Tablets: three or five. */
+.film-grid { display: grid; grid-template-columns: 1fr; gap: 32px 14px; }
+@media (min-width: 640px) { .film-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px 14px; } }
 @media (min-width: 900px) { .film-grid { grid-template-columns: repeat(auto-fill, minmax(196px, 1fr)); gap: 40px 24px; } }
-[data-grid="small"] .film-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px 10px; }
+[data-grid="small"] .film-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 12px; }
 @media (min-width: 640px) { [data-grid="small"] .film-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
 @media (min-width: 900px) { [data-grid="small"] .film-grid { grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 28px 16px; } }
-[data-grid="small"] .film-grid .film-card-meta { display: none; }
-[data-grid="small"] .film-grid .film-card-title { font-size: var(--t-sm); }
-[data-grid="small"] .film-grid .poster-card-foot { display: none; }
+@media (min-width: 640px) {
+  [data-grid="small"] .film-grid .film-card-meta { display: none; }
+  [data-grid="small"] .film-grid .film-card-title { font-size: var(--t-sm); }
+  [data-grid="small"] .film-grid .poster-card-foot { display: none; }
+}
 
 .film-card a { display: grid; gap: 2px; }
 .film-card .poster { margin-bottom: 10px; transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease); }
