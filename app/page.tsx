@@ -1,125 +1,129 @@
 import Link from "next/link";
-import { FilmGrid } from "@/components/FilmCard";
+import DirectorCard from "@/components/DirectorCard";
+import FilmCard from "@/components/FilmCard";
 import Poster from "@/components/Poster";
+import Row from "@/components/Row";
+import TrailerButton from "@/components/TrailerButton";
+import FilmLink from "@/components/Transitions";
 import { getArticles, getCollections, getDirectors, getFacets, getFilms, toCard } from "@/lib/data";
-import { countryName, TYPE_PLURALS } from "@/lib/format";
-import { SITE_TAGLINE } from "@/lib/site";
-import type { FilmType } from "@/lib/types";
+import { filmColour, trailerEmbed } from "@/lib/format";
+import { firstSentence } from "@/lib/text";
 
 export const revalidate = 300;
+
+const WEEK = 7 * 24 * 60 * 60 * 1000;
 
 export default async function Home() {
   const [films, directors, collections, facets, articles] = await Promise.all([
     getFilms(), getDirectors(), getCollections(), getFacets(), getArticles(),
   ]);
+
+  // The film of the week rotates through the featured films, preferring ones with a still.
   const featured = films.filter((f) => f.featured);
-  const picks = (featured.length >= 4 ? featured : films).slice(0, 12).map(toCard);
-  const types = (["feature", "documentary", "short", "animation"] as FilmType[]).map((t) => ({
-    type: t,
-    count: films.filter((f) => f.type === t).length,
-  }));
+  const withStill = featured.filter((f) => f.backdrop_url);
+  const pool = withStill.length ? withStill : featured.length ? featured : films;
+  const week = Math.floor(Date.now() / WEEK);
+  const pick = pool[week % pool.length];
+  const embed = trailerEmbed(pick.trailer_url);
+
+  const startHere = featured.filter((f) => f.id !== pick.id);
+  const recent = films.filter((f) => f.year >= 2015 && f.id !== pick.id).slice(0, 14);
+  const shelves = collections.filter((c) => c.featured).slice(0, 2);
+  // Directors to know: a different handful each week, so the row stays fresh.
+  const known = [...directors].sort((a, b) => b.films.length - a.films.length);
+  const offset = (week * 5) % Math.max(known.length, 1);
+  const toKnow = [...known.slice(offset), ...known.slice(0, offset)].slice(0, 12);
 
   return (
     <>
-      <section className="home-hero">
-        <h1>{SITE_TAGLINE}</h1>
-        <p className="lead">
-          {films.length} films by {directors.length} directors from {facets.countries.length} countries, from the silent era to now.
+      <section className="feature" style={{ "--film": filmColour(pick) } as React.CSSProperties} aria-labelledby="feature-title">
+        {pick.backdrop_url && (
+          <div className="feature-still">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={pick.backdrop_url} alt="" fetchPriority="high" />
+          </div>
+        )}
+        <div className="feature-body">
+          <p className="feature-kicker">Film of the week</p>
+          <h1 id="feature-title">{pick.title}</h1>
+          <p className="feature-by">
+            {pick.directors.map((d, i) => (
+              <span key={d.id}>
+                {i > 0 && " and "}
+                <Link href={`/directors/${d.slug}`}>{d.name}</Link>
+              </span>
+            ))}
+            , {pick.year}
+          </p>
+          {pick.synopsis && <p className="feature-line">{firstSentence(pick.synopsis)}</p>}
+          <div className="actions">
+            <Link className="button" href={`/films/${pick.slug}`}>About the film</Link>
+            {embed && <TrailerButton embed={embed} title={pick.title} />}
+          </div>
+        </div>
+        <FilmLink href={`/films/${pick.slug}`} className="feature-poster" tabIndex={-1} aria-hidden="true">
+          <Poster title={pick.title} year={pick.year} directors={pick.directors.map((d) => d.name)} src={pick.poster_url} sizes="300px" priority />
+        </FilmLink>
+      </section>
+
+      <div className="intro">
+        <p>
+          {films.length} films by {directors.length} directors from {facets.countries.length} countries.{" "}
+          <span className="muted">From the silent era to this year&rsquo;s festivals.</span>
         </p>
-        <form action="/films" className="hero-search" role="search">
-          <label className="visually-hidden" htmlFor="hero-q">Search films or directors</label>
-          <input id="hero-q" name="q" type="search" placeholder="Search a film or a director" />
-          <button className="button" type="submit">Search</button>
-        </form>
-      </section>
+      </div>
 
-      <section className="section">
-        <div className="section-head">
-          <h2>Start here</h2>
-          <Link href="/films">All films</Link>
-        </div>
-        <FilmGrid films={picks} priority={6} />
-      </section>
+      {startHere.length > 0 && (
+        <Row title="Start here" href="/films" linkLabel="All films">
+          {startHere.map((f, i) => <FilmCard key={f.id} film={toCard(f)} priority={i < 3} />)}
+        </Row>
+      )}
 
-      <section className="section">
-        <div className="section-head">
-          <h2>Collections</h2>
-          <Link href="/collections">All collections</Link>
+      {shelves.map((c) => (
+        <Row key={c.id} title={c.title} intro={c.description ?? undefined} href={`/collections/${c.slug}`} linkLabel={`All ${c.films.length}`}>
+          {c.films.map((f) => <FilmCard key={f.id} film={toCard(f)} />)}
+        </Row>
+      ))}
+
+      <Row title="Directors to know" href="/directors" linkLabel="All directors">
+        {toKnow.map((d) => <DirectorCard key={d.id} director={d} />)}
+      </Row>
+
+      {recent.length > 0 && (
+        <Row title="Recent films" href="/films?sort=newest" linkLabel="All films">
+          {recent.map((f) => <FilmCard key={f.id} film={toCard(f)} />)}
+        </Row>
+      )}
+
+      <section className="row" aria-labelledby="decades-title">
+        <div className="row-head">
+          <h2 id="decades-title">Browse by decade</h2>
+          <div className="row-tools"><Link href="/collections">All collections</Link></div>
         </div>
-        <ul className="collection-list">
-          {(collections.filter((c) => c.featured).length ? collections.filter((c) => c.featured) : collections).slice(0, 3).map((c) => (
-            <li key={c.id}>
-              <Link href={`/collections/${c.slug}`} className="collection-tile">
-                <span className="collection-stack" aria-hidden="true">
-                  {c.films.slice(0, 3).map((f) => (
-                    <Poster key={f.id} title={f.title} year={f.year} directors={f.directors.map((d) => d.name)} src={f.poster_url} />
-                  ))}
-                </span>
-                <span className="collection-title">{c.title}</span>
-                <span className="collection-meta">{c.films.length} films</span>
-              </Link>
-            </li>
+        <nav className="decades" aria-labelledby="decades-title">
+          {facets.decades.map(([d, n]) => (
+            <Link key={d} href={`/films?decade=${d}`}>
+              {d}
+              <sup>{n}</sup>
+            </Link>
           ))}
-        </ul>
-      </section>
-
-      <section className="section">
-        <div className="section-head">
-          <h2>Browse</h2>
-        </div>
-        <div className="browse-grid">
-          <div>
-            <h3 className="eyebrow">By type</h3>
-            <ul className="chip-list">
-              {types.filter((t) => t.count).map((t) => (
-                <li key={t.type}><Link className="chip" href={`/films?type=${t.type}`}>{TYPE_PLURALS[t.type]} <span>{t.count}</span></Link></li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <h3 className="eyebrow">By decade</h3>
-            <ul className="chip-list">
-              {facets.decades.map(([d, n]) => (
-                <li key={d}><Link className="chip" href={`/films?decade=${d}`}>{d} <span>{n}</span></Link></li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <h3 className="eyebrow">By country</h3>
-            <ul className="chip-list">
-              {facets.countries.slice(0, 14).map(([c, n]) => (
-                <li key={c}><Link className="chip" href={`/films?country=${c}`}>{countryName(c)} <span>{n}</span></Link></li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </section>
-
-      <section className="section">
-        <div className="section-head">
-          <h2>Directors</h2>
-          <Link href="/directors">All directors</Link>
-        </div>
-        <ul className="name-cloud">
-          {directors.map((d) => (
-            <li key={d.id}>
-              <Link href={`/directors/${d.slug}`}>{d.name}</Link>
-            </li>
-          ))}
-        </ul>
+        </nav>
       </section>
 
       {articles.length > 0 && (
-        <section className="section">
-          <div className="section-head">
-            <h2>From the Journal</h2>
-            <Link href="/journal">All stories</Link>
+        <section className="row" aria-labelledby="journal-title">
+          <div className="row-head">
+            <h2 id="journal-title">From the Journal</h2>
+            <div className="row-tools"><Link href="/journal">All stories</Link></div>
           </div>
-          <ul className="article-list">
+          <ul className="article-grid">
             {articles.slice(0, 3).map((a) => (
               <li key={a.id}>
                 <Link href={`/journal/${a.slug}`}>
-                  <span className="eyebrow">{a.kind}</span>
+                  {a.cover_url && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={a.cover_url} alt="" loading="lazy" />
+                  )}
                   <span className="article-title">{a.title}</span>
                   {a.dek && <span className="article-dek">{a.dek}</span>}
                 </Link>

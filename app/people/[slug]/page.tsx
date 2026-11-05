@@ -20,15 +20,19 @@ export default async function PersonPage({ params }: { params: Promise<{ slug: s
   const { person, work } = found;
 
   return (
-    <article className="page person">
+    <article className="page">
       <header className="person-head">
-        <div>
+        {person.photo_url && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img className="portrait" src={person.photo_url} alt="" />
+        )}
+        <div className="person-text">
           <h1>{person.name}</h1>
-          {person.country && <p className="film-facts"><span>{countryName(person.country)}</span></p>}
+          {person.country && <dl className="person-facts"><div><dt>From</dt><dd>{countryName(person.country)}</dd></div></dl>}
           {person.bio && <p className="bio">{person.bio}</p>}
         </div>
       </header>
-      <section className="film-section">
+      <section className="section">
         <h2>In the directory</h2>
         <ol className="filmography">
           {work.sort((a, b) => b.film.year - a.film.year).map((w) => (
@@ -36,9 +40,7 @@ export default async function PersonPage({ params }: { params: Promise<{ slug: s
               <span className="year">{w.film.year}</span>
               <Link href={`/films/${w.film.slug}`}>{w.film.title}</Link>
               <span className="muted">
-                {w.role === "cast" ? (w.character ? `as ${w.character}` : "Actor") : ROLE_LABELS[w.role]}
-                {" · dir. "}
-                {w.film.directors.map((d) => d.name).join(", ")}
+                {w.role === "cast" ? (w.character ? `as ${w.character}` : "Actor") : ROLE_LABELS[w.role]}, directed by {w.film.directors.map((d) => d.name).join(" and ")}
               </span>
             </li>
           ))}

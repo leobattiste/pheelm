@@ -162,7 +162,7 @@ export async function getArticle(slug: string) {
 export function toCard(f: Film): FilmCard {
   return {
     id: f.id, slug: f.slug, title: f.title, year: f.year, type: f.type, countries: f.countries,
-    languages: f.languages, genres: f.genres, poster_url: f.poster_url,
+    languages: f.languages, genres: f.genres, poster_url: f.poster_url, color: f.color ?? null,
     directors: f.directors.map((d) => d.name),
     wins: f.awards.filter((a) => a.result === "won").length,
   };

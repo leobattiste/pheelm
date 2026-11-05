@@ -18,6 +18,8 @@ export type FilmRow = {
   synopsis: string | null;
   poster_url: string | null;
   backdrop_url: string | null;
+  /** Hex colour from the poster, used to tint the film's page. */
+  color?: string | null;
   trailer_url: string | null;
   awards: Award[];
   watch: WatchOption[];
@@ -73,7 +75,7 @@ export type Film = FilmRow & {
 };
 
 /** The light version used on cards and in the browser, so pages stay small. */
-export type FilmCard = Pick<Film, "id" | "slug" | "title" | "year" | "type" | "countries" | "languages" | "genres" | "poster_url"> & {
+export type FilmCard = Pick<Film, "id" | "slug" | "title" | "year" | "type" | "countries" | "languages" | "genres" | "poster_url" | "color"> & {
   directors: string[];
   wins: number;
 };

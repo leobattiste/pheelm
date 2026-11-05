@@ -1,5 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import sharp from "sharp";
 import { slugify } from "./format";
 import { findMovie, getMovie, getPersonDetails } from "./tmdb";
 import type { WatchOption } from "./types";
@@ -30,6 +31,12 @@ export async function importFilm(db: SupabaseClient, filmId: string): Promise<st
   const update: Record<string, unknown> = { tmdb_id: tmdbId, watch: [...manualWatch, ...m.watch], updated_at: new Date().toISOString() };
   for (const key of ["original_title", "runtime", "synopsis", "poster_url", "backdrop_url", "trailer_url", "genres", "countries", "languages"] as const) {
     if (empty(film[key]) && !empty(m[key])) update[key] = m[key];
+  }
+  // The page tint comes from the poster, unless a colour was picked by hand.
+  const poster = (update.poster_url as string | undefined) ?? film.poster_url;
+  if (!film.color && poster) {
+    const color = await posterColour(poster);
+    if (color) update.color = color;
   }
   const { error: upErr } = await db.from("films").update(update).eq("id", filmId);
   if (upErr) {
@@ -62,7 +69,7 @@ export async function importFilm(db: SupabaseClient, filmId: string): Promise<st
     if (Object.keys(patch).length) await db.from("people").update(patch).eq("id", person.id);
   }
 
-  const filled = Object.keys(update).filter((k) => !["tmdb_id", "watch", "updated_at"].includes(k));
+  const filled = Object.keys(update).filter((k) => !["tmdb_id", "watch", "updated_at", "color"].includes(k));
   const parts = [
     filled.length ? `filled ${filled.map((k) => k.replace("_url", "").replace("_", " ")).join(", ")}` : "nothing empty to fill",
     `${added} new credits`,
@@ -86,4 +93,16 @@ async function ensurePerson(db: SupabaseClient, tmdbId: number, name: string, ph
   const { data: created, error } = await db.from("people").insert({ slug, name, tmdb_id: tmdbId, photo_url: photo }).select("id").single();
   if (error || !created) throw new Error(`Couldn't add ${name}: ${error?.message}`);
   return created.id;
+}
+
+/** The poster's dominant colour as a hex string, or null if the image can't be read. */
+export async function posterColour(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) return null;
+    const { dominant } = await sharp(Buffer.from(await res.arrayBuffer())).resize(48, 72, { fit: "cover" }).stats();
+    return "#" + [dominant.r, dominant.g, dominant.b].map((n) => n.toString(16).padStart(2, "0")).join("");
+  } catch {
+    return null;
+  }
 }

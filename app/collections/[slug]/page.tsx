@@ -24,15 +24,11 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
   return (
     <section className="page">
       <header className="page-head">
-        <nav className="crumbs" aria-label="Breadcrumb">
-          <Link href="/collections">Collections</Link>
-        </nav>
+        <nav className="crumbs" aria-label="Breadcrumb"><Link href="/collections">Collections</Link></nav>
         <h1>{collection.title}</h1>
         {collection.description && <p className="lead">{collection.description}</p>}
         {years.length > 0 && (
-          <p className="muted">
-            {collection.films.length} films · {Math.min(...years)}–{Math.max(...years)}
-          </p>
+          <p className="label">{collection.films.length} films, {Math.min(...years)} to {Math.max(...years)}</p>
         )}
       </header>
       <FilmGrid films={collection.films.map(toCard)} priority={8} />

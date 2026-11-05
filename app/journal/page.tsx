@@ -19,7 +19,7 @@ export default async function JournalPage() {
         <p className="lead">Stories behind the films, interviews, essays and film history.</p>
       </header>
       {articles.length ? (
-        <ul className="article-list stacked">
+        <ul className="article-list">
           {articles.map((a) => (
             <li key={a.id}>
               <Link href={`/journal/${a.slug}`}>
@@ -27,9 +27,9 @@ export default async function JournalPage() {
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={a.cover_url} alt="" loading="lazy" />
                 )}
-                <span className="eyebrow">
+                <span className="label">
                   {KIND_LABELS[a.kind]}
-                  {a.published_at && ` · ${new Date(a.published_at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`}
+                  {a.published_at && `, ${new Date(a.published_at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`}
                 </span>
                 <span className="article-title">{a.title}</span>
                 {a.dek && <span className="article-dek">{a.dek}</span>}
@@ -38,7 +38,7 @@ export default async function JournalPage() {
           ))}
         </ul>
       ) : (
-        <p className="empty">The first stories are on their way.</p>
+        <p className="empty">The first stories are being written: interviews, essays and the histories behind the films. Until then, <a href="/collections">explore the collections</a>.</p>
       )}
     </section>
   );

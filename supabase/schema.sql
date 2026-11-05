@@ -29,6 +29,9 @@ create table if not exists public.films (
   updated_at timestamptz not null default now()
 );
 
+-- The film's colour, taken from its poster, tints its page. Added after launch, so it's an alter.
+alter table public.films add column if not exists color text check (color ~ '^#[0-9a-fA-F]{6}$');
+
 create index if not exists films_year_idx on public.films (year desc, title);
 
 create table if not exists public.people (

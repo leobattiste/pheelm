@@ -84,3 +84,9 @@ npm run dev
 ```
 
 Change the name and tagline in `lib/site.ts`.
+
+## Design
+
+Pheelm is dark by default (visitors can switch to light in the footer). Titles are set in Gloock and text in Schibsted Grotesk, both served from the site itself. Each film page takes its colour from the film's poster: the TMDB import measures it automatically, and you can override it in the film's editor. Until a film has a poster, it gets a title card in a colour picked from its name.
+
+The home page's film of the week rotates through films marked "Feature on the home page", preferring those with a still. Search opens with ⌘K, Ctrl+K or "/".

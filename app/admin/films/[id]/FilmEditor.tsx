@@ -23,6 +23,7 @@ export default function FilmEditor({ film, creditText, collections, chosen, tmdb
   const [importing, setImporting] = useState(false);
   const [importMsg, setImportMsg] = useState<Result | null>(null);
   const [poster, setPoster] = useState(film.poster_url ?? "");
+  const [colour, setColour] = useState(film.color ?? "");
 
   const runImport = async () => {
     setImporting(true);
@@ -77,7 +78,15 @@ export default function FilmEditor({ film, creditText, collections, chosen, tmdb
           <label className="field">Poster link<input name="poster_url" type="url" value={poster} onChange={(e) => setPoster(e.target.value)} placeholder="https://" /></label>
           <label className="field">…or upload a poster <span className="hint">JPEG, PNG or WebP, portrait 2:3</span><input name="poster_file" type="file" accept="image/jpeg,image/png,image/webp" /></label>
           <label className="field">Trailer <span className="hint">YouTube or Vimeo link</span><input name="trailer_url" type="url" defaultValue={film.trailer_url ?? ""} /></label>
-          <label className="field">Backdrop image link<input name="backdrop_url" type="url" defaultValue={film.backdrop_url ?? ""} /></label>
+          <label className="field">Still <span className="hint">a wide frame from the film, shown across the top of its page</span><input name="backdrop_url" type="url" defaultValue={film.backdrop_url ?? ""} /></label>
+          <input type="hidden" name="previous_poster" value={film.poster_url ?? ""} />
+          <input type="hidden" name="previous_color" value={film.color ?? ""} />
+          <label className="field">Page colour <span className="hint">taken from the poster automatically; pick one to override</span>
+            <span className="colour-field">
+              <input type="color" value={colour || "#7d2a1f"} onChange={(e) => setColour(e.target.value)} aria-label="Page colour" />
+              <input name="color" value={colour} onChange={(e) => setColour(e.target.value)} placeholder="#7d2a1f" pattern="#[0-9a-fA-F]{6}" />
+            </span>
+          </label>
         </fieldset>
 
         <fieldset className="fieldset">

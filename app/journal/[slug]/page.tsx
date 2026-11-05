@@ -36,11 +36,12 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
         </nav>
         <h1>{article.title}</h1>
         {article.dek && <p className="lead">{article.dek}</p>}
-        <p className="muted">
-          {article.author && <>By {article.author} · </>}
-          {article.published_at && new Date(article.published_at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
-          {" · "}
-          {readingTime(article.body)} min read
+        <p className="label">
+          {[
+            article.author && `By ${article.author}`,
+            article.published_at && new Date(article.published_at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }),
+            `${readingTime(article.body)} minute read`,
+          ].filter(Boolean).join(". ")}
         </p>
       </header>
       {article.cover_url && (
@@ -49,7 +50,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
       )}
       <div className="prose" dangerouslySetInnerHTML={{ __html: renderMarkdown(article.body) }} />
       {films.length > 0 && (
-        <section className="film-section">
+        <section className="section">
           <h2>Films in this story</h2>
           <FilmGrid films={films.map(toCard)} />
         </section>

@@ -1,0 +1,20 @@
+import Link from "next/link";
+import type { Collection } from "@/lib/types";
+import Poster from "./Poster";
+
+/** Three posters fanned out like prints on a table, with the collection's name below. */
+export default function CollectionTile({ collection }: { collection: Collection }) {
+  return (
+    <li>
+      <Link href={`/collections/${collection.slug}`} className="collection-tile">
+        <span className="collection-fan" aria-hidden="true">
+          {collection.films.slice(0, 3).map((f) => (
+            <Poster key={f.id} title={f.title} year={f.year} directors={f.directors.map((d) => d.name)} src={f.poster_url} sizes="140px" />
+          ))}
+        </span>
+        <span className="collection-title">{collection.title}</span>
+        <span className="collection-desc">{collection.films.length} films. {collection.description}</span>
+      </Link>
+    </li>
+  );
+}

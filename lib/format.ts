@@ -86,15 +86,31 @@ export function trailerEmbed(url: string | null): string | null {
 }
 
 // Placeholder posters take their colour from the title, so each film keeps the same one.
+// Pairs of film-stock colours: a ground and the ink printed on it.
 const POSTER_COLOURS = [
-  ["#1d1a17", "#e8d9b0"], ["#5a1f1b", "#f2d2a9"], ["#123a32", "#e6efe0"], ["#2a2350", "#f0c873"],
-  ["#7a3b12", "#fbe7c6"], ["#0f2f4a", "#f4b860"], ["#3d1f3a", "#f1c6d3"], ["#33402a", "#efe3b8"],
-  ["#b2452c", "#1a1410"], ["#d8b25a", "#1f1a12"], ["#e6ddd0", "#262019"], ["#8c1c2a", "#f6e3d6"],
+  ["#7d2a1f", "#f4dcc0"], ["#1f4a3f", "#e9e1c4"], ["#2e2a5c", "#f1c977"], ["#9a5a17", "#fbe9cf"],
+  ["#14385a", "#f3bf72"], ["#5b2447", "#f3ccd6"], ["#46522c", "#efe4bd"], ["#b8502f", "#20150f"],
+  ["#d9a94e", "#22170d"], ["#e4d6c3", "#2c2119"], ["#8f1f30", "#f6e1d3"], ["#2f5f6b", "#f1e6cf"],
 ];
 
+/** The colour a film's page is tinted with: from its poster when known, otherwise its placeholder's. */
+export function filmColour(film: { title: string; color?: string | null }) {
+  return film.color ?? posterColours(film.title).bg;
+}
+
+/** TMDB serves each poster in several sizes, so phones download small ones. */
+export function srcSet(url: string | null) {
+  if (!url || !url.includes("image.tmdb.org/t/p/")) return undefined;
+  return ["w185", "w342", "w500", "w780"].map((w) => `${url.replace(/\/t\/p\/[^/]+\//, `/t/p/${w}/`)} ${w.slice(1)}w`).join(", ");
+}
+
 export function posterColours(seed: string) {
-  let h = 0;
-  for (const ch of seed) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  // FNV-1a with a final mix, so similar titles don't land on neighbouring colours.
+  let h = 0x811c9dc5;
+  for (const ch of seed) h = Math.imul(h ^ ch.charCodeAt(0), 0x01000193) >>> 0;
+  h = (h ^ (h >>> 16)) >>> 0;
+  h = Math.imul(h, 0x45d9f3b) >>> 0;
+  h = (h ^ (h >>> 16)) >>> 0;
   const [bg, fg] = POSTER_COLOURS[h % POSTER_COLOURS.length];
   return { bg, fg };
 }

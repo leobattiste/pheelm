@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { adminClient } from "@/lib/admin";
 import { slugify } from "@/lib/format";
-import { importFilm } from "@/lib/import";
+import { importFilm, posterColour } from "@/lib/import";
 import { tmdbEnabled } from "@/lib/tmdb";
 import type { Award, Role, WatchOption } from "@/lib/types";
 
@@ -94,6 +94,12 @@ export async function saveFilm(_prev: Result, f: FormData): Promise<Result> {
     if (!credits.some((c) => c.role === "director")) return { ok: false, message: "Add at least one line like  director: Name" };
 
     const poster = (await upload(db, f.get("poster_file"), "posters")) ?? nullable(f, "poster_url", 1000);
+    // A new poster brings its own colour, unless one was typed in.
+    const typed = str(f, "color").toLowerCase();
+    let color: string | null = /^#[0-9a-f]{6}$/.test(typed) ? typed : null;
+    if (poster && poster !== str(f, "previous_poster") && typed === str(f, "previous_color").toLowerCase()) {
+      color = (await posterColour(poster)) ?? color;
+    }
     const row = {
       title,
       slug: slugify(str(f, "slug") || title),
@@ -108,6 +114,7 @@ export async function saveFilm(_prev: Result, f: FormData): Promise<Result> {
       runtime: int(f, "runtime"),
       synopsis: nullable(f, "synopsis"),
       poster_url: poster,
+      color,
       backdrop_url: nullable(f, "backdrop_url", 1000),
       trailer_url: nullable(f, "trailer_url", 1000),
       tmdb_id: int(f, "tmdb_id"),
