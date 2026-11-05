@@ -234,7 +234,7 @@ export default async function FilmPage({ params }: { params: Promise<{ slug: str
       </header>
 
       <div className="film-main">
-        <Poster title={film.title} year={film.year} directors={directorNames} src={film.poster_url} sizes="(min-width: 900px) 280px, 40vw" priority hero />
+        <Poster title={film.title} year={film.year} directors={directorNames} src={film.poster_url} sizes="(min-width: 900px) 280px, 100vw" priority hero />
         <Tabs tabs={tabs} label={`About ${film.title}`} />
       </div>
 

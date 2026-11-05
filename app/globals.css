@@ -691,7 +691,8 @@ main:has(.film-hero.has-still) .film-hero { padding-top: calc(var(--header) + 64
 
 .film-main { display: grid; gap: 28px; padding: clamp(24px, 4vw, 48px) var(--gutter) 0; }
 .film-main > *, .tabs-wrap, .tab-panel { min-width: 0; }
-.film-main > .poster-hero { width: min(200px, 46vw); }
+/* On phones the poster spans the full width of the page. */
+.film-main > .poster-hero { width: 100%; }
 @media (min-width: 900px) {
   .film-main { grid-template-columns: 260px minmax(0, 1fr); gap: 56px; align-items: start; }
   .film-main > .poster-hero { position: sticky; top: calc(var(--header) + 24px); width: 100%; }
