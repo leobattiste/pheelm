@@ -63,17 +63,11 @@ export async function importFilm(db: SupabaseClient, filmId: string): Promise<st
     if (!cErr) added++;
   }
 
-  // Directors also get a portrait, birth year and biography if they don't have one.
-  for (const d of m.people.filter((p) => p.role === "director")) {
-    const { data: person } = await db.from("people").select("id, bio, birth_year, photo_url").eq("tmdb_id", d.tmdb_id).maybeSingle();
-    if (!person || (person.bio && person.birth_year && person.photo_url)) continue;
-    const details = await getPersonDetails(d.tmdb_id);
-    const patch: Record<string, unknown> = {};
-    if (!person.bio && details.bio) patch.bio = details.bio.split("\n\n").slice(0, 2).join("\n\n");
-    if (!person.birth_year && details.birth_year) patch.birth_year = details.birth_year;
-    if (!person.photo_url && details.photo_url) patch.photo_url = details.photo_url;
-    if (Object.keys(patch).length) await db.from("people").update(patch).eq("id", person.id);
-  }
+  // Everyone on the film gets their biography, dates, birthplace and links, once.
+  const ids = [...new Set(m.people.map((p) => p.tmdb_id))];
+  const { data: rows } = await db.from("people").select("*").in("tmdb_id", ids);
+  const todo = (rows ?? []).filter((p) => !p.details_at);
+  for (let i = 0; i < todo.length; i += 5) await Promise.all(todo.slice(i, i + 5).map((p) => fillPerson(db, p)));
 
   const filled = Object.keys(update).filter((k) => !["tmdb_id", "watch", "updated_at", "color", "type"].includes(k));
   const parts = [
@@ -140,6 +134,33 @@ async function addToCollection(db: SupabaseClient, filmId: string, collectionId?
   if (!collectionId) return;
   const { data: film } = await db.from("films").select("year").eq("id", filmId).single();
   await db.from("collection_films").upsert({ collection_id: collectionId, film_id: filmId, sort: film?.year ?? 0 }, { onConflict: "collection_id,film_id", ignoreDuplicates: true });
+}
+
+/**
+ * Fills a person's empty fields from TMDB: biography, birth and death dates, birthplace, the job
+ * they're best known for, IMDb and Instagram, and a portrait. Anything already written stays.
+ * Before supabase/people-details.sql has run, only the older fields (bio, birth year, portrait) fill.
+ */
+export async function fillPerson(db: SupabaseClient, person: Record<string, any>) {
+  if (!person.tmdb_id) return false;
+  const d = await getPersonDetails(person.tmdb_id);
+  const patch: Record<string, unknown> = {};
+  const set = (key: string, value: unknown) => { if (!person[key] && value) patch[key] = value; };
+  set("bio", d.bio?.split("\n\n").slice(0, 4).join("\n\n"));
+  set("birth_year", d.birth_year);
+  set("photo_url", d.photo_url);
+  const migrated = "details_at" in person;
+  if (migrated) {
+    set("born", d.born);
+    set("died", d.died);
+    set("birthplace", d.birthplace);
+    set("known_for", d.known_for);
+    set("imdb_id", d.imdb_id);
+    set("instagram", d.instagram);
+    patch.details_at = new Date().toISOString();
+  }
+  if (Object.keys(patch).length) await db.from("people").update(patch).eq("id", person.id);
+  return migrated;
 }
 
 async function ensurePerson(db: SupabaseClient, tmdbId: number, name: string, photo: string | null): Promise<string> {

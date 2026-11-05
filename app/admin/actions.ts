@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { adminClient } from "@/lib/admin";
 import { slugify } from "@/lib/format";
-import { addFilmByTitle, importFilm, posterColour, type AddResult } from "@/lib/import";
+import { addFilmByTitle, fillPerson, importFilm, posterColour, type AddResult } from "@/lib/import";
 import { tmdbEnabled } from "@/lib/tmdb";
 import type { Award, Role, WatchOption } from "@/lib/types";
 
@@ -181,6 +181,25 @@ export async function importOne(id: string): Promise<Result> {
     return { ok: true, message };
   } catch (e) {
     return fail(e);
+  }
+}
+
+/**
+ * Fills in up to ten people from TMDB (biography, dates, birthplace, links). The admin page calls
+ * it repeatedly until none are left, so it never hits a server time limit.
+ */
+export async function fillPeople(): Promise<Result & { remaining: number }> {
+  try {
+    if (!tmdbEnabled) return { ok: false, message: "Add TMDB_API_KEY in Vercel to switch on the import.", remaining: 0 };
+    const db = await adminClient();
+    const { data, error } = await db.from("people").select("*").not("tmdb_id", "is", null).is("details_at", null).limit(10);
+    if (error) return { ok: false, message: "Run supabase/people-details.sql in Supabase first, then try again.", remaining: 0 };
+    await Promise.all((data ?? []).map((p) => fillPerson(db, p)));
+    const { count } = await db.from("people").select("*", { count: "exact", head: true }).not("tmdb_id", "is", null).is("details_at", null);
+    refresh();
+    return { ok: true, message: `Filled ${data?.length ?? 0} people.`, remaining: count ?? 0 };
+  } catch (e) {
+    return { ...fail(e), remaining: 0 };
   }
 }
 

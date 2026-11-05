@@ -151,10 +151,16 @@ export async function getMovie(id: number): Promise<ImportedFilm> {
 }
 
 export async function getPersonDetails(id: number) {
-  const p = await get<any>(`/person/${id}`);
+  const p = await get<any>(`/person/${id}`, { append_to_response: "external_ids" });
   return {
     bio: p.biography || null,
     birth_year: p.birthday ? Number(p.birthday.slice(0, 4)) : null,
+    born: p.birthday || null,
+    died: p.deathday || null,
+    birthplace: p.place_of_birth || null,
+    known_for: p.known_for_department || null,
+    imdb_id: p.external_ids?.imdb_id || p.imdb_id || null,
+    instagram: p.external_ids?.instagram_id || null,
     photo_url: p.profile_path ? `${IMG}/w300${p.profile_path}` : null,
   };
 }

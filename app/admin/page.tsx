@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/admin";
 import { tmdbEnabled } from "@/lib/tmdb";
 import BulkImport from "./BulkImport";
+import PeopleFill from "./PeopleFill";
 
 export default async function AdminHome() {
   const { db } = await requireAdmin();
@@ -20,6 +21,9 @@ export default async function AdminHome() {
     count("profiles"),
   ]);
   const { data: missing } = await db.from("films").select("id, title").is("poster_url", null).order("year");
+  // People still waiting for their TMDB details; null until supabase/people-details.sql has run.
+  const waitingQ = await db.from("people").select("*", { count: "exact", head: true }).not("tmdb_id", "is", null).is("details_at", null);
+  const waiting = waitingQ.error ? null : waitingQ.count ?? 0;
 
   return (
     <>
@@ -40,7 +44,11 @@ export default async function AdminHome() {
       <section className="fieldset">
         <h2>TMDB import</h2>
         {tmdbEnabled ? (
-          <BulkImport films={missing ?? []} />
+          <>
+            <BulkImport films={missing ?? []} />
+            <h3>People</h3>
+            <PeopleFill waiting={waiting} />
+          </>
         ) : (
           <p className="muted">
             Off. To fill posters, synopses, cast and crew, trailers and where to watch automatically, get a free API key at

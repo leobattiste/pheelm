@@ -933,8 +933,8 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 
 .cast { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-8) var(--space-16); }
 @media (min-width: 1100px) { .cast { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-.cast a { display: flex; align-items: center; gap: var(--space-12); min-width: 0; padding: var(--space-4); margin: calc(var(--space-4) * -1); border-radius: var(--r); }
-.cast a:hover { background: var(--hover); }
+.cast :is(a, button) { display: flex; width: 100%; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; align-items: center; gap: var(--space-12); min-width: 0; padding: var(--space-4); margin: calc(var(--space-4) * -1); border-radius: var(--r); }
+.cast :is(a, button):hover { background: var(--hover); }
 .cast-photo { display: grid; place-items: center; flex-shrink: 0; width: 48px; height: 48px; border-radius: var(--r); background: var(--raised); color: var(--muted); font-size: var(--t-xs); object-fit: cover; }
 .cast-text { display: grid; min-width: 0; }
 .cast-name { overflow: hidden; color: var(--ink); text-overflow: ellipsis; white-space: nowrap; }
@@ -1165,8 +1165,7 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
   [data-grid="list"] .film-grid .film-card-country { grid-area: country; display: block; overflow: hidden; color: var(--muted); font-size: var(--t-md); text-overflow: ellipsis; white-space: nowrap; }
 }
 
-.person-actions { margin-top: 0; }
-@media (max-width: 639px) { .person-actions { display: flex; } }
+.person-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-8); }
 
 /* New films from followed directors */
 .updates-dot { display: inline-block; width: 7px; height: 7px; margin-left: var(--space-8); border-radius: 50%; background: var(--ok); vertical-align: super; }
@@ -1182,13 +1181,13 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 .update-when { color: var(--muted); font-size: var(--t-xs); white-space: nowrap; }
 
 /* Small hover and press motion, on touch and pointer alike ---------------------------------- */
-.film-card a, .collection-tile, .chip, .icon-button, .round-button, .pill-button, .button, .segmented button, .cast a, .menu-main a, .menu-more a {
+.film-card a, .collection-tile, .chip, .icon-button, .round-button, .pill-button, .button, .segmented button, .cast a, .cast button, .menu-main a, .menu-more a {
   transition-property: transform, background-color, border-color, color, opacity, box-shadow;
   transition-duration: 0.2s;
   transition-timing-function: var(--ease);
 }
 .film-card a:active .poster { transform: scale(0.97); }
-.collection-tile:active, .cast a:active { transform: scale(0.98); }
+.collection-tile:active, .cast a:active, .cast button:active { transform: scale(0.98); }
 .chip:active, .icon-button:active, .segmented button:active, .button.ghost:active { transform: scale(0.94); }
 .menu-main a:active, .menu-more a:active { transform: translateX(4px); }
 @media (hover: hover) {
@@ -1280,3 +1279,33 @@ h1, h2, .menu-main a, .empty-state p:first-child, .decades a,
   font-weight: 400;
   letter-spacing: 0;
 }
+
+/* People ------------------------------------------------------------------------------------
+   Directors have a profile with tabs; cast and crew open in a sheet with the same details. */
+.person-roles { color: var(--ink); }
+.person-life { color: var(--muted); }
+.person-head .person-text { gap: var(--space-8); }
+.person-head .person-actions { margin-top: var(--space-12); }
+.person-links { display: flex; flex-wrap: wrap; gap: var(--space-8); }
+
+.profile-tabs { display: flex; gap: var(--space-8); overflow-x: auto; margin: var(--space-48) calc(var(--gutter) * -1) 0; padding: 0 var(--gutter) var(--space-24); border-bottom: 1px solid var(--line); scrollbar-width: none; }
+.profile-tabs::-webkit-scrollbar { display: none; }
+.profile-tabs .chip[aria-selected="true"] { border-color: var(--ink); background: var(--ink); color: var(--on-ink); }
+.tab-panel { padding-top: var(--space-32); }
+.profile-about { display: grid; gap: var(--space-16); max-width: 68ch; }
+.profile-about .details { margin-top: var(--space-16); }
+.person-films { display: grid; gap: var(--space-24); }
+
+.person-details { display: grid; gap: var(--space-16); }
+.person-details-head { display: flex; align-items: center; gap: var(--space-16); }
+.person-details .portrait { width: 72px; height: 72px; font-size: var(--t-lg); }
+.person-details-name { display: grid; gap: var(--space-4); min-width: 0; }
+.person-details h1, .person-details h2 { font-size: var(--t-2xl); }
+.person-bio { display: grid; gap: var(--space-12); max-width: 68ch; }
+.person-bio .more > summary { color: var(--ink); }
+.person-works { display: grid; gap: var(--space-12); margin-top: var(--space-8); }
+.person-works h3 { font-size: var(--t-xl); }
+.person-page { padding-top: var(--space-48); }
+.person-page .person-details .portrait { width: 120px; height: 120px; }
+.person-page h1 { font-size: var(--t-3xl); }
+.person-sheet .modal-body { padding-top: 0; }

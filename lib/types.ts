@@ -39,6 +39,14 @@ export type PersonRow = {
   birth_year?: number | null;
   photo_url: string | null;
   tmdb_id: number | null;
+  /** From TMDB (supabase/people-details.sql). */
+  born?: string | null;
+  died?: string | null;
+  birthplace?: string | null;
+  known_for?: string | null;
+  imdb_id?: string | null;
+  instagram?: string | null;
+  details_at?: string | null;
 };
 
 export type CreditRow = { film_id: string; person_id: string; role: Role; character: string | null; sort: number };

@@ -4,13 +4,15 @@ import { notFound } from "next/navigation";
 import { FilmGrid } from "@/components/FilmCard";
 import CollectionTile from "@/components/CollectionTile";
 import FilmActionBar from "@/components/FilmActionBar";
+import PeopleGrid from "@/components/PeopleGrid";
 import Poster from "@/components/Poster";
 import ShareButton from "@/components/ShareButton";
 import TrailerButton from "@/components/TrailerButton";
 import WatchSection from "@/components/WatchSection";
 import WatchlistButton from "@/components/WatchlistButton";
-import { getCollections, getFilm, getFilms, toCard } from "@/lib/data";
-import { countryName, initials, inkFor, listJoin, ROLE_LABELS, runtimeLabel, trailerEmbed, TYPE_LABELS } from "@/lib/format";
+import { getCollections, getDirectors, getFilm, getFilms, toCard } from "@/lib/data";
+import { personInfo, roleLabel, sentence } from "@/lib/roles";
+import { countryName, inkFor, listJoin, runtimeLabel, trailerEmbed, TYPE_LABELS } from "@/lib/format";
 import { SITE_URL } from "@/lib/supabase/config";
 import type { Award, Credit, Role } from "@/lib/types";
 
@@ -62,7 +64,8 @@ export default async function FilmPage({ params }: Params) {
   const film = await getFilm((await params).slug);
   if (!film) notFound();
 
-  const [all, collections] = await Promise.all([getFilms(), getCollections()]);
+  const [all, collections, allDirectors] = await Promise.all([getFilms(), getCollections(), getDirectors()]);
+  const anyDirector = new Set(allDirectors.map((d) => d.id));
   const inCollections = collections.filter((c) => film.collections.some((fc) => fc.slug === c.slug));
   const directorIds = new Set(film.directors.map((d) => d.id));
   const moreByDirector = all.filter((f) => f.id !== film.id && f.directors.some((d) => directorIds.has(d.id)));
@@ -107,7 +110,7 @@ export default async function FilmPage({ params }: Params) {
     if (!entry.roles.includes(label)) entry.roles.push(label);
     byPerson.set(c.person.id, entry);
   }
-  const people = [...byPerson.values()].map((p) => ({ person: p.person, role: sentence(p.roles) }));
+  const people = [...byPerson.values()].map((p) => ({ info: personInfo(p.person, all, anyDirector), role: sentence(p.roles) }));
   // The crew and the first six of the cast show; the rest sit behind "Show all".
   const crewCount = new Set(crew.flatMap((g) => g.people.map((c) => c.person.id))).size;
   const shown = Math.min(people.length, crewCount + CAST_SHOWN);
@@ -230,14 +233,14 @@ export default async function FilmPage({ params }: Params) {
           {people.length > 0 && (
             <section className="film-section" aria-labelledby="people-h">
               <h2 id="people-h">Cast and crew</h2>
-              <PeopleList people={people.slice(0, shown)} />
+              <PeopleGrid people={people.slice(0, shown)} />
               {people.length > shown && (
                 <details className="more">
                   <summary className="button ghost small">
                     <span className="more-closed">Show all {people.length}</span>
                     <span className="more-open">Show fewer</span>
                   </summary>
-                  <PeopleList people={people.slice(shown)} />
+                  <PeopleGrid people={people.slice(shown)} />
                 </details>
               )}
             </section>
@@ -300,59 +303,6 @@ function AwardList({ awards }: { awards: Award[] }) {
       ))}
     </ul>
   );
-}
-
-/** People with their photo (or initials), name and what they did on the film. */
-function PeopleList({ people }: { people: { person: Credit["person"]; role: string }[] }) {
-  return (
-    <ul className="cast">
-      {people.map(({ person, role }) => (
-        <li key={person.id}>
-          <Link href={role.startsWith("Director") || role.startsWith("Co-director") ? `/directors/${person.slug}` : `/people/${person.slug}`}>
-            {person.photo_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img className="cast-photo" src={person.photo_url} alt="" loading="lazy" />
-            ) : (
-              <span className="cast-photo" aria-hidden="true">{initials(person.name)}</span>
-            )}
-            <span className="cast-text">
-              <span className="cast-name">{person.name}</span>
-              <span className="cast-role">{role}</span>
-            </span>
-          </Link>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-/** What someone did, from their credit. Shared roles read as co-director and co-writer. */
-function roleLabel(c: Credit, sharedBy: number) {
-  const job = c.character?.toLowerCase() ?? "";
-  switch (c.role) {
-    case "director":
-      return job === "co-director" || sharedBy > 1 ? "Co-director" : "Director";
-    case "writer":
-      if (job === "screenplay") return sharedBy > 1 ? "Co-writer" : "Screenplay";
-      if (job === "story") return "Story";
-      return sharedBy > 1 ? "Co-writer" : "Writer";
-    case "cinematographer":
-      return "Cinematographer";
-    case "editor":
-      return "Editor";
-    case "composer":
-      return "Composer";
-    case "producer":
-      return "Producer";
-    default:
-      return "Actor";
-  }
-}
-
-/** "Director", "Director and actor", "Director, writer and actor". */
-function sentence(roles: string[]) {
-  const [first, ...rest] = roles;
-  return listJoin([first, ...rest.map((r) => r.toLowerCase())]);
 }
 
 // The festivals and awards people recognise first lead the summary line.
