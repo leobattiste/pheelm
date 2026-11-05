@@ -9,8 +9,9 @@ import type { Role, WatchOption } from "./types";
 const KEY = process.env.TMDB_API_KEY ?? "";
 export const tmdbEnabled = Boolean(KEY);
 
-// Countries whose streaming options are imported. Change with TMDB_WATCH_REGIONS="US,GB,FR".
-const REGIONS = (process.env.TMDB_WATCH_REGIONS ?? "US,GB,FR,CA").split(",").map((r) => r.trim().toUpperCase()).filter(Boolean);
+// The country whose streaming options are imported. Film pages show one country, so only one
+// is needed. Change with TMDB_WATCH_REGIONS="GB".
+const REGIONS = (process.env.TMDB_WATCH_REGIONS ?? "US").split(",").map((r) => r.trim().toUpperCase()).filter(Boolean);
 
 const IMG = "https://image.tmdb.org/t/p";
 

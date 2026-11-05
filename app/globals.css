@@ -872,8 +872,6 @@ main:has(.feature) { margin-top: calc(var(--header) * -1); }
 
 /* Where to watch */
 .watch { display: grid; gap: var(--space-16); }
-.watch-regions { display: flex; flex-wrap: wrap; gap: var(--space-8); }
-.watch-where { color: var(--muted); }
 .watch-groups { display: grid; gap: var(--space-16); }
 .watch-groups > div { display: grid; gap: var(--space-8); }
 .watch-groups dt, .details dt { color: var(--muted); font-size: var(--t-sm); font-weight: 400; }

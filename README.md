@@ -63,7 +63,7 @@ Every film shows a designed placeholder poster until it has a real one. There ar
 - **By hand**: in `/admin/films`, open a film and paste a poster link or upload an image.
 - **From TMDB (recommended)**: get a free API key at [themoviedb.org](https://www.themoviedb.org/settings/api), add it in Vercel as `TMDB_API_KEY` and redeploy. In `/admin`, press **Import from TMDB** to fill every film missing a poster, or use the button in any film's editor.
 
-The import fills only empty fields, so anything you've written stays. It adds posters, backdrops, synopses, runtimes, genres, languages, missing cast and crew, YouTube trailers, director portraits and birth years, and streaming, rental and purchase options (for the countries in `TMDB_WATCH_REGIONS`). Viewing options come from JustWatch through TMDB and are refreshed every time you import. Awards aren't in TMDB, so add them in each film's editor.
+The import fills only empty fields, so anything you've written stays. It adds posters, backdrops, synopses, runtimes, genres, languages, missing cast and crew, YouTube trailers, director portraits and birth years, and streaming, rental and purchase options for the US (set `TMDB_WATCH_REGIONS` to another country code, like `GB`, to use that country instead). Viewing options come from JustWatch through TMDB and are refreshed every time you import. Each service button on a film page opens a search for the film on that service; services the site can't search are left out. Awards aren't in TMDB, so add them in each film's editor.
 
 TMDB's free tier is for non-commercial sites. The footer credit it requires appears automatically once the key is set.
 

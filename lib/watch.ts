@@ -1,7 +1,7 @@
 /**
- * Where each streaming button goes. TMDB only gives one link per country (its own page listing
- * every service), so each service gets a search for the film on that service instead. Services
- * we don't know go to a JustWatch search for the film in that country.
+ * Where each streaming button goes. TMDB tells us which services have a film but gives no link to
+ * the film on each one, so every button opens a search for the film on that service. Services we
+ * can't search aren't shown, so every button on the page goes straight to the service.
  */
 
 type Builder = (q: string) => string;
@@ -31,15 +31,16 @@ const SERVICES: [RegExp, Builder][] = [
   [/bbc iplayer/, (q) => `https://www.bbc.co.uk/iplayer/search?q=${q}`],
   [/sky store/, (q) => `https://www.skystore.com/search?q=${q}`],
   [/^canal/, (q) => `https://www.canalplus.com/recherche/?q=${q}`],
+  [/^amc/, (q) => `https://www.amcplus.com/search?q=${q}`],
+  [/^starz/, (q) => `https://www.starz.com/us/en/search?q=${q}`],
+  [/^shudder/, (q) => `https://www.shudder.com/search?q=${q}`],
+  [/^showtime/, (q) => `https://www.paramountplus.com/search/?q=${q}`],
+  [/^sling/, (q) => `https://watch.sling.com/search?q=${q}`],
 ];
 
-// JustWatch's country paths, where they differ from the country code.
-const JUSTWATCH_PATH: Record<string, string> = { GB: "uk" };
-
-export function watchLink(provider: string, title: string, region = "US") {
+/** A search for the film on the service, or null for services we can't search. */
+export function watchLink(provider: string, title: string): string | null {
   const name = provider.toLowerCase().replace(/\+/g, " plus").trim();
-  const q = encodeURIComponent(title);
   const service = SERVICES.find(([re]) => re.test(name));
-  if (service) return service[1](q);
-  return `https://www.justwatch.com/${JUSTWATCH_PATH[region] ?? region.toLowerCase()}/search?q=${q}`;
+  return service ? service[1](encodeURIComponent(title)) : null;
 }
