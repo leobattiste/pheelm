@@ -5,15 +5,9 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
 
-/**
- * The menu's account link: the member's name once signed in, otherwise Sign in, which
- * brings them back to the page they were on. Checks the session in the browser so every
- * public page can stay static.
- */
 export default function AccountLink() {
   const path = usePathname();
   const [state, setState] = useState<"loading" | "in" | "out">("loading");
-  const [name, setName] = useState<string | null>(null);
 
   useEffect(() => {
     const db = getBrowserClient();
@@ -21,17 +15,21 @@ export default function AccountLink() {
       setState("out");
       return;
     }
-    const read = async (userId: string | undefined) => {
-      setState(userId ? "in" : "out");
-      if (!userId) return setName(null);
-      const { data } = await db.from("profiles").select("display_name").eq("id", userId).maybeSingle();
-      setName(data?.display_name?.trim() || null);
+    let active = true;
+    const refresh = async () => {
+      const { data: { user } } = await db.auth.getUser();
+      if (active) setState(user ? "in" : "out");
     };
-    db.auth.getSession().then(({ data }) => read(data.session?.user.id));
-    const { data } = db.auth.onAuthStateChange((_e, session) => read(session?.user.id));
-    const onProfile = () => db.auth.getSession().then(({ data }) => read(data.session?.user.id));
+    void refresh().catch(() => { if (active) setState("out"); });
+    const { data } = db.auth.onAuthStateChange(() => {
+      // Do not await another Supabase query inside the callback: it can deadlock
+      // the auth client while an auth state transition is in progress.
+      setTimeout(() => { if (active) void refresh().catch(() => {}); }, 0);
+    });
+    const onProfile = () => { void refresh().catch(() => {}); };
     window.addEventListener("profilechange", onProfile);
     return () => {
+      active = false;
       data.subscription.unsubscribe();
       window.removeEventListener("profilechange", onProfile);
     };
@@ -39,9 +37,5 @@ export default function AccountLink() {
 
   if (state === "in") return <Link href="/me">Account</Link>;
   const next = path && !path.startsWith("/login") && !path.startsWith("/me") ? `?next=${encodeURIComponent(path)}` : "";
-  return (
-    <Link href={`/login${next}`} aria-busy={state === "loading"}>
-      Sign in
-    </Link>
-  );
+  return <Link href={`/login${next}`} aria-busy={state === "loading"}>Sign in</Link>;
 }
