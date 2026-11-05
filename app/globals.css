@@ -152,7 +152,8 @@ svg { flex-shrink: 0; }
   --control-fill: var(--surface);
   --control-hover: var(--hover);
   --control-border: var(--line);
-  --control-border-strong: var(--line-strong);
+  /* Outlines stay the hairline colour, at rest and on hover; hover changes the fill instead. */
+  --control-border-strong: var(--line);
   --control-press: scale(0.97);
   --control-ring: 0 0 0 2px var(--bg), 0 0 0 4px var(--ink);
   --control-motion: transform 0.15s var(--ease), background-color 0.15s, border-color 0.15s, color 0.15s, opacity 0.15s, box-shadow 0.15s;
@@ -840,7 +841,7 @@ main:has(.feature) { margin-top: calc(var(--header) * -1); }
   width: var(--control);
   height: var(--control);
   padding: 0;
-  border: 1px solid currentColor;
+  border: 1px solid var(--line);
   background: transparent;
   color: var(--ink);
 }
@@ -877,7 +878,7 @@ main:has(.feature) { margin-top: calc(var(--header) * -1); }
 .watch-groups { display: grid; gap: var(--space-16); }
 .watch-groups > div { display: grid; gap: var(--space-8); }
 .watch-groups dt, .details dt { color: var(--muted); font-size: var(--t-sm); font-weight: 400; }
-.film-page .chip { border-color: var(--line-strong); background: transparent; color: var(--ink); }
+.film-page .chip { border-color: var(--line); background: transparent; color: var(--ink); }
 .film-page .chip:hover { background: var(--hover); }
 .film-page .chip[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--bg); }
 .watch-empty { color: var(--muted); }
@@ -1290,12 +1291,14 @@ h1, h2, .menu-main a, .empty-state p:first-child, .decades a,
 .person-head .person-actions { margin-top: var(--space-12); }
 .person-links { display: flex; flex-wrap: wrap; gap: var(--space-8); }
 
-/* Profile tabs fill the width: one equal segment per tab, like the switches in the menu. */
-.profile-tabs { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: var(--space-2); height: var(--control); margin-top: var(--space-48); padding: 3px; border: 1px solid var(--control-border); border-radius: var(--pill); background: var(--control-fill); scrollbar-width: none; }
+/* Profile tabs: plain text across the full width, with a line under the open tab. */
+.profile-tabs { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); margin-top: var(--space-48); border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
 .profile-tabs::-webkit-scrollbar { display: none; }
-.profile-tabs .chip { height: 100%; padding: 0 var(--space-8); border: 0; background: none; color: var(--muted); }
+.profile-tabs .chip { position: relative; height: var(--control); padding: 0 var(--space-8); border: 0; border-radius: 0; background: none; color: var(--muted); font-size: var(--t-md); }
 .profile-tabs .chip:hover { background: none; color: var(--ink); }
-.profile-tabs .chip[aria-selected="true"] { background: var(--raised); color: var(--ink); box-shadow: 0 1px 2px rgb(0 0 0 / 0.2); }
+.profile-tabs .chip:active { transform: none; }
+.profile-tabs .chip[aria-selected="true"] { background: none; color: var(--ink); }
+.profile-tabs .chip[aria-selected="true"]::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--ink); }
 .tab-panel { padding-top: var(--space-32); }
 .profile-about { display: grid; gap: var(--space-16); max-width: 68ch; }
 .profile-about .details { margin-top: var(--space-16); }
