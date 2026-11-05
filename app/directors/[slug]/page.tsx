@@ -3,13 +3,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Portrait } from "@/components/DirectorCard";
 import FollowButton from "@/components/FollowButton";
-import PeopleGrid, { type PersonEntry } from "@/components/PeopleGrid";
 import { PersonLinks } from "@/components/PersonDetails";
-import PersonFilms from "@/components/PersonFilms";
+import { FilmGrid } from "@/components/FilmCard";
 import Tabs from "@/components/Tabs";
 import { getDirector, getDirectors, getFilms, toCard } from "@/lib/data";
 import { countryName } from "@/lib/format";
-import { lifeLine, overallRoles, personInfo, rolesOnFilm, sentence, worksOf } from "@/lib/roles";
+import { lifeLine, overallRoles, rolesOnFilm, sentence, worksOf } from "@/lib/roles";
 
 export const revalidate = 300;
 export const dynamicParams = true;
@@ -25,15 +24,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 }
 
 /**
- * A director's profile: who they are at the top, then tabs for their films, their biography,
- * their filmography and the people they work with most.
+ * A director's profile: who they are at the top, then tabs for their films, their biography
+ * and their filmography.
  */
 export default async function DirectorPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const director = await getDirector(slug);
   if (!director) notFound();
-  const [all, directors] = await Promise.all([getFilms(), getDirectors()]);
-  const directorIds = new Set(directors.map((d) => d.id));
+  const all = await getFilms();
 
   // Every film they worked on here, directed or not, with what they did on each.
   const works = worksOf(director.id, all);
@@ -47,32 +45,11 @@ export default async function DirectorPage({ params }: { params: Promise<{ slug:
   const life = lifeLine({ born: director.born ?? null, died: director.died ?? null, birth_year: director.birth_year ?? null, birthplace: director.birthplace ?? null });
   const bio = director.bio?.split(/\n{2,}/).filter(Boolean) ?? [];
 
-  // Worked with: the people who share the most films with them here.
-  const shared = new Map<string, { person: (typeof all)[number]["credits"][number]["person"]; films: typeof all }>();
-  for (const f of theirFilms) {
-    for (const c of f.credits) {
-      if (c.person.id === director.id) continue;
-      const e = shared.get(c.person.id) ?? { person: c.person, films: [] };
-      if (!e.films.includes(f)) e.films.push(f);
-      shared.set(c.person.id, e);
-    }
-  }
-  const collaborators: PersonEntry[] = [...shared.values()]
-    .sort((a, b) => b.films.length - a.films.length || a.person.name.localeCompare(b.person.name))
-    .slice(0, 12)
-    .map(({ person, films }) => {
-      const what = overallRoles(films.map((f) => ({ slug: f.slug, title: f.title, year: f.year, role: rolesOnFilm(f, person.id) })));
-      return {
-        info: personInfo(person, all, directorIds),
-        role: films.length > 1 ? `${what} · ${films.length} films together` : what,
-      };
-    });
-
   const tabs = [
     {
       id: "films",
       label: "Films",
-      panel: <PersonFilms films={theirFilms.map(toCard)} roles={roles} />,
+      panel: <FilmGrid films={theirFilms.map(toCard)} notes={roles} />,
     },
     {
       id: "about",
@@ -104,9 +81,6 @@ export default async function DirectorPage({ params }: { params: Promise<{ slug:
         </ol>
       ),
     },
-    ...(collaborators.length
-      ? [{ id: "worked-with", label: "Worked with", panel: <PeopleGrid people={collaborators} /> }]
-      : []),
   ];
 
   return (
