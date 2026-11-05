@@ -11,7 +11,7 @@ import { createCollection } from "./actions";
 import CollectionSettings from "./CollectionSettings";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Your films", robots: { index: false } };
+export const metadata: Metadata = { title: "Watchlist", robots: { index: false } };
 
 type ListRow = { id: string; title: string; description: string | null; is_public: boolean; list_films: { film_id: string; added_at: string }[] };
 
@@ -20,8 +20,8 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
   if (!db) {
     return (
       <section className="panel">
-        <h1>Your films</h1>
-        <p className="lead">Watchlists switch on once the site is connected to Supabase.</p>
+        <h1>Watchlist</h1>
+        <p className="lead">Watchlists aren&rsquo;t available yet. Check back soon.</p>
       </section>
     );
   }
@@ -57,7 +57,7 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
   return (
     <section className="page">
       <header className="page-head">
-        <h1>{profile?.display_name ? `${profile.display_name}’s films` : "Your films"}</h1>
+        <h1>Watchlist</h1>
         <p className="label">
           {user.email}
           {profile?.is_admin && <> · <Link href="/admin">Admin</Link></>}
@@ -88,7 +88,7 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
         )}
       </nav>
       {sp.error === "collection" && <p className="notice error">The collection couldn&rsquo;t be created. Try again.</p>}
-      {!listsReady && <p className="notice">Collections switch on once the site owner runs supabase/member-collections.sql in Supabase.</p>}
+      {!listsReady && <p className="notice">Your own collections aren&rsquo;t available yet.</p>}
 
       {selected === "submissions" ? (
         <Submissions rows={submissions ?? []} />

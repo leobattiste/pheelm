@@ -29,7 +29,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
         {collection.description && <p className="lead">{collection.description}</p>}
       </header>
       <div className="section-head">
-        <p className="label">{collection.films.length} films{years.length > 0 && `, ${Math.min(...years)} to ${Math.max(...years)}`}</p>
+        <p className="label">{collection.films.length} films{years.length > 0 && ` • ${Math.min(...years)} to ${Math.max(...years)}`}</p>
       </div>
       <FilmGrid films={collection.films.map(toCard)} priority={8} />
     </section>

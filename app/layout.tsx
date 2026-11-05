@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import localFont from "next/font/local";
 import { Analytics } from "@vercel/analytics/next";
 import Link from "next/link";
 import Script from "next/script";
@@ -9,9 +10,19 @@ import { TransitionWatcher } from "@/components/Transitions";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE } from "@/lib/site";
 import { SITE_URL } from "@/lib/supabase/config";
 import { themeScript } from "@/lib/theme";
-// One typeface, Host Grotesk, served from the site itself.
-import "@fontsource-variable/host-grotesk/index.css";
 import "./globals.css";
+
+// One typeface, Nacelle by Dotcolon (SIL Open Font License), served from the site itself.
+const nacelle = localFont({
+  src: [
+    { path: "./fonts/Nacelle-Regular.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/Nacelle-Italic.woff2", weight: "400", style: "italic" },
+    { path: "./fonts/Nacelle-SemiBold.woff2", weight: "600", style: "normal" },
+    { path: "./fonts/Nacelle-Bold.woff2", weight: "700", style: "normal" },
+  ],
+  variable: "--font-nacelle",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -31,7 +42,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-theme="dark" data-grid="large" suppressHydrationWarning>
+    <html lang="en" data-theme="dark" data-grid="large" className={nacelle.variable} suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://image.tmdb.org" />
       </head>
@@ -53,7 +64,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Link href="/collections">Collections</Link>
             <Link href="/journal">Journal</Link>
             <Link href="/submit">Submit a film</Link>
-            <Link href="/me">Your watchlist</Link>
+            <Link href="/me">Watchlist</Link>
           </nav>
           <div className="footer-bottom">
             <ThemeToggle />

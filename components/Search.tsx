@@ -207,7 +207,7 @@ export default function Search() {
             type="search"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Films, directors, actors…"
+            placeholder="Search films, directors and cast"
             aria-label="Search films, directors, cast and crew"
             aria-controls="search-results"
             aria-activedescendant={hits[active] ? `hit-${active}` : undefined}

@@ -7,7 +7,7 @@ import { countryName } from "@/lib/format";
 export const revalidate = 300;
 export const metadata: Metadata = {
   title: "Collections",
-  description: "Curated selections of films by Black directors, by movement, theme, country, decade and genre.",
+  description: "Films by Black directors grouped by movement, theme, country and form, from the L.A. Rebellion to new African cinema.",
 };
 
 const KIND_ORDER = ["movement", "theme", "country", "genre", "decade"] as const;
@@ -22,7 +22,7 @@ export default async function CollectionsPage() {
     <section className="page">
       <header className="page-head">
         <h1>Collections</h1>
-        <p className="lead">Curated selections by movement, theme, country and form.</p>
+        <p className="lead">Films grouped by movement, theme, country and form.</p>
       </header>
 
       {KIND_ORDER.map((kind) => {

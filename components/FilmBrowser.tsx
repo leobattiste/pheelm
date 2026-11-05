@@ -130,7 +130,7 @@ export default function FilmBrowser({ films, facets }: { films: FilmCard[]; face
         </>
       ) : (
         <div className="empty-state">
-          <p>No films match.</p>
+          <p>No films match your search.</p>
           <p className="muted">
             Try fewer filters, or <a href="/submit">suggest a film</a> we&rsquo;re missing.
           </p>

@@ -5,7 +5,7 @@ import { getArticles } from "@/lib/data";
 export const revalidate = 300;
 export const metadata: Metadata = {
   title: "Journal",
-  description: "Stories behind the films, interviews, essays and film history.",
+  description: "Interviews, essays and the stories behind films by Black directors.",
 };
 
 const KIND_LABELS: Record<string, string> = { essay: "Essay", interview: "Interview", history: "History", story: "Behind the film", news: "News" };
@@ -16,7 +16,7 @@ export default async function JournalPage() {
     <section className="page narrow">
       <header className="page-head">
         <h1>Journal</h1>
-        <p className="lead">Stories behind the films, interviews, essays and film history.</p>
+        <p className="lead">Interviews, essays and the stories behind the films.</p>
       </header>
       {articles.length ? (
         <ul className="article-list">
@@ -38,7 +38,7 @@ export default async function JournalPage() {
           ))}
         </ul>
       ) : (
-        <p className="empty">The first stories are being written: interviews, essays and the histories behind the films. Until then, <a href="/collections">explore the collections</a>.</p>
+        <p className="empty">The first stories are on their way. Until then, <a href="/collections">browse the collections</a>.</p>
       )}
     </section>
   );

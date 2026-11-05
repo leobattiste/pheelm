@@ -105,7 +105,7 @@ export default function LoginPage() {
   }
 
   if (!supabaseEnabled) {
-    return <section className="panel"><h1>Sign in</h1><p className="lead">Accounts switch on once the site is connected to Supabase.</p></section>;
+    return <section className="panel"><h1>Sign in</h1><p className="lead">Sign-in isn&rsquo;t available yet. Check back soon.</p></section>;
   }
 
   return (
@@ -133,7 +133,7 @@ export default function LoginPage() {
         </>
       ) : (
         <>
-          <p className="lead">Keep a watchlist, mark what you've seen and suggest films. No password needed.</p>
+          <p className="lead">Save films to your watchlist, make collections and follow directors. We&rsquo;ll email you a link, so there&rsquo;s no password.</p>
           <form onSubmit={sendLink} className="form">
             <label className="field">Email
               <input type="email" required autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} />

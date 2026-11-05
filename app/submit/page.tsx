@@ -14,11 +14,11 @@ export default async function SubmitPage() {
     <section className="panel">
       <h1>Submit a film</h1>
       <p className="lead">
-        Know a film by a Black director that belongs here? Features, documentaries, shorts and animation from anywhere in the world are all
-        welcome. Every submission is reviewed before it&rsquo;s added.
+        Know a film by a Black director that belongs here? Features, documentaries, shorts and animation from any country are welcome.
+        We review every suggestion before adding it.
       </p>
       {!db ? (
-        <p className="notice">Submissions open once the site is connected to Supabase.</p>
+        <p className="notice">Submissions aren&rsquo;t open yet. Check back soon.</p>
       ) : user ? (
         <SubmitForm />
       ) : (

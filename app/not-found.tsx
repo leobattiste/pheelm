@@ -3,10 +3,10 @@ import Link from "next/link";
 export default function NotFound() {
   return (
     <section className="page narrow">
-      <h1>Not found</h1>
-      <p className="lead">That page isn&rsquo;t in the directory.</p>
+      <h1>Page not found</h1>
+      <p className="lead">There&rsquo;s nothing at this address. The link may be mistyped, or the page may have moved.</p>
       <p>
-        <Link className="button" href="/films">Browse all films</Link>
+        <Link className="button" href="/films">Browse films</Link>
       </p>
     </section>
   );

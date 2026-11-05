@@ -100,7 +100,7 @@ export default function DirectorBrowser({ directors }: { directors: DirectorSumm
         </ul>
       ) : (
         <div className="empty-state">
-          <p>No directors match.</p>
+          <p>No directors match your search.</p>
           <button type="button" className="button ghost small" onClick={() => commit({})}>Clear search and filters</button>
         </div>
       )}
