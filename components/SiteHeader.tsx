@@ -7,6 +7,7 @@ import { SITE_NAME } from "@/lib/site";
 import AccountLink from "./AccountLink";
 import { openSearch } from "./Search";
 import ThemeToggle from "./ThemeToggle";
+import UpdatesDot from "./UpdatesDot";
 
 const MAIN = [
   { href: "/films", label: "Films" },
@@ -62,10 +63,11 @@ export default function SiteHeader() {
           <span className="search-trigger-label">Search</span>
           <kbd>⌘K</kbd>
         </button>
-        <Link href="/me" className="header-link" aria-current={current("/me")}>Watchlist</Link>
+        <Link href="/me" className="header-link" aria-current={current("/me")}>Watchlist<UpdatesDot /></Link>
         <span className="header-link"><AccountLink /></span>
         <button type="button" className="icon-button menu-button" aria-expanded={open} aria-controls="menu" aria-label={open ? "Close menu" : "Open menu"} onClick={toggle}>
           <span className="burger" aria-hidden="true"><span /><span /></span>
+          <UpdatesDot />
         </button>
       </div>
 
@@ -91,7 +93,10 @@ export default function SiteHeader() {
           </nav>
           <nav className="menu-more" aria-label="Your account">
             {MORE.map((l) => (
-              <Link key={l.href} href={l.href} aria-current={current(l.href)}>{l.label}</Link>
+              <Link key={l.href} href={l.href} aria-current={current(l.href)}>
+                {l.label}
+                {l.href === "/me" && <UpdatesDot />}
+              </Link>
             ))}
             <AccountLink />
           </nav>

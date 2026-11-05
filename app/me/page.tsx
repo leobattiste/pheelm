@@ -3,7 +3,10 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { FilmGrid } from "@/components/FilmCard";
 import GridToggle from "@/components/GridToggle";
-import { getFilms, toCard } from "@/lib/data";
+import DirectorCard from "@/components/DirectorCard";
+import Poster from "@/components/Poster";
+import { MarkSeen } from "@/components/UpdatesDot";
+import { getDirectors, getFilms, toCard, toDirectorSummary } from "@/lib/data";
 import { getServerClient } from "@/lib/supabase/server";
 import { createCollection } from "./actions";
 import CollectionSettings from "./CollectionSettings";
@@ -27,20 +30,28 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
   if (!user) redirect("/login?next=/me");
 
   const sp = await searchParams;
-  const [{ data: saved }, { data: profile }, { data: submissions }, listsResult, films] = await Promise.all([
+  const [{ data: saved }, { data: profile }, { data: submissions }, listsResult, films, followsResult, updatesResult, directors] = await Promise.all([
     db.from("watchlist").select("film_id, added_at").eq("user_id", user.id).order("added_at", { ascending: false }),
     db.from("profiles").select("display_name, is_admin").eq("id", user.id).maybeSingle(),
     db.from("submissions").select("id, title, director, year, status, created_at").eq("user_id", user.id).order("created_at", { ascending: false }),
     db.from("lists").select("id, title, description, is_public, list_films(film_id, added_at)").eq("user_id", user.id).order("created_at"),
     getFilms(),
+    db.from("follows").select("person_id, created_at").eq("user_id", user.id).order("created_at", { ascending: false }),
+    db.rpc("follow_updates"),
+    getDirectors(),
   ]);
+  // Until supabase/follows.sql has run, following isn't available.
+  const followsReady = !followsResult.error;
+  const followedIds = new Set((followsResult.data ?? []).map((f: { person_id: string }) => f.person_id));
+  const followed = directors.filter((d) => followedIds.has(d.id)).map(toDirectorSummary);
+  const updates = (updatesResult.data ?? []) as Update[];
   // Until supabase/member-collections.sql has run, the lists table doesn't exist yet.
   const listsReady = !listsResult.error;
   const lists = (listsResult.data ?? []) as ListRow[];
 
   const byId = new Map(films.map((f) => [f.id, f]));
   const all = (saved ?? []).map((r) => byId.get(r.film_id)).filter((f) => f !== undefined);
-  const selected = sp.c === "submissions" ? "submissions" : lists.find((l) => l.id === sp.c) ?? null;
+  const selected = sp.c === "submissions" || sp.c === "following" ? sp.c : lists.find((l) => l.id === sp.c) ?? null;
   const listFilms = (l: ListRow) =>
     [...l.list_films].sort((a, b) => b.added_at.localeCompare(a.added_at)).map((r) => byId.get(r.film_id)).filter((f) => f !== undefined);
 
@@ -56,8 +67,14 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
 
       <nav className="collection-tabs" aria-label="Your collections">
         <Link className="chip" href="/me" aria-pressed={!selected}>All <span className="count">{all.length}</span></Link>
+        {followsReady && (
+          <Link className="chip" href="/me?c=following" aria-pressed={selected === "following"}>
+            Following <span className="count">{followed.length}</span>
+            {updates.length > 0 && selected !== "following" && <span className="updates-dot" aria-label="New films" />}
+          </Link>
+        )}
         {lists.map((l) => (
-          <Link key={l.id} className="chip" href={`/me?c=${l.id}`} aria-pressed={typeof selected === "object" && selected?.id === l.id}>
+          <Link key={l.id} className="chip" href={`/me?c=${l.id}`} aria-pressed={typeof selected === "object" && selected !== null && selected.id === l.id}>
             {l.title} <span className="count">{l.list_films.length}</span>
           </Link>
         ))}
@@ -76,6 +93,8 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
 
       {selected === "submissions" ? (
         <Submissions rows={submissions ?? []} />
+      ) : selected === "following" ? (
+        <Following directors={followed} updates={updates} />
       ) : selected ? (
         <>
           <CollectionSettings list={{ id: selected.id, title: selected.title, description: selected.description, is_public: selected.is_public }} count={selected.list_films.length} />
@@ -113,6 +132,54 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
         </form>
       </div>
     </section>
+  );
+}
+
+type Update = { film_id: string; slug: string; title: string; year: number; poster_url: string | null; director_name: string; director_slug: string; added_at: string };
+
+/** Directors the member follows, and the films by them added since they followed. */
+function Following({ directors, updates }: { directors: ReturnType<typeof toDirectorSummary>[]; updates: Update[] }) {
+  if (!directors.length) {
+    return (
+      <div className="empty-state">
+        <p>You&rsquo;re not following anyone yet.</p>
+        <p className="muted">Press <strong>Follow</strong> on a director&rsquo;s page to see their new films here as they&rsquo;re added.</p>
+        <Link className="button ghost small" href="/directors">Browse directors</Link>
+      </div>
+    );
+  }
+  const fmt = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short" });
+  return (
+    <>
+      <MarkSeen newest={updates[0]?.added_at ?? null} />
+      <section className="film-section" aria-labelledby="new-h" style={{ marginTop: 0 }}>
+        <h2 id="new-h">New from directors you follow</h2>
+        {updates.length ? (
+          <ul className="update-list">
+            {updates.map((u) => (
+              <li key={u.film_id + u.director_slug}>
+                <Link href={`/films/${u.slug}`}>
+                  <Poster title={u.title} year={u.year} directors={[u.director_name]} src={u.poster_url} sizes="40px" />
+                  <span>
+                    <span className="update-title">{u.title}</span>
+                    <span className="update-meta"> · {u.director_name}, {u.year}</span>
+                  </span>
+                  <span className="update-when">Added {fmt.format(new Date(u.added_at))}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="label" style={{ marginBottom: 40 }}>Nothing new yet. Films by these directors will show up here when they&rsquo;re added to Pheelm.</p>
+        )}
+      </section>
+      <section className="film-section" aria-labelledby="following-h">
+        <h2 id="following-h">Directors you follow</h2>
+        <ul className="director-grid">
+          {directors.map((d) => <DirectorCard key={d.id} director={d} />)}
+        </ul>
+      </section>
+    </>
   );
 }
 

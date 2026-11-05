@@ -26,6 +26,8 @@ export type FilmRow = {
   tmdb_id: number | null;
   status: "draft" | "published";
   featured: boolean;
+  /** When the film was added to the directory (only in the database, not the starter file). */
+  created_at?: string;
 };
 
 export type PersonRow = {
@@ -75,10 +77,24 @@ export type Film = FilmRow & {
 };
 
 /** The light version used on cards and in the browser, so pages stay small. */
-export type FilmCard = Pick<Film, "id" | "slug" | "title" | "year" | "type" | "countries" | "languages" | "genres" | "poster_url" | "color"> & {
+export type FilmCard = Pick<Film, "id" | "slug" | "title" | "year" | "type" | "countries" | "languages" | "genres" | "poster_url" | "color" | "runtime"> & {
   directors: string[];
   wins: number;
 };
 
 export type Director = PersonRow & { films: Film[] };
+
+/** What a director card and the directors page need, without every film attached. */
+export type DirectorSummary = {
+  id: string;
+  slug: string;
+  name: string;
+  country: string | null;
+  photo_url: string | null;
+  films: number;
+  first: number;
+  last: number;
+  /** Decades they made films in here, like "1970s". */
+  decades: string[];
+};
 export type Collection = CollectionRow & { films: Film[] };

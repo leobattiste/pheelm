@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Portrait } from "@/components/DirectorCard";
 import { FilmGrid } from "@/components/FilmCard";
+import FollowButton from "@/components/FollowButton";
 import GridToggle from "@/components/GridToggle";
 import { getDirector, getDirectors, getPerson, toCard } from "@/lib/data";
 import { countryName, ROLE_LABELS, TYPE_LABELS } from "@/lib/format";
@@ -40,6 +41,9 @@ export default async function DirectorPage({ params }: { params: Promise<{ slug:
         <div className="person-text">
           <nav className="crumbs" aria-label="Breadcrumb"><Link href="/directors">Directors</Link></nav>
           <h1>{director.name}</h1>
+          <div className="film-actions person-actions">
+            <FollowButton personId={director.id} name={director.name} />
+          </div>
           <dl className="person-facts">
             {director.country && <div><dt>From</dt><dd>{countryName(director.country)}</dd></div>}
             {director.birth_year && <div><dt>Born</dt><dd>{director.birth_year}</dd></div>}

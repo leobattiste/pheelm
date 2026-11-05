@@ -41,6 +41,8 @@ In Supabase, go to **Authentication > URL Configuration**:
 - **Site URL**: your Vercel address
 - **Redirect URLs**: add `https://YOUR-ADDRESS/auth/callback` (and `http://localhost:3000/auth/callback` to run it on your computer)
 
+For members' collections and following directors, also run `supabase/member-collections.sql` and `supabase/follows.sql` (both are included in `schema.sql` too).
+
 Then paste the two sign-in email templates from `supabase/email-templates.md` into **Authentication → Emails → Templates**. They make sign-in links work on phones and add a 6-digit code people can type instead.
 
 ### 4. Make yourself the admin

@@ -4,7 +4,7 @@ import local from "@/data/catalog.json";
 import { decadeOf } from "./format";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseEnabled } from "./supabase/config";
 import type {
-  ArticleRow, Collection, CollectionRow, CreditRow, Director, Film, FilmCard, FilmRow, PersonRow,
+  ArticleRow, Collection, CollectionRow, CreditRow, Director, DirectorSummary, Film, FilmCard, FilmRow, PersonRow,
 } from "./types";
 
 type Raw = {
@@ -174,10 +174,25 @@ export async function getArticle(slug: string) {
   return { article, films: article.film_ids.map((id) => filmById.get(id)).filter((f): f is Film => Boolean(f)) };
 }
 
+export function toDirectorSummary(d: Director): DirectorSummary {
+  const years = d.films.map((f) => f.year);
+  return {
+    id: d.id,
+    slug: d.slug,
+    name: d.name,
+    country: d.country,
+    photo_url: d.photo_url,
+    films: d.films.length,
+    first: Math.min(...years),
+    last: Math.max(...years),
+    decades: [...new Set(years.map(decadeOf))].sort(),
+  };
+}
+
 export function toCard(f: Film): FilmCard {
   return {
     id: f.id, slug: f.slug, title: f.title, year: f.year, type: f.type, countries: f.countries,
-    languages: f.languages, genres: f.genres, poster_url: f.poster_url, color: f.color ?? null,
+    languages: f.languages, genres: f.genres, poster_url: f.poster_url, color: f.color ?? null, runtime: f.runtime ?? null,
     directors: f.directors.map((d) => d.name),
     wins: f.awards.filter((a) => a.result === "won").length,
   };

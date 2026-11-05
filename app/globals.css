@@ -836,13 +836,14 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 .search-field input::-webkit-search-cancel-button { display: none; }
 .search-close { padding: 6px 12px; border: 1px solid var(--line); border-radius: var(--pill); background: none; color: var(--muted); font-size: var(--t-xs); cursor: pointer; }
 .search-note { padding: 14px 18px 4px; color: var(--muted); font-size: var(--t-xs); font-weight: 500; }
-.search-group { padding: 12px 10px 6px; color: var(--muted); font-size: var(--t-xs); font-weight: 500; }
+.search-group { display: flex; align-items: center; justify-content: space-between; padding: 12px 10px 6px; color: var(--muted); font-size: var(--t-xs); font-weight: 500; }
+.search-group .link-button { font-size: var(--t-xs); }
 .search-results { flex: 1; overflow-y: auto; padding: 6px; }
 .search-results button { display: flex; align-items: center; gap: 12px; width: 100%; padding: 8px 10px; border: 0; border-radius: var(--r); background: none; text-align: left; cursor: pointer; }
 .search-results [aria-selected="true"] button { background: var(--raised); }
 .hit-poster { flex-shrink: 0; width: 32px; height: 48px; border-radius: 6px; object-fit: cover; background: var(--raised); }
 .hit-portrait { flex-shrink: 0; display: grid; place-items: center; width: 40px; height: 40px; border-radius: var(--r); background: var(--raised); color: var(--muted); font-size: var(--t-sm); font-weight: 600; object-fit: cover; }
-.hit-portrait svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; }
+.hit-portrait svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .hit-text { display: grid; min-width: 0; }
 .hit-title { overflow: hidden; color: var(--ink); font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
 .hit-meta { color: var(--muted); font-size: var(--t-sm); }
@@ -974,3 +975,83 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 .save-new input { flex: 1; min-width: 0; height: 44px; padding: 0 16px; border: 1px solid var(--line); border-radius: var(--pill); background: var(--surface); font-size: var(--t-md); }
 .save-new input:focus { border-color: var(--line-strong); outline: none; }
 .save-sheet .modal-foot .button.ghost { flex: 0 0 auto; }
+
+/* List view: one row per film, for scanning title, director, year, country and running time. */
+.film-card-col { display: none; }
+[data-grid="list"] .film-grid { display: grid; grid-template-columns: 1fr; gap: 0; border-top: 1px solid var(--line); }
+[data-grid="list"] .film-grid .film-card a {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  grid-template-areas: "poster title runtime" "poster meta runtime";
+  column-gap: 14px;
+  align-items: center;
+  padding: 10px 6px;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  transition: background-color 0.15s;
+}
+[data-grid="list"] .film-grid .film-card a:hover { background: var(--surface); }
+[data-grid="list"] .film-grid .film-card .poster { grid-area: poster; width: 40px; margin: 0; border-radius: 6px; transform: none; box-shadow: none; }
+[data-grid="list"] .film-grid .poster-card { padding: 0; }
+[data-grid="list"] .film-grid .poster-card > * { display: none; }
+[data-grid="list"] .film-grid .film-card-title { grid-area: title; align-self: end; font-size: var(--t-md); }
+[data-grid="list"] .film-grid .film-card-meta { grid-area: meta; align-self: start; display: block; }
+[data-grid="list"] .film-grid .film-card-runtime { grid-area: runtime; display: block; color: var(--muted); font-size: var(--t-sm); font-variant-numeric: tabular-nums; text-align: right; }
+@media (min-width: 900px) {
+  [data-grid="list"] .film-grid .film-card a {
+    grid-template-columns: 40px minmax(0, 2.2fr) minmax(0, 1.6fr) 64px minmax(0, 1.4fr) 88px;
+    grid-template-areas: "poster title meta year country runtime";
+    padding: 8px 10px;
+  }
+  [data-grid="list"] .film-grid .film-card-title, [data-grid="list"] .film-grid .film-card-meta { align-self: center; }
+  [data-grid="list"] .film-grid .film-card-meta { color: var(--text); font-size: var(--t-sm); }
+  [data-grid="list"] .film-grid .film-card-year { display: none; }
+  [data-grid="list"] .film-grid .film-card-year-col { grid-area: year; display: block; color: var(--muted); font-size: var(--t-sm); font-variant-numeric: tabular-nums; }
+  [data-grid="list"] .film-grid .film-card-country { grid-area: country; display: block; overflow: hidden; color: var(--muted); font-size: var(--t-sm); text-overflow: ellipsis; white-space: nowrap; }
+}
+
+/* Directors world map ------------------------------------------------------------------------ */
+
+.segmented svg.stroke { fill: none; stroke: currentColor; stroke-width: 1.4; }
+.world { display: grid; gap: 12px; margin-bottom: 28px; }
+.world-map { position: relative; padding: 12px; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); }
+.world-map svg { display: block; width: 100%; height: auto; }
+.world-map .land { fill: var(--raised); stroke: var(--surface); stroke-width: 0.6; transition: fill 0.2s; }
+.world-map .land.has { cursor: pointer; }
+.world-map .land.has:hover, .world-map .land.has:focus-visible { fill: var(--ink) !important; outline: none; }
+.world-map .land.selected { fill: var(--ink); }
+.map-tip {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  gap: 1px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--bg);
+  box-shadow: var(--shadow);
+  font-size: var(--t-sm);
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translate(-50%, calc(-100% - 12px));
+}
+.map-tip strong { color: var(--ink); }
+.map-tip span { color: var(--muted); font-size: var(--t-xs); }
+.map-legend { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 20px; }
+.map-extra { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.person-actions { margin-top: 0; }
+@media (max-width: 639px) { .person-actions { display: flex; } }
+
+/* New films from followed directors */
+.updates-dot { display: inline-block; width: 7px; height: 7px; margin-left: 6px; border-radius: 50%; background: var(--ok); vertical-align: super; }
+.menu-button { position: relative; }
+.menu-button .updates-dot { position: absolute; top: 8px; right: 7px; margin: 0; }
+.header-link { position: relative; }
+.update-list { display: grid; gap: 6px; margin-bottom: 40px; }
+.update-list li a { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 8px; border-radius: var(--r); }
+.update-list li a:hover { background: var(--surface); }
+.update-list .poster { width: 40px; border-radius: 6px; }
+.update-list .poster-card > * { display: none; }
+.update-title { color: var(--ink); font-weight: 600; }
+.update-meta { color: var(--muted); font-size: var(--t-sm); }
+.update-when { color: var(--muted); font-size: var(--t-xs); white-space: nowrap; }

@@ -5,7 +5,7 @@ import Poster from "@/components/Poster";
 import Row from "@/components/Row";
 import TrailerButton from "@/components/TrailerButton";
 import FilmLink from "@/components/Transitions";
-import { getArticles, getCollections, getDirectors, getFacets, getFilms, toCard } from "@/lib/data";
+import { getArticles, getCollections, getDirectors, getFacets, getFilms, toCard, toDirectorSummary } from "@/lib/data";
 import { trailerEmbed } from "@/lib/format";
 import { firstSentence } from "@/lib/text";
 
@@ -86,7 +86,7 @@ export default async function Home() {
       ))}
 
       <Row title="Directors to know" href="/directors" linkLabel="All directors">
-        {toKnow.map((d) => <DirectorCard key={d.id} director={d} />)}
+        {toKnow.map((d) => <DirectorCard key={d.id} director={toDirectorSummary(d)} />)}
       </Row>
 
       {recent.length > 0 && (

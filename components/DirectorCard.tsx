@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { countryName, initials } from "@/lib/format";
-import type { Director } from "@/lib/types";
+import type { DirectorSummary } from "@/lib/types";
+
+type PortraitPerson = { name: string; photo_url: string | null };
 
 /** A director's portrait, or their initials on a gray tile until a portrait is added. */
-export function Portrait({ director, className = "" }: { director: Director; className?: string }) {
+export function Portrait({ director, className = "" }: { director: PortraitPerson; className?: string }) {
   if (director.photo_url) {
     // eslint-disable-next-line @next/next/no-img-element
     return <img className={`portrait ${className}`} src={director.photo_url} alt="" loading="lazy" />;
@@ -15,11 +17,8 @@ export function Portrait({ director, className = "" }: { director: Director; cla
   );
 }
 
-export default function DirectorCard({ director }: { director: Director }) {
-  const n = director.films.length;
-  const years = director.films.map((f) => f.year);
-  const first = Math.min(...years);
-  const last = Math.max(...years);
+export default function DirectorCard({ director }: { director: DirectorSummary }) {
+  const n = director.films;
   return (
     <li className="director-card">
       <Link href={`/directors/${director.slug}`}>
@@ -29,7 +28,7 @@ export default function DirectorCard({ director }: { director: Director }) {
           <span className="director-card-meta">{director.country ? countryName(director.country) : " "}</span>
           <span className="director-card-stats">
             <span>{n} {n === 1 ? "film" : "films"}</span>
-            <span>{first === last ? first : `${first}–${last}`}</span>
+            <span>{director.first === director.last ? director.first : `${director.first}–${director.last}`}</span>
           </span>
         </span>
       </Link>
