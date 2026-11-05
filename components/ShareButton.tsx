@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-/** A round share button: the phone's share sheet, or copying the link where there isn't one. */
+/** Opens the phone's share sheet, or copies the link where there isn't one. */
 export default function ShareButton({ title }: { title: string }) {
   const [copied, setCopied] = useState(false);
 
@@ -24,12 +24,13 @@ export default function ShareButton({ title }: { title: string }) {
   };
 
   return (
-    <button type="button" className={`round-button${copied ? " is-done" : ""}`} onClick={share} aria-label={copied ? "Link copied" : `Share ${title}`} title={copied ? "Link copied" : "Share"}>
+    <button type="button" className="pill-button" onClick={share}>
       {copied ? (
         <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 10.5 3.2 3.2L15 7" /></svg>
       ) : (
         <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10M6 7l4-4 4 4M4 12v4h12v-4" /></svg>
       )}
+      <span aria-live="polite">{copied ? "Link copied" : "Share"}</span>
     </button>
   );
 }

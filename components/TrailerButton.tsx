@@ -18,7 +18,7 @@ export default function TrailerButton({ embed, title, className = "button play",
   return (
     <>
       <button type="button" className={className} onClick={open}>
-        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 4.5v11l9-5.5z" /></svg>
+        <svg className="solid" viewBox="0 0 20 20" aria-hidden="true"><path d="M6 4.5v11l9-5.5z" /></svg>
         {label}
       </button>
       <dialog

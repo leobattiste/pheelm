@@ -8,7 +8,7 @@ import { getServerClient } from "@/lib/supabase/server";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Your watchlist", robots: { index: false } };
 
-type Tab = "watchlist" | "seen" | "submissions";
+type Tab = "watchlist" | "submissions";
 
 export default async function MePage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   const db = await getServerClient();
@@ -24,7 +24,7 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
   if (!user) redirect("/login?next=/me");
 
   const raw = (await searchParams).tab;
-  const tab: Tab = raw === "seen" || raw === "submissions" ? raw : "watchlist";
+  const tab: Tab = raw === "submissions" ? raw : "watchlist";
 
   const [{ data: list }, { data: profile }, { data: submissions }, films] = await Promise.all([
     db.from("watchlist").select("film_id, seen, added_at").eq("user_id", user.id).order("added_at", { ascending: false }),
@@ -35,8 +35,7 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
 
   const byId = new Map(films.map((f) => [f.id, f]));
   const rows = list ?? [];
-  const toWatch = rows.filter((r) => !r.seen).map((r) => byId.get(r.film_id)).filter((f) => f !== undefined);
-  const seen = rows.filter((r) => r.seen).map((r) => byId.get(r.film_id)).filter((f) => f !== undefined);
+  const toWatch = rows.map((r) => byId.get(r.film_id)).filter((f) => f !== undefined);
 
   return (
     <section className="page">
@@ -50,7 +49,6 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
 
       <nav className="tabs" aria-label="Your films">
         <Link href="/me" aria-current={tab === "watchlist" ? "page" : undefined}>Watchlist ({toWatch.length})</Link>
-        <Link href="/me?tab=seen" aria-current={tab === "seen" ? "page" : undefined}>Seen ({seen.length})</Link>
         <Link href="/me?tab=submissions" aria-current={tab === "submissions" ? "page" : undefined}>Submissions ({submissions?.length ?? 0})</Link>
       </nav>
 
@@ -59,12 +57,10 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
           <FilmGrid films={toWatch.map(toCard)} />
         ) : (
           <p className="empty">
-            Nothing here yet. Press <strong>+ Watchlist</strong> on any film to save it. <Link href="/films">Browse films</Link>
+            Nothing here yet. Press <strong>Watchlist</strong> on any film to save it. <Link href="/films">Browse films</Link>
           </p>
         ))}
 
-      {tab === "seen" &&
-        (seen.length ? <FilmGrid films={seen.map(toCard)} /> : <p className="empty">Films you mark as seen will show up here.</p>)}
 
       {tab === "submissions" && (
         <>
