@@ -90,7 +90,6 @@ export default async function DirectorPage({ params }: { params: Promise<{ slug:
         <div className="person-text">
           <h1>{director.name}</h1>
           <p className="person-roles">{overallRoles(works) || sentence(["Director"])}</p>
-          {life && <p className="person-life">{life}</p>}
           <div className="person-actions">
             <FollowButton personId={director.id} name={director.name} />
             <PersonLinks info={{ name: director.name, imdb_id: director.imdb_id ?? null, instagram: director.instagram ?? null }} />
