@@ -15,6 +15,7 @@ export default function FollowButton({ personId, name }: { personId: string; nam
   const path = usePathname();
   const [status, setStatus] = useState<Status>("loading");
   const [userId, setUserId] = useState<string | null>(null);
+  const [note, setNote] = useState("");
 
   useEffect(() => {
     const db = getBrowserClient();
@@ -24,13 +25,27 @@ export default function FollowButton({ personId, name }: { personId: string; nam
       setUserId(id);
       if (!id) return setStatus("signed-out");
       const { data: row, error } = await db.from("follows").select("person_id").eq("user_id", id).eq("person_id", personId).maybeSingle();
-      // Before supabase/follows.sql has run, the table doesn't exist: hide the button.
-      if (error) return setStatus("unavailable");
+      // Before supabase/follows.sql has run, the table doesn't exist. The button still shows, and
+      // says so when pressed, rather than vanishing.
+      if (error) {
+        console.warn("Follow is off: run supabase/follows.sql in Supabase.", error.message);
+        return setStatus("unavailable");
+      }
       setStatus(row ? "on" : "off");
     });
   }, [personId]);
 
-  if (status === "unavailable") return null;
+  if (status === "unavailable") {
+    return (
+      <span className="follow">
+        <button type="button" className="pill-button" onClick={() => setNote("Following isn’t available yet. Check back soon.")}>
+          {PLUS}
+          Follow
+        </button>
+        <span className="follow-note" role="status">{note}</span>
+      </span>
+    );
+  }
   if (status === "signed-out" || status === "loading") {
     return (
       <Link className="pill-button" href={`/login?next=${encodeURIComponent(path)}`} aria-busy={status === "loading"}>
@@ -49,15 +64,21 @@ export default function FollowButton({ personId, name }: { personId: string; nam
       next === "off"
         ? await db.from("follows").delete().eq("user_id", userId).eq("person_id", personId)
         : await db.from("follows").insert({ user_id: userId, person_id: personId });
-    if (error) setStatus(status);
+    if (error) {
+      setStatus(status);
+      setNote("That didn’t save. Try again.");
+    }
   };
 
   return (
+    <span className="follow">
     <button type="button" className="pill-button" aria-pressed={status === "on"} onClick={toggle}
       aria-label={status === "on" ? `Following ${name}. Unfollow` : `Follow ${name}`}
       title={status === "on" ? "You'll see their new films in Your films → Following" : "See their new films when they're added"}>
       {status === "on" ? CHECK : PLUS}
       {status === "on" ? "Following" : "Follow"}
     </button>
+    <span className="follow-note" role="status">{note}</span>
+    </span>
   );
 }

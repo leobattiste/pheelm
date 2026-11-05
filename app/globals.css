@@ -1316,3 +1316,7 @@ h1, h2, .menu-main a, .empty-state p:first-child, .decades a,
 /* Error page */
 .error-page { display: grid; gap: var(--space-16); padding-top: var(--space-64); }
 .error-detail { color: var(--muted); font-size: var(--t-xs); overflow-wrap: anywhere; }
+
+.follow { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--space-8) var(--space-12); }
+.follow-note { color: var(--muted); font-size: var(--t-sm); }
+.follow-note:empty { display: none; }
