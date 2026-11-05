@@ -13,7 +13,7 @@ export default function CollectionTile({ collection }: { collection: Collection 
           ))}
         </span>
         <span className="collection-title">{collection.title}</span>
-        <span className="collection-desc">{collection.films.length} films. {collection.description}</span>
+        {collection.description && <span className="collection-desc">{collection.description}</span>}
       </Link>
     </li>
   );
