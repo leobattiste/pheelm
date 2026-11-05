@@ -13,7 +13,7 @@ export default async function Image() {
   const films = (await getFilms()).filter((f) => f.featured).slice(0, 4);
   return new ImageResponse(
     (
-      <div style={{ display: "flex", width: "100%", height: "100%", padding: 72, background: "#17120e", color: "#f2ece3", fontFamily: "serif", justifyContent: "space-between" }}>
+      <div style={{ display: "flex", width: "100%", height: "100%", padding: 72, background: "#0c0c0c", color: "#f5f5f5", fontFamily: "serif", justifyContent: "space-between" }}>
         <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", width: 560 }}>
           <div style={{ display: "flex", fontSize: 96, letterSpacing: -2 }}>{SITE_NAME}</div>
           <div style={{ display: "flex", fontSize: 46, lineHeight: 1.1 }}>{SITE_TAGLINE}</div>

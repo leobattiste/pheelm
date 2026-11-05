@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Portrait } from "@/components/DirectorCard";
 import { FilmGrid } from "@/components/FilmCard";
+import GridToggle from "@/components/GridToggle";
 import { getDirector, getDirectors, getPerson, toCard } from "@/lib/data";
 import { countryName, ROLE_LABELS, TYPE_LABELS } from "@/lib/format";
 
@@ -50,7 +51,10 @@ export default async function DirectorPage({ params }: { params: Promise<{ slug:
       </header>
 
       <section className="section">
-        <h2>Films</h2>
+        <div className="section-head">
+          <h2>Films</h2>
+          <GridToggle />
+        </div>
         <FilmGrid films={director.films.map(toCard)} priority={6} />
       </section>
 

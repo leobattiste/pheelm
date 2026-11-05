@@ -1,17 +1,15 @@
 import Link from "next/link";
-import { countryName, filmColour, initials } from "@/lib/format";
+import { countryName, initials } from "@/lib/format";
 import type { Director } from "@/lib/types";
 
-/** A director's portrait, or their initials on the colour of their best-known film here. */
+/** A director's portrait, or their initials on a gray tile until a portrait is added. */
 export function Portrait({ director, className = "" }: { director: Director; className?: string }) {
   if (director.photo_url) {
     // eslint-disable-next-line @next/next/no-img-element
     return <img className={`portrait ${className}`} src={director.photo_url} alt="" loading="lazy" />;
   }
-  const lead = director.films.find((f) => f.featured) ?? director.films[0];
   return (
-    <span className={`portrait portrait-initials ${className}`} aria-hidden="true"
-      style={lead ? { background: `color-mix(in oklab, ${filmColour(lead)} 70%, #0d0907)`, color: "#f6efe5" } : undefined}>
+    <span className={`portrait portrait-initials ${className}`} aria-hidden="true">
       {initials(director.name)}
     </span>
   );
@@ -19,14 +17,20 @@ export function Portrait({ director, className = "" }: { director: Director; cla
 
 export default function DirectorCard({ director }: { director: Director }) {
   const n = director.films.length;
+  const years = director.films.map((f) => f.year);
+  const first = Math.min(...years);
+  const last = Math.max(...years);
   return (
     <li className="director-card">
       <Link href={`/directors/${director.slug}`}>
         <Portrait director={director} />
-        <span className="director-card-name">{director.name}</span>
-        <span className="director-card-meta">
-          {director.country ? `${countryName(director.country)}, ` : ""}
-          {n} {n === 1 ? "film" : "films"}
+        <span className="director-card-body">
+          <span className="director-card-name">{director.name}</span>
+          <span className="director-card-meta">{director.country ? countryName(director.country) : " "}</span>
+          <span className="director-card-stats">
+            <span>{n} {n === 1 ? "film" : "films"}</span>
+            <span>{first === last ? first : `${first}–${last}`}</span>
+          </span>
         </span>
       </Link>
     </li>

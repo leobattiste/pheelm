@@ -85,12 +85,10 @@ export function trailerEmbed(url: string | null): string | null {
   return null;
 }
 
-// Placeholder posters take their colour from the title, so each film keeps the same one.
-// Pairs of film-stock colours: a ground and the ink printed on it.
+// Placeholder posters are title cards in shades of gray, picked from the title so each film keeps its own.
 const POSTER_COLOURS = [
-  ["#7d2a1f", "#f4dcc0"], ["#1f4a3f", "#e9e1c4"], ["#2e2a5c", "#f1c977"], ["#9a5a17", "#fbe9cf"],
-  ["#14385a", "#f3bf72"], ["#5b2447", "#f3ccd6"], ["#46522c", "#efe4bd"], ["#b8502f", "#20150f"],
-  ["#d9a94e", "#22170d"], ["#e4d6c3", "#2c2119"], ["#8f1f30", "#f6e1d3"], ["#2f5f6b", "#f1e6cf"],
+  ["#161616", "#f2f2f2"], ["#202020", "#e8e8e8"], ["#2b2b2b", "#f5f5f5"], ["#363636", "#ededed"],
+  ["#454545", "#f7f7f7"], ["#d6d6d6", "#141414"], ["#e4e4e4", "#1a1a1a"], ["#efefef", "#111111"],
 ];
 
 /** The colour a film's page is tinted with: from its poster when known, otherwise its placeholder's. */

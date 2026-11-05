@@ -4,27 +4,30 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { countryName, decadeOf, TYPE_PLURALS } from "@/lib/format";
 import type { FilmCard, FilmType } from "@/lib/types";
 import { FilmGrid } from "./FilmCard";
+import GridToggle from "./GridToggle";
 
 type Facets = { countries: [string, number][]; decades: [string, number][]; languages: [string, number][]; genres: [string, number][] };
 type Sort = "newest" | "oldest" | "title" | "awards";
 const KEYS = ["type", "decade", "country", "language", "genre", "q", "sort"] as const;
 type Key = (typeof KEYS)[number];
 type State = Partial<Record<Key, string>>;
-const FILTERS = ["decade", "country", "language", "genre"] as const;
+const FILTERS = ["type", "decade", "country", "language", "genre"] as const;
+type Filter = (typeof FILTERS)[number];
 
 const PAGE = 48;
 const TYPES: FilmType[] = ["feature", "documentary", "short", "animation"];
+const SORTS: [Sort, string][] = [["newest", "Newest"], ["oldest", "Oldest"], ["title", "A to Z"], ["awards", "Most awarded"]];
 const plain = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
-const label = (k: (typeof FILTERS)[number], v: string) => (k === "country" ? countryName(v) : v);
+const label = (k: Filter, v: string) => (k === "country" ? countryName(v) : k === "type" ? TYPE_PLURALS[v as FilmType] : v);
 
 /**
- * The Films page. Type and search sit in view; decade, country, language and genre live in
- * a sheet. Every filter is kept in the address, so a filtered view can be shared.
+ * The Films page: a search bar and a Filters button that opens a modal (a bottom sheet on
+ * phones). Every choice is kept in the address, so a filtered view can be shared.
  */
 export default function FilmBrowser({ films, facets }: { films: FilmCard[]; facets: Facets }) {
   const [state, setState] = useState<State>({});
   const [shown, setShown] = useState(PAGE);
-  const sheet = useRef<HTMLDialogElement>(null);
+  const modal = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
     const p = new URLSearchParams(window.location.search);
@@ -72,59 +75,48 @@ export default function FilmBrowser({ films, facets }: { films: FilmCard[]; face
   }, [films, state]);
 
   const active = FILTERS.filter((k) => state[k]);
+  // Counts in the modal reflect the other filters already chosen.
+  const countFor = (k: Filter, v: string) => filter({ ...state, [k]: v }).length;
 
-  // Counts in the sheet reflect the other filters already chosen.
-  const countFor = (k: (typeof FILTERS)[number], v: string) => filter({ ...state, [k]: v }).length;
-
-  const groups: { key: (typeof FILTERS)[number]; title: string; options: [string, number][] }[] = [
-    { key: "decade", title: "Decade", options: facets.decades },
-    { key: "country", title: "Country", options: [...facets.countries].sort((a, b) => countryName(a[0]).localeCompare(countryName(b[0]))) },
-    { key: "language", title: "Language", options: [...facets.languages].sort((a, b) => a[0].localeCompare(b[0])) },
-    { key: "genre", title: "Genre", options: [...facets.genres].sort((a, b) => a[0].localeCompare(b[0])) },
+  const groups: { key: Filter; title: string; options: string[] }[] = [
+    { key: "type", title: "Type", options: TYPES },
+    { key: "decade", title: "Decade", options: facets.decades.map(([d]) => d) },
+    { key: "country", title: "Country", options: facets.countries.map(([c]) => c).sort((a, b) => countryName(a).localeCompare(countryName(b))) },
+    { key: "language", title: "Language", options: facets.languages.map(([l]) => l).sort() },
+    { key: "genre", title: "Genre", options: facets.genres.map(([g]) => g).sort() },
   ];
 
   return (
     <div className="browser">
-      <div className="browser-bar">
-        <div className="browser-row browser-top" role="group" aria-label="Film type">
-          <button type="button" className="chip" aria-pressed={!state.type} onClick={() => set("type", "")}>All</button>
-          {TYPES.map((t) => (
-            <button key={t} type="button" className="chip" aria-pressed={state.type === t} onClick={() => set("type", state.type === t ? "" : t)}>
-              {TYPE_PLURALS[t]}
-            </button>
-          ))}
-        </div>
-        <div className="browser-tools">
-          <button type="button" className="chip" aria-haspopup="dialog" onClick={() => sheet.current?.showModal()}>
-            Filters{active.length > 0 && <span className="count">{active.length}</span>}
-          </button>
-          <label className="sort">
-            <span className="visually-hidden">Sort</span>
-            <select value={state.sort ?? "newest"} onChange={(e) => set("sort", e.target.value === "newest" ? "" : e.target.value)}>
-              <option value="newest">Newest</option>
-              <option value="oldest">Oldest</option>
-              <option value="title">A to Z</option>
-              <option value="awards">Most awarded</option>
-            </select>
-          </label>
-        </div>
-        <label className="browser-search">
-          <span className="visually-hidden">Search titles or directors</span>
-          <input type="search" placeholder="Search titles or directors" value={state.q ?? ""} onChange={(e) => set("q", e.target.value)} />
+      <div className="toolbar">
+        <label className="search-bar">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="5.5" /><path d="m13 13 4 4" /></svg>
+          <span className="visually-hidden">Search films or directors</span>
+          <input type="search" placeholder="Search films" value={state.q ?? ""} onChange={(e) => set("q", e.target.value)} />
         </label>
+        <button type="button" className="button ghost filter-button" aria-haspopup="dialog" onClick={() => modal.current?.showModal()}>
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6h14M6 10h8M8.5 14h3" /></svg>
+          <span className="filter-label">Filters</span>
+          {active.length > 0 && <span className="badge">{active.length}</span>}
+        </button>
+        <GridToggle />
       </div>
 
-      <div className="result-count" aria-live="polite">
-        <span>{results.length} {results.length === 1 ? "film" : "films"}</span>
+      <div className="result-bar" aria-live="polite">
+        <span className="result-count">{results.length} {results.length === 1 ? "film" : "films"}</span>
         {active.length > 0 && (
           <ul className="chip-list">
             {active.map((k) => (
               <li key={k}>
                 <button type="button" className="chip" onClick={() => set(k, "")} aria-label={`Remove ${label(k, state[k]!)}`}>
-                  {label(k, state[k]!)} <span className="x" aria-hidden="true">×</span>
+                  {label(k, state[k]!)}
+                  <svg className="x" viewBox="0 0 20 20" aria-hidden="true"><path d="m6 6 8 8M14 6l-8 8" /></svg>
                 </button>
               </li>
             ))}
+            <li>
+              <button type="button" className="link-button" onClick={() => commit({ q: state.q, sort: state.sort })}>Clear all</button>
+            </li>
           </ul>
         )}
       </div>
@@ -139,24 +131,39 @@ export default function FilmBrowser({ films, facets }: { films: FilmCard[]; face
           )}
         </>
       ) : (
-        <p className="empty">
-          No films match these filters.{" "}
-          <button type="button" className="link-button" onClick={() => commit({ sort: state.sort })}>Clear them</button>{" "}
-          or <a href="/submit">suggest a film</a>.
-        </p>
+        <div className="empty-state">
+          <p>No films match.</p>
+          <p className="muted">
+            Try fewer filters, or <a href="/submit">suggest a film</a> we&rsquo;re missing.
+          </p>
+          <button type="button" className="button ghost small" onClick={() => commit({ sort: state.sort })}>Clear search and filters</button>
+        </div>
       )}
 
-      <dialog ref={sheet} className="sheet" aria-labelledby="filters-title" onClick={(e) => { if (e.target === sheet.current) sheet.current?.close(); }}>
-        <div className="sheet-head">
+      <dialog ref={modal} className="modal" aria-labelledby="filters-title" onClick={(e) => { if (e.target === modal.current) modal.current?.close(); }}>
+        <div className="modal-head">
+          <span className="sheet-handle" aria-hidden="true" />
           <h2 id="filters-title">Filters</h2>
-          <button type="button" className="link-button" onClick={() => sheet.current?.close()}>Close</button>
+          <button type="button" className="icon-button" onClick={() => modal.current?.close()} aria-label="Close filters">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" /></svg>
+          </button>
         </div>
-        <div className="sheet-body">
+        <div className="modal-body">
+          <section className="filter-group" aria-labelledby="g-sort">
+            <h3 id="g-sort">Sort by</h3>
+            <ul className="chip-list">
+              {SORTS.map(([v, l]) => (
+                <li key={v}>
+                  <button type="button" className="chip" aria-pressed={(state.sort ?? "newest") === v} onClick={() => set("sort", v === "newest" ? "" : v)}>{l}</button>
+                </li>
+              ))}
+            </ul>
+          </section>
           {groups.map((g) => (
-            <section key={g.key} className="sheet-group" aria-labelledby={`g-${g.key}`}>
+            <section key={g.key} className="filter-group" aria-labelledby={`g-${g.key}`}>
               <h3 id={`g-${g.key}`}>{g.title}</h3>
               <ul className="chip-list">
-                {g.options.map(([v]) => {
+                {g.options.map((v) => {
                   const n = countFor(g.key, v);
                   const on = state[g.key] === v;
                   if (!n && !on) return null;
@@ -172,9 +179,9 @@ export default function FilmBrowser({ films, facets }: { films: FilmCard[]; face
             </section>
           ))}
         </div>
-        <div className="sheet-foot">
-          <button type="button" className="button ghost" onClick={() => commit({ type: state.type, q: state.q, sort: state.sort })}>Clear</button>
-          <button type="button" className="button" onClick={() => sheet.current?.close()}>
+        <div className="modal-foot">
+          <button type="button" className="button ghost" onClick={() => commit({ q: state.q })} disabled={!active.length && !state.sort}>Reset</button>
+          <button type="button" className="button" onClick={() => modal.current?.close()}>
             Show {results.length} {results.length === 1 ? "film" : "films"}
           </button>
         </div>

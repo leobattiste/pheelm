@@ -9,10 +9,8 @@ import { TransitionWatcher } from "@/components/Transitions";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE } from "@/lib/site";
 import { SITE_URL } from "@/lib/supabase/config";
 import { themeScript } from "@/lib/theme";
-// Typefaces are served from the site itself: Gloock for titles, Schibsted Grotesk for text.
-import "@fontsource/gloock/latin-400.css";
-import "@fontsource/gloock/latin-ext-400.css";
-import "@fontsource-variable/schibsted-grotesk/index.css";
+// One typeface, Host Grotesk, served from the site itself.
+import "@fontsource-variable/host-grotesk/index.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -24,13 +22,16 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#17120e",
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#0c0c0c" },
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+  ],
   viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-theme="dark" suppressHydrationWarning>
+    <html lang="en" data-theme="dark" data-grid="large" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://image.tmdb.org" />
       </head>

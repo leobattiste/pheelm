@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FilmGrid } from "@/components/FilmCard";
+import GridToggle from "@/components/GridToggle";
 import { getCollection, getCollections, toCard } from "@/lib/data";
 
 export const revalidate = 300;
@@ -27,10 +28,11 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
         <nav className="crumbs" aria-label="Breadcrumb"><Link href="/collections">Collections</Link></nav>
         <h1>{collection.title}</h1>
         {collection.description && <p className="lead">{collection.description}</p>}
-        {years.length > 0 && (
-          <p className="label">{collection.films.length} films, {Math.min(...years)} to {Math.max(...years)}</p>
-        )}
       </header>
+      <div className="section-head">
+        <p className="label">{collection.films.length} films{years.length > 0 && `, ${Math.min(...years)} to ${Math.max(...years)}`}</p>
+        <GridToggle />
+      </div>
       <FilmGrid films={collection.films.map(toCard)} priority={8} />
     </section>
   );

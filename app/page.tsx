@@ -6,7 +6,7 @@ import Row from "@/components/Row";
 import TrailerButton from "@/components/TrailerButton";
 import FilmLink from "@/components/Transitions";
 import { getArticles, getCollections, getDirectors, getFacets, getFilms, toCard } from "@/lib/data";
-import { filmColour, trailerEmbed } from "@/lib/format";
+import { trailerEmbed } from "@/lib/format";
 import { firstSentence } from "@/lib/text";
 
 export const revalidate = 300;
@@ -36,7 +36,7 @@ export default async function Home() {
 
   return (
     <>
-      <section className="feature" style={{ "--film": filmColour(pick) } as React.CSSProperties} aria-labelledby="feature-title">
+      <section className={`feature${pick.backdrop_url ? " has-still" : ""}`} aria-labelledby="feature-title">
         {pick.backdrop_url && (
           <div className="feature-still">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -44,7 +44,7 @@ export default async function Home() {
           </div>
         )}
         <div className="feature-body">
-          <p className="feature-kicker">Film of the week</p>
+          <p className="feature-kicker"><span className="dot" aria-hidden="true" />Film of the week</p>
           <h1 id="feature-title">{pick.title}</h1>
           <p className="feature-by">
             {pick.directors.map((d, i) => (
@@ -53,7 +53,7 @@ export default async function Home() {
                 <Link href={`/directors/${d.slug}`}>{d.name}</Link>
               </span>
             ))}
-            , {pick.year}
+            <span className="muted-on-dark">, {pick.year}</span>
           </p>
           {pick.synopsis && <p className="feature-line">{firstSentence(pick.synopsis)}</p>}
           <div className="actions">

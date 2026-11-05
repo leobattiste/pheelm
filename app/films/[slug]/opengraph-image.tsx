@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 import { getFilm, getFilms } from "@/lib/data";
-import { filmColour, posterColours } from "@/lib/format";
+import { posterColours } from "@/lib/format";
 import { SITE_NAME } from "@/lib/site";
 
 export const size = { width: 1200, height: 630 };
@@ -15,14 +15,13 @@ export async function generateStaticParams() {
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
   const film = await getFilm((await params).slug);
   if (!film) return new ImageResponse(<div style={{ display: "flex", width: "100%", height: "100%", background: "#17120e" }} />, size);
-  const colour = filmColour(film);
   const card = posterColours(film.title);
   const directors = film.directors.map((d) => d.name).join(" and ");
 
   return new ImageResponse(
     (
-      <div style={{ display: "flex", width: "100%", height: "100%", padding: 64, gap: 64, background: colour, color: "#f6efe5", fontFamily: "serif" }}>
-        <div style={{ display: "flex", position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: "linear-gradient(90deg, rgba(13,9,7,0.75), rgba(13,9,7,0.25))" }} />
+      <div style={{ display: "flex", width: "100%", height: "100%", padding: 64, gap: 64, background: "#0c0c0c", color: "#f5f5f5", fontFamily: "serif" }}>
+        <div style={{ display: "flex", position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: "linear-gradient(90deg, rgba(0,0,0,0.6), rgba(0,0,0,0))" }} />
         <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", flex: 1, position: "relative" }}>
           <div style={{ display: "flex", fontSize: 34, opacity: 0.85 }}>{SITE_NAME}</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>

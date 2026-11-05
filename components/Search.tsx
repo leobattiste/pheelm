@@ -6,8 +6,11 @@ import { initials, posterColours } from "@/lib/format";
 
 type FilmHit = { s: string; t: string; o: string | null; y: number; d: string[]; p: string | null };
 type DirectorHit = { s: string; n: string; c: string | null; f: number; p: string | null };
-type Index = { films: FilmHit[]; directors: DirectorHit[] };
-type Hit = { kind: "film"; item: FilmHit } | { kind: "director"; item: DirectorHit };
+type CollectionHit = { s: string; t: string; n: number };
+type Index = { films: FilmHit[]; directors: DirectorHit[]; collections?: CollectionHit[] };
+type Hit = { kind: "film"; item: FilmHit } | { kind: "director"; item: DirectorHit } | { kind: "collection"; item: CollectionHit };
+const GROUP_LABELS = { director: "Directors", film: "Films", collection: "Collections" } as const;
+const hrefOf = (h: Hit) => (h.kind === "film" ? `/films/${h.item.s}` : h.kind === "director" ? `/directors/${h.item.s}` : `/collections/${h.item.s}`);
 
 const plain = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
@@ -62,7 +65,12 @@ export default function Search() {
       .filter((f) => match(plain(`${f.t} ${f.o ?? ""} ${f.d.join(" ")} ${f.y}`)))
       .sort((a, b) => Number(plain(b.t).startsWith(term)) - Number(plain(a.t).startsWith(term)))
       .slice(0, 8);
-    return [...directors.map((item) => ({ kind: "director" as const, item })), ...films.map((item) => ({ kind: "film" as const, item }))];
+    const collections = (index.collections ?? []).filter((c) => match(plain(c.t))).slice(0, 3);
+    return [
+      ...directors.map((item) => ({ kind: "director" as const, item })),
+      ...films.map((item) => ({ kind: "film" as const, item })),
+      ...collections.map((item) => ({ kind: "collection" as const, item })),
+    ];
   }, [index, q]);
 
   useEffect(() => setActive(0), [q]);
@@ -70,7 +78,7 @@ export default function Search() {
   const go = (hit: Hit) => {
     dialog.current?.close();
     setQ("");
-    router.push(hit.kind === "film" ? `/films/${hit.item.s}` : `/directors/${hit.item.s}`);
+    router.push(hrefOf(hit));
   };
 
   return (
@@ -110,6 +118,7 @@ export default function Search() {
             <ul id="search-results" role="listbox" className="search-results">
               {hits.map((h, i) => (
                 <li key={h.kind + h.item.s} id={`hit-${i}`} role="option" aria-selected={i === active}>
+                  {q.trim() && (i === 0 || hits[i - 1].kind !== h.kind) && <p className="search-group" aria-hidden="true">{GROUP_LABELS[h.kind]}</p>}
                   <button type="button" onClick={() => go(h)} onMouseEnter={() => setActive(i)}>
                     {h.kind === "film" ? (
                       <>
@@ -122,6 +131,16 @@ export default function Search() {
                         <span className="hit-text">
                           <span className="hit-title">{h.item.t}</span>
                           <span className="hit-meta">{h.item.d.join(" and ")}, {h.item.y}</span>
+                        </span>
+                      </>
+                    ) : h.kind === "collection" ? (
+                      <>
+                        <span className="hit-portrait" aria-hidden="true">
+                          <svg viewBox="0 0 20 20"><path d="M4 5.5h9v11H4zM7 3.5h9v11" /></svg>
+                        </span>
+                        <span className="hit-text">
+                          <span className="hit-title">{h.item.t}</span>
+                          <span className="hit-meta">Collection, {h.item.n} films</span>
                         </span>
                       </>
                     ) : (
@@ -146,6 +165,11 @@ export default function Search() {
         ) : (
           <p className="search-note">Nothing matches &ldquo;{q}&rdquo;. Try a director&rsquo;s surname, or <a href="/submit">suggest the film</a>.</p>
         )}
+        <div className="search-foot" aria-hidden="true">
+          <span><kbd>↑</kbd><kbd>↓</kbd> Move</span>
+          <span><kbd>↵</kbd> Open</span>
+          <span><kbd>esc</kbd> Close</span>
+        </div>
       </div>
     </dialog>
   );

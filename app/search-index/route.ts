@@ -1,11 +1,11 @@
-import { getDirectors, getFilms } from "@/lib/data";
+import { getCollections, getDirectors, getFilms } from "@/lib/data";
 import { countryName } from "@/lib/format";
 
 export const revalidate = 300;
 
 /** A compact list of every film and director, loaded the first time someone opens search. */
 export async function GET() {
-  const [films, directors] = await Promise.all([getFilms(), getDirectors()]);
+  const [films, directors, collections] = await Promise.all([getFilms(), getDirectors(), getCollections()]);
   return Response.json({
     films: films.map((f) => ({
       s: f.slug,
@@ -22,5 +22,6 @@ export async function GET() {
       f: d.films.length,
       p: d.photo_url,
     })),
+    collections: collections.map((c) => ({ s: c.slug, t: c.title, n: c.films.length })),
   });
 }
