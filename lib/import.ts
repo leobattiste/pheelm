@@ -2,7 +2,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import sharp from "sharp";
 import { slugify } from "./format";
-import { findMovie, getMovie, getPersonDetails } from "./tmdb";
+import { findMovie, getMovie, getPersonDetails, searchMovies } from "./tmdb";
 import type { WatchOption } from "./types";
 
 const isTmdbLink = (url: string) => url.includes("themoviedb.org") || url.includes("justwatch.com");
@@ -31,6 +31,12 @@ export async function importFilm(db: SupabaseClient, filmId: string): Promise<st
   const update: Record<string, unknown> = { tmdb_id: tmdbId, watch: [...manualWatch, ...m.watch], updated_at: new Date().toISOString() };
   for (const key of ["original_title", "runtime", "synopsis", "poster_url", "backdrop_url", "trailer_url", "genres", "countries", "languages"] as const) {
     if (empty(film[key]) && !empty(m[key])) update[key] = m[key];
+  }
+  // A film added without details starts as a feature; TMDB's genres and runtime say if it's something else.
+  if (film.type === "feature" && update.genres) {
+    if (m.genres.includes("Animation")) update.type = "animation";
+    else if (m.genres.includes("Documentary")) update.type = "documentary";
+    else if (m.runtime && m.runtime <= 40) update.type = "short";
   }
   // The page tint comes from the poster, unless a colour was picked by hand.
   const poster = (update.poster_url as string | undefined) ?? film.poster_url;
@@ -69,13 +75,71 @@ export async function importFilm(db: SupabaseClient, filmId: string): Promise<st
     if (Object.keys(patch).length) await db.from("people").update(patch).eq("id", person.id);
   }
 
-  const filled = Object.keys(update).filter((k) => !["tmdb_id", "watch", "updated_at", "color"].includes(k));
+  const filled = Object.keys(update).filter((k) => !["tmdb_id", "watch", "updated_at", "color", "type"].includes(k));
   const parts = [
     filled.length ? `filled ${filled.map((k) => k.replace("_url", "").replace("_", " ")).join(", ")}` : "nothing empty to fill",
     `${added} new credits`,
     `${m.watch.length} viewing options`,
   ];
   return `${film.title}: ${parts.join(" · ")}.`;
+}
+
+export type AddResult = { status: "added" | "exists" | "not-found"; message: string; id?: string };
+
+/**
+ * Adds a film from just its title and year: finds it on TMDB, creates it, and fills everything
+ * (poster, synopsis, director, cast and crew, trailer, where to watch). Films already in the
+ * directory are left alone.
+ */
+export async function addFilmByTitle(
+  db: SupabaseClient,
+  title: string,
+  year: number | null,
+  options: { publish: boolean; collectionId?: string | null },
+): Promise<AddResult> {
+  const label = year ? `${title} (${year})` : title;
+
+  // Already here under this title and about this year?
+  let q = db.from("films").select("id, title").ilike("title", title.replace(/[%_]/g, "\\$&"));
+  if (year) q = q.gte("year", year - 1).lte("year", year + 1);
+  const { data: same } = await q.limit(1);
+  if (same?.length) {
+    await addToCollection(db, same[0].id, options.collectionId);
+    return { status: "exists", message: `${label}: already in the directory.`, id: same[0].id };
+  }
+
+  // Without a year, take TMDB's best match for the title.
+  const tmdbId = year ? await findMovie(title, year, []) : ((await searchMovies(title))[0]?.id ?? null);
+  if (!tmdbId) return { status: "not-found", message: `${label}: no confident match on TMDB. Add it by hand with its TMDB id.` };
+
+  const { data: byTmdb } = await db.from("films").select("id, title").eq("tmdb_id", tmdbId).maybeSingle();
+  if (byTmdb) {
+    await addToCollection(db, byTmdb.id, options.collectionId);
+    return { status: "exists", message: `${label}: already in the directory as ${byTmdb.title}.`, id: byTmdb.id };
+  }
+
+  const m = await getMovie(tmdbId);
+  const filmYear = m.year ?? year ?? new Date().getFullYear();
+  let slug = slugify(m.title);
+  const { data: clash } = await db.from("films").select("id").eq("slug", slug).maybeSingle();
+  if (clash) slug = `${slug}-${filmYear}`;
+  const { data: created, error } = await db
+    .from("films")
+    .insert({ title: m.title, slug, year: filmYear, tmdb_id: tmdbId, status: options.publish ? "published" : "draft" })
+    .select("id")
+    .single();
+  if (error || !created) return { status: "not-found", message: `${label}: couldn't be added (${error?.message}).` };
+
+  await importFilm(db, created.id);
+  await addToCollection(db, created.id, options.collectionId);
+  const directors = m.people.filter((p) => p.role === "director").map((p) => p.name).join(", ");
+  return { status: "added", message: `${m.title} (${filmYear})${directors ? `, ${directors}` : ""}: added.`, id: created.id };
+}
+
+async function addToCollection(db: SupabaseClient, filmId: string, collectionId?: string | null) {
+  if (!collectionId) return;
+  const { data: film } = await db.from("films").select("year").eq("id", filmId).single();
+  await db.from("collection_films").upsert({ collection_id: collectionId, film_id: filmId, sort: film?.year ?? 0 }, { onConflict: "collection_id,film_id", ignoreDuplicates: true });
 }
 
 async function ensurePerson(db: SupabaseClient, tmdbId: number, name: string, photo: string | null): Promise<string> {

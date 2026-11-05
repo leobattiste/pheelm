@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { adminClient } from "@/lib/admin";
 import { slugify } from "@/lib/format";
-import { importFilm, posterColour } from "@/lib/import";
+import { addFilmByTitle, importFilm, posterColour, type AddResult } from "@/lib/import";
 import { tmdbEnabled } from "@/lib/tmdb";
 import type { Award, Role, WatchOption } from "@/lib/types";
 
@@ -181,6 +181,19 @@ export async function importOne(id: string): Promise<Result> {
     return { ok: true, message };
   } catch (e) {
     return fail(e);
+  }
+}
+
+/** One line of the bulk add tool: a title and an optional year. */
+export async function addOne(title: string, year: number | null, publish: boolean, collectionId: string | null): Promise<AddResult> {
+  try {
+    if (!tmdbEnabled) return { status: "not-found", message: "Add TMDB_API_KEY in Vercel to switch on adding films from TMDB." };
+    const db = await adminClient();
+    const r = await addFilmByTitle(db, title.slice(0, 300), year, { publish, collectionId });
+    if (r.status === "added") refresh();
+    return r;
+  } catch (e) {
+    return { status: "not-found", message: `${title}: ${e instanceof Error ? e.message : "something went wrong."}` };
   }
 }
 

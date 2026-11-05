@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/admin";
 import { TYPE_LABELS } from "@/lib/format";
 import type { FilmType } from "@/lib/types";
 import { createFilm } from "../actions";
+import BulkAdd from "./BulkAdd";
 
 export default async function AdminFilms({ searchParams }: { searchParams: Promise<{ status?: string; missing?: string; q?: string }> }) {
   const { db } = await requireAdmin();
@@ -12,7 +13,10 @@ export default async function AdminFilms({ searchParams }: { searchParams: Promi
   if (sp.status === "draft") query = query.eq("status", "draft");
   if (sp.missing === "poster") query = query.is("poster_url", null);
   if (sp.q) query = query.ilike("title", `%${sp.q}%`);
-  const { data: films } = await query;
+  const [{ data: films }, { data: collections }] = await Promise.all([
+    query,
+    db.from("collections").select("id, title").order("sort_order"),
+  ]);
 
   return (
     <>
@@ -32,6 +36,8 @@ export default async function AdminFilms({ searchParams }: { searchParams: Promi
           <button className="button" type="submit">Create draft</button>
         </div>
       </form>
+
+      <BulkAdd collections={collections ?? []} />
 
       <form className="actions" role="search">
         <input className="search-input" name="q" defaultValue={sp.q} placeholder="Search titles" aria-label="Search titles" />
