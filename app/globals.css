@@ -1176,18 +1176,18 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
   *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
 }
 
-/* Everything set at 20px or larger is extra bold (Nacelle Heavy, 800). Long reading text at
+/* Everything set at 20px or larger is bold (Nacelle Bold, 700). Long reading text at
    20px (intros, synopses, articles) stays regular so it's comfortable to read. */
 h1, h2, .menu-main a, .empty-state p:first-child, .decades a, .director-card-name, .collection-title,
 .article-title, .film-title, .film-byline, .feature h1, .feature-by, .intro p, .stat strong,
 .portrait-initials, .person-head .portrait, .field input.code-input {
-  font-weight: 800;
+  font-weight: 700;
 }
-.poster-card-title { font-weight: 800; }
+.poster-card-title { font-weight: 700; }
 /* Cards shrink their names below 20px in the small grid, so those go back to semibold. */
 [data-grid="small"] :is(.director-grid, .collection-list) :is(.collection-title, .director-card-name),
 [data-grid="list"] :is(.director-grid, .collection-list) :is(.collection-title, .director-card-name) { font-weight: 600; }
-.intro p .muted { font-weight: 800; }
+.intro p .muted { font-weight: 700; }
 
 /* Home: collection spotlight ----------------------------------------------------------------
    A large break between rows: the collection's story on one side, five posters on the other,
@@ -1236,7 +1236,7 @@ h1, h2, .menu-main a, .empty-state p:first-child, .decades a, .director-card-nam
 }
 .anniversary .poster { grid-area: poster; border-radius: var(--r-sm); margin-bottom: var(--space-12); }
 .anniversary .poster-card-title, .anniversary .poster-card-foot { display: none; }
-.anniversary-age { grid-area: age; align-self: start; color: var(--ink); font-size: var(--t-3xl); font-weight: 800; line-height: 1; letter-spacing: -0.03em; }
+.anniversary-age { grid-area: age; align-self: start; color: var(--ink); font-size: var(--t-3xl); font-weight: 700; line-height: 1; letter-spacing: -0.03em; }
 .anniversary-age span { display: block; margin-top: var(--space-4); color: var(--muted); font-size: var(--t-sm); font-weight: 400; letter-spacing: 0; }
 .anniversary-title { grid-area: title; overflow: hidden; color: var(--ink); font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
 .anniversary-meta { grid-area: meta; overflow: hidden; color: var(--muted); font-size: var(--t-sm); text-overflow: ellipsis; white-space: nowrap; }
