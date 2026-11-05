@@ -373,3 +373,10 @@ export async function reviewSubmission(f: FormData) {
     revalidatePath("/admin/submissions");
   }
 }
+
+/** Marks a contact message as answered, or moves it back. */
+export async function setMessageHandled(f: FormData) {
+  const db = await adminClient();
+  await db.from("messages").update({ handled: f.get("handled") === "true" }).eq("id", String(f.get("id")));
+  revalidatePath("/admin/inbox");
+}

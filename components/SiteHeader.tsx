@@ -33,15 +33,6 @@ export default function SiteHeader() {
     menu.current?.close();
   }, [pathname]);
 
-  // Over a full-bleed opening the header is see-through until the page scrolls.
-  useEffect(() => {
-    const root = document.documentElement;
-    const onScroll = () => root.toggleAttribute("data-scrolled", window.scrollY > 24);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [pathname]);
-
   const toggle = () => {
     if (menu.current?.open) menu.current.close();
     else {

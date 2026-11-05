@@ -10,6 +10,7 @@ const LINKS = [
   { href: "/admin/collections", label: "Collections" },
   { href: "/admin/journal", label: "Journal" },
   { href: "/admin/submissions", label: "Submissions" },
+  { href: "/admin/inbox", label: "Inbox" },
 ];
 
 export default function AdminNav() {
