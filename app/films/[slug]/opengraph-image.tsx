@@ -1,5 +1,5 @@
 import { ImageResponse } from "next/og";
-import { getFilm, getFilms } from "@/lib/data";
+import { getFilm } from "@/lib/data";
 import { filmColour, inkFor, posterColours } from "@/lib/format";
 import { ogFonts } from "@/lib/og";
 import { SITE_NAME } from "@/lib/site";
@@ -8,8 +8,9 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const revalidate = 3600;
 
+// Share images are drawn the first time a link is shared, then kept; none are drawn during the build.
 export async function generateStaticParams() {
-  return (await getFilms()).map((f) => ({ slug: f.slug }));
+  return [];
 }
 
 /**

@@ -6,15 +6,16 @@ import FollowButton from "@/components/FollowButton";
 import { PersonLinks } from "@/components/PersonDetails";
 import { FilmGrid } from "@/components/FilmCard";
 import Tabs from "@/components/Tabs";
-import { getDirector, getDirectors, getFilms, toCard } from "@/lib/data";
+import { getDirector, getFilms, toCard } from "@/lib/data";
 import { countryName } from "@/lib/format";
 import { bornText, diedText, overallRoles, rolesOnFilm, sentence, worksOf } from "@/lib/roles";
 
 export const revalidate = 300;
 export const dynamicParams = true;
 
+// Director pages are built the first time someone opens one, then kept, so the build stays small.
 export async function generateStaticParams() {
-  return (await getDirectors()).map((d) => ({ slug: d.slug }));
+  return [];
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {

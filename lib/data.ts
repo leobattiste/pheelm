@@ -29,9 +29,24 @@ async function readAll<T>(db: SupabaseClient, table: string, filter?: (q: any) =
   }
 }
 
-/** Loads the whole published catalog once per render. Thousands of films still fit in memory. */
-const load = cache(async (): Promise<Raw> => {
-  if (!supabaseEnabled) return local as unknown as Raw;
+/**
+ * Loads the whole published catalog. Thousands of films still fit in memory, but downloading it
+ * for every page doesn't: during a build that's hundreds of copies at once. So one copy is shared
+ * by every page this server process renders, refreshed after a minute.
+ */
+const FRESH_FOR = 60_000;
+let shared: { at: number; data: Promise<Raw> } | null = null;
+const load = cache((): Promise<Raw> => {
+  if (!supabaseEnabled) return Promise.resolve(local as unknown as Raw);
+  if (shared && Date.now() - shared.at < FRESH_FOR) return shared.data;
+  const data = fetchCatalog();
+  shared = { at: Date.now(), data };
+  // A failed download isn't kept, so the next page tries again.
+  data.catch(() => { if (shared?.data === data) shared = null; });
+  return data;
+});
+
+async function fetchCatalog(): Promise<Raw> {
   const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: false } });
   try {
     const [films, people, credits, collections, collection_films, articles] = await Promise.all([
@@ -57,13 +72,19 @@ const load = cache(async (): Promise<Raw> => {
     // On the live site, failing keeps the last good version of the page on screen.
     throw e;
   }
-});
+}
 
 const byTitle = (a: { title: string }, b: { title: string }) =>
   a.title.replace(/^(the|a|an) /i, "").localeCompare(b.title.replace(/^(the|a|an) /i, ""), "en", { sensitivity: "base" });
 
+let built: { raw: Raw; data: ReturnType<typeof buildCatalog> } | null = null;
 const catalog = cache(async () => {
   const raw = await load();
+  if (built?.raw !== raw) built = { raw, data: buildCatalog(raw) };
+  return built.data;
+});
+
+function buildCatalog(raw: Raw) {
   const personById = new Map(raw.people.map((p) => [p.id, p]));
   const collectionById = new Map(raw.collections.map((c) => [c.id, c]));
 
@@ -126,7 +147,7 @@ const catalog = cache(async () => {
   const articles = [...raw.articles].sort((a, b) => (b.published_at ?? "").localeCompare(a.published_at ?? ""));
 
   return { films, filmById, directors, collections, articles, people: raw.people };
-});
+}
 
 export async function getFilms() {
   return (await catalog()).films;
