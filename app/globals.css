@@ -233,7 +233,8 @@ svg { flex-shrink: 0; }
   border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
   transition: background-color 0.25s, border-color 0.25s;
 }
-.wordmark { color: var(--ink); font-size: var(--t-lg); font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+/* The name is set like paragraph text: 16px, regular weight. */
+.wordmark { color: var(--ink); font-size: var(--t-md); font-weight: 400; letter-spacing: 0; line-height: 1; }
 .header-tools { display: flex; align-items: center; gap: 4px; margin-left: auto; }
 .search-trigger-label, .search-trigger kbd { display: none; }
 .burger { display: grid; gap: 5px; width: 18px; }
@@ -302,7 +303,6 @@ svg { flex-shrink: 0; }
   .menu-sheet::backdrop { background: transparent; }
   .menu-inner { height: auto; padding: 0 20px 20px; }
   .menu-top { height: 60px; }
-  .menu-top .wordmark { font-size: var(--t-lg); }
   .menu-main { padding: 8px 0 16px; }
   .menu-main a { padding: 6px 0; font-size: var(--t-2xl); }
   .menu-main a:hover, .menu-more a:hover { color: var(--muted); }
@@ -330,7 +330,7 @@ html:not([data-scrolled]) body:has(.has-still) .search-trigger { background: rgb
   color: var(--muted);
 }
 .footer-about { display: grid; gap: 6px; }
-.footer-mark { color: var(--ink); font-size: var(--t-lg); font-weight: 700; letter-spacing: -0.03em; }
+.footer-mark { color: var(--ink); font-size: var(--t-md); font-weight: 400; }
 .site-footer nav { display: flex; flex-wrap: wrap; gap: 8px 24px; }
 .site-footer nav a { color: var(--text); }
 .site-footer nav a:hover { color: var(--ink); text-decoration: underline; }
@@ -1104,3 +1104,16 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
 }
+
+/* Everything set at 20px or larger is extra bold (Nacelle Heavy, 800). Long reading text at
+   20px (intros, synopses, articles) stays regular so it's comfortable to read. */
+h1, h2, .menu-main a, .empty-state p:first-child, .decades a, .director-card-name, .collection-title,
+.article-title, .film-title, .film-byline, .feature h1, .feature-by, .intro p, .stat strong,
+.portrait-initials, .person-head .portrait, .field input.code-input {
+  font-weight: 800;
+}
+.poster-card-title { font-weight: 800; }
+/* Cards shrink their names below 20px in the small grid, so those go back to semibold. */
+[data-grid="small"] :is(.director-grid, .collection-list) :is(.collection-title, .director-card-name),
+[data-grid="list"] :is(.director-grid, .collection-list) :is(.collection-title, .director-card-name) { font-weight: 600; }
+.intro p .muted { font-weight: 800; }

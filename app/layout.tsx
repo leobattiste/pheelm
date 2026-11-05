@@ -19,6 +19,7 @@ const nacelle = localFont({
     { path: "./fonts/Nacelle-Italic.woff2", weight: "400", style: "italic" },
     { path: "./fonts/Nacelle-SemiBold.woff2", weight: "600", style: "normal" },
     { path: "./fonts/Nacelle-Bold.woff2", weight: "700", style: "normal" },
+    { path: "./fonts/Nacelle-Heavy.woff2", weight: "800", style: "normal" },
   ],
   variable: "--font-nacelle",
   display: "swap",
