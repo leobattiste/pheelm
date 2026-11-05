@@ -30,5 +30,5 @@ export async function middleware(request: NextRequest) {
 
 // Only account pages and authenticated endpoints refresh sessions.
 export const config = {
-  matcher: ["/me/:path*", "/submit/:path*", "/admin/:path*", "/auth/:path*", "/api/:path*"],
+  matcher: ["/me/:path*", "/c/:path*", "/submit/:path*", "/admin/:path*", "/auth/:path*", "/api/:path*"],
 };

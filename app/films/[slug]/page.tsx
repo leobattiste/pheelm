@@ -152,7 +152,7 @@ export default async function FilmPage({ params }: Params) {
                 Trailer
               </a>
             )}
-            <WatchlistButton filmId={film.id} />
+            <WatchlistButton filmId={film.id} filmTitle={film.title} />
             <ShareButton title={film.title} />
           </div>
 

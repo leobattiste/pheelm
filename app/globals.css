@@ -938,3 +938,39 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 /* Header links never wrap; the search box narrows on smaller desktops. */
 .header-nav a, .header-link, .header-link a { white-space: nowrap; }
 @media (min-width: 900px) and (max-width: 1099px) { .search-trigger { width: 180px; } .site-header { gap: 20px; } }
+
+/* Members' collections -------------------------------------------------------------------- */
+
+.collection-tabs { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 28px; }
+.collection-tabs .chip { min-height: 38px; }
+.new-collection { display: inline-flex; align-items: center; gap: 4px; padding: 3px 3px 3px 14px; border: 1px dashed var(--line-strong); border-radius: var(--pill); }
+.new-collection input { width: 150px; min-width: 0; height: 30px; border: 0; background: none; font-size: var(--t-sm); outline: none; }
+.new-collection input::placeholder { color: var(--muted); }
+.new-collection .chip { min-height: 30px; width: 30px; padding: 0; justify-content: center; }
+.new-collection .x { opacity: 1; }
+.collection-heading { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
+.collection-heading h2 { font-size: var(--t-2xl); }
+.collection-heading .label { margin-top: 4px; }
+.collection-desc-full { max-width: 60ch; margin-top: 10px; color: var(--text); }
+.collection-edit { display: grid; gap: 16px; max-width: 560px; margin-bottom: 28px; padding: 20px; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); }
+.danger-text { color: var(--error); border-color: color-mix(in srgb, var(--error) 40%, transparent); }
+.me-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--line); }
+
+/* The save sheet: tick the collections a film belongs to. */
+.save-intro { padding: 16px 0 12px; color: var(--muted); font-size: var(--t-sm); }
+.save-intro strong { color: var(--ink); }
+.save-lists { display: grid; gap: 2px; }
+.save-row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 52px; padding: 0 12px; border: 0; border-radius: var(--r); background: none; color: var(--text); text-align: left; cursor: pointer; }
+.save-row:hover { background: var(--surface); }
+.save-row.is-fixed { cursor: default; }
+.save-row.is-fixed:hover { background: none; }
+.save-check { display: grid; place-items: center; flex-shrink: 0; width: 22px; height: 22px; border: 1.5px solid var(--line-strong); border-radius: 6px; color: var(--on-ink); }
+.save-check.is-on { background: var(--ink); border-color: var(--ink); }
+.save-check svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.save-name { flex: 1; min-width: 0; overflow: hidden; color: var(--ink); font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.save-count { color: var(--muted); font-size: var(--t-xs); }
+.save-note { padding: 14px 12px; color: var(--muted); font-size: var(--t-sm); }
+.save-new { display: flex; gap: 8px; margin-top: 12px; padding-top: 14px; border-top: 1px solid var(--line); }
+.save-new input { flex: 1; min-width: 0; height: 44px; padding: 0 16px; border: 1px solid var(--line); border-radius: var(--pill); background: var(--surface); font-size: var(--t-md); }
+.save-new input:focus { border-color: var(--line-strong); outline: none; }
+.save-sheet .modal-foot .button.ghost { flex: 0 0 auto; }
