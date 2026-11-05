@@ -7,9 +7,9 @@ import { getBrowserClient } from "@/lib/supabase/client";
 
 type Status = "loading" | "signed-out" | "off" | "on";
 
-const ICON = (
-  <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 3.5h8v13l-4-3-4 3z" /></svg>
-);
+// A plus (cross) before the film is saved, a checkmark once it is.
+const PLUS = <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4.5v11M4.5 10h11" /></svg>;
+const CHECK = <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m4.5 10.5 3.5 3.5 7.5-8" /></svg>;
 
 /**
  * Saves the film to the visitor's watchlist, or takes it off. Checks the session in the
@@ -36,7 +36,7 @@ export default function WatchlistButton({ filmId }: { filmId: string }) {
   if (status === "signed-out" || status === "loading") {
     return (
       <Link className="pill-button" href={`/login?next=${encodeURIComponent(path)}`} aria-busy={status === "loading"}>
-        {ICON}
+        {PLUS}
         Watchlist
       </Link>
     );
@@ -57,9 +57,10 @@ export default function WatchlistButton({ filmId }: { filmId: string }) {
   };
 
   return (
-    <button type="button" className="pill-button" aria-pressed={status === "on"} disabled={busy} onClick={toggle}>
-      {ICON}
-      {status === "on" ? "On watchlist" : "Watchlist"}
+    <button type="button" className="pill-button" aria-pressed={status === "on"} disabled={busy} onClick={toggle}
+      aria-label={status === "on" ? "On your watchlist. Remove it" : "Add to watchlist"}>
+      {status === "on" ? CHECK : PLUS}
+      Watchlist
     </button>
   );
 }
