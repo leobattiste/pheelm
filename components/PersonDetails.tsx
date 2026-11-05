@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { initials } from "@/lib/format";
-import { lifeLine, overallRoles, type PersonInfo } from "@/lib/roles";
+import { bornText, diedText, overallRoles, type PersonInfo } from "@/lib/roles";
 
 /**
  * A cast or crew member's details: portrait, what they do, when and where they were born, their
@@ -8,7 +8,8 @@ import { lifeLine, overallRoles, type PersonInfo } from "@/lib/roles";
  */
 export default function PersonDetails({ info, headingLevel = 2 }: { info: PersonInfo; headingLevel?: 1 | 2 }) {
   const Heading = headingLevel === 1 ? "h1" : "h2";
-  const life = lifeLine(info);
+  const born = bornText(info);
+  const died = diedText(info);
   const paragraphs = info.bio?.split(/\n{2,}/).filter(Boolean) ?? [];
 
   return (
@@ -25,8 +26,12 @@ export default function PersonDetails({ info, headingLevel = 2 }: { info: Person
           <p className="person-roles">{overallRoles(info.works)}</p>
         </div>
       </div>
-      {life && <p className="person-life">{life}</p>}
-      <PersonLinks info={info} />
+      {(born || died) && (
+        <dl className="details person-dates">
+          {born && <div><dt>Born</dt><dd>{born}</dd></div>}
+          {died && <div><dt>Died</dt><dd>{died}</dd></div>}
+        </dl>
+      )}
       {paragraphs.length > 0 && (
         <div className="person-bio">
           {paragraphs.slice(0, 2).map((p, i) => <p key={i}>{p}</p>)}
@@ -38,6 +43,7 @@ export default function PersonDetails({ info, headingLevel = 2 }: { info: Person
           )}
         </div>
       )}
+      <PersonLinks info={info} />
       {info.works.length > 0 && (
         <div className="person-works">
           <h3>On Pheelm</h3>

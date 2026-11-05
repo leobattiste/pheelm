@@ -93,11 +93,13 @@ export function personInfo(p: PersonRow, films: Film[], directorIds: Set<string>
 
 const DATE = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 
-/** "Born 20 March 1957 in Atlanta, Georgia, USA" and "Died …", from whatever is known. */
-export function lifeLine(p: Pick<PersonInfo, "born" | "died" | "birth_year" | "birthplace">) {
-  const born = p.born ? DATE.format(new Date(p.born)) : p.birth_year ? String(p.birth_year) : null;
-  const parts: string[] = [];
-  if (born || p.birthplace) parts.push(`Born${born ? ` ${born}` : ""}${p.birthplace ? ` in ${p.birthplace}` : ""}`);
-  if (p.died) parts.push(`Died ${DATE.format(new Date(p.died))}`);
-  return parts.join(". ");
+/** When and where someone was born: "20 March 1957, Atlanta, Georgia, USA". Null when unknown. */
+export function bornText(p: Pick<PersonInfo, "born" | "birth_year" | "birthplace">) {
+  const when = p.born ? DATE.format(new Date(p.born)) : p.birth_year ? String(p.birth_year) : null;
+  return [when, p.birthplace].filter(Boolean).join(", ") || null;
+}
+
+/** When someone died: "12 December 2019". Null for the living or unknown. */
+export function diedText(p: Pick<PersonInfo, "died">) {
+  return p.died ? DATE.format(new Date(p.died)) : null;
 }

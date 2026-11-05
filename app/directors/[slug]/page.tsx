@@ -8,7 +8,7 @@ import { FilmGrid } from "@/components/FilmCard";
 import Tabs from "@/components/Tabs";
 import { getDirector, getDirectors, getFilms, toCard } from "@/lib/data";
 import { countryName } from "@/lib/format";
-import { lifeLine, overallRoles, rolesOnFilm, sentence, worksOf } from "@/lib/roles";
+import { bornText, diedText, overallRoles, rolesOnFilm, sentence, worksOf } from "@/lib/roles";
 
 export const revalidate = 300;
 export const dynamicParams = true;
@@ -42,7 +42,8 @@ export default async function DirectorPage({ params }: { params: Promise<{ slug:
   const first = Math.min(...years);
   const last = Math.max(...years);
   const wins = director.films.reduce((n, f) => n + f.awards.filter((a) => a.result === "won" && a.award !== "National Film Registry").length, 0);
-  const life = lifeLine({ born: director.born ?? null, died: director.died ?? null, birth_year: director.birth_year ?? null, birthplace: director.birthplace ?? null });
+  const born = bornText({ born: director.born ?? null, birth_year: director.birth_year ?? null, birthplace: director.birthplace ?? null });
+  const died = diedText({ died: director.died ?? null });
   const bio = director.bio?.split(/\n{2,}/).filter(Boolean) ?? [];
 
   const tabs = [
@@ -59,10 +60,12 @@ export default async function DirectorPage({ params }: { params: Promise<{ slug:
           {bio.length ? bio.map((p, i) => <p key={i}>{p}</p>) : <p className="muted">No biography yet.</p>}
           <dl className="details">
             {director.country && <div><dt>From</dt><dd>{countryName(director.country)}</dd></div>}
-            {life && <div><dt>Life</dt><dd>{life}</dd></div>}
+            {born && <div><dt>Born</dt><dd>{born}</dd></div>}
+            {died && <div><dt>Died</dt><dd>{died}</dd></div>}
             <div><dt>On Pheelm</dt><dd>{director.films.length} {director.films.length === 1 ? "film" : "films"} directed, {first === last ? first : `${first} to ${last}`}</dd></div>
             {wins > 0 && <div><dt>Major prizes</dt><dd>{wins}</dd></div>}
           </dl>
+          <PersonLinks info={{ name: director.name, imdb_id: director.imdb_id ?? null, instagram: director.instagram ?? null }} />
         </div>
       ),
     },
@@ -92,7 +95,6 @@ export default async function DirectorPage({ params }: { params: Promise<{ slug:
           <p className="person-roles">{overallRoles(works) || sentence(["Director"])}</p>
           <div className="person-actions">
             <FollowButton personId={director.id} name={director.name} />
-            <PersonLinks info={{ name: director.name, imdb_id: director.imdb_id ?? null, instagram: director.instagram ?? null }} />
           </div>
         </div>
       </header>
