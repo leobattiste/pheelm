@@ -512,28 +512,38 @@ main { width: 100%; }
 
 /* Director cards ------------------------------------------------------------------------- */
 
-.director-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-@media (min-width: 640px) { .director-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (min-width: 900px) { .director-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; } }
+.director-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+@media (min-width: 560px) { .director-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 900px) { .director-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; } }
 .director-card a {
   display: grid;
-  gap: 12px;
+  gap: 14px;
   height: 100%;
-  padding: 10px 10px 14px;
+  padding: 14px;
   border: 1px solid var(--line);
   border-radius: var(--r);
   background: var(--surface);
   transition: background-color 0.2s, border-color 0.2s, transform 0.3s var(--ease);
 }
-.director-card a:hover { background: var(--raised); border-color: var(--line-strong); transform: translateY(-2px); }
-.director-card .portrait { width: 100%; height: auto; aspect-ratio: 4 / 5; }
-.director-card-body { display: grid; gap: 2px; padding: 0 4px; }
-.director-card-name { color: var(--ink); font-size: var(--t-md); font-weight: 600; line-height: 1.25; letter-spacing: -0.01em; }
-.director-card-meta { color: var(--muted); font-size: var(--t-sm); }
-.director-card-stats { display: flex; justify-content: space-between; gap: 8px; margin-top: 8px; padding-top: 10px; border-top: 1px solid var(--line); color: var(--muted); font-size: var(--t-xs); font-variant-numeric: tabular-nums; }
+.director-card-head { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 12px; align-items: center; }
+.director-card .portrait { width: 48px; height: 48px; font-size: var(--t-sm); }
+.director-card-body { display: grid; gap: 1px; min-width: 0; }
+.director-card-name { overflow: hidden; color: var(--ink); font-size: var(--t-md); font-weight: 600; line-height: 1.25; letter-spacing: -0.01em; text-overflow: ellipsis; white-space: nowrap; }
+.director-card-meta { overflow: hidden; color: var(--muted); font-size: var(--t-sm); text-overflow: ellipsis; white-space: nowrap; }
+.director-card-films { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.director-card-films .poster { border-radius: 8px; transition: transform 0.35s var(--ease); }
+.director-card-films .poster-card-foot { display: none; }
+.director-card-films .is-empty { aspect-ratio: 2 / 3; border: 1px dashed var(--line); border-radius: 8px; }
+@media (hover: hover) {
+  .director-card a:hover { background: var(--raised); border-color: var(--line-strong); transform: translateY(-3px); }
+  .director-card a:hover .director-card-films > :first-child { transform: rotate(-2deg) translateY(-2px); }
+  .director-card a:hover .director-card-films > :nth-child(2) { transform: rotate(2deg) translateY(-2px); }
+}
+.director-card a:active { transform: scale(0.98); background: var(--raised); }
 
 .portrait {
   display: grid;
+  aspect-ratio: 1;
   place-items: center;
   width: 64px;
   height: 64px;
@@ -814,7 +824,7 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 
 .person-head { display: grid; gap: 24px; padding: clamp(32px, 6vw, 72px) 0 0; }
 .person-head h1 { font-size: var(--t-3xl); }
-.person-head .portrait { width: 140px; height: 175px; font-size: 2.5rem; }
+.person-head .portrait { width: 120px; height: 120px; font-size: 2.25rem; }
 .person-text { display: grid; gap: 16px; align-content: start; }
 .bio { max-width: 64ch; font-size: var(--t-lg); line-height: 1.6; }
 .person-facts { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -822,8 +832,8 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 .person-facts dt { color: var(--muted); font-size: var(--t-xs); }
 .person-facts dd { color: var(--ink); font-size: var(--t-sm); font-weight: 600; }
 @media (min-width: 900px) {
-  .person-head:has(.portrait) { grid-template-columns: 200px 1fr; gap: 40px; align-items: start; }
-  .person-head .portrait { width: 200px; height: 250px; }
+  .person-head:has(.portrait) { grid-template-columns: 180px 1fr; gap: 40px; align-items: start; }
+  .person-head .portrait { width: 180px; height: 180px; }
 }
 .filmography { display: grid; gap: 1px; overflow: hidden; border: 1px solid var(--line); border-radius: var(--r); background: var(--line); }
 .filmography li { display: grid; grid-template-columns: 56px 1fr auto; gap: 14px; align-items: baseline; padding: 14px 16px; background: var(--surface); }
@@ -1029,35 +1039,6 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
   [data-grid="list"] .film-grid .film-card-country { grid-area: country; display: block; overflow: hidden; color: var(--muted); font-size: var(--t-sm); text-overflow: ellipsis; white-space: nowrap; }
 }
 
-/* Directors world map ------------------------------------------------------------------------ */
-
-.segmented svg.stroke { fill: none; stroke: currentColor; stroke-width: 1.4; }
-.world { display: grid; gap: 12px; margin-bottom: 28px; }
-.world-map { position: relative; padding: 12px; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); }
-.world-map svg { display: block; width: 100%; height: auto; }
-.world-map .land { fill: var(--raised); stroke: var(--surface); stroke-width: 0.6; transition: fill 0.2s; }
-.world-map .land.has { cursor: pointer; }
-.world-map .land.has:hover, .world-map .land.has:focus-visible { fill: var(--ink) !important; outline: none; }
-.world-map .land.selected { fill: var(--ink); }
-.map-tip {
-  position: absolute;
-  z-index: 2;
-  display: grid;
-  gap: 1px;
-  padding: 8px 12px;
-  border: 1px solid var(--line);
-  border-radius: var(--r);
-  background: var(--bg);
-  box-shadow: var(--shadow);
-  font-size: var(--t-sm);
-  white-space: nowrap;
-  pointer-events: none;
-  transform: translate(-50%, calc(-100% - 12px));
-}
-.map-tip strong { color: var(--ink); }
-.map-tip span { color: var(--muted); font-size: var(--t-xs); }
-.map-legend { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 20px; }
-.map-extra { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .person-actions { margin-top: 0; }
 @media (max-width: 639px) { .person-actions { display: flex; } }
 
@@ -1073,3 +1054,22 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 .update-title { color: var(--ink); font-weight: 600; }
 .update-meta { color: var(--muted); font-size: var(--t-sm); }
 .update-when { color: var(--muted); font-size: var(--t-xs); white-space: nowrap; }
+
+/* Small hover and press motion, on touch and pointer alike ---------------------------------- */
+.film-card a, .collection-tile, .chip, .icon-button, .round-button, .pill-button, .button, .segmented button, .cast li, .menu-main a, .menu-more a {
+  transition-property: transform, background-color, border-color, color, opacity, box-shadow;
+  transition-duration: 0.2s;
+  transition-timing-function: var(--ease);
+}
+.film-card a:active .poster { transform: scale(0.97); }
+.collection-tile:active, .cast li:active { transform: scale(0.98); }
+.chip:active, .icon-button:active, .segmented button:active, .button.ghost:active { transform: scale(0.94); }
+.menu-main a:active, .menu-more a:active { transform: translateX(4px); }
+@media (hover: hover) {
+  .chip:hover, .icon-button:hover { transform: translateY(-1px); }
+  .menu-main a:hover, .menu-more a:hover { transform: translateX(4px); }
+  .collection-tile:hover { transform: translateY(-3px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}

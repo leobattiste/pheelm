@@ -94,7 +94,7 @@ export type DirectorSummary = {
   films: number;
   first: number;
   last: number;
-  /** Decades they made films in here, like "1970s". */
-  decades: string[];
+  /** Two films to preview on their card, best known first. */
+  previews: { slug: string; title: string; year: number; poster_url: string | null; directors: string[] }[];
 };
 export type Collection = CollectionRow & { films: Film[] };

@@ -174,6 +174,8 @@ export async function getArticle(slug: string) {
   return { article, films: article.film_ids.map((id) => filmById.get(id)).filter((f): f is Film => Boolean(f)) };
 }
 
+const wins = (f: Film) => f.awards.filter((a) => a.result === "won").length;
+
 export function toDirectorSummary(d: Director): DirectorSummary {
   const years = d.films.map((f) => f.year);
   return {
@@ -185,7 +187,10 @@ export function toDirectorSummary(d: Director): DirectorSummary {
     films: d.films.length,
     first: Math.min(...years),
     last: Math.max(...years),
-    decades: [...new Set(years.map(decadeOf))].sort(),
+    previews: [...d.films]
+      .sort((a, b) => Number(!!b.poster_url) - Number(!!a.poster_url) || wins(b) - wins(a) || b.year - a.year)
+      .slice(0, 2)
+      .map((f) => ({ slug: f.slug, title: f.title, year: f.year, poster_url: f.poster_url, directors: f.directors.map((p) => p.name) })),
   };
 }
 
