@@ -1,17 +1,17 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import FilmCard from "@/components/FilmCard";
+import { FilmGrid } from "@/components/FilmCard";
+import Palette from "@/components/Palette";
 import Poster from "@/components/Poster";
-import Row from "@/components/Row";
+import ReadingProgress from "@/components/ReadingProgress";
 import ShareButton from "@/components/ShareButton";
-import Tabs from "@/components/Tabs";
 import TrailerButton from "@/components/TrailerButton";
 import WatchlistButton from "@/components/WatchlistButton";
 import { getFilm, getFilms, toCard } from "@/lib/data";
-import { countryName, listJoin, ROLE_LABELS, ROLES, runtimeLabel, trailerEmbed, TYPE_LABELS } from "@/lib/format";
+import { countryName, inkFor, listJoin, ROLE_LABELS, ROLES, runtimeLabel, trailerEmbed, TYPE_LABELS } from "@/lib/format";
 import { SITE_URL } from "@/lib/supabase/config";
-import type { Award, Credit, WatchOption } from "@/lib/types";
+import type { Award, Film, WatchOption } from "@/lib/types";
 
 export const revalidate = 300;
 export const dynamicParams = true;
@@ -20,19 +20,41 @@ export async function generateStaticParams() {
   return (await getFilms()).map((f) => ({ slug: f.slug }));
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+type Params = { params: Promise<{ slug: string }> };
+
+const validColour = (hex: string | null | undefined) => (hex && /^#[0-9a-f]{6}$/i.test(hex) ? hex : null);
+
+/** Tints the phone's browser bar with the film's colour, like Covvvvvers cover pages. */
+export async function generateViewport({ params }: Params): Promise<Viewport> {
+  const film = await getFilm((await params).slug);
+  const bg = validColour(film?.color);
+  return bg ? { themeColor: bg } : {};
+}
+
+export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const film = await getFilm((await params).slug);
   if (!film) return {};
   const by = listJoin(film.directors.map((d) => d.name));
   return {
-    title: `${film.title} (${film.year})`,
+    title: `${film.title} (${film.year}), directed by ${by}`,
     description: film.synopsis ?? `${film.title}, directed by ${by}.`,
+    alternates: { canonical: `/films/${film.slug}` },
   };
 }
 
 const KIND_LABELS: Record<WatchOption["kind"], string> = { stream: "Stream", free: "Watch free", rent: "Rent", buy: "Buy" };
 
-export default async function FilmPage({ params }: { params: Promise<{ slug: string }> }) {
+/**
+ * The whole page takes the film's colour (from its poster), with black or white text for
+ * contrast. Films without a poster colour keep the site's own black, white and gray.
+ */
+function pageColours(bg: string) {
+  const ink = inkFor(bg);
+  const mix = (n: number) => `color-mix(in srgb, ${ink} ${n}%, ${bg})`;
+  return `:root[data-theme]{--bg:${bg};--ink:${ink};--text:${ink};--on-ink:${bg};--muted:${mix(66)};--line:${mix(18)};--line-strong:${mix(32)};--surface:${mix(5)};--raised:${mix(9)};--hover:${mix(12)};--gold:${ink};color-scheme:${ink === "#ffffff" ? "dark" : "light"}}`;
+}
+
+export default async function FilmPage({ params }: Params) {
   const film = await getFilm((await params).slug);
   if (!film) notFound();
 
@@ -43,6 +65,7 @@ export default async function FilmPage({ params }: { params: Promise<{ slug: str
     .filter((f) => f.id !== film.id && !moreByDirector.includes(f) && f.collections.some((c) => film.collections.some((fc) => fc.slug === c.slug)))
     .slice(0, 12);
 
+  const bg = validColour(film.color);
   const cast = film.credits.filter((c) => c.role === "cast");
   const crew = ROLES.filter((r) => r !== "cast")
     .map((role) => ({ role, people: film.credits.filter((c) => c.role === role) }))
@@ -50,137 +73,25 @@ export default async function FilmPage({ params }: { params: Promise<{ slug: str
   const wins = film.awards.filter((a) => a.result === "won").sort((a, b) => prestige(a.award) - prestige(b.award) || a.year - b.year);
   const noms = film.awards.filter((a) => a.result === "nominated").sort((a, b) => prestige(a.award) - prestige(b.award) || a.year - b.year);
   const embed = trailerEmbed(film.trailer_url);
-  const watchKinds = (["stream", "free", "rent", "buy"] as const)
-    .map((k) => ({ kind: k, options: film.watch.filter((w) => w.kind === k) }))
-    .filter((g) => g.options.length);
   const directorNames = film.directors.map((d) => d.name);
 
-  const tags = [String(film.year), TYPE_LABELS[film.type], runtimeLabel(film.runtime), film.genres[0]].filter(Boolean) as string[];
+  // Like "Listen" on Covvvvvers: where to watch, by kind.
+  const watchRows = (["stream", "free", "rent", "buy"] as const)
+    .map((k) => [KIND_LABELS[k], uniqueByProvider(film.watch.filter((w) => w.kind === k))] as const)
+    .filter(([, list]) => list.length);
 
   const facts: [string, React.ReactNode][] = [
-    ["Directed by", film.directors.map((d, i) => (
-      <span key={d.id}>{i > 0 && ", "}<Link href={`/directors/${d.slug}`}>{d.name}</Link></span>
-    ))],
-    ["Year", <Link key="y" href={`/films?decade=${Math.floor(film.year / 10) * 10}s`}>{film.year}</Link>],
+    ["Film", film.original_title ? `${film.title} (${film.original_title})` : film.title],
+    ["Released", <Link key="y" href={`/films?decade=${Math.floor(film.year / 10) * 10}s`}>{film.year}</Link>],
     [film.countries.length > 1 ? "Countries" : "Country", film.countries.map((c, i) => (
       <span key={c}>{i > 0 && ", "}<Link href={`/films?country=${c}`}>{countryName(c)}</Link></span>
     ))],
-  ];
-  if (film.languages.length) facts.push([film.languages.length > 1 ? "Languages" : "Language", film.languages.join(", ")]);
-  if (film.runtime) facts.push(["Running time", runtimeLabel(film.runtime)]);
-  if (film.genres.length) facts.push(["Genre", film.genres.map((g, i) => (
-    <span key={g}>{i > 0 && ", "}<Link href={`/films?genre=${encodeURIComponent(g)}`}>{g}</Link></span>
-  ))]);
-
-  const overview = (
-    <div className="overview">
-      {film.synopsis && <p className="synopsis">{film.synopsis}</p>}
-      {wins.length > 0 && (
-        <p className="award-line">
-          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5l2.2 4.6 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5L2.8 7.8l5-.7z" /></svg>
-          {awardLine(wins)}
-        </p>
-      )}
-      <dl className="facts">
-        {facts.map(([label, value]) => (
-          <div key={label}>
-            <dt>{label}</dt>
-            <dd>{value}</dd>
-          </div>
-        ))}
-      </dl>
-      {film.collections.length > 0 && (
-        <div className="overview-collections">
-          <h3>In collections</h3>
-          <ul className="chip-list">
-            {film.collections.map((c) => (
-              <li key={c.slug}><Link className="chip" href={`/collections/${c.slug}`}>{c.title}</Link></li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
-  );
-
-  const credits = (
-    <div className="credits">
-      {crew.length > 0 && (
-        <dl className="crew">
-          {crew.map((g) => (
-            <div key={g.role}>
-              <dt>{ROLE_LABELS[g.role]}</dt>
-              <dd>{peopleLinks(g.people)}</dd>
-            </div>
-          ))}
-        </dl>
-      )}
-      {cast.length > 0 && (
-        <ul className="cast" aria-label="Cast">
-          {cast.map((c) => (
-            <li key={c.person.id}>
-              {c.person.photo_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img className="cast-photo" src={c.person.photo_url} alt="" loading="lazy" />
-              ) : (
-                <span className="cast-photo" aria-hidden="true" />
-              )}
-              <span className="cast-text">
-                <Link href={`/people/${c.person.slug}`}>{c.person.name}</Link>
-                {c.character && <span className="character">{c.character}</span>}
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-
-  const awards = (
-    <ul className="award-list">
-      {[...wins, ...noms].map((a, i) => (
-        <li key={i}>
-          <span className={`award-badge ${isRegistry(a) ? "kept" : a.result}`}>{isRegistry(a) ? "Preserved" : a.result === "won" ? "Won" : "Nominated"}</span>
-          <span className="award-text">
-            <span className="award-name">{a.award}</span>
-            <span className="award-what">{isRegistry(a) ? "Selected for the National Film Registry" : a.category}</span>
-          </span>
-          <span className="award-year">{a.year}</span>
-        </li>
-      ))}
-    </ul>
-  );
-
-  const watch = watchKinds.length ? (
-    <div className="watch-groups">
-      {watchKinds.map((g) => (
-        <div key={g.kind} className="watch-group">
-          <h3>{KIND_LABELS[g.kind]}</h3>
-          <ul className="watch-list">
-            {g.options.map((w) => (
-              <li key={w.provider + w.region + w.kind}>
-                <a href={w.url} target="_blank" rel="noopener noreferrer">
-                  <span>{w.provider}</span>
-                  {w.region && <span className="region">{w.region}</span>}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
-      {film.watch.some((w) => w.url.includes("themoviedb.org")) && <p className="watch-note">Availability by country, from JustWatch.</p>}
-    </div>
-  ) : (
-    <div className="empty-state compact">
-      <p>No viewing options listed yet.</p>
-      <p className="muted"><Link href="/submit">Tell us where it&rsquo;s showing</Link>.</p>
-    </div>
-  );
-
-  const tabs = [
-    { id: "overview", label: "Overview", content: overview },
-    ...(cast.length || crew.length ? [{ id: "cast", label: "Cast & crew", count: film.credits.length, content: credits }] : []),
-    ...(wins.length || noms.length ? [{ id: "awards", label: "Awards", count: wins.length + noms.length, content: awards }] : []),
-    { id: "watch", label: "Where to watch", ...(watchKinds.length ? { count: film.watch.length } : {}), content: watch },
+    [film.languages.length > 1 ? "Languages" : "Language", film.languages.length ? film.languages.join(", ") : null],
+    ["Running time", runtimeLabel(film.runtime)],
+    ["Type", <Link key="t" href={`/films?type=${film.type}`}>{TYPE_LABELS[film.type]}</Link>],
+    ["Genre", film.genres.length ? film.genres.map((g, i) => (
+      <span key={g}>{i > 0 && ", "}<Link href={`/films?genre=${encodeURIComponent(g)}`}>{g}</Link></span>
+    )) : null],
   ];
 
   const jsonLd = {
@@ -198,58 +109,176 @@ export default async function FilmPage({ params }: { params: Promise<{ slug: str
   };
 
   return (
-    <article className="film">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
+    <>
+      <article className="film-page">
+        {/* Hands the film's colour to the whole page, header and footer included, while it's open. */}
+        {bg && <style>{pageColours(bg)}</style>}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
+        <ReadingProgress target=".film-body" />
 
-      <header className={`film-hero${film.backdrop_url ? " has-still" : ""}`}>
-        {film.backdrop_url && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img className="film-hero-still" src={film.backdrop_url} alt="" fetchPriority="high" />
-        )}
-        <div className="film-hero-body">
-          <nav className="crumbs" aria-label="Breadcrumb">
-            <Link href="/films">Films</Link>
-            <span aria-hidden="true">/</span>
-            <span>{TYPE_LABELS[film.type]}</span>
-          </nav>
-          <h1>{film.title}</h1>
-          {film.original_title && <p className="original">{film.original_title}</p>}
-          <p className="by">
-            {film.directors.map((d, i) => (
-              <span key={d.id}>
-                {i > 0 && (i === film.directors.length - 1 ? " and " : ", ")}
-                <Link href={`/directors/${d.slug}`}>{d.name}</Link>
+        <div className="film-art">
+          <Poster title={film.title} year={film.year} directors={directorNames} src={film.poster_url} sizes="(min-width: 800px) 46vw, 100vw" priority hero />
+        </div>
+
+        <div className="film-body">
+          <header className="film-head">
+            <h1 className="film-title">{film.title}</h1>
+            <p className="film-byline">
+              <span className="byline-item">
+                {film.directors.map((d, i) => (
+                  <span key={d.id}>
+                    {i > 0 && (i === film.directors.length - 1 ? " and " : ", ")}
+                    <Link href={`/directors/${d.slug}`}>{d.name}</Link>
+                  </span>
+                ))}
               </span>
-            ))}
-          </p>
-          <ul className="tags" aria-label="About this film">
-            {tags.map((t) => <li key={t}>{t}</li>)}
-          </ul>
-          <div className="actions">
-            {embed && <TrailerButton embed={embed} title={film.title} />}
+              <Link className="byline-item" href={`/films?type=${film.type}`}>{TYPE_LABELS[film.type]}</Link>
+              <Link className="byline-item" href={`/films?decade=${Math.floor(film.year / 10) * 10}s`}>{film.year}</Link>
+            </p>
+          </header>
+
+          <div className="film-actions">
+            {embed && <TrailerButton embed={embed} title={film.title} className="pill-button" label="Trailer" />}
             <WatchlistButton filmId={film.id} />
             <ShareButton title={film.title} />
           </div>
-        </div>
-      </header>
 
-      <div className="film-main">
-        <Poster title={film.title} year={film.year} directors={directorNames} src={film.poster_url} sizes="(min-width: 900px) 280px, 100vw" priority hero />
-        <Tabs tabs={tabs} label={`About ${film.title}`} />
-      </div>
+          {(film.synopsis || wins.length > 0) && (
+            <div className="film-essay">
+              {film.synopsis?.split(/\n{2,}/).map((p, i) => <p key={i}>{p}</p>)}
+              {wins.length > 0 && <p className="film-award">{awardLine(wins)}</p>}
+            </div>
+          )}
+
+          <section className="sleeve" aria-label="Credits">
+            {film.poster_url && (
+              <div className="sleeve-palette">
+                <Palette src={film.poster_url.replace(/\/t\/p\/[^/]+\//, "/t/p/w185/")} fallback={bg ? [bg] : []} />
+              </div>
+            )}
+            {crew.length > 0 && (
+              <dl className="sleeve-people">
+                {crew.map((g) => (
+                  <div key={g.role}>
+                    <dt>{ROLE_LABELS[g.role]}</dt>
+                    <dd>
+                      {g.people.map((c, i) => (
+                        <span key={c.person.id}>
+                          {i > 0 && ", "}
+                          <Link href={g.role === "director" ? `/directors/${c.person.slug}` : `/people/${c.person.slug}`}>{c.person.name}</Link>
+                        </span>
+                      ))}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            )}
+            <dl className="sleeve-facts">
+              {facts.filter(([, v]) => v).map(([k, v]) => (
+                <div key={k}>
+                  <dt>{k}</dt>
+                  <dd>{v}</dd>
+                </div>
+              ))}
+              {watchRows.length > 0 ? (
+                watchRows.map(([label, list]) => (
+                  <div key={label}>
+                    <dt>{label}</dt>
+                    <dd>
+                      {list.map((w, i) => (
+                        <span key={w.provider}>
+                          {i > 0 && ", "}
+                          <a href={w.url} target="_blank" rel="noopener noreferrer">{w.provider}</a>
+                        </span>
+                      ))}
+                    </dd>
+                  </div>
+                ))
+              ) : (
+                <div>
+                  <dt>Watch</dt>
+                  <dd><Link href="/submit">Tell us where it&rsquo;s showing</Link></dd>
+                </div>
+              )}
+            </dl>
+            {film.collections.length > 0 && (
+              <div className="sleeve-collections">
+                <p className="sleeve-label">In collections</p>
+                <ul className="chip-list">
+                  {film.collections.map((c) => (
+                    <li key={c.slug}><Link className="chip" href={`/collections/${c.slug}`}>{c.title}</Link></li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </section>
+
+          {(wins.length > 0 || noms.length > 0) && (
+            <section className="film-section" aria-labelledby="awards-h">
+              <h2 id="awards-h">Awards</h2>
+              <ul className="award-list">
+                {[...wins, ...noms].map((a, i) => (
+                  <li key={i}>
+                    <span className={`award-badge ${isRegistry(a) ? "kept" : a.result}`}>{isRegistry(a) ? "Preserved" : a.result === "won" ? "Won" : "Nominated"}</span>
+                    <span className="award-text">
+                      <span className="award-name">{a.award}</span>
+                      <span className="award-what">{isRegistry(a) ? "Selected for the National Film Registry" : a.category}</span>
+                    </span>
+                    <span className="award-year">{a.year}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {cast.length > 0 && (
+            <section className="film-section" aria-labelledby="cast-h">
+              <h2 id="cast-h">Cast</h2>
+              <ul className="cast">
+                {cast.map((c) => (
+                  <li key={c.person.id}>
+                    {c.person.photo_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img className="cast-photo" src={c.person.photo_url} alt="" loading="lazy" />
+                    ) : (
+                      <span className="cast-photo" aria-hidden="true" />
+                    )}
+                    <span className="cast-text">
+                      <Link href={`/people/${c.person.slug}`}>{c.person.name}</Link>
+                      {c.character && <span className="character">{c.character}</span>}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+        </div>
+      </article>
 
       {moreByDirector.length > 0 && (
-        <Row title={`More from ${listJoin(directorNames)}`}>
-          {moreByDirector.map((f) => <FilmCard key={f.id} film={toCard(f)} />)}
-        </Row>
+        <section className="related" aria-labelledby="more-h">
+          <div className="section-head">
+            <h2 id="more-h">More from {listJoin(directorNames)}</h2>
+          </div>
+          <FilmGrid films={moreByDirector.map(toCard)} />
+        </section>
       )}
       {related.length > 0 && (
-        <Row title="You might also like">
-          {related.map((f) => <FilmCard key={f.id} film={toCard(f)} />)}
-        </Row>
+        <section className="related" aria-labelledby="related-h">
+          <div className="section-head">
+            <h2 id="related-h">More like this</h2>
+          </div>
+          <FilmGrid films={related.map(toCard)} />
+        </section>
       )}
-    </article>
+    </>
   );
+}
+
+/** One link per service: TMDB lists each service once per country. */
+function uniqueByProvider(list: Film["watch"]) {
+  const seen = new Set<string>();
+  return list.filter((w) => !seen.has(w.provider) && seen.add(w.provider));
 }
 
 // The festivals and awards people recognise first lead the summary line.
@@ -262,17 +291,8 @@ const isRegistry = (a: Award) => a.award === "National Film Registry";
 
 function awardLine(wins: Award[]) {
   const top = wins[0];
-  if (isRegistry(top)) return "Preserved in the U.S. National Film Registry";
+  if (isRegistry(top)) return "Preserved in the U.S. National Film Registry.";
   const name = top.award === "Academy Awards" ? `Academy Award for ${top.category}` : `${top.award} ${top.category}`;
   const prizes = wins.filter((w) => !isRegistry(w)).length;
-  return prizes === 1 ? `Winner of the ${name}` : `Winner of ${prizes} major prizes, including the ${name}`;
-}
-
-function peopleLinks(list: Credit[]) {
-  return list.map((c, i) => (
-    <span key={c.person.id}>
-      {i > 0 && ", "}
-      <Link href={`/people/${c.person.slug}`}>{c.person.name}</Link>
-    </span>
-  ));
+  return prizes === 1 ? `Winner of the ${name}.` : `Winner of ${prizes} major prizes, including the ${name}.`;
 }

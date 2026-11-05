@@ -121,3 +121,15 @@ export function initials(name: string) {
     .slice(0, 2)
     .join("");
 }
+
+/** Black or white, whichever reads better on a background colour (from Covvvvvers). */
+export function inkFor(hex: string | null | undefined) {
+  if (!hex || !/^#?[0-9a-f]{6}$/i.test(hex)) return "#000000";
+  const h = hex.replace("#", "");
+  const [r, g, b] = [0, 2, 4].map((i) => {
+    const v = parseInt(h.slice(i, i + 2), 16) / 255;
+    return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  });
+  const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  return lum > 0.22 ? "#000000" : "#ffffff";
+}

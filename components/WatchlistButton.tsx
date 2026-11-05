@@ -7,8 +7,12 @@ import { getBrowserClient } from "@/lib/supabase/client";
 
 type Status = "loading" | "signed-out" | "none" | "listed" | "seen";
 
+const BOOKMARK = "M6 3.5h8v13l-4-3-4 3z";
+const CHECK = "m5 10.5 3.2 3.2L15 7";
+
 /**
- * Add to watchlist and mark as seen. Checks the session in the browser so film pages stay static.
+ * Round buttons to save a film to the watchlist and mark it as seen, like the save button on
+ * Covvvvvers cover pages. Checks the session in the browser so film pages stay static.
  */
 export default function WatchlistButton({ filmId }: { filmId: string }) {
   const path = usePathname();
@@ -28,14 +32,12 @@ export default function WatchlistButton({ filmId }: { filmId: string }) {
     });
   }, [filmId]);
 
-  if (status === "loading") return <div className="watch-actions" aria-busy="true" />;
+  if (status === "loading") return <span className="round-button is-loading" aria-hidden="true" />;
   if (status === "signed-out") {
     return (
-      <div className="watch-actions">
-        <Link className="button" href={`/login?next=${encodeURIComponent(path)}`}>
-          + Watchlist
-        </Link>
-      </div>
+      <Link className="round-button" href={`/login?next=${encodeURIComponent(path)}`} aria-label="Sign in to save to your watchlist" title="Save to watchlist">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d={BOOKMARK} /></svg>
+      </Link>
     );
   }
 
@@ -53,16 +55,19 @@ export default function WatchlistButton({ filmId }: { filmId: string }) {
     if (error) setStatus(prev);
   };
 
+  const saved = status !== "none";
   return (
-    <div className="watch-actions">
-      <button type="button" className="button" aria-pressed={status !== "none"} disabled={busy}
-        onClick={() => update(status === "none" ? "listed" : "none")}>
-        {status === "none" ? "+ Watchlist" : "✓ On your watchlist"}
+    <>
+      <button type="button" className="round-button" aria-pressed={saved} disabled={busy}
+        aria-label={saved ? "Remove from watchlist" : "Save to watchlist"} title={saved ? "On your watchlist" : "Save to watchlist"}
+        onClick={() => update(saved ? "none" : "listed")}>
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d={BOOKMARK} /></svg>
       </button>
-      <button type="button" className="button ghost" aria-pressed={status === "seen"} disabled={busy}
+      <button type="button" className="round-button" aria-pressed={status === "seen"} disabled={busy}
+        aria-label={status === "seen" ? "Mark as not seen" : "Mark as seen"} title={status === "seen" ? "Seen" : "Mark as seen"}
         onClick={() => update(status === "seen" ? "listed" : "seen")}>
-        {status === "seen" ? "✓ Seen" : "Mark as seen"}
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d={CHECK} /></svg>
       </button>
-    </div>
+    </>
   );
 }
