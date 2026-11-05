@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { countryName } from "@/lib/format";
 import type { WatchOption } from "@/lib/types";
+import { watchLink } from "@/lib/watch";
 
 const KINDS: [WatchOption["kind"], string][] = [["stream", "Stream"], ["free", "Watch free"], ["rent", "Rent"], ["buy", "Buy"]];
 
@@ -11,7 +12,7 @@ const KINDS: [WatchOption["kind"], string][] = [["stream", "Stream"], ["free", "
  * Where to watch a film, grouped by Stream, Watch free, Rent and Buy, for one country at a time.
  * It opens on the visitor's own country when the film has options there.
  */
-export default function WatchSection({ watch }: { watch: WatchOption[] }) {
+export default function WatchSection({ watch, title }: { watch: WatchOption[]; title: string }) {
   const regions = useMemo(() => [...new Set(watch.map((w) => w.region ?? "US"))].sort((a, b) => countryName(a).localeCompare(countryName(b))), [watch]);
   const [region, setRegion] = useState(regions.includes("US") ? "US" : regions[0]);
 
@@ -54,7 +55,7 @@ export default function WatchSection({ watch }: { watch: WatchOption[] }) {
               <ul className="chip-list">
                 {g.list.map((w) => (
                   <li key={w.provider}>
-                    <a className="chip" href={w.url} target="_blank" rel="noopener noreferrer">{w.provider}</a>
+                    <a className="chip" href={watchLink(w.provider, title, region)} target="_blank" rel="noopener noreferrer">{w.provider}</a>
                   </li>
                 ))}
               </ul>
@@ -62,6 +63,7 @@ export default function WatchSection({ watch }: { watch: WatchOption[] }) {
           </div>
         ))}
       </dl>
+      <p className="watch-credit">Streaming information from JustWatch.</p>
     </div>
   );
 }

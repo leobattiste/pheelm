@@ -881,6 +881,7 @@ main:has(.feature) { margin-top: calc(var(--header) * -1); }
 .film-page .chip:hover { background: var(--hover); }
 .film-page .chip[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--bg); }
 .watch-empty { color: var(--muted); }
+.watch-credit { color: var(--muted); font-size: var(--t-sm); }
 
 /* Details */
 .details { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-20) var(--space-24); }

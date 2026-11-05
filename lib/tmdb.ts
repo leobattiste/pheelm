@@ -123,7 +123,8 @@ export async function getMovie(id: number): Promise<ImportedFilm> {
     for (const [key, kind] of kinds) {
       for (const p of r[key] ?? []) {
         if (!watch.some((w) => w.provider === p.provider_name && w.region === region && w.kind === kind)) {
-          // TMDB gives one JustWatch page per country, listing every option for the film.
+          // TMDB gives one page per country listing every option; film pages link each service
+          // to a search for the film on that service instead (lib/watch.ts).
           watch.push({ provider: p.provider_name, url: r.link, kind, region });
         }
       }
