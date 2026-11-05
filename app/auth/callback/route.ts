@@ -1,52 +1,71 @@
 import type { EmailOtpType } from "@supabase/supabase-js";
+import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { getServerClient } from "@/lib/supabase/server";
+import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseEnabled } from "@/lib/supabase/config";
 
-const safeNext = (v: string | null | undefined) =>
-  v && v.startsWith("/") && !v.startsWith("//") && !v.includes("\\") ? v : null;
+export const dynamic = "force-dynamic";
 
-const OTP_TYPES = new Set(["email", "magiclink", "signup", "invite", "recovery", "email_change"]);
+// Only allow same-site paths, never protocol-relative URLs or encoded redirects.
+function safeNext(value: string | null): string {
+  if (!value || !value.startsWith("/") || value.startsWith("//") || value.includes("\\") || /[\r\n]/.test(value)) return "/me";
+  return value;
+}
 
-/**
- * Where every sign-in email lands. It accepts both kinds of link Supabase can send:
- * - token_hash links, which work in any browser (the email template in the README sends these)
- * - code links, which only work in the browser that asked for the email
- */
+const OTP_TYPES = new Set<EmailOtpType>(["email", "magiclink", "signup", "invite", "recovery", "email_change"]);
+
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = new URL(request.url);
-  // Where to go afterwards: from the link, or remembered by the sign-in page in this browser.
+  const url = new URL(request.url);
   const remembered = request.cookies.get("signin_next")?.value;
-  const next = safeNext(searchParams.get("next")) ?? safeNext(remembered ? decodeURIComponent(remembered) : null) ?? "/me";
+  const next = safeNext(url.searchParams.get("next") ?? remembered ?? null);
 
-  const fail = (reason: string) => NextResponse.redirect(`${origin}/login?error=${reason}&next=${encodeURIComponent(next)}`);
+  const redirect = (path: string) => {
+    const response = NextResponse.redirect(new URL(path, url.origin));
+    response.headers.set("Cache-Control", "no-store");
+    response.cookies.delete("signin_next");
+    return response;
+  };
+  const fail = (reason: string) => redirect(`/login?error=${encodeURIComponent(reason)}&next=${encodeURIComponent(next)}`);
 
-  // Supabase sends people back with an error when a link has expired or was already used.
-  if (searchParams.get("error") || searchParams.get("error_code")) {
-    return fail(searchParams.get("error_code") === "otp_expired" ? "expired" : "link");
+  if (url.searchParams.has("error") || url.searchParams.has("error_code")) {
+    return fail(url.searchParams.get("error_code") === "otp_expired" ? "expired" : "link");
   }
+  if (!supabaseEnabled) return fail("setup");
 
-  const db = await getServerClient();
-  if (!db) return fail("setup");
+  // Write cookies directly onto the response that is returned to the browser.
+  // A separate response is essential: cookies written by a Server Component or
+  // a response discarded after verifying the OTP do not survive the redirect.
+  let response = NextResponse.redirect(new URL(next, url.origin));
+  response.headers.set("Cache-Control", "no-store");
+  const db = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    cookies: {
+      getAll() { return request.cookies.getAll(); },
+      setAll(cookiesToSet, headers) {
+        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+        cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+        if (headers) {
+          for (const [name, value] of Object.entries(headers)) {
+            if (typeof value === "string") response.headers.set(name, value);
+          }
+        }
+      },
+    },
+  });
 
-  const tokenHash = searchParams.get("token_hash");
-  const type = searchParams.get("type");
-  const code = searchParams.get("code");
+  const tokenHash = url.searchParams.get("token_hash");
+  const type = url.searchParams.get("type");
+  const code = url.searchParams.get("code");
 
-  let error: { message: string } | null = null;
-  if (tokenHash && type && OTP_TYPES.has(type)) {
+  let error: { message: string } | null;
+  if (tokenHash && type && OTP_TYPES.has(type as EmailOtpType)) {
     ({ error } = await db.auth.verifyOtp({ token_hash: tokenHash, type: type as EmailOtpType }));
   } else if (code) {
     ({ error } = await db.auth.exchangeCodeForSession(code));
-    // A code link opened in a different browser can't be completed here, but the code in the
-    // same email still works on the sign-in page.
     if (error && /verifier|code challenge/i.test(error.message)) return fail("browser");
   } else {
     return fail("link");
   }
 
   if (error) return fail(/expired|invalid/i.test(error.message) ? "expired" : "link");
-
-  const res = NextResponse.redirect(`${origin}${next}`);
-  res.cookies.delete("signin_next");
-  return res;
+  response.cookies.delete("signin_next");
+  return response;
 }
