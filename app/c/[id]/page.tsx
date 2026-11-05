@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FilmGrid } from "@/components/FilmCard";
-import GridToggle from "@/components/GridToggle";
 import { getFilms, toCard } from "@/lib/data";
 import { getServerClient } from "@/lib/supabase/server";
 
@@ -48,7 +47,6 @@ export default async function MemberCollectionPage({ params }: Params) {
       </header>
       <div className="section-head">
         <p className="label">{items.length} {items.length === 1 ? "film" : "films"}</p>
-        <GridToggle />
       </div>
       {items.length ? (
         <FilmGrid films={items.map(toCard)} />

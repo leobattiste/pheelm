@@ -25,11 +25,20 @@ const PHONE: Record<View, { label: string; icon: React.ReactNode }> = {
 const ORDER: View[] = ["large", "small", "list"];
 
 /**
- * Sets how posters show everywhere on the site, and remembers it. On phones it lives in the
- * menu (one per row, two per row, list); on desktop it also sits beside each grid.
+ * Sets how posters show everywhere on the site, and remembers it. It lives in the menu:
+ * on phones one per row, two per row or a list; on wider screens large, small or a list.
  */
-export default function GridToggle({ inMenu = false }: { inMenu?: boolean }) {
+export default function GridToggle() {
   const [view, setView] = useState<View>("large");
+  const [phone, setPhone] = useState(true);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 639px)");
+    const update = () => setPhone(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
 
   useEffect(() => {
     const read = () => {
@@ -37,7 +46,7 @@ export default function GridToggle({ inMenu = false }: { inMenu?: boolean }) {
       setView(v === "small" || v === "list" ? v : "large");
     };
     read();
-    // Keep every switch on the page in step.
+    // Another tab, or the same switch remounting, may have changed it.
     window.addEventListener("gridchange", read);
     return () => window.removeEventListener("gridchange", read);
   }, []);
@@ -51,9 +60,9 @@ export default function GridToggle({ inMenu = false }: { inMenu?: boolean }) {
     window.dispatchEvent(new Event("gridchange"));
   };
 
-  const set = inMenu ? PHONE : DESKTOP;
+  const set = phone ? PHONE : DESKTOP;
   return (
-    <div className={`segmented grid-toggle${inMenu ? " in-menu" : ""}`} role="radiogroup" aria-label="How posters show">
+    <div className="segmented grid-toggle" role="radiogroup" aria-label="How posters show">
       {ORDER.map((v) => (
         <button key={v} type="button" role="radio" aria-checked={view === v} onClick={() => choose(v)} title={set[v].label}>
           <svg viewBox="0 0 20 20" aria-hidden="true">{set[v].icon}</svg>

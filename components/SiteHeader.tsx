@@ -53,19 +53,12 @@ export default function SiteHeader() {
   return (
     <header className="site-header">
       <Link href="/" className="wordmark">{SITE_NAME}</Link>
-      <nav className="header-nav" aria-label="Sections">
-        {MAIN.map((l) => (
-          <Link key={l.href} href={l.href} aria-current={current(l.href)}>{l.label}</Link>
-        ))}
-      </nav>
       <div className="header-tools">
         <button type="button" className="icon-button search-trigger" onClick={openSearch} aria-label="Search">
           <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="5.5" /><path d="m13 13 4 4" /></svg>
           <span className="search-trigger-label">Search</span>
           <kbd>⌘K</kbd>
         </button>
-        <Link href="/me" className="header-link" aria-current={current("/me")}>Watchlist<UpdatesDot /></Link>
-        <span className="header-link"><AccountLink /></span>
         <button type="button" className="icon-button menu-button" aria-expanded={open} aria-controls="menu" aria-label={open ? "Close menu" : "Open menu"} onClick={toggle}>
           <span className="burger" aria-hidden="true"><span /><span /></span>
           <UpdatesDot />
@@ -104,7 +97,7 @@ export default function SiteHeader() {
           <div className="menu-foot">
             <div className="menu-setting">
               <span>Posters</span>
-              <GridToggle inMenu />
+              <GridToggle />
             </div>
             <div className="menu-setting">
               <span>Appearance</span>

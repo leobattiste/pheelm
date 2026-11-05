@@ -231,27 +231,12 @@ svg { flex-shrink: 0; }
   transition: background-color 0.25s, border-color 0.25s;
 }
 .wordmark { color: var(--ink); font-size: 1.375rem; font-weight: 700; letter-spacing: -0.045em; line-height: 1; }
-.header-nav { display: none; gap: 4px; }
-.header-nav a, .header-link, .header-link a {
-  padding: 8px 12px;
-  border-radius: var(--pill);
-  color: var(--muted);
-  font-size: var(--t-sm);
-  font-weight: 500;
-  transition: color 0.15s, background-color 0.15s;
-}
-.header-link a { padding: 0; }
-.header-nav a:hover, .header-link:hover, .header-link:hover a { color: var(--ink); }
-.header-nav a[aria-current="page"], .header-link[aria-current="page"] { color: var(--ink); background: var(--raised); }
 .header-tools { display: flex; align-items: center; gap: 4px; margin-left: auto; }
-.header-tools .header-link { display: none; }
 .search-trigger-label, .search-trigger kbd { display: none; }
 .burger { display: grid; gap: 5px; width: 18px; }
 .burger span { display: block; height: 1.6px; border-radius: 2px; background: currentColor; }
 
 @media (min-width: 900px) {
-  .header-nav, .header-tools .header-link { display: flex; }
-  .menu-button { display: none; }
   .search-trigger {
     display: inline-flex;
     gap: 10px;
@@ -292,13 +277,42 @@ svg { flex-shrink: 0; }
 .menu-more a { padding: 8px 0; font-size: var(--t-lg); color: var(--text); }
 .menu-foot { display: grid; gap: 14px; margin-top: auto; padding-top: 20px; border-top: 1px solid var(--line); font-size: var(--t-sm); color: var(--muted); }
 .menu-setting { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-/* Where the menu exists (phones and tablets), the poster switch lives there, not beside grids. */
-@media (max-width: 899px) { .grid-toggle:not(.in-menu) { display: none; } }
+
+/* On wider screens the same menu floats as a panel under the menu button. */
+@media (min-width: 900px) {
+  .menu-sheet {
+    position: fixed;
+    inset: 12px var(--gutter) auto auto;
+    width: 360px;
+    height: auto;
+    max-height: calc(100dvh - 24px);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: color-mix(in srgb, var(--surface) 88%, transparent);
+    backdrop-filter: blur(24px) saturate(1.4);
+    -webkit-backdrop-filter: blur(24px) saturate(1.4);
+    box-shadow: 0 24px 64px -16px rgb(0 0 0 / 0.45), 0 2px 8px rgb(0 0 0 / 0.12);
+    overflow: auto;
+    transform-origin: top right;
+  }
+  .menu-sheet[open] { animation: menu-float 0.22s var(--ease); }
+  .menu-sheet::backdrop { background: transparent; }
+  .menu-inner { height: auto; padding: 0 20px 20px; }
+  .menu-top { height: 60px; }
+  .menu-top .wordmark { font-size: 1.125rem; }
+  .menu-main { padding: 8px 0 16px; }
+  .menu-main a { padding: 6px 0; font-size: 1.75rem; }
+  .menu-main a:hover, .menu-more a:hover { color: var(--muted); }
+  .menu-more { padding: 12px 0; }
+  .menu-more a { padding: 6px 0; font-size: var(--t-md, 1rem); }
+  .menu-foot { margin-top: 0; padding-top: 16px; }
+}
+@keyframes menu-float { from { opacity: 0; transform: scale(0.96) translateY(-6px); } }
+@media (prefers-reduced-motion: reduce) { .menu-sheet[open] { animation: none; } }
 
 /* Over a full-bleed still, the header floats on the image until the page scrolls. */
 html:not([data-scrolled]) body:has(.has-still) .site-header { background: transparent; border-color: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
-html:not([data-scrolled]) body:has(.has-still) .site-header :is(.wordmark, .header-nav a, .header-link, .header-link a, .icon-button) { color: #fff; }
-html:not([data-scrolled]) body:has(.has-still) .site-header .header-nav a[aria-current="page"] { background: rgb(255 255 255 / 0.14); }
+html:not([data-scrolled]) body:has(.has-still) .site-header :is(.wordmark, .icon-button) { color: #fff; }
 html:not([data-scrolled]) body:has(.has-still) .search-trigger { background: rgb(255 255 255 / 0.1); border-color: rgb(255 255 255 / 0.2); color: rgb(255 255 255 / 0.8); }
 
 /* Footer ---------------------------------------------------------------------------------- */
@@ -943,7 +957,6 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 }
 
 /* Header links never wrap; the search box narrows on smaller desktops. */
-.header-nav a, .header-link, .header-link a { white-space: nowrap; }
 @media (min-width: 900px) and (max-width: 1099px) { .search-trigger { width: 180px; } .site-header { gap: 20px; } }
 
 /* Members' collections -------------------------------------------------------------------- */
@@ -1052,7 +1065,6 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 .updates-dot { display: inline-block; width: 7px; height: 7px; margin-left: 6px; border-radius: 50%; background: var(--ok); vertical-align: super; }
 .menu-button { position: relative; }
 .menu-button .updates-dot { position: absolute; top: 8px; right: 7px; margin: 0; }
-.header-link { position: relative; }
 .update-list { display: grid; gap: 6px; margin-bottom: 40px; }
 .update-list li a { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 8px; border-radius: var(--r); }
 .update-list li a:hover { background: var(--surface); }

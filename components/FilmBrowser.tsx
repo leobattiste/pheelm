@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { countryName, decadeOf, TYPE_PLURALS } from "@/lib/format";
 import type { FilmCard, FilmType } from "@/lib/types";
 import { FilmGrid } from "./FilmCard";
-import GridToggle from "./GridToggle";
 
 type Facets = { countries: [string, number][]; decades: [string, number][]; languages: [string, number][]; genres: [string, number][] };
 type Sort = "newest" | "oldest" | "title" | "awards";
@@ -99,7 +98,6 @@ export default function FilmBrowser({ films, facets }: { films: FilmCard[]; face
           <span className="filter-label">Filters</span>
           {active.length > 0 && <span className="badge">{active.length}</span>}
         </button>
-        <GridToggle />
       </div>
 
       <div className="result-bar" aria-live="polite">

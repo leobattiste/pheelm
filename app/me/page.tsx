@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { FilmGrid } from "@/components/FilmCard";
-import GridToggle from "@/components/GridToggle";
 import DirectorCard from "@/components/DirectorCard";
 import Poster from "@/components/Poster";
 import { MarkSeen } from "@/components/UpdatesDot";
@@ -111,7 +110,6 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
         <>
           <div className="section-head">
             <p className="label">Everything you&rsquo;ve saved, newest first.</p>
-            <GridToggle />
           </div>
           {all.length ? (
             <FilmGrid films={all.map(toCard)} />
