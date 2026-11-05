@@ -1308,3 +1308,7 @@ h1, h2, .menu-main a, .empty-state p:first-child, .decades a,
 .person-page .person-details .portrait { width: 120px; height: 120px; }
 .person-page h1 { font-size: var(--t-3xl); }
 .person-sheet .modal-body { padding-top: 0; }
+
+/* Error page */
+.error-page { display: grid; gap: var(--space-16); padding-top: var(--space-64); }
+.error-detail { color: var(--muted); font-size: var(--t-xs); overflow-wrap: anywhere; }
