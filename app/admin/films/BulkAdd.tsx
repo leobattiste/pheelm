@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { parseList } from "@/lib/parse-list";
-import { addOne } from "../actions";
+import { addMany } from "../actions";
 
 type Log = { status: "added" | "exists" | "not-found"; message: string };
 
@@ -19,13 +19,12 @@ export default function BulkAdd({ collections }: { collections: { id: string; ti
     setRunning(true);
     setLog([]);
     setDone(0);
-    for (const [i, line] of list.entries()) {
-      const r = await addOne(line.title, line.year, publish, collection || null);
-      setLog((l) => [r, ...l]);
-      setDone(i + 1);
-      if (r.message.includes("TMDB_API_KEY") || r.message.includes("rejected the API key")) break;
-      // Stay well inside TMDB's rate limit.
-      await new Promise((res) => setTimeout(res, 300));
+    // Three films at a time: quick, and well inside TMDB's rate limit.
+    for (let i = 0; i < list.length; i += 3) {
+      const results = await addMany(list.slice(i, i + 3), publish, collection || null);
+      setLog((l) => [...results.reverse(), ...l]);
+      setDone(Math.min(i + 3, list.length));
+      if (results.some((r) => r.message.includes("TMDB_API_KEY") || r.message.includes("rejected the API key"))) break;
     }
     setRunning(false);
   };

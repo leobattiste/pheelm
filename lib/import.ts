@@ -2,7 +2,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import sharp from "sharp";
 import { slugify } from "./format";
-import { findMovie, getMovie, getPersonDetails, searchMovies } from "./tmdb";
+import { findMovie, getMovie, getPersonDetails, searchMovies, type ImportedFilm } from "./tmdb";
 import type { WatchOption } from "./types";
 
 const isTmdbLink = (url: string) => url.includes("themoviedb.org") || url.includes("justwatch.com");
@@ -11,7 +11,7 @@ const isTmdbLink = (url: string) => url.includes("themoviedb.org") || url.includ
  * Fills a film from TMDB. Anything you've typed in the admin wins: TMDB only fills empty fields,
  * adds missing cast and crew, and refreshes its own where-to-watch links.
  */
-export async function importFilm(db: SupabaseClient, filmId: string): Promise<string> {
+export async function importFilm(db: SupabaseClient, filmId: string, prefetched?: ImportedFilm): Promise<string> {
   const { data: film, error } = await db.from("films").select("*").eq("id", filmId).single();
   if (error || !film) throw new Error("Film not found.");
 
@@ -24,7 +24,7 @@ export async function importFilm(db: SupabaseClient, filmId: string): Promise<st
     if (!tmdbId) throw new Error(`Couldn't find a confident match for ${film.title} on TMDB. Paste its TMDB id in the editor.`);
   }
 
-  const m = await getMovie(tmdbId);
+  const m = prefetched && prefetched.tmdb_id === tmdbId ? prefetched : await getMovie(tmdbId);
   const empty = (v: unknown) => v === null || v === undefined || v === "" || (Array.isArray(v) && v.length === 0);
   const manualWatch = ((film.watch ?? []) as WatchOption[]).filter((w) => !isTmdbLink(w.url));
 
@@ -38,36 +38,25 @@ export async function importFilm(db: SupabaseClient, filmId: string): Promise<st
     else if (m.genres.includes("Documentary")) update.type = "documentary";
     else if (m.runtime && m.runtime <= 40) update.type = "short";
   }
-  // The page tint comes from the poster, unless a colour was picked by hand.
+  // The page tint comes from the poster, unless a colour was picked by hand. Measured while the
+  // people are saved, since both take a moment.
   const poster = (update.poster_url as string | undefined) ?? film.poster_url;
-  if (!film.color && poster) {
-    const color = await posterColour(poster);
-    if (color) update.color = color;
-  }
+  const [color, people] = await Promise.all([
+    !film.color && poster ? posterColour(poster) : Promise.resolve(null),
+    savePeople(db, filmId, m),
+  ]);
+  if (color) update.color = color;
   const { error: upErr } = await db.from("films").update(update).eq("id", filmId);
   if (upErr) {
     if (upErr.code === "23505") throw new Error(`Another film already uses TMDB id ${tmdbId}.`);
     throw new Error(upErr.message);
   }
+  const added = people.added;
 
-  // People: match by TMDB id, then by name, so the starter catalog's people get linked, not duplicated.
-  const { data: existingCredits } = await db.from("credits").select("person_id, role").eq("film_id", filmId);
-  const have = new Set((existingCredits ?? []).map((c) => `${c.person_id}:${c.role}`));
-  let added = 0;
-  let sort = existingCredits?.length ?? 0;
-  for (const p of m.people) {
-    const personId = await ensurePerson(db, p.tmdb_id, p.name, p.photo);
-    if (have.has(`${personId}:${p.role}`)) continue;
-    have.add(`${personId}:${p.role}`);
-    const { error: cErr } = await db.from("credits").insert({ film_id: filmId, person_id: personId, role: p.role, character: p.character, sort: sort++ });
-    if (!cErr) added++;
-  }
-
-  // Everyone on the film gets their biography, dates, birthplace and links, once.
-  const ids = [...new Set(m.people.map((p) => p.tmdb_id))];
-  const { data: rows } = await db.from("people").select("*").in("tmdb_id", ids);
-  const todo = (rows ?? []).filter((p) => !p.details_at);
-  for (let i = 0; i < todo.length; i += 5) await Promise.all(todo.slice(i, i + 5).map((p) => fillPerson(db, p)));
+  // Everyone on the film gets their biography, dates, birthplace and links, once, ten at a time.
+  // (Before supabase/people-details.sql has run, only people missing a bio, birth year or portrait.)
+  const todo = people.rows.filter((p) => ("details_at" in p ? !p.details_at : !p.bio || !p.birth_year || !p.photo_url));
+  await inBatches(todo, 10, (p) => fillPerson(db, p));
 
   const filled = Object.keys(update).filter((k) => !["tmdb_id", "watch", "updated_at", "color", "type"].includes(k));
   const parts = [
@@ -124,16 +113,16 @@ export async function addFilmByTitle(
     .single();
   if (error || !created) return { status: "not-found", message: `${label}: couldn't be added (${error?.message}).` };
 
-  await importFilm(db, created.id);
-  await addToCollection(db, created.id, options.collectionId);
+  await Promise.all([importFilm(db, created.id, m), addToCollection(db, created.id, options.collectionId, filmYear)]);
   const directors = m.people.filter((p) => p.role === "director").map((p) => p.name).join(", ");
   return { status: "added", message: `${m.title} (${filmYear})${directors ? `, ${directors}` : ""}: added.`, id: created.id };
 }
 
-async function addToCollection(db: SupabaseClient, filmId: string, collectionId?: string | null) {
+async function addToCollection(db: SupabaseClient, filmId: string, collectionId?: string | null, year?: number) {
   if (!collectionId) return;
-  const { data: film } = await db.from("films").select("year").eq("id", filmId).single();
-  await db.from("collection_films").upsert({ collection_id: collectionId, film_id: filmId, sort: film?.year ?? 0 }, { onConflict: "collection_id,film_id", ignoreDuplicates: true });
+  let sort = year;
+  if (sort === undefined) sort = (await db.from("films").select("year").eq("id", filmId).single()).data?.year ?? 0;
+  await db.from("collection_films").upsert({ collection_id: collectionId, film_id: filmId, sort }, { onConflict: "collection_id,film_id", ignoreDuplicates: true });
 }
 
 /**
@@ -163,21 +152,67 @@ export async function fillPerson(db: SupabaseClient, person: Record<string, any>
   return migrated;
 }
 
-async function ensurePerson(db: SupabaseClient, tmdbId: number, name: string, photo: string | null): Promise<string> {
-  const { data: byTmdb } = await db.from("people").select("id").eq("tmdb_id", tmdbId).maybeSingle();
-  if (byTmdb) return byTmdb.id;
+/**
+ * Saves a film's cast and crew in a few round trips instead of one per person: finds who's already
+ * here (by TMDB id, then by name, so the starter catalog's people get linked, not duplicated),
+ * adds everyone else at once, then adds the missing credits at once.
+ */
+async function savePeople(db: SupabaseClient, filmId: string, m: ImportedFilm) {
+  const ids = [...new Set(m.people.map((p) => p.tmdb_id))];
+  const first = new Map(m.people.map((p) => [p.tmdb_id, p]));
+  const [{ data: byTmdb }, { data: existingCredits }] = await Promise.all([
+    db.from("people").select("*").in("tmdb_id", ids),
+    db.from("credits").select("person_id, role").eq("film_id", filmId),
+  ]);
+  const idFor = new Map<number, string>((byTmdb ?? []).map((p) => [p.tmdb_id, p.id]));
+  const rows: Record<string, any>[] = [...(byTmdb ?? [])];
 
-  const base = slugify(name);
-  const { data: byName } = await db.from("people").select("id, tmdb_id, photo_url").eq("slug", base).maybeSingle();
-  if (byName && !byName.tmdb_id) {
-    await db.from("people").update({ tmdb_id: tmdbId, ...(byName.photo_url ? {} : { photo_url: photo }) }).eq("id", byName.id);
-    return byName.id;
+  // Not matched by TMDB id: try their name, the way the starter catalog was made.
+  const unmatched = ids.filter((id) => !idFor.has(id));
+  if (unmatched.length) {
+    const slugs = unmatched.map((id) => slugify(first.get(id)!.name));
+    const { data: byName } = await db.from("people").select("*").in("slug", slugs);
+    const taken = new Map((byName ?? []).map((p) => [p.slug, p]));
+    const fresh: Record<string, unknown>[] = [];
+    await Promise.all(unmatched.map(async (id) => {
+      const p = first.get(id)!;
+      const slug = slugify(p.name);
+      const match = taken.get(slug);
+      if (match && !match.tmdb_id) {
+        await db.from("people").update({ tmdb_id: id, ...(match.photo_url ? {} : { photo_url: p.photo }) }).eq("id", match.id);
+        idFor.set(id, match.id);
+        rows.push({ ...match, tmdb_id: id });
+      } else {
+        // Someone else already has this name: give the newcomer their own page.
+        fresh.push({ slug: match ? `${slug}-${id}` : slug, name: p.name, tmdb_id: id, photo_url: p.photo });
+      }
+    }));
+    if (fresh.length) {
+      const { data: created, error } = await db.from("people").insert(fresh).select("*");
+      if (error) throw new Error(`Couldn't add cast and crew: ${error.message}`);
+      for (const p of created ?? []) { idFor.set(p.tmdb_id, p.id); rows.push(p); }
+    }
   }
-  // Someone else already has this name: give the newcomer their own page.
-  const slug = byName ? `${base}-${tmdbId}` : base;
-  const { data: created, error } = await db.from("people").insert({ slug, name, tmdb_id: tmdbId, photo_url: photo }).select("id").single();
-  if (error || !created) throw new Error(`Couldn't add ${name}: ${error?.message}`);
-  return created.id;
+
+  const have = new Set((existingCredits ?? []).map((c) => `${c.person_id}:${c.role}`));
+  let sort = existingCredits?.length ?? 0;
+  const credits: Record<string, unknown>[] = [];
+  for (const p of m.people) {
+    const personId = idFor.get(p.tmdb_id);
+    if (!personId || have.has(`${personId}:${p.role}`)) continue;
+    have.add(`${personId}:${p.role}`);
+    credits.push({ film_id: filmId, person_id: personId, role: p.role, character: p.character, sort: sort++ });
+  }
+  if (credits.length) {
+    const { error } = await db.from("credits").upsert(credits, { onConflict: "film_id,person_id,role", ignoreDuplicates: true });
+    if (error) throw new Error(`Couldn't save credits: ${error.message}`);
+  }
+  return { added: credits.length, rows };
+}
+
+/** Runs a task over a list, a few at a time, to stay quick without flooding TMDB. */
+async function inBatches<T>(items: T[], size: number, task: (item: T) => Promise<unknown>) {
+  for (let i = 0; i < items.length; i += size) await Promise.all(items.slice(i, i + size).map(task));
 }
 
 /** The poster's dominant colour as a hex string, or null if the image can't be read. */

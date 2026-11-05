@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { fillPeople } from "./actions";
 
-/** Fills in everyone's TMDB details ten at a time, so it never hits a server time limit. */
+/** Fills in everyone's TMDB details twenty at a time, so it never hits a server time limit. */
 export default function PeopleFill({ waiting }: { waiting: number | null }) {
   const [running, setRunning] = useState(false);
   const [left, setLeft] = useState(waiting);
@@ -21,7 +21,6 @@ export default function PeopleFill({ waiting }: { waiting: number | null }) {
       setLeft(r.remaining);
       if (!r.ok) { setMessage(r.message); break; }
       if (r.remaining === 0) { setMessage("Everyone is filled in."); break; }
-      await new Promise((res) => setTimeout(res, 300));
     }
     setRunning(false);
   };

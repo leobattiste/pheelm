@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { importOne } from "./actions";
+import { importMany } from "./actions";
 
 /** Imports films one at a time from the browser, so a long list never hits a server time limit. */
 export default function BulkImport({ films }: { films: { id: string; title: string }[] }) {
@@ -14,12 +14,12 @@ export default function BulkImport({ films }: { films: { id: string; title: stri
   const run = async () => {
     setRunning(true);
     setLog([]);
-    for (const [i, f] of films.entries()) {
-      const r = await importOne(f.id);
-      setLog((l) => [r, ...l]);
-      setDone(i + 1);
-      if (!r.ok && r.message.includes("rejected the API key")) break;
-      await new Promise((res) => setTimeout(res, 250));
+    // Three films at a time: quick, and well inside TMDB's rate limit.
+    for (let i = 0; i < films.length; i += 3) {
+      const results = await importMany(films.slice(i, i + 3).map((f) => f.id));
+      setLog((l) => [...results.reverse(), ...l]);
+      setDone(Math.min(i + 3, films.length));
+      if (results.some((r) => !r.ok && r.message.includes("rejected the API key"))) break;
     }
     setRunning(false);
   };

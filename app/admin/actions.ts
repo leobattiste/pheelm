@@ -185,14 +185,14 @@ export async function importOne(id: string): Promise<Result> {
 }
 
 /**
- * Fills in up to ten people from TMDB (biography, dates, birthplace, links). The admin page calls
+ * Fills in up to twenty people from TMDB (biography, dates, birthplace, links). The admin page calls
  * it repeatedly until none are left, so it never hits a server time limit.
  */
 export async function fillPeople(): Promise<Result & { remaining: number }> {
   try {
     if (!tmdbEnabled) return { ok: false, message: "Add TMDB_API_KEY in Vercel to switch on the import.", remaining: 0 };
     const db = await adminClient();
-    const { data, error } = await db.from("people").select("*").not("tmdb_id", "is", null).is("details_at", null).limit(10);
+    const { data, error } = await db.from("people").select("*").not("tmdb_id", "is", null).is("details_at", null).limit(20);
     if (error) return { ok: false, message: "Run supabase/people-details.sql in Supabase first, then try again.", remaining: 0 };
     await Promise.all((data ?? []).map((p) => fillPerson(db, p)));
     const { count } = await db.from("people").select("*", { count: "exact", head: true }).not("tmdb_id", "is", null).is("details_at", null);
@@ -201,6 +201,19 @@ export async function fillPeople(): Promise<Result & { remaining: number }> {
   } catch (e) {
     return { ...fail(e), remaining: 0 };
   }
+}
+
+/**
+ * A few lines of the bulk add tool at once. Next runs one server action at a time per visitor,
+ * so the batch is done here, in parallel, rather than as separate calls from the browser.
+ */
+export async function addMany(lines: { title: string; year: number | null }[], publish: boolean, collectionId: string | null): Promise<AddResult[]> {
+  return Promise.all(lines.map((l) => addOne(l.title, l.year, publish, collectionId)));
+}
+
+/** A few films' TMDB imports at once, for the same reason. */
+export async function importMany(ids: string[]): Promise<Result[]> {
+  return Promise.all(ids.map((id) => importOne(id)));
 }
 
 /** One line of the bulk add tool: a title and an optional year. */
