@@ -88,7 +88,6 @@ export default async function DirectorPage({ params }: { params: Promise<{ slug:
       <header className="person-head">
         <Portrait director={director} />
         <div className="person-text">
-          <nav className="crumbs" aria-label="Breadcrumb"><Link href="/directors">Directors</Link></nav>
           <h1>{director.name}</h1>
           <p className="person-roles">{overallRoles(works) || sentence(["Director"])}</p>
           {life && <p className="person-life">{life}</p>}
