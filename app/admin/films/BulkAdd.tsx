@@ -52,7 +52,7 @@ export default function BulkAdd({ collections }: { collections: { id: string; ti
             {collections.map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}
           </select>
         </label>
-        <label className="check" style={{ alignSelf: "end", minHeight: 46 }}>
+        <label className="check" style={{ alignSelf: "end", minHeight: 44 }}>
           <input type="checkbox" checked={publish} onChange={(e) => setPublish(e.target.checked)} /> Publish right away (otherwise as drafts)
         </label>
       </div>
