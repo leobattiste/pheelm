@@ -13,7 +13,7 @@ export default function CollectionTile({ collection }: { collection: Collection 
           ))}
         </span>
         <span className="collection-title">{collection.title}</span>
-        {collection.description && <span className="collection-desc">{collection.description}</span>}
+        <span className="collection-desc">{[`${collection.films.length} ${collection.films.length === 1 ? "film" : "films"}`, collection.description].filter(Boolean).join(" • ")}</span>
       </Link>
     </li>
   );

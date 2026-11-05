@@ -20,7 +20,7 @@ export function Portrait({ director, className = "" }: { director: PortraitPerso
 
 /**
  * A director's card, built like a collection card: three of their films side by side (with empty
- * slots when they have fewer), then a small square portrait, their name and country.
+ * slots when they have fewer), then a small square portrait, their name, country and film count.
  */
 export default function DirectorCard({ director }: { director: DirectorSummary }) {
   // Best-known film first; empty slots fill the row when there are fewer than three.
@@ -41,7 +41,7 @@ export default function DirectorCard({ director }: { director: DirectorSummary }
           <Portrait director={director} />
           <span className="director-card-body">
             <span className="director-card-name">{director.name}</span>
-            {director.country && <span className="director-card-meta">{countryName(director.country)}</span>}
+            <span className="director-card-meta">{[director.country && countryName(director.country), `${director.films} ${director.films === 1 ? "film" : "films"}`].filter(Boolean).join(" • ")}</span>
           </span>
         </span>
       </Link>
