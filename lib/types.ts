@@ -95,6 +95,6 @@ export type DirectorSummary = {
   first: number;
   last: number;
   /** Up to three films to preview on their card, best known first. */
-  previews: { slug: string; title: string; year: number; poster_url: string | null; directors: string[] }[];
+  previews: { slug: string; title: string; year: number; poster_url: string | null; color: string | null; directors: string[] }[];
 };
 export type Collection = CollectionRow & { films: Film[] };

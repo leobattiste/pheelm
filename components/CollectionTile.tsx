@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { tintStyle } from "@/lib/format";
 import type { Collection } from "@/lib/types";
 import Poster from "./Poster";
 
@@ -6,7 +7,7 @@ import Poster from "./Poster";
 export default function CollectionTile({ collection }: { collection: Collection }) {
   return (
     <li>
-      <Link href={`/collections/${collection.slug}`} className="collection-tile">
+      <Link href={`/collections/${collection.slug}`} className="collection-tile" style={tintStyle(collection.films.slice(0, 3).find((f) => f.color)?.color)}>
         <span className="collection-fan" aria-hidden="true">
           {collection.films.slice(0, 3).map((f) => (
             <Poster key={f.id} title={f.title} year={f.year} directors={f.directors.map((d) => d.name)} src={f.poster_url} sizes="140px" />

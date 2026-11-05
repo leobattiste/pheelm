@@ -6,7 +6,7 @@ import Row from "@/components/Row";
 import TrailerButton from "@/components/TrailerButton";
 import FilmLink from "@/components/Transitions";
 import { getArticles, getCollections, getDirectors, getFacets, getFilms, toCard, toDirectorSummary } from "@/lib/data";
-import { trailerEmbed } from "@/lib/format";
+import { trailerEmbed, tintStyle } from "@/lib/format";
 import { firstSentence } from "@/lib/text";
 
 export const revalidate = 300;
@@ -29,6 +29,16 @@ export default async function Home() {
   const startHere = featured.filter((f) => f.id !== pick.id);
   const recent = films.filter((f) => f.year >= 2015 && f.id !== pick.id).slice(0, 14);
   const shelves = collections.filter((c) => c.featured).slice(0, 2);
+  // Collection spotlight: one collection that isn't already a row, changing each week.
+  const spotPool = collections.filter((c) => !shelves.includes(c) && c.films.length >= 3);
+  const spotlight = spotPool.length ? spotPool[week % spotPool.length] : null;
+  // Anniversaries: films turning a round age this year.
+  const thisYear = new Date().getFullYear();
+  const MILESTONES = [10, 20, 25, 30, 40, 50, 60, 70, 75, 80, 90, 100];
+  const anniversaries = films
+    .filter((f) => MILESTONES.includes(thisYear - f.year))
+    .sort((a, b) => a.year - b.year)
+    .slice(0, 10);
   // Directors to know: a different handful each week, so the row stays fresh.
   const known = [...directors].sort((a, b) => b.films.length - a.films.length);
   const offset = (week * 5) % Math.max(known.length, 1);
@@ -36,7 +46,7 @@ export default async function Home() {
 
   return (
     <>
-      <section className={`feature${pick.backdrop_url ? " has-still" : ""}`} aria-labelledby="feature-title">
+      <section className={`feature${pick.backdrop_url ? " has-still" : ""}`} style={tintStyle(pick.color)} aria-labelledby="feature-title">
         {pick.backdrop_url && (
           <div className="feature-still">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -79,7 +89,27 @@ export default async function Home() {
         </Row>
       )}
 
-      {shelves.map((c) => (
+      {spotlight && (
+        <section className="spotlight" style={tintStyle(spotlight.films.find((f) => f.color)?.color)} aria-labelledby="spotlight-title">
+          <div className="spotlight-text">
+            <p className="spotlight-kicker">Collection spotlight</p>
+            <h2 id="spotlight-title">{spotlight.title}</h2>
+            {spotlight.description && <p className="spotlight-desc">{spotlight.description}</p>}
+            <Link className="button ghost" href={`/collections/${spotlight.slug}`}>See all {spotlight.films.length} films</Link>
+          </div>
+          <ul className="spotlight-posters">
+            {spotlight.films.slice(0, 5).map((f) => (
+              <li key={f.id}>
+                <FilmLink href={`/films/${f.slug}`} aria-label={`${f.title}, ${f.year}`}>
+                  <Poster title={f.title} year={f.year} directors={f.directors.map((d) => d.name)} src={f.poster_url} sizes="(min-width: 900px) 180px, 30vw" />
+                </FilmLink>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {shelves.slice(0, 1).map((c) => (
         <Row key={c.id} title={c.title} intro={c.description ?? undefined} href={`/collections/${c.slug}`} linkLabel={`All ${c.films.length}`}>
           {c.films.map((f) => <FilmCard key={f.id} film={toCard(f)} />)}
         </Row>
@@ -88,6 +118,27 @@ export default async function Home() {
       <Row title="Directors to know" href="/directors" linkLabel="All directors">
         {toKnow.map((d) => <DirectorCard key={d.id} director={toDirectorSummary(d)} />)}
       </Row>
+
+      {anniversaries.length > 0 && (
+        <Row title={`Anniversaries in ${thisYear}`} intro="Films turning 10, 25, 50 and more this year.">
+          {anniversaries.map((f) => (
+            <li key={f.id} className="anniversary" style={tintStyle(f.color)}>
+              <FilmLink href={`/films/${f.slug}`}>
+                <span className="anniversary-age">{thisYear - f.year}<span> years</span></span>
+                <Poster title={f.title} year={f.year} directors={f.directors.map((d) => d.name)} src={f.poster_url} sizes="96px" />
+                <span className="anniversary-title">{f.title}</span>
+                <span className="anniversary-meta">{f.directors.map((d) => d.name).join(" and ")} • {f.year}</span>
+              </FilmLink>
+            </li>
+          ))}
+        </Row>
+      )}
+
+      {shelves.slice(1).map((c) => (
+        <Row key={c.id} title={c.title} intro={c.description ?? undefined} href={`/collections/${c.slug}`} linkLabel={`All ${c.films.length}`}>
+          {c.films.map((f) => <FilmCard key={f.id} film={toCard(f)} />)}
+        </Row>
+      ))}
 
       {recent.length > 0 && (
         <Row title="Recent films" href="/films?sort=newest" linkLabel="All films">

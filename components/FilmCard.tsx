@@ -1,4 +1,4 @@
-import { countryName, runtimeLabel } from "@/lib/format";
+import { countryName, runtimeLabel, tintStyle } from "@/lib/format";
 import type { FilmCard as Card } from "@/lib/types";
 import Poster from "./Poster";
 import FilmLink from "./Transitions";
@@ -9,7 +9,7 @@ import FilmLink from "./Transitions";
  */
 export default function FilmCard({ film, priority, sizes }: { film: Card; priority?: boolean; sizes?: string }) {
   return (
-    <li className="film-card">
+    <li className="film-card" style={tintStyle(film.color)}>
       <FilmLink href={`/films/${film.slug}`}>
         <Poster title={film.title} year={film.year} directors={film.directors} src={film.poster_url} priority={priority} sizes={sizes} />
         <span className="film-card-title">{film.title}</span>

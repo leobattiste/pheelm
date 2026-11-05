@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { countryName, initials } from "@/lib/format";
+import { countryName, initials, tintStyle } from "@/lib/format";
 import type { DirectorSummary } from "@/lib/types";
 import Poster from "./Poster";
 
@@ -27,7 +27,7 @@ export default function DirectorCard({ director }: { director: DirectorSummary }
   const slots = [0, 1, 2].map((i) => director.previews[i]);
   return (
     <li className="director-card">
-      <Link href={`/directors/${director.slug}`} className="collection-tile">
+      <Link href={`/directors/${director.slug}`} className="collection-tile" style={tintStyle(director.previews.find((f) => f.color)?.color)}>
         <span className="collection-fan" aria-hidden="true">
           {slots.map((f, i) =>
             f ? (

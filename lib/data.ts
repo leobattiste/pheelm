@@ -190,7 +190,7 @@ export function toDirectorSummary(d: Director): DirectorSummary {
     previews: [...d.films]
       .sort((a, b) => Number(!!b.poster_url) - Number(!!a.poster_url) || wins(b) - wins(a) || b.year - a.year)
       .slice(0, 3)
-      .map((f) => ({ slug: f.slug, title: f.title, year: f.year, poster_url: f.poster_url, directors: f.directors.map((p) => p.name) })),
+      .map((f) => ({ slug: f.slug, title: f.title, year: f.year, poster_url: f.poster_url, color: f.color ?? null, directors: f.directors.map((p) => p.name) })),
   };
 }
 

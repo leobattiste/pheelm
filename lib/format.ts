@@ -1,3 +1,4 @@
+import type React from "react";
 import type { FilmType, Role } from "./types";
 
 export const COUNTRIES: Record<string, string> = {
@@ -90,6 +91,14 @@ const POSTER_COLOURS = [
   ["#161616", "#f2f2f2"], ["#202020", "#e8e8e8"], ["#2b2b2b", "#f5f5f5"], ["#363636", "#ededed"],
   ["#454545", "#f7f7f7"], ["#d6d6d6", "#141414"], ["#e4e4e4", "#1a1a1a"], ["#efefef", "#111111"],
 ];
+
+/**
+ * A film's poster colour as a CSS custom property, for the small touches of colour around the
+ * site (card hovers, the film of the week). Nothing when the film has no measured colour yet.
+ */
+export function tintStyle(hex: string | null | undefined): React.CSSProperties | undefined {
+  return hex && /^#[0-9a-f]{6}$/i.test(hex) ? ({ "--tint": hex } as React.CSSProperties) : undefined;
+}
 
 /** The colour a film's page is tinted with: from its poster when known, otherwise its placeholder's. */
 export function filmColour(film: { title: string; color?: string | null }) {
