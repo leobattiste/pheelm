@@ -82,6 +82,22 @@ export default async function FilmPage({ params }: Params) {
   const directorNames = film.directors.map((d) => d.name);
 
   const runtime = runtimeLabel(film.runtime);
+
+  // Everyone once, with all they did: crew in the usual order, then the cast by billing.
+  // Someone who directed and acted reads "Director and actor".
+  const counts = new Map<Role, number>();
+  for (const c of film.credits) counts.set(c.role, (counts.get(c.role) ?? 0) + 1);
+  const byPerson = new Map<string, { person: Credit["person"]; roles: string[] }>();
+  for (const c of [...crew.flatMap((g) => g.people), ...cast]) {
+    const entry = byPerson.get(c.person.id) ?? { person: c.person, roles: [] };
+    const label = roleLabel(c, counts.get(c.role) ?? 1);
+    if (!entry.roles.includes(label)) entry.roles.push(label);
+    byPerson.set(c.person.id, entry);
+  }
+  const people = [...byPerson.values()].map((p) => ({ person: p.person, role: sentence(p.roles) }));
+  // The crew and the first six of the cast show; the rest sit behind "Show all".
+  const crewCount = new Set(crew.flatMap((g) => g.people.map((c) => c.person.id))).size;
+  const shown = Math.min(people.length, crewCount + CAST_SHOWN);
   const details: [string, React.ReactNode][] = [
     ...(film.original_title ? ([["Original title", film.original_title]] as [string, React.ReactNode][]) : []),
     [film.countries.length > 1 ? "Countries" : "Country", film.countries.length ? film.countries.map((c, i) => (
@@ -170,12 +186,18 @@ export default async function FilmPage({ params }: Params) {
             )}
           </section>
 
-          {/* 2. Where to watch. */}
-          <section className="film-section" aria-labelledby="watch-h">
-            <h2 id="watch-h">Where to watch</h2>
-            <WatchSection watch={film.watch} />
+          {/* 2. Details: small facts to scan. */}
+          <section className="film-section" aria-labelledby="details-h">
+            <h2 id="details-h">Details</h2>
+            <dl className="details">
+              {details.filter(([, v]) => v).map(([k, v]) => (
+                <div key={k}>
+                  <dt>{k}</dt>
+                  <dd>{v}</dd>
+                </div>
+              ))}
+            </dl>
           </section>
-
           {/* 3. Awards: wins first, nominations folded away. Left out when there are none. */}
           {(wins.length > 0 || noms.length > 0) && (
             <section className="film-section" aria-labelledby="awards-h">
@@ -193,57 +215,29 @@ export default async function FilmPage({ params }: Params) {
             </section>
           )}
 
-          {/* 4. Cast and crew: who made it. */}
-          {(crew.length > 0 || cast.length > 0) && (
+          {/* 4. Cast and crew: who made it, each with what they did. */}
+          {people.length > 0 && (
             <section className="film-section" aria-labelledby="people-h">
               <h2 id="people-h">Cast and crew</h2>
-              {crew.length > 0 && (
-                <dl className="crew">
-                  {crew.map((g) => (
-                    <div key={g.role}>
-                      <dt>{ROLE_LABELS[g.role]}</dt>
-                      <dd>
-                        {g.people.map((c, i) => (
-                          <span key={c.person.id}>
-                            {i > 0 && ", "}
-                            <Link href={g.role === "director" ? `/directors/${c.person.slug}` : `/people/${c.person.slug}`}>{c.person.name}</Link>
-                          </span>
-                        ))}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-              )}
-              {cast.length > 0 && (
-                <>
-                  <h3 className="crew-label">Cast</h3>
-                  <CastList people={cast.slice(0, CAST_SHOWN)} />
-                  {cast.length > CAST_SHOWN && (
-                    <details className="more">
-                      <summary className="button ghost small">
-                        <span className="more-closed">Show all {cast.length}</span>
-                        <span className="more-open">Show fewer</span>
-                      </summary>
-                      <CastList people={cast.slice(CAST_SHOWN)} />
-                    </details>
-                  )}
-                </>
+              <PeopleList people={people.slice(0, shown)} />
+              {people.length > shown && (
+                <details className="more">
+                  <summary className="button ghost small">
+                    <span className="more-closed">Show all {people.length}</span>
+                    <span className="more-open">Show fewer</span>
+                  </summary>
+                  <PeopleList people={people.slice(shown)} />
+                </details>
               )}
             </section>
           )}
 
-          {/* 5. Details: small facts to scan. */}
-          <section className="film-section" aria-labelledby="details-h">
-            <h2 id="details-h">Details</h2>
-            <dl className="details">
-              {details.filter(([, v]) => v).map(([k, v]) => (
-                <div key={k}>
-                  <dt>{k}</dt>
-                  <dd>{v}</dd>
-                </div>
-              ))}
-            </dl>
+          {/* 5. Where to watch. */}
+          <section className="film-section" aria-labelledby="watch-h">
+            <h2 id="watch-h">Where to watch</h2>
+            <WatchSection watch={film.watch} />
           </section>
+
         </div>
       </article>
 
@@ -297,25 +291,57 @@ function AwardList({ awards }: { awards: Award[] }) {
   );
 }
 
-/** Cast members with their photo (or initials) and name. */
-function CastList({ people }: { people: Credit[] }) {
+/** People with their photo (or initials), name and what they did on the film. */
+function PeopleList({ people }: { people: { person: Credit["person"]; role: string }[] }) {
   return (
     <ul className="cast">
-      {people.map((c) => (
-        <li key={c.person.id}>
-          <Link href={`/people/${c.person.slug}`}>
-            {c.person.photo_url ? (
+      {people.map(({ person, role }) => (
+        <li key={person.id}>
+          <Link href={role.startsWith("Director") || role.startsWith("Co-director") ? `/directors/${person.slug}` : `/people/${person.slug}`}>
+            {person.photo_url ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img className="cast-photo" src={c.person.photo_url} alt="" loading="lazy" />
+              <img className="cast-photo" src={person.photo_url} alt="" loading="lazy" />
             ) : (
-              <span className="cast-photo" aria-hidden="true">{initials(c.person.name)}</span>
+              <span className="cast-photo" aria-hidden="true">{initials(person.name)}</span>
             )}
-            <span className="cast-name">{c.person.name}</span>
+            <span className="cast-text">
+              <span className="cast-name">{person.name}</span>
+              <span className="cast-role">{role}</span>
+            </span>
           </Link>
         </li>
       ))}
     </ul>
   );
+}
+
+/** What someone did, from their credit. Shared roles read as co-director and co-writer. */
+function roleLabel(c: Credit, sharedBy: number) {
+  const job = c.character?.toLowerCase() ?? "";
+  switch (c.role) {
+    case "director":
+      return job === "co-director" || sharedBy > 1 ? "Co-director" : "Director";
+    case "writer":
+      if (job === "screenplay") return sharedBy > 1 ? "Co-writer" : "Screenplay";
+      if (job === "story") return "Story";
+      return sharedBy > 1 ? "Co-writer" : "Writer";
+    case "cinematographer":
+      return "Cinematographer";
+    case "editor":
+      return "Editor";
+    case "composer":
+      return "Composer";
+    case "producer":
+      return "Producer";
+    default:
+      return "Actor";
+  }
+}
+
+/** "Director", "Director and actor", "Director, writer and actor". */
+function sentence(roles: string[]) {
+  const [first, ...rest] = roles;
+  return listJoin([first, ...rest.map((r) => r.toLowerCase())]);
 }
 
 // The festivals and awards people recognise first lead the summary line.

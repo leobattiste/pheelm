@@ -79,8 +79,12 @@ export type ImportedFilm = {
   watch: WatchOption[];
 };
 
+// TMDB job titles kept for each role. The exact job ("Co-Director", "Screenplay", "Story") is
+// saved with the credit so film pages can say who did what.
 const CREW_JOBS: Record<string, Role> = {
   Director: "director",
+  "Co-Director": "director",
+  Story: "writer",
   Screenplay: "writer",
   Writer: "writer",
   "Original Music Composer": "composer",
@@ -103,7 +107,7 @@ export async function getMovie(id: number): Promise<ImportedFilm> {
   };
   for (const role of ["director", "writer", "cinematographer", "editor", "composer", "producer"] as Role[]) {
     const crew = (m.credits?.crew ?? []).filter((c: any) => CREW_JOBS[c.job] === role);
-    for (const c of role === "producer" ? crew.slice(0, 3) : crew) add(c, role);
+    for (const c of role === "producer" ? crew.slice(0, 3) : crew) add(c, role, c.job ?? null);
   }
   for (const c of (m.credits?.cast ?? []).slice(0, 12)) add(c, "cast", c.character || null);
 

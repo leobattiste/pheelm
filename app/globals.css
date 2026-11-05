@@ -524,7 +524,7 @@ main { width: 100%; }
 /* Rows ------------------------------------------------------------------------------------ */
 
 .row { padding-top: clamp(var(--space-48), 7vw, var(--space-96)); }
-.row-head { display: flex; align-items: end; justify-content: space-between; gap: var(--space-20); padding: 0 var(--gutter); margin-bottom: var(--space-16); }
+.row-head { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-20); padding: 0 var(--gutter); margin-bottom: var(--space-16); }
 .row-title { display: grid; gap: var(--space-8); }
 .row-title h2 { font-size: var(--t-xl); }
 .row-title p { color: var(--muted); font-size: var(--t-sm); max-width: 60ch; }
@@ -878,18 +878,17 @@ main:has(.feature) { margin-top: calc(var(--header) * -1); }
 .watch-where { color: var(--muted); }
 .watch-groups { display: grid; gap: var(--space-16); }
 .watch-groups > div { display: grid; gap: var(--space-8); }
-.watch-groups dt, .crew dt, .details dt, .crew-label { color: var(--muted); font-size: var(--t-sm); font-weight: 400; }
+.watch-groups dt, .details dt { color: var(--muted); font-size: var(--t-sm); font-weight: 400; }
 .film-page .chip { border-color: var(--line-strong); background: transparent; color: var(--ink); }
 .film-page .chip:hover { background: var(--hover); }
 .film-page .chip[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--bg); }
 .watch-empty { color: var(--muted); }
 
-/* Cast and crew */
-.crew, .details { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-20) var(--space-24); }
-@media (min-width: 1100px) { .crew, .details { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-.crew > div, .details > div { display: grid; gap: var(--space-4); min-width: 0; }
-.crew dd, .details dd { overflow-wrap: anywhere; }
-.crew-label { margin-top: var(--space-8); }
+/* Details */
+.details { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-20) var(--space-24); }
+@media (min-width: 1100px) { .details { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.details > div { display: grid; gap: var(--space-4); min-width: 0; }
+.details dd { overflow-wrap: anywhere; }
 
 /* "Show all" and "Show nominations": native disclosure, styled as a small button. */
 .more { display: grid; gap: var(--space-16); }
@@ -941,7 +940,9 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 .cast a { display: flex; align-items: center; gap: var(--space-12); min-width: 0; padding: var(--space-4); margin: calc(var(--space-4) * -1); border-radius: var(--r); }
 .cast a:hover { background: var(--hover); }
 .cast-photo { display: grid; place-items: center; flex-shrink: 0; width: 48px; height: 48px; border-radius: var(--r); background: var(--raised); color: var(--muted); font-size: var(--t-xs); object-fit: cover; }
+.cast-text { display: grid; min-width: 0; }
 .cast-name { overflow: hidden; color: var(--ink); text-overflow: ellipsis; white-space: nowrap; }
+.cast-role { overflow: hidden; color: var(--muted); text-overflow: ellipsis; white-space: nowrap; }
 
 .award-list { display: grid; }
 .award-list li { display: grid; grid-template-columns: 96px 1fr auto; gap: var(--space-16); align-items: center; padding: var(--space-12) 0; }
@@ -1275,8 +1276,8 @@ h1, h2, .menu-main a, .empty-state p:first-child, .decades a,
 .film-card-title, .film-card-meta, .film-card-col,
 .director-card-name, .director-card-meta, .collection-title, .collection-desc,
 .anniversary-title, .anniversary-meta, .spotlight-desc,
-.feature-by, .film-byline, .crew dd, .details dd,
-.cast-name, .award-name, .award-what, .award-year,
+.feature-by, .film-byline, .details dd,
+.cast-name, .cast-role, .award-name, .award-what, .award-year,
 .person-facts dd, .filmography a, .filmography li,
 .hit-title, .hit-meta, .save-name, .update-title, .update-meta {
   font-size: var(--t-md);
