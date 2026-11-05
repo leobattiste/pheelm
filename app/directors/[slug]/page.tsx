@@ -83,7 +83,7 @@ export default async function DirectorPage({ params }: { params: Promise<{ slug:
               <li key={w.film.id + w.role}>
                 <span className="year">{w.film.year}</span>
                 <Link href={`/films/${w.film.slug}`}>{w.film.title}</Link>
-                <span className="muted">{w.role === "cast" ? (w.character ? `as ${w.character}` : "Actor") : ROLE_LABELS[w.role]}</span>
+                <span className="muted">{w.role === "cast" ? "Actor" : ROLE_LABELS[w.role]}</span>
               </li>
             ))}
           </ol>

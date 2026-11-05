@@ -40,7 +40,7 @@ export default async function PersonPage({ params }: { params: Promise<{ slug: s
               <span className="year">{w.film.year}</span>
               <Link href={`/films/${w.film.slug}`}>{w.film.title}</Link>
               <span className="muted">
-                {w.role === "cast" ? (w.character ? `as ${w.character}` : "Actor") : ROLE_LABELS[w.role]}, directed by {w.film.directors.map((d) => d.name).join(" and ")}
+                {w.role === "cast" ? "Actor" : ROLE_LABELS[w.role]}, directed by {w.film.directors.map((d) => d.name).join(" and ")}
               </span>
             </li>
           ))}

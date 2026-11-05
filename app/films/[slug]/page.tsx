@@ -258,7 +258,7 @@ export default async function FilmPage({ params }: Params) {
                     )}
                     <span className="cast-text">
                       <Link href={`/people/${c.person.slug}`}>{c.person.name}</Link>
-                      {c.character && <span className="character">{c.character}</span>}
+                      <span className="cast-role">Actor</span>
                     </span>
                   </li>
                 ))}

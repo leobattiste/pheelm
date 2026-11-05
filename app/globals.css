@@ -510,7 +510,6 @@ main { width: 100%; }
 @media (min-width: 900px) { [data-grid="small"] .film-grid { grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: var(--space-32) var(--space-16); } }
 @media (min-width: 640px) {
   [data-grid="small"] .film-grid .film-card-meta { display: none; }
-  [data-grid="small"] .film-grid .film-card-title { font-size: var(--t-sm); }
   [data-grid="small"] .film-grid .poster-card-foot { display: none; }
 }
 
@@ -683,12 +682,10 @@ main { width: 100%; }
 [data-grid="small"] :is(.director-grid, .collection-list) .collection-tile { padding: var(--space-12); }
 [data-grid="small"] :is(.director-grid, .collection-list) .collection-fan { gap: var(--space-4); }
 [data-grid="small"] :is(.director-grid, .collection-list) .collection-fan .poster { border-radius: var(--r-sm); }
-[data-grid="small"] :is(.director-grid, .collection-list) .collection-title { font-size: var(--t-sm); line-height: 1.3; margin-bottom: var(--space-12); }
+[data-grid="small"] :is(.director-grid, .collection-list) .collection-title { line-height: 1.3; margin-bottom: var(--space-12); }
 [data-grid="small"] :is(.director-grid, .collection-list) .collection-desc { display: none; }
 [data-grid="small"] .director-grid .director-card-head { grid-template-columns: 28px minmax(0, 1fr); gap: var(--space-8); margin-bottom: var(--space-12); }
 [data-grid="small"] .director-grid .portrait { width: 28px; height: 28px; border-radius: var(--r-sm); font-size: var(--t-xs); }
-[data-grid="small"] .director-grid .director-card-name { font-size: var(--t-sm); }
-[data-grid="small"] .director-grid .director-card-meta { font-size: var(--t-xs); }
 /* List: one row per card, details on the left and three small posters on the right. */
 [data-grid="list"] :is(.director-grid, .collection-list) { grid-template-columns: minmax(0, 1fr); gap: var(--space-8); }
 [data-grid="list"] :is(.director-grid, .collection-list) .collection-tile {
@@ -709,10 +706,9 @@ main { width: 100%; }
 }
 [data-grid="list"] :is(.director-grid, .collection-list) .collection-fan .poster { border-radius: var(--r-sm); }
 [data-grid="list"] :is(.director-grid, .collection-list) .collection-fan .poster-card-title { display: none; }
-[data-grid="list"] .collection-list .collection-title { grid-column: 1; padding-left: var(--space-8); font-size: var(--t-md); }
+[data-grid="list"] .collection-list .collection-title { grid-column: 1; padding-left: var(--space-8); }
 [data-grid="list"] .collection-list .collection-desc { grid-column: 1; margin: 0; padding-left: var(--space-8); -webkit-line-clamp: 1; }
 [data-grid="list"] .director-grid .director-card-head { grid-column: 1; grid-row: 1 / span 2; margin: 0; }
-[data-grid="list"] .director-grid .director-card-name { font-size: var(--t-md); }
 @media (max-width: 479px) { [data-grid="list"] :is(.director-grid, .collection-list) .collection-fan { grid-template-columns: repeat(3, 28px); gap: 3px; } }
 .collection-group + .collection-group { padding-top: clamp(var(--space-48), 7vw, var(--space-96)); }
 .collection-group > h2 { margin-bottom: var(--space-20); font-size: var(--t-xl); }
@@ -916,7 +912,7 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 .cast-text { display: grid; min-width: 0; }
 .cast-text a { color: var(--ink); font-size: var(--t-sm); font-weight: 600; }
 .cast-text a:hover { text-decoration: underline; }
-.character { overflow: hidden; color: var(--muted); font-size: var(--t-xs); text-overflow: ellipsis; white-space: nowrap; }
+.cast-role { overflow: hidden; color: var(--muted); font-size: var(--t-md); text-overflow: ellipsis; white-space: nowrap; }
 
 .award-list { display: grid; overflow: hidden; border: 1px solid color-mix(in srgb, currentColor 30%, transparent); border-radius: var(--r); }
 .award-list li { display: grid; grid-template-columns: auto 1fr auto; gap: var(--space-16); align-items: center; padding: var(--space-16) var(--space-16); }
@@ -1127,7 +1123,7 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 [data-grid="list"] .film-grid .poster-card > * { display: none; }
 [data-grid="list"] .film-grid .film-card-title { grid-area: title; align-self: end; font-size: var(--t-md); }
 [data-grid="list"] .film-grid .film-card-meta { grid-area: meta; align-self: start; display: block; }
-[data-grid="list"] .film-grid .film-card-runtime { grid-area: runtime; display: block; color: var(--muted); font-size: var(--t-sm); font-variant-numeric: tabular-nums; text-align: right; }
+[data-grid="list"] .film-grid .film-card-runtime { grid-area: runtime; display: block; color: var(--muted); font-size: var(--t-md); font-variant-numeric: tabular-nums; text-align: right; }
 @media (min-width: 900px) {
   [data-grid="list"] .film-grid .film-card a {
     grid-template-columns: 40px minmax(0, 2.2fr) minmax(0, 1.6fr) 64px minmax(0, 1.4fr) 88px;
@@ -1135,10 +1131,10 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
     padding: var(--space-8) var(--space-12);
   }
   [data-grid="list"] .film-grid .film-card-title, [data-grid="list"] .film-grid .film-card-meta { align-self: center; }
-  [data-grid="list"] .film-grid .film-card-meta { color: var(--text); font-size: var(--t-sm); }
+  [data-grid="list"] .film-grid .film-card-meta { color: var(--text); font-size: var(--t-md); }
   [data-grid="list"] .film-grid .film-card-year { display: none; }
-  [data-grid="list"] .film-grid .film-card-year-col { grid-area: year; display: block; color: var(--muted); font-size: var(--t-sm); font-variant-numeric: tabular-nums; }
-  [data-grid="list"] .film-grid .film-card-country { grid-area: country; display: block; overflow: hidden; color: var(--muted); font-size: var(--t-sm); text-overflow: ellipsis; white-space: nowrap; }
+  [data-grid="list"] .film-grid .film-card-year-col { grid-area: year; display: block; color: var(--muted); font-size: var(--t-md); font-variant-numeric: tabular-nums; }
+  [data-grid="list"] .film-grid .film-card-country { grid-area: country; display: block; overflow: hidden; color: var(--muted); font-size: var(--t-md); text-overflow: ellipsis; white-space: nowrap; }
 }
 
 .person-actions { margin-top: 0; }
@@ -1178,15 +1174,12 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 
 /* Everything set at 20px or larger is bold (Nacelle Bold, 700). Long reading text at
    20px (intros, synopses, articles) stays regular so it's comfortable to read. */
-h1, h2, .menu-main a, .empty-state p:first-child, .decades a, .director-card-name, .collection-title,
-.article-title, .film-title, .film-byline, .feature h1, .feature-by, .intro p, .stat strong,
+h1, h2, .menu-main a, .empty-state p:first-child, .decades a,
+.article-title, .film-title, .feature h1, .intro p, .stat strong,
 .portrait-initials, .person-head .portrait, .field input.code-input {
   font-weight: 700;
 }
 .poster-card-title { font-weight: 700; }
-/* Cards shrink their names below 20px in the small grid, so those go back to semibold. */
-[data-grid="small"] :is(.director-grid, .collection-list) :is(.collection-title, .director-card-name),
-[data-grid="list"] :is(.director-grid, .collection-list) :is(.collection-title, .director-card-name) { font-weight: 600; }
 .intro p .muted { font-weight: 700; }
 
 /* Home: collection spotlight ----------------------------------------------------------------
@@ -1244,3 +1237,18 @@ h1, h2, .menu-main a, .empty-state p:first-child, .decades a, .director-card-nam
 .anniversary[style*="--tint"] a:hover { background: color-mix(in srgb, var(--tint) 22%, var(--surface)); }
 .anniversary a:active { transform: scale(0.98); }
 [data-grid="list"] .film-grid .film-card a:hover .poster { box-shadow: none; transform: none; }
+
+/* Names and card text --------------------------------------------------------------------------
+   Every name (people and films) and all the text on cards is 16px in the regular weight, so
+   cards and credits read as one calm list. Titles above them carry the weight. */
+.film-card-title, .film-card-meta, .film-card-col,
+.director-card-name, .director-card-meta, .collection-title, .collection-desc,
+.anniversary-title, .anniversary-meta, .spotlight-desc,
+.feature-by, .film-byline, .sleeve dd, .sleeve-people dd,
+.cast-text a, .cast-role, .award-name, .award-what, .award-year,
+.person-facts dd, .filmography a, .filmography li,
+.hit-title, .hit-meta, .save-name, .update-title, .update-meta {
+  font-size: var(--t-md);
+  font-weight: 400;
+  letter-spacing: 0;
+}
