@@ -48,8 +48,8 @@ export default async function DirectorPage({ params }: { params: Promise<{ slug:
 
   const tabs = [
     {
-      id: "films",
-      label: "Films",
+      id: "filmography",
+      label: "Filmography",
       panel: <FilmGrid films={theirFilms.map(toCard)} notes={roles} />,
     },
     {
