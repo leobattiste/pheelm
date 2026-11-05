@@ -54,7 +54,7 @@ export default function WatchlistButton({ filmId, filmTitle }: { filmId: string;
 
   if (status === "signed-out" || status === "loading") {
     return (
-      <Link className="pill-button" href={`/login?next=${encodeURIComponent(path)}`} aria-busy={status === "loading"}>
+      <Link className="pill-button" data-action="watchlist" href={`/login?next=${encodeURIComponent(path)}`} aria-busy={status === "loading"}>
         {PLUS}
         Watchlist
       </Link>
@@ -122,7 +122,7 @@ export default function WatchlistButton({ filmId, filmTitle }: { filmId: string;
 
   return (
     <>
-      <button type="button" className="pill-button" aria-pressed={status === "on"} aria-haspopup="dialog" onClick={open}
+      <button type="button" className="pill-button" data-action="watchlist" aria-pressed={status === "on"} aria-haspopup="dialog" onClick={open}
         aria-label={status === "on" ? "On your watchlist. Change collections" : "Add to watchlist"}>
         {status === "on" ? CHECK : PLUS}
         Watchlist

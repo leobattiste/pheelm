@@ -866,29 +866,61 @@ main:has(.feature) { margin-top: calc(var(--header) * -1); }
 .film-essay { display: grid; gap: 1em; margin-top: var(--space-40); max-width: 62ch; font-size: var(--t-md); line-height: var(--lh-body); }
 .film-award { font-weight: 600; }
 
-.sleeve { margin-top: var(--space-40); padding: var(--space-24); border: 1px solid color-mix(in srgb, currentColor 30%, transparent); border-radius: var(--r); }
-.sleeve dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-16) var(--space-24); }
-@media (min-width: 1100px) { .sleeve dl { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (min-width: 1600px) { .sleeve dl { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-.sleeve dt, .sleeve-label { font-size: var(--t-xs); opacity: 0.7; }
-.sleeve dd { margin-top: var(--space-2); font-size: var(--t-sm); overflow-wrap: anywhere; }
-.sleeve dd a { text-decoration: underline; text-decoration-color: currentColor; text-decoration-thickness: 1px; text-underline-offset: 3px; }
-.sleeve-people { padding-bottom: var(--space-16); margin-bottom: var(--space-16); border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent); }
-.sleeve-people dd { font-size: var(--t-lg); }
-.sleeve-palette { padding-bottom: var(--space-16); margin-bottom: var(--space-16); border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent); }
-.sleeve-collections { display: grid; gap: var(--space-12); margin-top: var(--space-16); padding-top: var(--space-16); border-top: 1px solid color-mix(in srgb, currentColor 20%, transparent); }
-.sleeve-collections .chip { background: transparent; border-color: color-mix(in srgb, currentColor 30%, transparent); color: inherit; }
-.sleeve-collections .chip:hover { background: color-mix(in srgb, currentColor 10%, transparent); }
-
-.palette-label { margin-bottom: var(--space-8); font-size: var(--t-xs); opacity: 0.7; }
-.palette ul { display: flex; flex-wrap: wrap; gap: var(--space-8); }
-.palette li { flex: 0 1 64px; min-width: 0; }
-.palette button { display: grid; gap: var(--space-4); width: 100%; padding: 0; border: 0; background: none; color: inherit; text-align: left; cursor: copy; }
-.palette-chip { display: block; height: 22px; border-radius: var(--r-sm); box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 18%, transparent); }
-.palette-hex { font-size: var(--t-xs); font-variant-numeric: tabular-nums; opacity: 0.8; }
-
-.film-section { display: grid; gap: var(--space-16); margin-top: var(--space-48); }
+/* Sections: Where to watch, Awards, Cast and crew, Details. Each is set apart by the same 48px
+   gap, a hairline and a 24px heading; no boxes, so the film's colour stays the backdrop. */
+.film-section { display: grid; gap: var(--space-20); margin-top: var(--space-48); padding-top: var(--space-24); border-top: 1px solid var(--line); }
 .film-section > h2 { font-size: var(--t-xl); }
+.film-essay a, .film-section dd a:not(.chip), .watch-empty a { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
+
+/* Where to watch */
+.watch { display: grid; gap: var(--space-16); }
+.watch-regions { display: flex; flex-wrap: wrap; gap: var(--space-8); }
+.watch-where { color: var(--muted); }
+.watch-groups { display: grid; gap: var(--space-16); }
+.watch-groups > div { display: grid; gap: var(--space-8); }
+.watch-groups dt, .crew dt, .details dt, .crew-label { color: var(--muted); font-size: var(--t-sm); font-weight: 400; }
+.film-page .chip { border-color: var(--line-strong); background: transparent; color: var(--ink); }
+.film-page .chip:hover { background: var(--hover); }
+.film-page .chip[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--bg); }
+.watch-empty { color: var(--muted); }
+
+/* Cast and crew */
+.crew, .details { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-20) var(--space-24); }
+@media (min-width: 1100px) { .crew, .details { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.crew > div, .details > div { display: grid; gap: var(--space-4); min-width: 0; }
+.crew dd, .details dd { overflow-wrap: anywhere; }
+.crew-label { margin-top: var(--space-8); }
+
+/* "Show all" and "Show nominations": native disclosure, styled as a small button. */
+.more { display: grid; gap: var(--space-16); }
+.more > summary { width: fit-content; list-style: none; }
+.more > summary::-webkit-details-marker { display: none; }
+.more:not([open]) .more-open, .more[open] .more-closed { display: none; }
+.more[open] > summary { order: 2; }
+
+/* Phones: once the buttons scroll away, a slim bar keeps them at the bottom of the screen. */
+.film-bar { display: none; }
+@media (max-width: 799px) {
+  .film-bar {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    padding: var(--space-12) var(--gutter) calc(var(--space-12) + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--line);
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    backdrop-filter: blur(18px) saturate(1.4);
+    -webkit-backdrop-filter: blur(18px) saturate(1.4);
+    color: var(--ink);
+    transform: translateY(110%);
+    transition: transform 0.3s var(--ease);
+  }
+  .film-bar[data-show="true"] { transform: none; }
+  .film-bar-title { flex: 1; min-width: 0; overflow: hidden; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+  body:has(.film-bar[data-show="true"]) .site-footer { padding-bottom: calc(var(--space-96) + env(safe-area-inset-bottom)); }
+}
 
 .reading-progress { position: fixed; top: var(--header); left: 0; right: 0; z-index: 35; height: 3px; background: var(--ink); transform-origin: left; transform: scaleX(var(--progress, 0)); pointer-events: none; }
 
@@ -904,18 +936,17 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
   .film-art .poster { width: 100%; box-shadow: none; }
 }
 
-.cast { display: grid; gap: var(--space-8); align-content: start; }
-@media (min-width: 640px) { .film-section .cast { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); } }
-.cast li { display: flex; align-items: center; gap: var(--space-12); min-width: 0; padding: var(--space-8); border-radius: var(--r); transition: background-color 0.15s; }
-.cast li:hover { background: color-mix(in srgb, currentColor 6%, transparent); }
-.cast-photo { flex-shrink: 0; width: 40px; height: 40px; border-radius: var(--r); background: color-mix(in srgb, currentColor 12%, transparent); object-fit: cover; }
-.cast-text { display: grid; min-width: 0; }
-.cast-text a { color: var(--ink); font-size: var(--t-sm); font-weight: 600; }
-.cast-text a:hover { text-decoration: underline; }
-.cast-role { overflow: hidden; color: var(--muted); font-size: var(--t-md); text-overflow: ellipsis; white-space: nowrap; }
+.cast { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-8) var(--space-16); }
+@media (min-width: 1100px) { .cast { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.cast a { display: flex; align-items: center; gap: var(--space-12); min-width: 0; padding: var(--space-4); margin: calc(var(--space-4) * -1); border-radius: var(--r); }
+.cast a:hover { background: var(--hover); }
+.cast-photo { display: grid; place-items: center; flex-shrink: 0; width: 48px; height: 48px; border-radius: var(--r); background: var(--raised); color: var(--muted); font-size: var(--t-xs); object-fit: cover; }
+.cast-name { overflow: hidden; color: var(--ink); text-overflow: ellipsis; white-space: nowrap; }
 
-.award-list { display: grid; overflow: hidden; border: 1px solid color-mix(in srgb, currentColor 30%, transparent); border-radius: var(--r); }
-.award-list li { display: grid; grid-template-columns: auto 1fr auto; gap: var(--space-16); align-items: center; padding: var(--space-16) var(--space-16); }
+.award-list { display: grid; }
+.award-list li { display: grid; grid-template-columns: 96px 1fr auto; gap: var(--space-16); align-items: center; padding: var(--space-12) 0; }
+.award-list li:first-child { padding-top: 0; }
+.award-badge { justify-self: start; }
 .award-list li + li { border-top: 1px solid color-mix(in srgb, currentColor 18%, transparent); }
 .award-badge { padding: 3px var(--space-8); border: 1px solid color-mix(in srgb, currentColor 30%, transparent); border-radius: var(--pill); font-size: var(--t-xs); font-weight: 600; opacity: 0.85; }
 .award-badge.won { background: var(--ink); border-color: var(--ink); color: var(--bg); opacity: 1; }
@@ -1154,13 +1185,13 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 .update-when { color: var(--muted); font-size: var(--t-xs); white-space: nowrap; }
 
 /* Small hover and press motion, on touch and pointer alike ---------------------------------- */
-.film-card a, .collection-tile, .chip, .icon-button, .round-button, .pill-button, .button, .segmented button, .cast li, .menu-main a, .menu-more a {
+.film-card a, .collection-tile, .chip, .icon-button, .round-button, .pill-button, .button, .segmented button, .cast a, .menu-main a, .menu-more a {
   transition-property: transform, background-color, border-color, color, opacity, box-shadow;
   transition-duration: 0.2s;
   transition-timing-function: var(--ease);
 }
 .film-card a:active .poster { transform: scale(0.97); }
-.collection-tile:active, .cast li:active { transform: scale(0.98); }
+.collection-tile:active, .cast a:active { transform: scale(0.98); }
 .chip:active, .icon-button:active, .segmented button:active, .button.ghost:active { transform: scale(0.94); }
 .menu-main a:active, .menu-more a:active { transform: translateX(4px); }
 @media (hover: hover) {
@@ -1244,8 +1275,8 @@ h1, h2, .menu-main a, .empty-state p:first-child, .decades a,
 .film-card-title, .film-card-meta, .film-card-col,
 .director-card-name, .director-card-meta, .collection-title, .collection-desc,
 .anniversary-title, .anniversary-meta, .spotlight-desc,
-.feature-by, .film-byline, .sleeve dd, .sleeve-people dd,
-.cast-text a, .cast-role, .award-name, .award-what, .award-year,
+.feature-by, .film-byline, .crew dd, .details dd,
+.cast-name, .award-name, .award-what, .award-year,
 .person-facts dd, .filmography a, .filmography li,
 .hit-title, .hit-meta, .save-name, .update-title, .update-meta {
   font-size: var(--t-md);

@@ -24,7 +24,7 @@ export default function ShareButton({ title }: { title: string }) {
   };
 
   return (
-    <button type="button" className="round-button" onClick={share} aria-label={copied ? "Link copied" : `Share ${title}`} title={copied ? "Link copied" : "Share"}>
+    <button type="button" className="round-button" data-action="share" onClick={share} aria-label={copied ? "Link copied" : `Share ${title}`} title={copied ? "Link copied" : "Share"}>
       {copied ? (
         <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 10.5 3.2 3.2L15 7" /></svg>
       ) : (
