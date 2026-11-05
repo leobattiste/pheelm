@@ -57,14 +57,19 @@
   --t-3xl: clamp(2.25rem, 1.5rem + 3vw, 3.5rem);
   --t-4xl: clamp(2.75rem, 1.4rem + 5.6vw, 6rem);
 
-  --gutter: 16px;
+  /* Page margins: 17px on phones, 20px on tablets and desktops. */
+  --gutter: 17px;
   --header: 60px;
   --max: 1440px;
   --ease: cubic-bezier(0.22, 0.8, 0.2, 1);
 }
 
+@media (min-width: 640px) {
+  :root { --gutter: 20px; }
+}
+
 @media (min-width: 900px) {
-  :root { --gutter: 40px; --header: 68px; }
+  :root { --header: 68px; }
 }
 
 *, *::before, *::after { box-sizing: border-box; }
