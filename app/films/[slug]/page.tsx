@@ -186,9 +186,9 @@ export default async function FilmPage({ params }: Params) {
             )}
           </section>
 
-          {/* 2. Details: small facts to scan. */}
+          {/* 2. About: small facts to scan. */}
           <section className="film-section" aria-labelledby="details-h">
-            <h2 id="details-h">Details</h2>
+            <h2 id="details-h">About</h2>
             <dl className="details">
               {details.filter(([, v]) => v).map(([k, v]) => (
                 <div key={k}>
@@ -245,7 +245,7 @@ export default async function FilmPage({ params }: Params) {
       {inCollections.length > 0 && (
         <section className="related" aria-labelledby="in-collections-h">
           <div className="section-head">
-            <h2 id="in-collections-h">In collections</h2>
+            <h2 id="in-collections-h">Featured in</h2>
           </div>
           <ul className="collection-list">
             {inCollections.map((c) => <CollectionTile key={c.id} collection={c} />)}
