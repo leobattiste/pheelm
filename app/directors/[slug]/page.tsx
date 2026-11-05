@@ -8,7 +8,7 @@ import { FilmGrid } from "@/components/FilmCard";
 import Tabs from "@/components/Tabs";
 import { getDirector, getFilms, toCard } from "@/lib/data";
 import { countryName } from "@/lib/format";
-import { bornText, diedText, overallRoles, rolesOnFilm, sentence, worksOf } from "@/lib/roles";
+import { bornText, diedText, rolesOnFilm, rolesWithCommas, worksOf } from "@/lib/roles";
 
 export const revalidate = 300;
 export const dynamicParams = true;
@@ -60,13 +60,13 @@ export default async function DirectorPage({ params }: { params: Promise<{ slug:
         <div className="profile-about">
           {bio.length ? bio.map((p, i) => <p key={i}>{p}</p>) : <p className="muted">No biography yet.</p>}
           <dl className="details">
-            {director.country && <div><dt>From</dt><dd>{countryName(director.country)}</dd></div>}
+            <div><dt>Roles</dt><dd>{rolesWithCommas(works) || "Director"}</dd></div>
             {born && <div><dt>Born</dt><dd>{born}</dd></div>}
             {died && <div><dt>Died</dt><dd>{died}</dd></div>}
             <div><dt>On Pheelm</dt><dd>{director.films.length} {director.films.length === 1 ? "film" : "films"} directed, {first === last ? first : `${first} to ${last}`}</dd></div>
             {wins > 0 && <div><dt>Major prizes</dt><dd>{wins}</dd></div>}
+            <PersonLinks info={{ name: director.name, imdb_id: director.imdb_id ?? null, instagram: director.instagram ?? null }} />
           </dl>
-          <PersonLinks info={{ name: director.name, imdb_id: director.imdb_id ?? null, instagram: director.instagram ?? null }} />
         </div>
       ),
     },
@@ -93,7 +93,7 @@ export default async function DirectorPage({ params }: { params: Promise<{ slug:
         <Portrait director={director} />
         <div className="person-text">
           <h1>{director.name}</h1>
-          <p className="person-roles">{overallRoles(works) || sentence(["Director"])}</p>
+          {director.country && <p className="person-roles">{countryName(director.country)}</p>}
           <div className="person-actions">
             <FollowButton personId={director.id} name={director.name} />
           </div>

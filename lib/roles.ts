@@ -54,14 +54,24 @@ export function worksOf(personId: string, films: Film[]) {
 
 export type Work = ReturnType<typeof worksOf>[number];
 
-/** What a person is, across all their films: "Director, writer and actor". Most frequent first. */
-export function overallRoles(works: Work[]) {
+/** Everything a person does across their films, most frequent first: ["Director", "Writer", "Actor"]. */
+export function roleList(works: Work[]) {
   const tally = new Map<string, number>();
   for (const w of works) for (const part of w.role.split(/, | and /)) {
     const r = part.charAt(0).toUpperCase() + part.slice(1);
     tally.set(r, (tally.get(r) ?? 0) + 1);
   }
-  return sentence([...tally.entries()].sort((a, b) => b[1] - a[1]).map(([r]) => r));
+  return [...tally.entries()].sort((a, b) => b[1] - a[1]).map(([r]) => r);
+}
+
+/** The same as a phrase: "Director, writer and actor". */
+export function overallRoles(works: Work[]) {
+  return sentence(roleList(works));
+}
+
+/** The same separated by commas: "Director, writer, actor". */
+export function rolesWithCommas(works: Work[]) {
+  return roleList(works).map((r, i) => (i ? r.toLowerCase() : r)).join(", ");
 }
 
 /** What a person card or sheet needs, small enough to send to the browser. */

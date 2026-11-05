@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { WatchOption } from "@/lib/types";
-import { watchLink } from "@/lib/watch";
+import { serviceName, watchLink } from "@/lib/watch";
 
 const KINDS: [WatchOption["kind"], string][] = [["stream", "Stream"], ["free", "Watch free"], ["rent", "Rent"], ["buy", "Buy"]];
 
@@ -17,7 +17,7 @@ export default function WatchSection({ watch, title }: { watch: WatchOption[]; t
     const seen = new Set<string>();
     const list = watch
       .filter((w) => (w.region ?? "US") === region && w.kind === kind)
-      .map((w) => ({ provider: w.provider, href: watchLink(w.provider, title) }))
+      .map((w) => ({ provider: serviceName(w.provider), href: watchLink(serviceName(w.provider), title) }))
       .filter((w): w is { provider: string; href: string } => !!w.href && !seen.has(w.provider) && !!seen.add(w.provider));
     return { label, list };
   }).filter((g) => g.list.length);

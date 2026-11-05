@@ -870,7 +870,7 @@ main:has(.feature) { margin-top: calc(var(--header) * -1); }
    gap, a hairline and a 24px heading; no boxes, so the film's colour stays the backdrop. */
 .film-section { display: grid; gap: var(--space-20); margin-top: var(--space-48); padding-top: var(--space-24); border-top: 1px solid var(--line); }
 .film-section > h2 { font-size: var(--t-xl); }
-.film-essay a, .film-section dd a:not(.chip), .watch-empty a { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
+.film-essay a, .film-section dd a:not(.chip), .watch-empty a, .details dd a { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
 
 /* Where to watch */
 .watch { display: grid; gap: var(--space-16); }
@@ -1290,9 +1290,12 @@ h1, h2, .menu-main a, .empty-state p:first-child, .decades a,
 .person-head .person-actions { margin-top: var(--space-12); }
 .person-links { display: flex; flex-wrap: wrap; gap: var(--space-8); }
 
-.profile-tabs { display: flex; gap: var(--space-8); overflow-x: auto; margin: var(--space-48) calc(var(--gutter) * -1) 0; padding: 0 var(--gutter) var(--space-24); border-bottom: 1px solid var(--line); scrollbar-width: none; }
+/* Profile tabs fill the width: one equal segment per tab, like the switches in the menu. */
+.profile-tabs { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: var(--space-2); height: var(--control); margin-top: var(--space-48); padding: 3px; border: 1px solid var(--control-border); border-radius: var(--pill); background: var(--control-fill); scrollbar-width: none; }
 .profile-tabs::-webkit-scrollbar { display: none; }
-.profile-tabs .chip[aria-selected="true"] { border-color: var(--ink); background: var(--ink); color: var(--on-ink); }
+.profile-tabs .chip { height: 100%; padding: 0 var(--space-8); border: 0; background: none; color: var(--muted); }
+.profile-tabs .chip:hover { background: none; color: var(--ink); }
+.profile-tabs .chip[aria-selected="true"] { background: var(--raised); color: var(--ink); box-shadow: 0 1px 2px rgb(0 0 0 / 0.2); }
 .tab-panel { padding-top: var(--space-32); }
 .profile-about { display: grid; gap: var(--space-16); max-width: 68ch; }
 .profile-about .details { margin-top: var(--space-16); }
@@ -1320,3 +1323,6 @@ h1, h2, .menu-main a, .empty-state p:first-child, .decades a,
 .follow { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--space-8) var(--space-12); }
 .follow-note { color: var(--muted); font-size: var(--t-sm); }
 .follow-note:empty { display: none; }
+
+/* Profiles and the person sheet have no separator lines. */
+.person-sheet .modal-head { border-bottom: 0; }

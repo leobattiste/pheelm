@@ -38,6 +38,24 @@ const SERVICES: [RegExp, Builder][] = [
   [/^sling/, (q) => `https://watch.sling.com/search?q=${q}`],
 ];
 
+/**
+ * A service's plain name. TMDB lists plans separately ("Netflix Standard with Ads", "Peacock Premium
+ * Plus", "Starz Amazon Channel"); people only need the service.
+ */
+export function serviceName(provider: string) {
+  const name = provider
+    .replace(/\s+(amazon|apple tv|roku premium) channel$/i, "")
+    .replace(/\s+(standard|basic|premium|essential|ultimate|plus)?\s*with ads$/i, "")
+    .replace(/\s+(premium plus|premium|essential|basic|standard|ultimate|ad-free)$/i, "")
+    .trim();
+  const tidy: Record<string, string> = {
+    "disney plus": "Disney+", "paramount plus": "Paramount+", "apple tv plus": "Apple TV+", "amc plus": "AMC+",
+    "hbo max": "Max", "mgm plus": "MGM+", "amazon prime video": "Prime Video", "amazon video": "Prime Video", "tubi tv": "Tubi",
+    "the criterion channel": "Criterion Channel", "fandango at home": "Fandango at Home",
+  };
+  return tidy[name.toLowerCase()] ?? name;
+}
+
 /** A search for the film on the service, or null for services we can't search. */
 export function watchLink(provider: string, title: string): string | null {
   const name = provider.toLowerCase().replace(/\+/g, " plus").trim();

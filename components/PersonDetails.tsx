@@ -26,10 +26,11 @@ export default function PersonDetails({ info, headingLevel = 2 }: { info: Person
           <p className="person-roles">{overallRoles(info.works)}</p>
         </div>
       </div>
-      {(born || died) && (
+      {(born || died || info.imdb_id || info.instagram) && (
         <dl className="details person-dates">
           {born && <div><dt>Born</dt><dd>{born}</dd></div>}
           {died && <div><dt>Died</dt><dd>{died}</dd></div>}
+          <PersonLinks info={info} />
         </dl>
       )}
       {paragraphs.length > 0 && (
@@ -43,10 +44,9 @@ export default function PersonDetails({ info, headingLevel = 2 }: { info: Person
           )}
         </div>
       )}
-      <PersonLinks info={info} />
       {info.works.length > 0 && (
         <div className="person-works">
-          <h3>On Pheelm</h3>
+          <h3>Featured in</h3>
           <ol className="filmography">
             {info.works.map((w) => (
               <li key={w.slug}>
@@ -62,17 +62,24 @@ export default function PersonDetails({ info, headingLevel = 2 }: { info: Person
   );
 }
 
-/** IMDb and Instagram, when TMDB has them. */
+/** IMDb and Instagram as a details row, labelled "Link" or "Links". Nothing when there are none. */
 export function PersonLinks({ info }: { info: Pick<PersonInfo, "imdb_id" | "instagram" | "name"> }) {
-  if (!info.imdb_id && !info.instagram) return null;
+  const links = [
+    info.imdb_id && { label: "IMDb", href: `https://www.imdb.com/name/${info.imdb_id}/` },
+    info.instagram && { label: "Instagram", href: `https://www.instagram.com/${info.instagram}/` },
+  ].filter((l): l is { label: string; href: string } => !!l);
+  if (!links.length) return null;
   return (
-    <ul className="person-links">
-      {info.imdb_id && (
-        <li><a className="button ghost small" href={`https://www.imdb.com/name/${info.imdb_id}/`} target="_blank" rel="noopener noreferrer">IMDb</a></li>
-      )}
-      {info.instagram && (
-        <li><a className="button ghost small" href={`https://www.instagram.com/${info.instagram}/`} target="_blank" rel="noopener noreferrer">Instagram</a></li>
-      )}
-    </ul>
+    <div>
+      <dt>{links.length > 1 ? "Links" : "Link"}</dt>
+      <dd>
+        {links.map((l, i) => (
+          <span key={l.label}>
+            {i > 0 && ", "}
+            <a href={l.href} target="_blank" rel="noopener noreferrer">{l.label}</a>
+          </span>
+        ))}
+      </dd>
+    </div>
   );
 }
