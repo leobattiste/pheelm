@@ -826,3 +826,6 @@ a:has(> .poster), .feature-poster { text-decoration: none; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
+
+/* Sign-in code: big, spaced digits that are easy to type and check. */
+.field input.code-input { font-size: 1.75rem; letter-spacing: 0.4em; text-align: center; font-variant-numeric: tabular-nums; }
