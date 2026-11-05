@@ -33,15 +33,30 @@ async function readAll<T>(db: SupabaseClient, table: string, filter?: (q: any) =
 const load = cache(async (): Promise<Raw> => {
   if (!supabaseEnabled) return local as unknown as Raw;
   const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: false } });
-  const [films, people, credits, collections, collection_films, articles] = await Promise.all([
-    readAll<FilmRow>(db, "films", (q) => q.eq("status", "published")),
-    readAll<PersonRow>(db, "people"),
-    readAll<CreditRow>(db, "credits"),
-    readAll<CollectionRow>(db, "collections"),
-    readAll<Raw["collection_films"][number]>(db, "collection_films"),
-    readAll<ArticleRow>(db, "articles", (q) => q.eq("status", "published")),
-  ]);
-  return { films, people, credits, collections, collection_films, articles };
+  try {
+    const [films, people, credits, collections, collection_films, articles] = await Promise.all([
+      readAll<FilmRow>(db, "films", (q) => q.eq("status", "published")),
+      readAll<PersonRow>(db, "people"),
+      readAll<CreditRow>(db, "credits"),
+      readAll<CollectionRow>(db, "collections"),
+      readAll<Raw["collection_films"][number]>(db, "collection_films"),
+      readAll<ArticleRow>(db, "articles", (q) => q.eq("status", "published")),
+    ]);
+    if (!films.length) {
+      console.warn("⚠ Supabase has no published films yet, so the starter catalog is shown. Run supabase/seed.sql.");
+      return local as unknown as Raw;
+    }
+    return { films, people, credits, collections, collection_films, articles };
+  } catch (e) {
+    // While building, a database problem shouldn't stop the deploy (Vercel would keep serving the
+    // old version, without accounts). Build with the starter catalog and say why in the build log.
+    if (process.env.NEXT_PHASE === "phase-production-build") {
+      console.error(`⚠ ${e instanceof Error ? e.message : e}\n  Building with the starter catalog. Check the Supabase keys and that supabase/schema.sql and seed.sql have run.`);
+      return local as unknown as Raw;
+    }
+    // On the live site, failing keeps the last good version of the page on screen.
+    throw e;
+  }
 });
 
 const byTitle = (a: { title: string }, b: { title: string }) =>
