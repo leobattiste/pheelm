@@ -512,34 +512,21 @@ main { width: 100%; }
 
 /* Director cards ------------------------------------------------------------------------- */
 
-.director-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
-@media (min-width: 560px) { .director-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (min-width: 900px) { .director-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; } }
-.director-card a {
-  display: grid;
-  gap: 14px;
-  height: 100%;
-  padding: 14px;
-  border: 1px solid var(--line);
-  border-radius: var(--r);
-  background: var(--surface);
-  transition: background-color 0.2s, border-color 0.2s, transform 0.3s var(--ease);
-}
-.director-card-head { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 12px; align-items: center; }
-.director-card .portrait { width: 48px; height: 48px; font-size: var(--t-sm); }
+.director-grid { display: grid; gap: 16px; }
+@media (min-width: 700px) { .director-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1100px) { .director-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.director-card .collection-tile { gap: 0; padding-bottom: 14px; }
+.director-card-head { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 12px; align-items: center; padding: 4px 6px 0; }
+.director-card .portrait { width: 40px; height: 40px; font-size: var(--t-xs); }
 .director-card-body { display: grid; gap: 1px; min-width: 0; }
-.director-card-name { overflow: hidden; color: var(--ink); font-size: var(--t-md); font-weight: 600; line-height: 1.25; letter-spacing: -0.01em; text-overflow: ellipsis; white-space: nowrap; }
+.director-card-name { overflow: hidden; color: var(--ink); font-size: var(--t-lg); font-weight: 600; line-height: 1.25; letter-spacing: -0.015em; text-overflow: ellipsis; white-space: nowrap; }
 .director-card-meta { overflow: hidden; color: var(--muted); font-size: var(--t-sm); text-overflow: ellipsis; white-space: nowrap; }
-.director-card-films { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-.director-card-films .poster { border-radius: 8px; transition: transform 0.35s var(--ease); }
-.director-card-films .poster-card-foot { display: none; }
-.director-card-films .is-empty { aspect-ratio: 2 / 3; border: 1px dashed var(--line); border-radius: 8px; }
-@media (hover: hover) {
-  .director-card a:hover { background: var(--raised); border-color: var(--line-strong); transform: translateY(-3px); }
-  .director-card a:hover .director-card-films > :first-child { transform: rotate(-2deg) translateY(-2px); }
-  .director-card a:hover .director-card-films > :nth-child(2) { transform: rotate(2deg) translateY(-2px); }
-}
-.director-card a:active { transform: scale(0.98); background: var(--raised); }
+/* An empty slot in the fan when a director has fewer than three films here. */
+.collection-fan .poster-empty { background: color-mix(in srgb, var(--surface) 60%, transparent); box-shadow: none; border: 1px dashed var(--line-strong); }
+/* Director cards in a home-page row get the same width as a collection card. */
+.row-track:has(.director-card) { grid-auto-columns: 82%; }
+@media (min-width: 640px) { .row-track:has(.director-card) { grid-auto-columns: 46%; } }
+@media (min-width: 900px) { .row-track:has(.director-card) { grid-auto-columns: 340px; } }
 
 .portrait {
   display: grid;

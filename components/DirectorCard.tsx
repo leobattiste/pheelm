@@ -18,25 +18,34 @@ export function Portrait({ director, className = "" }: { director: PortraitPerso
   );
 }
 
-/** A director's profile card: a small square portrait, name, country and two of their films. */
+/**
+ * A director's card, built like a collection card: three of their films fanned out (with empty
+ * slots when they have fewer), then a small square portrait, their name, country and film count.
+ */
 export default function DirectorCard({ director }: { director: DirectorSummary }) {
   const n = director.films;
   const meta = [director.country ? countryName(director.country) : null, `${n} ${n === 1 ? "film" : "films"}`].filter(Boolean).join(", ");
+  // The fan's middle poster sits in front, so the best-known film goes there, then left, then right.
+  const [a, b, c] = director.previews;
+  const slots = [b, a, c];
   return (
     <li className="director-card">
-      <Link href={`/directors/${director.slug}`}>
+      <Link href={`/directors/${director.slug}`} className="collection-tile">
+        <span className="collection-fan" aria-hidden="true">
+          {slots.map((f, i) =>
+            f ? (
+              <Poster key={f.slug} title={f.title} year={f.year} directors={f.directors} src={f.poster_url} sizes="140px" />
+            ) : (
+              <span key={`empty-${i}`} className="poster poster-empty" />
+            ),
+          )}
+        </span>
         <span className="director-card-head">
           <Portrait director={director} />
           <span className="director-card-body">
             <span className="director-card-name">{director.name}</span>
             <span className="director-card-meta">{meta}</span>
           </span>
-        </span>
-        <span className="director-card-films" aria-hidden="true">
-          {director.previews.map((f) => (
-            <Poster key={f.slug} title={f.title} year={f.year} directors={f.directors} src={f.poster_url} sizes="(min-width: 900px) 140px, 45vw" />
-          ))}
-          {director.previews.length < 2 && <span className="is-empty" />}
         </span>
       </Link>
     </li>
