@@ -318,7 +318,7 @@ html:not([data-scrolled]) body:has(.has-still) .search-trigger { background: rgb
 
 /* Page frames -------------------------------------------------------------------------- */
 
-main { max-width: var(--max); margin: 0 auto; }
+main { width: 100%; }
 .page { padding: 0 var(--gutter); }
 .page.narrow { max-width: 760px; margin: 0 auto; }
 .page-head { display: grid; gap: 12px; padding: clamp(32px, 6vw, 72px) 0 clamp(24px, 3vw, 36px); }
@@ -651,7 +651,7 @@ main { max-width: var(--max); margin: 0 auto; }
 }
 
 /* The home page's opening runs edge to edge, even on screens wider than the page. */
-.feature { width: 100vw; margin-left: calc(50% - 50vw); padding-left: max(var(--gutter), calc(50vw - var(--max) / 2 + var(--gutter))); padding-right: max(var(--gutter), calc(50vw - var(--max) / 2 + var(--gutter))); }
+.feature { width: 100%; }
 main:has(.feature) { margin-top: calc(var(--header) * -1); }
 
 .section-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
@@ -663,16 +663,18 @@ main:has(.feature) { margin-top: calc(var(--header) * -1); }
 
 .film-page {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: clamp(32px, 5vw, 80px);
-  padding: clamp(32px, 5vw, 64px) var(--gutter) 80px;
+  /* The poster's column is as wide as the poster; the text takes all the rest. */
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: clamp(32px, 4vw, 72px);
+  padding: clamp(32px, 4vw, 56px) var(--gutter) 80px;
   min-height: calc(100svh - var(--header));
   color: var(--ink);
 }
-.film-art { position: sticky; top: calc(var(--header) + clamp(32px, 5vw, 64px)); align-self: start; display: grid; justify-items: end; }
+.film-art { position: sticky; top: calc(var(--header) + clamp(32px, 4vw, 56px)); align-self: start; display: grid; justify-items: start; }
 /* Tall posters stay within the screen on desktop. */
-.film-art .poster { width: min(100%, calc((100svh - var(--header) - 112px) * 2 / 3)); box-shadow: 0 40px 80px -40px rgb(0 0 0 / 0.6); }
-.film-body { display: grid; align-content: start; gap: 0; max-width: 38rem; min-width: 0; }
+.film-art .poster { width: min(42vw, calc((100svh - var(--header) - 96px) * 2 / 3)); box-shadow: 0 40px 80px -40px rgb(0 0 0 / 0.6); }
+/* The text column uses the full width; only the synopsis keeps a comfortable line length. */
+.film-body { display: grid; align-content: start; gap: 0; min-width: 0; }
 
 .film-head { display: grid; gap: 12px; }
 .film-title { font-size: clamp(2.5rem, 5.5vw, 5rem); line-height: 0.95; letter-spacing: -0.045em; overflow-wrap: anywhere; }
@@ -713,6 +715,8 @@ main:has(.feature) { margin-top: calc(var(--header) * -1); }
 
 .sleeve { margin-top: 40px; padding: 24px; border: 1px solid color-mix(in srgb, currentColor 30%, transparent); border-radius: var(--r); }
 .sleeve dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 24px; }
+@media (min-width: 1100px) { .sleeve dl { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 1600px) { .sleeve dl { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 .sleeve dt, .sleeve-label { font-size: 0.75rem; opacity: 0.7; }
 .sleeve dd { margin-top: 2px; font-size: 0.9375rem; overflow-wrap: anywhere; }
 .sleeve dd a { text-decoration: underline; text-decoration-color: currentColor; text-decoration-thickness: 1px; text-underline-offset: 3px; }
@@ -748,7 +752,7 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 }
 
 .cast { display: grid; gap: 6px; align-content: start; }
-@media (min-width: 640px) { .film-section .cast { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 640px) { .film-section .cast { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); } }
 .cast li { display: flex; align-items: center; gap: 12px; min-width: 0; padding: 6px; border-radius: var(--r); transition: background-color 0.15s; }
 .cast li:hover { background: color-mix(in srgb, currentColor 6%, transparent); }
 .cast-photo { flex-shrink: 0; width: 40px; height: 40px; border-radius: var(--r); background: color-mix(in srgb, currentColor 12%, transparent); object-fit: cover; }
@@ -917,3 +921,7 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
+
+/* Header links never wrap; the search box narrows on smaller desktops. */
+.header-nav a, .header-link, .header-link a { white-space: nowrap; }
+@media (min-width: 900px) and (max-width: 1099px) { .search-trigger { width: 180px; } .site-header { gap: 20px; } }
