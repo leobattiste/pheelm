@@ -100,13 +100,40 @@ export async function getMember(handle: string) {
   return { member, collections };
 }
 
-/** The owner and save count for one collection page. */
+/** The owner, save count and tagged members for one collection page. */
 export async function collectionExtras(listId: string, userId: string) {
   const db = anon();
-  if (!db) return { owner: null, saves: 0 };
-  const [owner, counts] = await Promise.all([
+  if (!db) return { owner: null, saves: 0, tagged: [] as Member[] };
+  const [owner, counts, tagged] = await Promise.all([
     members((cols) => db.from("member_profiles").select(cols).eq("id", userId).maybeSingle()),
     db.from("list_save_counts").select("saves").eq("list_id", listId).maybeSingle(),
+    getTagged(listId),
   ]);
-  return { owner: (owner as unknown as Member | null) ?? null, saves: (counts.data as { saves: number } | null)?.saves ?? 0 };
+  return { owner: (owner as unknown as Member | null) ?? null, saves: (counts.data as { saves: number } | null)?.saves ?? 0, tagged };
+}
+
+/** Members tagged on a public collection, in the order they were tagged. Empty until list-tags.sql has run. */
+export async function getTagged(listId: string): Promise<Member[]> {
+  const db = anon();
+  if (!db) return [];
+  const { data, error } = await db.from("list_tags").select("user_id, created_at").eq("list_id", listId).order("created_at");
+  if (error || !data?.length) return [];
+  const ids = (data as { user_id: string }[]).map((t) => t.user_id);
+  const people = ((await members((cols) => db.from("member_profiles").select(cols).in("id", ids))) ?? []) as unknown as Member[];
+  const byId = new Map(people.map((p) => [p.id, p]));
+  return ids.map((id) => byId.get(id)).filter((m): m is Member => !!m);
+}
+
+/** Public collections a member has been tagged on (by someone else). */
+export async function getTaggedIn(memberId: string): Promise<CommunityCollection[]> {
+  const db = anon();
+  if (!db) return [];
+  const { data: tags, error } = await db.from("list_tags").select("list_id").eq("user_id", memberId);
+  if (error || !tags?.length) return [];
+  const { data } = await db
+    .from("lists")
+    .select("id, title, description, staff_pick, created_at, user_id, list_films(film_id, added_at)")
+    .eq("is_public", true)
+    .in("id", (tags as { list_id: string }[]).map((t) => t.list_id));
+  return (await enrich((data ?? []) as Row[])).sort(order.popular);
 }

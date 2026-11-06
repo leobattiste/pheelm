@@ -63,7 +63,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
             <section className="footer-follow" aria-labelledby="footer-follow">
               <h2 id="footer-follow">Get the newsletter</h2>
-              <p>New films, collections and stories, once a month at most.</p>
+              <p>New films and collections, once a month at most.</p>
               <NewsletterForm />
               {(INSTAGRAM_URL || THREADS_URL) && (
                 <ul className="footer-social" aria-label="Follow Pheelm">

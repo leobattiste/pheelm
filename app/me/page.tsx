@@ -7,8 +7,9 @@ import { getFilms, toCard } from "@/lib/data";
 import { getServerClient } from "@/lib/supabase/server";
 import { createCollection } from "./actions";
 import CollectionSettings from "./CollectionSettings";
+import CollectionTags from "./CollectionTags";
 import CommunityTile from "@/components/CommunityTile";
-import { enrich, MIN_FILMS, type Row as CommunityRow } from "@/lib/community";
+import { enrich, getTagged, MIN_FILMS, type Row as CommunityRow } from "@/lib/community";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Watchlist", description: PAGE_COPY.watchlist, robots: { index: false } };
@@ -97,6 +98,7 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
       ) : selected ? (
         <>
           <CollectionSettings list={{ id: selected.id, title: selected.title, description: selected.description, is_public: selected.is_public }} count={selected.list_films.length} handle={communityReady ? handle : undefined} minFilms={MIN_FILMS} />
+          <CollectionTags listId={selected.id} isPublic={selected.is_public} tagged={selected.is_public ? await getTagged(selected.id) : []} />
           {selected.list_films.length ? (
             <FilmGrid films={listFilms(selected).map(toCard)} />
           ) : (

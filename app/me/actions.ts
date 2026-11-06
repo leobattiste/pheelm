@@ -54,6 +54,39 @@ export async function deleteCollection(form: FormData) {
   redirect("/me");
 }
 
+export type TagState = { ok: boolean; message: string } | null;
+
+/** Tags a member (by @handle) on one of your public collections. */
+export async function tagMember(_prev: TagState, form: FormData): Promise<TagState> {
+  const { db, user } = await member();
+  const listId = clip(form.get("list_id"), 64);
+  const handle = clip(form.get("handle"), 25).toLowerCase().replace(/^@/, "");
+  if (!/^[a-z0-9_]{3,24}$/.test(handle)) return { ok: false, message: "Enter a handle, like @maya." };
+  const { data: person } = await db.from("member_profiles").select("id").eq("handle", handle).maybeSingle();
+  if (!person) return { ok: false, message: `There's no public profile at @${handle}.` };
+  if (person.id === user.id) return { ok: false, message: "That's you. Tag someone else." };
+  const { error } = await db.from("list_tags").insert({ list_id: listId, user_id: person.id });
+  if (error?.code === "23505") return { ok: false, message: `@${handle} is already tagged.` };
+  if (error?.code === "23514") return { ok: false, message: "A collection can tag up to 10 people." };
+  if (error?.code === "42P01" || error?.code === "PGRST205") return { ok: false, message: "Tagging isn't switched on yet." };
+  if (error) return { ok: false, message: `Couldn't tag @${handle}. Their profile may be private, or the collection isn't public.` };
+  revalidatePath("/me");
+  revalidatePath(`/c/${listId}`);
+  return { ok: true, message: `Tagged @${handle}.` };
+}
+
+/** Removes a tag: the collection's owner removing someone, or a member removing themselves. */
+export async function untagMember(form: FormData) {
+  const { db, user } = await member();
+  const listId = clip(form.get("list_id"), 64);
+  const userId = clip(form.get("user_id"), 64) || user.id;
+  await db.from("list_tags").delete().eq("list_id", listId).eq("user_id", userId);
+  revalidatePath("/me");
+  revalidatePath(`/c/${listId}`);
+  const back = clip(form.get("back"), 200);
+  if (back.startsWith("/")) redirect(back);
+}
+
 export type NameState = { ok: boolean; message: string; handle?: string | null } | null;
 
 /**

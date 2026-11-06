@@ -1467,3 +1467,75 @@ h1, h2, .menu-main a, .empty-state p:first-child, .decades a,
 .lead, .label, .prose, .bio, .feature-line { line-height: var(--lh-body); }
 .submissions-intro { margin-bottom: var(--space-24); color: var(--muted); }
 .person-bio-line { max-width: 52ch; margin-top: var(--space-8); color: var(--text); white-space: pre-line; overflow-wrap: anywhere; }
+
+/* Tagging people on a collection */
+.collection-tags { display: grid; gap: var(--space-12); margin: var(--space-8) 0 var(--space-32); }
+.collection-tags h3 { color: var(--muted); font-size: var(--t-sm); font-weight: 400; letter-spacing: 0; }
+.collection-tags .chip-list form { display: contents; }
+.tag-form { display: flex; gap: var(--space-8); max-width: 360px; }
+.tag-form input:not([type="hidden"]) { flex: 1; min-width: 0; height: var(--control-sm); padding: 0 var(--control-pad-sm); border: 1px solid var(--control-border); border-radius: var(--pill); background: var(--control-fill); color: var(--text); font: inherit; }
+.tag-form input:focus { outline: none; border-color: var(--control-border-strong); box-shadow: var(--control-ring); }
+.collection-tags-note { margin: var(--space-8) 0 var(--space-32); }
+.collection-actions { display: flex; flex-wrap: wrap; gap: var(--space-8); }
+
+/* Comments on collections ------------------------------------------------------------------ */
+.comments { display: grid; gap: var(--space-24); max-width: 720px; margin-top: var(--space-64); }
+.comments-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-16); }
+.comments-head h2 { font-size: var(--t-xl); }
+.comments-count { color: var(--muted); }
+.comments .segmented button { width: auto; padding: 0 var(--space-12); font-size: var(--t-sm); }
+
+.comment-avatar { display: grid; place-items: center; flex: none; width: 36px; height: 36px; border-radius: var(--pill); background: var(--raised); color: var(--muted); font-size: var(--t-xs); font-weight: 600; letter-spacing: 0; }
+.comment-new { display: flex; align-items: flex-start; gap: var(--space-12); }
+.comment-new .composer { flex: 1; min-width: 0; }
+
+.composer { display: grid; border: 1px solid var(--control-border); border-radius: var(--r); background: var(--control-fill); transition: border-color 0.15s, box-shadow 0.15s; }
+.composer:focus-within { border-color: var(--control-border-strong); box-shadow: var(--control-ring); }
+.composer textarea { width: 100%; min-height: 44px; max-height: 320px; padding: var(--space-12) var(--space-16) var(--space-4); border: 0; background: none; color: var(--text); font: inherit; line-height: var(--lh-body); resize: none; outline: none; overflow-y: auto; }
+.composer textarea::placeholder { color: var(--muted); }
+.composer-foot { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-8); padding: 0 var(--space-8) var(--space-8); }
+.composer-count { margin-right: auto; padding-left: var(--space-8); color: var(--muted); font-size: var(--t-xs); font-variant-numeric: tabular-nums; }
+.composer-count.over { color: var(--error); }
+
+.comments-gate { display: flex; align-items: center; gap: var(--space-12); padding: var(--space-12) var(--space-16); border: 1px dashed var(--control-border-strong); border-radius: var(--r); color: var(--muted); }
+.comments-gate a { color: var(--ink); text-decoration: underline; text-underline-offset: 0.2em; }
+.comments-gate.as-button { width: 100%; background: none; font: inherit; text-align: left; cursor: pointer; transition: border-color 0.15s, color 0.15s; }
+.comments-gate.as-button:hover { border-style: solid; color: var(--ink); }
+
+.comment-list { display: grid; gap: var(--space-8); }
+.thread { display: grid; gap: var(--space-4); }
+.comment { display: flex; gap: var(--space-12); padding: var(--space-12) 0; scroll-margin-top: var(--space-96); }
+.comment.is-pending { opacity: 0.6; }
+.comment:target { animation: comment-flash 1.6s var(--ease); border-radius: var(--r); }
+@keyframes comment-flash { 0%, 40% { background: var(--surface); } }
+.comment-main { display: grid; gap: var(--space-4); flex: 1; min-width: 0; }
+.comment-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-4) var(--space-8); }
+.comment-name { color: var(--ink); }
+a.comment-name:hover { text-decoration: underline; text-underline-offset: 0.2em; }
+.comment-badge { padding: 1px var(--space-8); border: 1px solid var(--line); border-radius: var(--pill); color: var(--text); font-size: var(--t-xs); }
+.comment-time { color: var(--muted); font-size: var(--t-sm); }
+.comment-body { color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere; }
+.mention { color: var(--ink); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
+
+.comment-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4); margin-left: calc(var(--space-8) * -1); }
+.comment-act { display: inline-flex; align-items: center; gap: var(--space-4); height: 32px; padding: 0 var(--space-8); border: 0; border-radius: var(--pill); background: none; color: var(--muted); font: inherit; font-size: var(--t-sm); cursor: pointer; transition: background-color 0.15s, color 0.15s, transform 0.15s var(--ease); }
+.comment-act:hover:not(:disabled) { background: var(--control-hover); color: var(--ink); }
+.comment-act:active:not(:disabled) { transform: scale(0.94); }
+.comment-act:disabled { opacity: 0.45; cursor: not-allowed; }
+.comment-act:focus-visible { outline: none; box-shadow: var(--control-ring); }
+.comment-act svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linejoin: round; }
+.comment-act.like.on { color: var(--ink); }
+.comment-act.like.on svg { fill: currentColor; animation: pop 0.26s var(--ease); }
+.comment-act.danger { color: var(--error); }
+.comment-confirm { display: inline-flex; align-items: center; gap: var(--space-4); padding-left: var(--space-8); color: var(--text); font-size: var(--t-sm); }
+
+.replies { display: grid; gap: var(--space-4); margin-left: 17px; padding-left: var(--space-24); border-left: 1px solid var(--line); }
+.replies .comment-avatar { width: 28px; height: 28px; }
+.comment-new.is-reply { padding: var(--space-8) 0; }
+.more-replies { color: var(--ink); }
+.comments-empty { padding: var(--space-24) 0; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { .comment:target, .comment-act.like.on svg { animation: none; } }
+@media (max-width: 639px) {
+  .replies { margin-left: 12px; padding-left: var(--space-16); }
+  .comments-head h2 { font-size: var(--t-xl); }
+}

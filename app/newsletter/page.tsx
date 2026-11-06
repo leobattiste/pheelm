@@ -3,7 +3,7 @@ import Link from "next/link";
 import NewsletterForm from "@/components/NewsletterForm";
 import { SITE_NAME } from "@/lib/site";
 
-export const metadata: Metadata = { title: "Newsletter", description: `New films, collections and stories from ${SITE_NAME}, by email.` };
+export const metadata: Metadata = { title: "Newsletter", description: `New films and collections from ${SITE_NAME}, by email.` };
 
 export default function NewsletterPage() {
   return (
