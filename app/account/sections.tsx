@@ -1,3 +1,4 @@
+import { PAGE_COPY } from "@/lib/site";
 import Link from "next/link";
 import DirectorCard from "@/components/DirectorCard";
 import Poster from "@/components/Poster";
@@ -55,6 +56,7 @@ export function Following({ directors, updates }: { directors: DirectorSummary[]
 export function Submissions({ rows }: { rows: { id: string; title: string; director: string; year: number | null; status: string }[] }) {
   return (
     <>
+      <p className="lead submissions-intro">{PAGE_COPY.submissions}</p>
       {rows.length ? (
         <div className="table-wrap">
           <table className="admin-table">

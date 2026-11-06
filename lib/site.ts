@@ -1,8 +1,23 @@
 /** Change the name and tagline here; everything on the site reads from this file. */
 export const SITE_NAME = "Pheelm";
-export const SITE_TAGLINE = "The best films by Black directors, from around the world.";
+export const SITE_TAGLINE = "Discover films by Black directors around the world.";
 export const SITE_DESCRIPTION =
-  "A global directory of the best films by Black directors: features, documentaries, shorts and animation, with cast and crew, awards and where to watch.";
+  "A platform to explore films, discover the people behind them, and learn more about their work.";
+
+/** Each page's one-line description: shown under its title and used for search and sharing. */
+export const PAGE_COPY = {
+  home: "Discover films, explore directors, and learn more about Black cinema around the world.",
+  films: "Explore films by Black directors across countries, genres, and years.",
+  directors: "Discover Black directors, their backgrounds, and their work.",
+  collections: "Explore curated selections of films based on themes, genres, and more.",
+  journal: "Read stories, interviews, and articles about films and filmmakers.",
+  about: "Learn more about Pheelm and why we created the platform.",
+  submit: "Help grow the platform by suggesting films we're missing.",
+  signIn: "Sign in or create an account to save films and follow directors.",
+  account: "Manage your account and your film submissions.",
+  watchlist: "Save films you want to watch later.",
+  submissions: "View your film submissions and their status.",
+} as const;
 
 /**
  * Contact and social links. Set them in Vercel (Settings → Environment Variables) or write them

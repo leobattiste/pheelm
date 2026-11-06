@@ -1,3 +1,4 @@
+import { PAGE_COPY } from "@/lib/site";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -10,7 +11,7 @@ import CommunityTile from "@/components/CommunityTile";
 import { enrich, MIN_FILMS, type Row as CommunityRow } from "@/lib/community";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Watchlist", robots: { index: false } };
+export const metadata: Metadata = { title: "Watchlist", description: PAGE_COPY.watchlist, robots: { index: false } };
 
 type ListRow = { id: string; title: string; description: string | null; is_public: boolean; list_films: { film_id: string; added_at: string }[] };
 
@@ -30,7 +31,7 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
   const sp = await searchParams;
   // Following and suggestions moved to the Account page.
   if (sp.c === "following") redirect("/profile?tab=following");
-  if (sp.c === "submissions") redirect("/account#suggestions");
+  if (sp.c === "submissions") redirect("/account#submissions");
   const [{ data: saved }, { data: profile }, listsResult, films] = await Promise.all([
     db.from("watchlist").select("film_id, added_at").eq("user_id", user.id).order("added_at", { ascending: false }),
     db.from("profiles").select("*").eq("id", user.id).maybeSingle(),
@@ -62,7 +63,7 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
     <section className="page">
       <header className="page-head">
         <h1>Watchlist</h1>
-        <p className="label">Films you&rsquo;ve saved, your own collections, and collections you&rsquo;ve saved from the community. <Link href="/account">Account settings</Link></p>
+        <p className="lead">{PAGE_COPY.watchlist}</p>
       </header>
 
       <nav className="collection-tabs" aria-label="Your collections">

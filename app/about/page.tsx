@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getDirectors, getFacets, getFilms } from "@/lib/data";
-import { SITE_NAME } from "@/lib/site";
+import { SITE_NAME, PAGE_COPY } from "@/lib/site";
 
 export const revalidate = 3600;
 export const metadata: Metadata = {
   title: "About",
-  description: "Pheelm is a global directory of the best films by Black directors: what's in it, how films are chosen, and where the information comes from.",
+  description: PAGE_COPY.about,
 };
 
 export default async function AboutPage() {
@@ -15,7 +15,7 @@ export default async function AboutPage() {
     <article className="page narrow info-page">
       <header className="page-head">
         <h1>About {SITE_NAME}</h1>
-        <p className="lead">A global directory of the best films by Black directors, from the silent era to this year&rsquo;s festivals.</p>
+        <p className="lead">{PAGE_COPY.about}</p>
       </header>
 
       <div className="prose">

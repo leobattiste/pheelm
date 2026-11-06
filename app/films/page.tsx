@@ -1,3 +1,4 @@
+import { PAGE_COPY } from "@/lib/site";
 import type { Metadata } from "next";
 import FilmBrowser from "@/components/FilmBrowser";
 import { getFacets, getFilms, toCard } from "@/lib/data";
@@ -5,7 +6,7 @@ import { getFacets, getFilms, toCard } from "@/lib/data";
 export const revalidate = 300;
 export const metadata: Metadata = {
   title: "Films",
-  description: "Features, documentaries, shorts and animation by Black directors. Search by title or director, and filter by decade, country, language and genre.",
+  description: PAGE_COPY.films,
 };
 
 export default async function FilmsPage() {
@@ -14,7 +15,7 @@ export default async function FilmsPage() {
     <section className="page">
       <header className="page-head">
         <h1>Films</h1>
-        <p className="lead">{films.length} features, documentaries, shorts and animated films, from {films.at(-1)?.year} to {films[0]?.year}.</p>
+        <p className="lead">{PAGE_COPY.films}</p>
       </header>
       <FilmBrowser films={films.map(toCard)} facets={facets} />
     </section>

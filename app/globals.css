@@ -1489,3 +1489,4 @@ h1, h2, .menu-main a, .empty-state p:first-child, .decades a,
   font-weight: 400;
 }
 .lead, .label, .prose, .bio, .feature-line { line-height: var(--lh-body); }
+.submissions-intro { margin-bottom: var(--space-24); color: var(--muted); }

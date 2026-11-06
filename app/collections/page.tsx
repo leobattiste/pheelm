@@ -1,3 +1,4 @@
+import { PAGE_COPY } from "@/lib/site";
 import type { Metadata } from "next";
 import Link from "next/link";
 import CollectionTile from "@/components/CollectionTile";
@@ -9,7 +10,7 @@ import { countryName } from "@/lib/format";
 export const revalidate = 300;
 export const metadata: Metadata = {
   title: "Collections",
-  description: "Films by Black directors grouped by movement, theme, country and form, from the L.A. Rebellion to new African cinema.",
+  description: PAGE_COPY.collections,
 };
 
 const KIND_ORDER = ["movement", "theme", "country", "genre", "decade"] as const;
@@ -24,7 +25,7 @@ export default async function CollectionsPage() {
     <section className="page">
       <header className="page-head">
         <h1>Collections</h1>
-        <p className="lead">Films grouped by movement, theme, country and form, by Pheelm and by its community.</p>
+        <p className="lead">{PAGE_COPY.collections}</p>
         <nav className="profile-tabs collections-jump" aria-label="Collections">
           <a className="chip" aria-selected="true" href="#from-pheelm">From Pheelm</a>
           <Link className="chip" href="/collections/community">From the community</Link>

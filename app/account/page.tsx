@@ -1,3 +1,4 @@
+import { PAGE_COPY } from "@/lib/site";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -7,7 +8,7 @@ import EmailForm from "./EmailForm";
 import { Submissions } from "./sections";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Account", robots: { index: false } };
+export const metadata: Metadata = { title: "Account", description: PAGE_COPY.account, robots: { index: false } };
 
 /**
  * Settings: the sign-in email, the films a member has suggested, and their data. Their name,
@@ -65,8 +66,8 @@ export default async function AccountPage() {
       ),
     },
     {
-      id: "suggestions",
-      label: `Suggestions${submissions?.length ? ` (${submissions.length})` : ""}`,
+      id: "submissions",
+      label: `Submissions${submissions?.length ? ` (${submissions.length})` : ""}`,
       panel: <Submissions rows={submissions ?? []} />,
     },
   ];
@@ -75,6 +76,7 @@ export default async function AccountPage() {
     <section className="page account-page">
       <header className="page-head">
         <h1>Account</h1>
+        <p className="lead">{PAGE_COPY.account}</p>
         <p className="label">
           {user.email}
           {p.handle && <> • <Link href={`/@${p.handle}`}>pheelm.com/@{p.handle}</Link></>}

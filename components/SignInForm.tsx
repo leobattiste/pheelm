@@ -1,5 +1,6 @@
 "use client";
 
+import { PAGE_COPY } from "@/lib/site";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
@@ -123,7 +124,7 @@ export default function SignInForm({ next, initialError = "", onDone, titleId }:
         </>
       ) : (
         <>
-          <p className="lead">Save films to your watchlist, make collections and follow directors. We&rsquo;ll email you a link, so there&rsquo;s no password.</p>
+          <p className="lead">{PAGE_COPY.signIn} We&rsquo;ll email you a link, so there&rsquo;s no password.</p>
           <form onSubmit={sendLink} className="form">
             <label className="field">Email
               <input type="email" required autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} />

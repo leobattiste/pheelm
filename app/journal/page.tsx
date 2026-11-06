@@ -1,3 +1,4 @@
+import { PAGE_COPY } from "@/lib/site";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getArticles } from "@/lib/data";
@@ -5,7 +6,7 @@ import { getArticles } from "@/lib/data";
 export const revalidate = 300;
 export const metadata: Metadata = {
   title: "Journal",
-  description: "Interviews, essays and the stories behind films by Black directors.",
+  description: PAGE_COPY.journal,
 };
 
 const KIND_LABELS: Record<string, string> = { essay: "Essay", interview: "Interview", history: "History", story: "Behind the film", news: "News" };
@@ -16,7 +17,7 @@ export default async function JournalPage() {
     <section className="page narrow">
       <header className="page-head">
         <h1>Journal</h1>
-        <p className="lead">Interviews, essays and the stories behind the films.</p>
+        <p className="lead">{PAGE_COPY.journal}</p>
       </header>
       {articles.length ? (
         <ul className="article-list">

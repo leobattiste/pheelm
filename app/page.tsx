@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import DirectorCard from "@/components/DirectorCard";
 import FilmCard from "@/components/FilmCard";
@@ -7,9 +8,11 @@ import TrailerButton from "@/components/TrailerButton";
 import FilmLink from "@/components/Transitions";
 import { getArticles, getCollections, getDirectors, getFacets, getFilms, toCard, toDirectorSummary } from "@/lib/data";
 import { trailerEmbed, tintStyle } from "@/lib/format";
+import { PAGE_COPY } from "@/lib/site";
 import { firstSentence } from "@/lib/text";
 
 export const revalidate = 300;
+export const metadata: Metadata = { description: PAGE_COPY.home };
 
 const WEEK = 7 * 24 * 60 * 60 * 1000;
 
