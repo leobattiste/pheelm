@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import CommunityTile from "@/components/CommunityTile";
 import ProfileEditor from "@/components/ProfileEditor";
 import ShareButton from "@/components/ShareButton";
-import { getMember, getTaggedIn } from "@/lib/community";
+import { getMember } from "@/lib/community";
 import { countryName, initials } from "@/lib/format";
 import { getServerClient } from "@/lib/supabase/server";
 
@@ -55,8 +55,6 @@ export default async function MemberPage({ params }: Params) {
     );
   }
 
-  const taggedIn = await getTaggedIn(member.id);
-
   const collectionsPanel = collections.length ? (
     <ul className="collection-list">{collections.map((c) => <CommunityTile key={c.id} c={c} showOwner={false} />)}</ul>
   ) : (
@@ -91,12 +89,6 @@ export default async function MemberPage({ params }: Params) {
         <h2 id="member-collections-h">Watchlist</h2>
         {collectionsPanel}
       </section>
-      {taggedIn.length > 0 && (
-        <section className="film-section member-collections" aria-labelledby="member-tagged-h">
-          <h2 id="member-tagged-h">Tagged in</h2>
-          <ul className="collection-list">{taggedIn.map((c) => <CommunityTile key={c.id} c={c} />)}</ul>
-        </section>
-      )}
     </section>
   );
 }

@@ -2,20 +2,25 @@ import { PAGE_COPY } from "@/lib/site";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import CommunityTile from "@/components/CommunityTile";
 import { FilmGrid } from "@/components/FilmCard";
+import Poster from "@/components/Poster";
+import { enrich, type Row as CommunityRow } from "@/lib/community";
 import { getFilms, toCard } from "@/lib/data";
+import { tintStyle } from "@/lib/format";
 import { getServerClient } from "@/lib/supabase/server";
 import { createCollection } from "./actions";
-import CollectionSettings from "./CollectionSettings";
-import CollectionTags from "./CollectionTags";
-import CommunityTile from "@/components/CommunityTile";
-import { enrich, getTagged, MIN_FILMS, type Row as CommunityRow } from "@/lib/community";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Watchlist", description: PAGE_COPY.watchlist, robots: { index: false } };
 
-type ListRow = { id: string; title: string; description: string | null; is_public: boolean; list_films: { film_id: string; added_at: string }[] };
+type ListRow = CommunityRow & { is_public: boolean };
+const LIST_COLS = "id, title, description, is_public, staff_pick, created_at, user_id, list_films(film_id, added_at)";
 
+/**
+ * Your Watchlist: everything you've saved, then your collections as cards (each opens on its own
+ * page, where you edit it), then collections you've saved from the community.
+ */
 export default async function MePage({ searchParams }: { searchParams: Promise<{ c?: string; error?: string }> }) {
   const db = await getServerClient();
   if (!db) {
@@ -30,35 +35,50 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
   if (!user) redirect("/login?next=/me");
 
   const sp = await searchParams;
-  // Old links: following is gone, submissions moved to the Account page.
-  if (sp.c === "following") redirect("/profile");
+  // Old links: a collection now opens on its own page; following is gone; submissions moved.
+  if (sp.c && /^[0-9a-f-]{36}$/i.test(sp.c)) redirect(`/c/${sp.c}`);
+  if (sp.c === "following" || sp.c === "saved") redirect("/me");
   if (sp.c === "submissions") redirect("/account#submissions");
-  const [{ data: saved }, { data: profile }, listsResult, films] = await Promise.all([
+
+  const [{ data: saved }, listsResult, savedResult, films] = await Promise.all([
     db.from("watchlist").select("film_id, added_at").eq("user_id", user.id).order("added_at", { ascending: false }),
-    db.from("profiles").select("*").eq("id", user.id).maybeSingle(),
-    db.from("lists").select("id, title, description, is_public, list_films(film_id, added_at)").eq("user_id", user.id).order("created_at"),
+    db.from("lists").select(LIST_COLS).eq("user_id", user.id).order("created_at", { ascending: false }),
+    db.from("list_saves").select("created_at, lists(id, title, description, staff_pick, created_at, user_id, list_films(film_id, added_at))").eq("user_id", user.id).order("created_at", { ascending: false }),
     getFilms(),
   ]);
-  // Collections saved from the community, newest first. Until community.sql has run, none.
-  const savedResult = await db
-    .from("list_saves")
-    .select("created_at, lists(id, title, description, staff_pick, created_at, user_id, list_films(film_id, added_at))")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
-  const communityReady = !savedResult.error;
-  const savedCollections = communityReady
-    ? await enrich(((savedResult.data ?? []) as unknown as { lists: CommunityRow | null }[]).map((r) => r.lists).filter((l): l is CommunityRow => !!l))
-    : [];
-  const handle: string | null = (profile as { handle?: string | null } | null)?.handle ?? null;
-  // Until supabase/member-collections.sql has run, the lists table doesn't exist yet.
-  const listsReady = !listsResult.error;
-  const lists = (listsResult.data ?? []) as ListRow[];
 
   const byId = new Map(films.map((f) => [f.id, f]));
   const all = (saved ?? []).map((r) => byId.get(r.film_id)).filter((f) => f !== undefined);
-  const selected = sp.c === "saved" ? sp.c : lists.find((l) => l.id === sp.c) ?? null;
-  const listFilms = (l: ListRow) =>
-    [...l.list_films].sort((a, b) => b.added_at.localeCompare(a.added_at)).map((r) => byId.get(r.film_id)).filter((f) => f !== undefined);
+
+  // Everything you've saved, as its own page.
+  if (sp.c === "all") {
+    return (
+      <section className="page">
+        <header className="page-head">
+          <p className="crumbs"><Link href="/me">Watchlist</Link></p>
+          <h1>All saved films</h1>
+          <p className="lead">Everything you&rsquo;ve saved, newest first.</p>
+        </header>
+        {all.length ? (
+          <FilmGrid films={all.map(toCard)} />
+        ) : (
+          <div className="empty-state">
+            <p>Nothing saved yet.</p>
+            <p className="muted">Press <strong>Watchlist</strong> on any film to save it here.</p>
+            <Link className="button ghost small" href="/films">Browse films</Link>
+          </div>
+        )}
+      </section>
+    );
+  }
+
+  const ownRows = (listsResult.data ?? []) as ListRow[];
+  const publicById = new Map(ownRows.map((l) => [l.id, l.is_public]));
+  const [own, savedCollections] = await Promise.all([
+    enrich(ownRows),
+    enrich(((savedResult.data ?? []) as unknown as { lists: CommunityRow | null }[]).map((r) => r.lists).filter((l): l is CommunityRow => !!l)),
+  ]);
+  const latest = all.slice(0, 3);
 
   return (
     <section className="page">
@@ -66,65 +86,44 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
         <h1>Watchlist</h1>
         <p className="lead">{PAGE_COPY.watchlist}</p>
       </header>
-
-      <nav className="collection-tabs" aria-label="Your collections">
-        <Link className="chip" href="/me" aria-pressed={!selected}>All <span className="count">{all.length}</span></Link>
-        {communityReady && savedCollections.length > 0 && (
-          <Link className="chip" href="/me?c=saved" aria-pressed={selected === "saved"}>Saved <span className="count">{savedCollections.length}</span></Link>
-        )}
-        {lists.map((l) => (
-          <Link key={l.id} className="chip" href={`/me?c=${l.id}`} aria-pressed={typeof selected === "object" && selected !== null && selected.id === l.id}>
-            {l.title} <span className="count">{l.list_films.length}</span>
-          </Link>
-        ))}
-        {listsReady && (
-          <form action={createCollection} className="new-collection">
-            <label className="visually-hidden" htmlFor="c-title">New collection name</label>
-            <input id="c-title" name="title" placeholder="New collection" maxLength={80} required />
-            <button className="chip" type="submit" aria-label="Create collection">
-              <svg className="x" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 5v10M5 10h10" /></svg>
-            </button>
-          </form>
-        )}
-      </nav>
       {sp.error === "collection" && <p className="notice error">The collection couldn&rsquo;t be created. Try again.</p>}
-      {!listsReady && <p className="notice">Your own collections aren&rsquo;t available yet.</p>}
 
-      {selected === "saved" ? (
-        <>
-          <div className="section-head"><p className="label">Collections you&rsquo;ve saved from the community.</p></div>
+      <ul className="collection-list watchlist-cards">
+        <li>
+          <Link href="/me?c=all" className="collection-tile" style={tintStyle(latest.find((f) => f.color)?.color)}>
+            <span className="collection-fan" aria-hidden="true">
+              {[0, 1, 2].map((i) => {
+                const f = latest[i];
+                return f
+                  ? <Poster key={f.id} title={f.title} year={f.year} directors={f.directors.map((d) => d.name)} src={f.poster_url} sizes="140px" />
+                  : <span key={`empty-${i}`} className="poster poster-empty" />;
+              })}
+            </span>
+            <span className="collection-title">All saved films</span>
+            <span className="collection-desc">{all.length} {all.length === 1 ? "film" : "films"}</span>
+          </Link>
+        </li>
+        {own.map((c) => <CommunityTile key={c.id} c={c} showOwner={false} badge={publicById.get(c.id) ? "Public" : "Private"} />)}
+        <li>
+          <form action={createCollection} className="collection-tile new-collection-card">
+            <span className="new-collection-plus" aria-hidden="true">
+              <svg viewBox="0 0 20 20"><path d="M10 4.5v11M4.5 10h11" /></svg>
+            </span>
+            <label className="collection-title" htmlFor="new-collection">New collection</label>
+            <span className="new-collection-row">
+              <input id="new-collection" name="title" placeholder="Name it" maxLength={80} required />
+              <button className="button small" type="submit">Create</button>
+            </span>
+          </form>
+        </li>
+      </ul>
+
+      {savedCollections.length > 0 && (
+        <section className="film-section" aria-labelledby="saved-h">
+          <h2 id="saved-h">Saved from the community</h2>
           <ul className="collection-list">{savedCollections.map((c) => <CommunityTile key={c.id} c={c} />)}</ul>
-        </>
-      ) : selected ? (
-        <>
-          <CollectionSettings list={{ id: selected.id, title: selected.title, description: selected.description, is_public: selected.is_public }} count={selected.list_films.length} handle={communityReady ? handle : undefined} minFilms={MIN_FILMS} />
-          <CollectionTags listId={selected.id} isPublic={selected.is_public} tagged={selected.is_public ? await getTagged(selected.id) : []} />
-          {selected.list_films.length ? (
-            <FilmGrid films={listFilms(selected).map(toCard)} />
-          ) : (
-            <div className="empty-state">
-              <p>This collection is empty.</p>
-              <p className="muted">On any film, press <strong>Watchlist</strong> and tick &ldquo;{selected.title}&rdquo; to add it here.</p>
-            </div>
-          )}
-        </>
-      ) : (
-        <>
-          <div className="section-head">
-            <p className="label">Everything you&rsquo;ve saved, newest first.</p>
-          </div>
-          {all.length ? (
-            <FilmGrid films={all.map(toCard)} />
-          ) : (
-            <div className="empty-state">
-              <p>Nothing saved yet.</p>
-              <p className="muted">Press <strong>Watchlist</strong> on any film to save it here, then sort it into collections of your own.</p>
-              <Link className="button ghost small" href="/films">Browse films</Link>
-            </div>
-          )}
-        </>
+        </section>
       )}
-
     </section>
   );
 }

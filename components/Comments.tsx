@@ -11,7 +11,6 @@ type Viewer = { id: string; handle: string | null; name: string | null; isPrivat
 type Props = {
   listId: string;
   ownerId: string;
-  taggedIds: string[];
   initial: CommentItem[];
   viewer: Viewer;
 };
@@ -105,7 +104,7 @@ function Composer({
  * editing and deleting, @mentions, and Top or Newest order. Changes show straight away and are
  * saved in the background; if saving fails, the change is undone and a note explains why.
  */
-export default function Comments({ listId, ownerId, taggedIds, initial, viewer }: Props) {
+export default function Comments({ listId, ownerId, initial, viewer }: Props) {
   const [comments, setComments] = useState<CommentItem[]>(initial);
   const [sort, setSort] = useState<Sort>("top");
   const [replyTo, setReplyTo] = useState<string | null>(null);
@@ -124,7 +123,6 @@ export default function Comments({ listId, ownerId, taggedIds, initial, viewer }
 
   const me: CommentAuthor | null = viewer?.handle ? { id: viewer.id, handle: viewer.handle, display_name: viewer.name, is_private: viewer.isPrivate } : null;
   const isOwner = viewer?.id === ownerId;
-  const tagged = useMemo(() => new Set(taggedIds), [taggedIds]);
 
   const threads = useMemo(() => {
     const tops = comments.filter((c) => !c.parent_id);
@@ -221,7 +219,6 @@ export default function Comments({ listId, ownerId, taggedIds, initial, viewer }
           <header className="comment-head">
             {a && !a.is_private ? <Link href={`/@${a.handle}`} className="comment-name">{name}</Link> : <span className="comment-name">{name}</span>}
             {c.user_id === ownerId && <span className="comment-badge">Curator</span>}
-            {c.user_id !== ownerId && tagged.has(c.user_id) && <span className="comment-badge">Tagged</span>}
             <time className="comment-time" dateTime={c.created_at} title={new Date(c.created_at).toLocaleString()}>{pending ? "Posting…" : ago(c.created_at, now)}</time>
             {c.edited_at && <span className="comment-time">• edited</span>}
           </header>

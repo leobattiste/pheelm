@@ -4,7 +4,7 @@ import { tintStyle } from "@/lib/format";
 import Poster from "./Poster";
 
 /** A member's collection: three posters, title, who made it, how many films and saves. */
-export default function CommunityTile({ c, showOwner = true }: { c: CommunityCollection; showOwner?: boolean }) {
+export default function CommunityTile({ c, showOwner = true, badge }: { c: CommunityCollection; showOwner?: boolean; badge?: string }) {
   const meta = [
     showOwner && c.owner ? `by @${c.owner.handle}` : null,
     `${c.films.length} ${c.films.length === 1 ? "film" : "films"}`,
@@ -26,6 +26,7 @@ export default function CommunityTile({ c, showOwner = true }: { c: CommunityCol
         <span className="collection-title">
           {c.title}
           {c.staff_pick && <span className="staff-pick">Staff pick</span>}
+          {badge && <span className="tile-badge">{badge}</span>}
         </span>
         <span className="collection-desc">{meta}</span>
       </Link>

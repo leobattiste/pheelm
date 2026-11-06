@@ -1468,14 +1468,6 @@ h1, h2, .menu-main a, .empty-state p:first-child, .decades a,
 .submissions-intro { margin-bottom: var(--space-24); color: var(--muted); }
 .person-bio-line { max-width: 52ch; margin-top: var(--space-8); color: var(--text); white-space: pre-line; overflow-wrap: anywhere; }
 
-/* Tagging people on a collection */
-.collection-tags { display: grid; gap: var(--space-12); margin: var(--space-8) 0 var(--space-32); }
-.collection-tags h3 { color: var(--muted); font-size: var(--t-sm); font-weight: 400; letter-spacing: 0; }
-.collection-tags .chip-list form { display: contents; }
-.tag-form { display: flex; gap: var(--space-8); max-width: 360px; }
-.tag-form input:not([type="hidden"]) { flex: 1; min-width: 0; height: var(--control-sm); padding: 0 var(--control-pad-sm); border: 1px solid var(--control-border); border-radius: var(--pill); background: var(--control-fill); color: var(--text); font: inherit; }
-.tag-form input:focus { outline: none; border-color: var(--control-border-strong); box-shadow: var(--control-ring); }
-.collection-tags-note { margin: var(--space-8) 0 var(--space-32); }
 .collection-actions { display: flex; flex-wrap: wrap; gap: var(--space-8); }
 
 /* Comments on collections ------------------------------------------------------------------ */
@@ -1539,3 +1531,18 @@ a.comment-name:hover { text-decoration: underline; text-underline-offset: 0.2em;
   .replies { margin-left: 12px; padding-left: var(--space-16); }
   .comments-head h2 { font-size: var(--t-xl); }
 }
+
+/* Watchlist cards and collection pages */
+.tile-badge { display: inline-flex; align-items: center; margin-left: var(--space-8); padding: 2px var(--space-8); border: 1px solid var(--line); border-radius: var(--pill); color: var(--muted); font-size: var(--t-xs); font-weight: 400; letter-spacing: 0; vertical-align: middle; }
+.new-collection-card { justify-content: center; min-height: 100%; border: 1px dashed var(--control-border-strong); background: transparent; cursor: default; }
+.new-collection-card:hover { background: transparent; }
+.new-collection-plus { display: grid; place-items: center; width: 48px; height: 48px; border: 1px solid var(--line); border-radius: var(--pill); color: var(--ink); }
+.new-collection-plus svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
+.new-collection-row { display: flex; gap: var(--space-8); width: 100%; }
+.new-collection-row input { flex: 1; min-width: 0; height: var(--control-sm); padding: 0 var(--control-pad-sm); border: 1px solid var(--control-border); border-radius: var(--pill); background: var(--control-fill); color: var(--text); font: inherit; }
+.new-collection-row input:focus { outline: none; border-color: var(--control-border-strong); box-shadow: var(--control-ring); }
+.watchlist-cards { margin-top: var(--space-32); }
+.collection-meta { color: var(--muted); }
+.page-head .collection-actions { margin-top: var(--space-16); }
+.danger-zone { display: grid; gap: var(--space-12); padding-top: var(--space-16); border-top: 1px solid var(--line); }
+.danger-zone .actions { display: flex; gap: var(--space-8); }

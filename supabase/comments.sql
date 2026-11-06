@@ -1,5 +1,5 @@
 -- Comments on members' public collections, with one level of replies and likes.
--- Run after list-tags.sql. Safe to run more than once.
+-- Run after profiles-private.sql. Safe to run more than once.
 --
 -- Who can do what:
 --   read     anyone who can see the collection
