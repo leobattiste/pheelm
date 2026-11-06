@@ -269,7 +269,7 @@ svg { flex-shrink: 0; }
 }
 .segmented button { padding: 0; width: 40px; }
 .segmented button:hover, .theme-toggle button:hover { color: var(--ink); }
-:is(.segmented, .theme-toggle) button[aria-checked="true"] { background: var(--raised); color: var(--ink); box-shadow: 0 1px 2px rgb(0 0 0 / 0.2); }
+:is(.segmented, .theme-toggle) button[aria-checked="true"] { background: var(--raised); color: var(--ink); }
 .segmented svg { width: var(--control-icon); height: var(--control-icon); fill: currentColor; }
 
 /* One-line text fields share the search bar's look; text areas keep 10px corners. */
