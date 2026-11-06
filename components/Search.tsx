@@ -291,8 +291,8 @@ function HitRow({ hit }: { hit: Hit }) {
           <span className="hit-text">
             <span className="hit-title">{hit.item.t}</span>
             <span className="hit-meta">
-              {hit.item.d.join(" and ")}, {hit.item.y}
-              {hit.via && <> · with {hit.via}</>}
+              {hit.item.d.join(" and ")} • {hit.item.y}
+              {hit.via && <> • with {hit.via}</>}
             </span>
           </span>
         </>

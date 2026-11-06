@@ -63,7 +63,7 @@ export default async function Home() {
                 <Link href={`/directors/${d.slug}`}>{d.name}</Link>
               </span>
             ))}
-            <span className="muted-on-dark">, {pick.year}</span>
+            <span className="muted-on-dark"> • {pick.year}</span>
           </p>
           {pick.synopsis && <p className="feature-line">{firstSentence(pick.synopsis)}</p>}
           <div className="actions">

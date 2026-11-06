@@ -42,7 +42,7 @@ export default function CollectionSettings({ list, count, handle, minFilms = 5 }
       <div>
         <h2>{list.title}</h2>
         <p className="label">
-          {count} {count === 1 ? "film" : "films"} · {list.is_public ? "Public" : "Private"}
+          {count} {count === 1 ? "film" : "films"} • {list.is_public ? "Public" : "Private"}
         </p>
         {list.description && <p className="collection-desc-full">{list.description}</p>}
         {list.is_public && handle !== undefined && (

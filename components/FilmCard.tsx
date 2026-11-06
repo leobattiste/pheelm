@@ -15,7 +15,7 @@ export default function FilmCard({ film, priority, sizes, note }: { film: Card; 
         <span className="film-card-title">{film.title}</span>
         <span className="film-card-meta">
           {/* On a person's page the line says what they did; elsewhere, who directed it. */}
-          {note ?? film.directors.join(" and ")}<span className="film-card-year">, {film.year}</span>
+          {note ?? film.directors.join(" and ")}<span className="film-card-year"> • {film.year}</span>
         </span>
         <span className="film-card-col film-card-year-col">{film.year}</span>
         <span className="film-card-col film-card-country">{film.countries.map(countryName).join(", ")}</span>

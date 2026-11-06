@@ -114,31 +114,25 @@ export default function DirectorBrowser({ directors }: { directors: DirectorSumm
           </button>
         </div>
         <div className="modal-body">
-          <section className="filter-group" aria-labelledby="dg-sort">
-            <h3 id="dg-sort">Sort by</h3>
-            <ul className="chip-list">
-              {SORTS.map(([v, l]) => (
-                <li key={v}><button type="button" className="chip" aria-pressed={(state.sort ?? "az") === v} onClick={() => set("sort", v === "az" ? "" : v)}>{l}</button></li>
-              ))}
-            </ul>
-          </section>
-          <section className="filter-group" aria-labelledby="dg-min">
-            <h3 id="dg-min">Films in the directory</h3>
-            <ul className="chip-list">
-              {MINS.map(([v, l]) => (
-                <li key={l}><button type="button" className="chip" aria-pressed={(state.min ?? "") === v} onClick={() => set("min", v)}>{l}</button></li>
-              ))}
-            </ul>
-          </section>
-          <section className="filter-group" aria-labelledby="dg-country">
-            <h3 id="dg-country">Country</h3>
-            <ul className="chip-list">
-              {countries.map((c) => {
-                const n = directors.filter((d) => d.country === c).length;
-                return <li key={c}><button type="button" className="chip" aria-pressed={state.country === c} onClick={() => set("country", state.country === c ? "" : c)}>{countryName(c)} <span className="count">{n}</span></button></li>;
-              })}
-            </ul>
-          </section>
+          <label className="field filter-field">
+            Sort by
+            <select value={state.sort ?? "az"} onChange={(e) => set("sort", e.target.value === "az" ? "" : e.target.value)}>
+              {SORTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+            </select>
+          </label>
+          <label className="field filter-field">
+            Films in the directory
+            <select value={state.min ?? ""} onChange={(e) => set("min", e.target.value)}>
+              {MINS.map(([v, l]) => <option key={l} value={v}>{l}</option>)}
+            </select>
+          </label>
+          <label className="field filter-field">
+            Country
+            <select value={state.country ?? ""} onChange={(e) => set("country", e.target.value)}>
+              <option value="">Any</option>
+              {countries.map((c) => <option key={c} value={c}>{countryName(c)} ({directors.filter((d) => d.country === c).length})</option>)}
+            </select>
+          </label>
         </div>
         <div className="modal-foot">
           <button type="button" className="button ghost" onClick={() => commit({ q: state.q })} disabled={!active.length && !state.sort}>Reset</button>

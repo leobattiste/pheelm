@@ -13,7 +13,7 @@ type State = Partial<Record<Key, string>>;
 const FILTERS = ["type", "decade", "country", "language", "genre"] as const;
 type Filter = (typeof FILTERS)[number];
 
-const PAGE = 48;
+const PAGE = 36;
 const TYPES: FilmType[] = ["feature", "documentary", "short", "animation"];
 const SORTS: [Sort, string][] = [["newest", "Newest"], ["oldest", "Oldest"], ["title", "A to Z"], ["awards", "Most awarded"]];
 const plain = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
@@ -101,7 +101,7 @@ export default function FilmBrowser({ films, facets }: { films: FilmCard[]; face
       </div>
 
       <div className="result-bar" aria-live="polite">
-        <span className="result-count">{results.length} {results.length === 1 ? "film" : "films"}</span>
+        {state.q?.trim() && <span className="result-count">{results.length} {results.length === 1 ? "result" : "results"}</span>}
         {active.length > 0 && (
           <ul className="chip-list">
             {active.map((k) => (
@@ -124,7 +124,7 @@ export default function FilmBrowser({ films, facets }: { films: FilmCard[]; face
           <FilmGrid films={results.slice(0, shown)} priority={6} />
           {shown < results.length && (
             <button type="button" className="button ghost more" onClick={() => setShown(shown + PAGE)}>
-              Show {Math.min(PAGE, results.length - shown)} more
+              Show more
             </button>
           )}
         </>
@@ -147,34 +147,25 @@ export default function FilmBrowser({ films, facets }: { films: FilmCard[]; face
           </button>
         </div>
         <div className="modal-body">
-          <section className="filter-group" aria-labelledby="g-sort">
-            <h3 id="g-sort">Sort by</h3>
-            <ul className="chip-list">
-              {SORTS.map(([v, l]) => (
-                <li key={v}>
-                  <button type="button" className="chip" aria-pressed={(state.sort ?? "newest") === v} onClick={() => set("sort", v === "newest" ? "" : v)}>{l}</button>
-                </li>
-              ))}
-            </ul>
-          </section>
+          <label className="field filter-field">
+            Sort by
+            <select value={state.sort ?? "newest"} onChange={(e) => set("sort", e.target.value === "newest" ? "" : e.target.value)}>
+              {SORTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+            </select>
+          </label>
           {groups.map((g) => (
-            <section key={g.key} className="filter-group" aria-labelledby={`g-${g.key}`}>
-              <h3 id={`g-${g.key}`}>{g.title}</h3>
-              <ul className="chip-list">
+            <label key={g.key} className="field filter-field">
+              {g.title}
+              <select value={state[g.key] ?? ""} onChange={(e) => set(g.key, e.target.value)}>
+                <option value="">Any</option>
                 {g.options.map((v) => {
                   const n = countFor(g.key, v);
                   const on = state[g.key] === v;
                   if (!n && !on) return null;
-                  return (
-                    <li key={v}>
-                      <button type="button" className="chip" aria-pressed={on} onClick={() => set(g.key, on ? "" : v)}>
-                        {label(g.key, v)} <span className="count">{n}</span>
-                      </button>
-                    </li>
-                  );
+                  return <option key={v} value={v}>{label(g.key, v)} ({n})</option>;
                 })}
-              </ul>
-            </section>
+              </select>
+            </label>
           ))}
         </div>
         <div className="modal-foot">

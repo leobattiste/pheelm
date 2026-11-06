@@ -31,7 +31,7 @@ export function Following({ directors, updates }: { directors: DirectorSummary[]
                   <Poster title={u.title} year={u.year} directors={[u.director_name]} src={u.poster_url} sizes="40px" />
                   <span>
                     <span className="update-title">{u.title}</span>
-                    <span className="update-meta"> · {u.director_name}, {u.year}</span>
+                    <span className="update-meta"> • {u.director_name} • {u.year}</span>
                   </span>
                   <span className="update-when">Added {fmt.format(new Date(u.added_at))}</span>
                 </Link>
