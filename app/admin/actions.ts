@@ -121,6 +121,9 @@ export async function saveFilm(_prev: Result, f: FormData): Promise<Result> {
       awards: parseAwards(str(f, "awards", 20000)),
       watch: parseWatch(str(f, "watch", 20000)),
       updated_at: new Date().toISOString(),
+      // Only sent when the editor showed these fields (they need the aka and note columns).
+      ...(f.has("aka") ? { aka: str(f, "aka", 2000).split(";").map((s) => s.trim()).filter(Boolean) } : {}),
+      ...(f.has("note") ? { note: nullable(f, "note", 600) } : {}),
     };
     const { error } = await db.from("films").update(row).eq("id", id);
     if (error) return { ok: false, message: error.code === "23505" ? "Another film already uses that address or TMDB id." : error.message };

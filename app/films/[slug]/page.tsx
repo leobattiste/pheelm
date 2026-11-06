@@ -106,6 +106,7 @@ export default async function FilmPage({ params }: Params) {
   const directorNames = film.directors.map((d) => d.name);
 
   const runtime = runtimeLabel(film.runtime);
+  const aka = (film.aka ?? []).filter((t) => t && t !== film.title && t !== film.original_title);
 
   // Everyone once, with all they did: crew in the usual order, then the cast by billing.
   // Someone who directed and acted reads "Director and actor".
@@ -123,7 +124,8 @@ export default async function FilmPage({ params }: Params) {
   const crewCount = new Set(crew.flatMap((g) => g.people.map((c) => c.person.id))).size;
   const shown = Math.min(people.length, crewCount + CAST_SHOWN);
   const details: [string, React.ReactNode][] = [
-    ...(film.original_title ? ([["Original title", film.original_title]] as [string, React.ReactNode][]) : []),
+    ...(film.original_title && film.original_title !== film.title ? ([["Original title", film.original_title]] as [string, React.ReactNode][]) : []),
+    ...(aka.length ? ([["Also known as", aka.join(", ")]] as [string, React.ReactNode][]) : []),
     [film.countries.length > 1 ? "Countries" : "Country", film.countries.length ? film.countries.map((c, i) => (
       <span key={c}>{i > 0 && ", "}<Link href={`/films?country=${c}`}>{countryName(c)}</Link></span>
     )) : null],
@@ -198,6 +200,8 @@ export default async function FilmPage({ params }: Params) {
               <WatchlistButton filmId={film.id} filmTitle={film.title} />
               <ShareButton title={film.title} />
             </div>
+
+            {film.note && <p className="film-note">{film.note}</p>}
 
             {film.synopsis && (
               <div className="film-essay">
@@ -298,7 +302,7 @@ export default async function FilmPage({ params }: Params) {
 }
 
 const DETAIL_ICONS: Record<string, IconName> = {
-  "Original title": "film", Country: "globe", Countries: "globe", Language: "language", Languages: "language",
+  "Original title": "film", "Also known as": "film", Country: "globe", Countries: "globe", Language: "language", Languages: "language",
   Genre: "sparkle", "Running time": "clock", Released: "calendar",
 };
 

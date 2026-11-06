@@ -63,6 +63,13 @@ export default function FilmEditor({ film, creditText, collections, chosen, tmdb
           </div>
           <label className="field">Genres <span className="hint">comma-separated</span><input name="genres" defaultValue={film.genres.join(", ")} /></label>
           <label className="field">Synopsis<textarea name="synopsis" defaultValue={film.synopsis ?? ""} /></label>
+          {/* Shown once the database has these columns. */}
+          {"aka" in film && (
+            <label className="field">Also known as <span className="hint">other titles, separated by semicolons</span><input name="aka" defaultValue={(film.aka ?? []).join("; ")} /></label>
+          )}
+          {"note" in film && (
+            <label className="field">Why it matters <span className="hint">one or two sentences, shown above the synopsis</span><textarea name="note" rows={3} defaultValue={film.note ?? ""} /></label>
+          )}
         </fieldset>
 
         <fieldset className="fieldset">

@@ -9,6 +9,10 @@ export type FilmRow = {
   slug: string;
   title: string;
   original_title: string | null;
+  /** Other titles the film is known by (an English title, a working title), so search finds it either way. */
+  aka?: string[] | null;
+  /** A line or two on why the film matters, written by the editors. */
+  note?: string | null;
   year: number;
   type: FilmType;
   countries: string[];
@@ -74,6 +78,8 @@ export type Film = FilmRow & {
 /** The light version used on cards and in the browser, so pages stay small. */
 export type FilmCard = Pick<Film, "id" | "slug" | "title" | "year" | "type" | "countries" | "languages" | "genres" | "poster_url" | "color" | "runtime"> & {
   directors: string[];
+  /** The original title and other known titles, for search only. */
+  also?: string;
   wins: number;
 };
 

@@ -205,6 +205,7 @@ export function toCard(f: Film): FilmCard {
     id: f.id, slug: f.slug, title: f.title, year: f.year, type: f.type, countries: f.countries,
     languages: f.languages, genres: f.genres, poster_url: f.poster_url, color: f.color ?? null, runtime: f.runtime ?? null,
     directors: f.directors.map((d) => d.name),
+    also: [f.original_title, ...(f.aka ?? [])].filter((t) => t && t !== f.title).join(" ") || undefined,
     wins: f.awards.filter((a) => a.result === "won").length,
   };
 }

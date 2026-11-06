@@ -56,7 +56,7 @@ export default function FilmBrowser({ films, facets }: { films: FilmCard[]; face
         (!s.country || f.countries.includes(s.country)) &&
         (!s.language || f.languages.includes(s.language)) &&
         (!s.genre || f.genres.includes(s.genre)) &&
-        (!q || plain(`${f.title} ${f.directors.join(" ")}`).includes(q)),
+        (!q || plain(`${f.title} ${f.also ?? ""} ${f.directors.join(" ")}`).includes(q)),
     );
   };
 

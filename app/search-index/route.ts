@@ -29,7 +29,7 @@ export async function GET() {
     films: films.map((f) => ({
       s: f.slug,
       t: f.title,
-      o: f.original_title,
+      o: [f.original_title, ...(f.aka ?? [])].filter((t) => t && t !== f.title).join(" ") || null,
       y: f.year,
       d: f.directors.map((d) => d.name),
       // Names of the cast and crew, so a film turns up when you search for someone in it.

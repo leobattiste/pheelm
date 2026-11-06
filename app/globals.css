@@ -897,6 +897,9 @@ main:has(.feature) { margin-top: calc(var(--header) * -1); }
 }
 @keyframes pop { 50% { transform: scale(1.25); } }
 
+/* The editors' line on why the film matters: a size up from the synopsis, set just above it. */
+.film-note { margin-top: var(--space-40); max-width: 46ch; font-size: var(--t-lg); line-height: 1.4; text-wrap: pretty; }
+.film-note + .film-essay { margin-top: var(--space-20); }
 .film-essay { display: grid; gap: 1em; margin-top: var(--space-40); max-width: 62ch; font-size: var(--t-md); line-height: var(--lh-body); }
 
 /* Sections: Where to watch, Awards, Cast and crew, Details. Each is set apart by the same 48px
