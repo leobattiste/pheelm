@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { SITE_NAME, WORDMARK } from "@/lib/site";
+import { DONATE_URL, SITE_NAME, WORDMARK } from "@/lib/site";
 import AccountMenu from "./AccountMenu";
 import Icon, { type IconName } from "./Icon";
 import SignInSheet from "./SignInSheet";
@@ -72,6 +72,15 @@ export default function SiteHeader() {
             ))}
           </nav>
           <AccountMenu onNavigate={() => menu.current?.close()} />
+          <nav className="menu-more menu-support" aria-label="Support Pheelm">
+            {DONATE_URL ? (
+              <a href={DONATE_URL} target="_blank" rel="noopener noreferrer" onClick={() => menu.current?.close()}><Icon name="heart" />Donate</a>
+            ) : (
+              <Link href="/donate" aria-current={current("/donate")}><Icon name="heart" />Donate</Link>
+            )}
+            <Link href="/submit" aria-current={current("/submit")}><Icon name="plus" />Suggest a film</Link>
+            <Link href="/contact?topic=feedback"><Icon name="comment" />Give feedback</Link>
+          </nav>
           <div className="menu-foot">
             <div className="menu-setting">
               <span>Grid</span>

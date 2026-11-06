@@ -25,6 +25,8 @@ export const PAGE_COPY = {
  * here. Anything left empty is simply not shown.
  */
 export const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "";
+/** Where the Donate link goes (a Stripe, Ko-fi or Open Collective page). Empty: the Donate page says donations open soon. */
+export const DONATE_URL = process.env.NEXT_PUBLIC_DONATE_URL ?? "";
 export const INSTAGRAM_URL = process.env.NEXT_PUBLIC_INSTAGRAM_URL ?? "";
 export const THREADS_URL = process.env.NEXT_PUBLIC_THREADS_URL ?? "";
 

@@ -5,6 +5,7 @@ import { sendMessage, type FormState } from "@/app/platform-actions";
 
 const TOPICS: [string, string][] = [
   ["general", "A question or idea"],
+  ["feedback", "Feedback about Pheelm"],
   ["correction", "A correction to a film or person"],
   ["partnership", "Partnership"],
   ["press", "Press"],
