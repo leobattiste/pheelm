@@ -4,8 +4,10 @@ import Link from "next/link";
 import { useRef } from "react";
 
 /** A short, curated row that scrolls sideways, with arrow buttons on desktop. */
-export default function Row({ title, href, linkLabel, intro, children }: {
+export default function Row({ title, href, linkLabel, intro, bare, children }: {
   title: string;
+  /** No heading or link, only the arrows: for rows a statement above already introduces. */
+  bare?: boolean;
   href?: string;
   linkLabel?: string;
   intro?: string;
@@ -18,14 +20,16 @@ export default function Row({ title, href, linkLabel, intro, children }: {
   };
 
   return (
-    <section className="row">
+    <section className={`row${bare ? " is-bare" : ""}`} aria-label={bare ? title : undefined}>
       <div className="row-head">
-        <div className="row-title">
-          <h2>{title}</h2>
-          {intro && <p>{intro}</p>}
-        </div>
+        {!bare && (
+          <div className="row-title">
+            <h2>{title}</h2>
+            {intro && <p>{intro}</p>}
+          </div>
+        )}
         <div className="row-tools">
-          {href && <Link href={href}>{linkLabel ?? "See all"}</Link>}
+          {href && !bare && <Link href={href}>{linkLabel ?? "See all"}</Link>}
           <button type="button" className="row-arrow" onClick={() => page(-1)} aria-label={`Scroll ${title} back`}>
             <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12.5 4.5 7 10l5.5 5.5" /></svg>
           </button>

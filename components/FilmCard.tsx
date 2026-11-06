@@ -7,10 +7,11 @@ import FilmLink from "./Transitions";
  * A film in a grid. The same markup serves all three views: large and small posters, and the
  * list view, where the extra columns (country, running time) show as a row for scanning.
  */
-export default function FilmCard({ film, priority, sizes, note, extra }: { film: Card; priority?: boolean; sizes?: string; note?: string; extra?: string }) {
+/** posterOnly: just the poster, with the title and director as the link's label. */
+export default function FilmCard({ film, priority, sizes, note, extra, posterOnly }: { film: Card; priority?: boolean; sizes?: string; note?: string; extra?: string; posterOnly?: boolean }) {
   return (
-    <li className="film-card" style={tintStyle(film.color)}>
-      <FilmLink href={`/films/${film.slug}`}>
+    <li className={`film-card${posterOnly ? " is-poster-only" : ""}`} style={tintStyle(film.color)}>
+      <FilmLink href={`/films/${film.slug}`} aria-label={posterOnly ? `${film.title}, ${film.directors.join(" and ")}, ${film.year}` : undefined}>
         <Poster title={film.title} year={film.year} directors={film.directors} src={film.poster_url} priority={priority} sizes={sizes} />
         <span className="film-card-title">{film.title}</span>
         <span className="film-card-meta">

@@ -48,8 +48,8 @@ export default async function Home() {
         </div>
       </section>
 
-      <Row title="Essential films" intro="A place to start, from the silent era to this year's festivals." href="/films" linkLabel={`All ${films.length} films`}>
-        {essential.map((f, i) => <FilmCard key={f.id} film={toCard(f)} priority={i < 4} />)}
+      <Row title="Essential films" bare>
+        {essential.map((f, i) => <FilmCard key={f.id} film={toCard(f)} priority={i < 4} posterOnly />)}
       </Row>
 
       <section className="statement" aria-labelledby="directors-title">
@@ -65,7 +65,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <Row title="Directors to know" href="/directors" linkLabel="All directors">
+      <Row title="Directors to know" bare>
         {toKnow.map((d) => <DirectorCard key={d.id} director={toDirectorSummary(d)} />)}
       </Row>
 
@@ -83,7 +83,7 @@ export default async function Home() {
       </section>
 
       {shelf.length > 0 && (
-        <Row title="Collections" href="/collections" linkLabel="All collections">
+        <Row title="Collections" bare>
           {shelf.map((c) => <CommunityTile key={c.id} c={c} showOwner={!c.staff_pick} />)}
         </Row>
       )}

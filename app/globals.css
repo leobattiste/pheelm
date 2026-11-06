@@ -1757,6 +1757,9 @@ a.person-row-name:hover { text-decoration: underline; text-underline-offset: 0.2
 .statement .actions { margin-top: var(--space-12); }
 .statement.is-hero { padding-top: clamp(var(--space-32), 6vw, var(--space-64)); }
 .statement + .row { padding-top: clamp(var(--space-32), 4vw, var(--space-48)); }
+.row.is-bare .row-head { justify-content: flex-end; }
+@media (max-width: 899px) { .row.is-bare .row-head { display: none; } }
+.film-card.is-poster-only :is(.film-card-title, .film-card-meta, .film-card-extra) { display: none; }
 .statement.is-cta { padding-bottom: clamp(var(--space-64), 9vw, 128px); }
 .row-track:has(.collection-tile) { grid-auto-columns: 82%; }
 @media (min-width: 640px) { .row-track:has(.collection-tile) { grid-auto-columns: 46%; } }
