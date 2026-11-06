@@ -408,6 +408,9 @@ svg { flex-shrink: 0; }
 /* Over a full-bleed still, the header floats on the image until the page scrolls. */
 body:has(.has-still) .site-header { background: transparent; border-color: transparent; }
 body:has(.has-still) .site-header :is(.wordmark, .icon-button) { color: #fff; }
+/* Keep the header legible over bright stills: a soft fade from the top, and a faint shadow on the script. */
+.feature.has-still::before { content: ""; position: absolute; inset: 0 0 auto; z-index: -1; height: calc(var(--header) + 80px); background: linear-gradient(to bottom, rgb(0 0 0 / 0.55), transparent); pointer-events: none; }
+body:has(.has-still) .site-header .wordmark { text-shadow: 0 1px 8px rgb(0 0 0 / 0.45); }
 body:has(.has-still) .search-trigger { background: rgb(255 255 255 / 0.1); border-color: rgb(255 255 255 / 0.2); color: rgb(255 255 255 / 0.8); }
 
 /* Footer ---------------------------------------------------------------------------------- */

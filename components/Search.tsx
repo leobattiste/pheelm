@@ -110,7 +110,7 @@ export default function Search() {
       { id: "directors", label: "Browse directors", hint: "By country and era, or on a map", icon: "M10 9.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM4 17c.6-3.2 3-5 6-5s5.4 1.8 6 5", words: "directors map country", run: () => navigate("/directors") },
       { id: "collections", label: "Browse collections", hint: "Movements, themes and more", icon: "M4 5.5h9v11H4zM7 3.5h9v11", words: "collections movements themes", run: () => navigate("/collections") },
       {
-        id: "theme", label: "Switch light or dark mode", hint: "Appearance", icon: "M10 3a7 7 0 1 0 7 7 5.5 5.5 0 0 1-7-7z",
+        id: "theme", label: "Switch light or dark mode", hint: "Theme", icon: "M10 3a7 7 0 1 0 7 7 5.5 5.5 0 0 1-7-7z",
         words: "theme dark light mode appearance",
         run: () => {
           const next = isDark() ? "light" : "dark";

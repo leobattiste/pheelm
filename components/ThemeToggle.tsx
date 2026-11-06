@@ -41,7 +41,7 @@ export default function ThemeToggle() {
   };
 
   return (
-    <div className="theme-toggle" role="radiogroup" aria-label="Colour theme">
+    <div className="theme-toggle" role="radiogroup" aria-label="Theme">
       {OPTIONS.map((o) => (
         <button key={o.value} type="button" role="radio" aria-checked={theme === o.value} onClick={() => choose(o.value)}>
           {o.label}

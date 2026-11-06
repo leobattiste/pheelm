@@ -74,11 +74,11 @@ export default function SiteHeader() {
           <AccountMenu onNavigate={() => menu.current?.close()} />
           <div className="menu-foot">
             <div className="menu-setting">
-              <span>Posters</span>
+              <span>Grid</span>
               <GridToggle />
             </div>
             <div className="menu-setting">
-              <span>Appearance</span>
+              <span>Theme</span>
               <ThemeToggle />
             </div>
           </div>
