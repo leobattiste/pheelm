@@ -689,13 +689,15 @@ main { width: 100%; }
   gap: var(--space-4);
   height: 100%;
   padding: var(--space-16);
+  border: 1px solid var(--control-border-strong);
   border-radius: var(--r);
-  background: var(--surface);
+  background: transparent;
   transition: background-color 0.2s;
 }
-.collection-tile:hover { background: var(--raised); }
+/* Cards look like the secondary buttons: a gray outline, and the same light fill on hover. */
+.collection-tile:hover { background: var(--control-hover); }
 /* On hover a card picks up the colour of its lead poster. */
-.collection-tile[style*="--tint"]:hover { background: color-mix(in srgb, var(--tint) 22%, var(--surface)); }
+
 /* Name and details on top; the three posters below sit side by side inside the card's padding. */
 .collection-fan { order: 2; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-8); margin-top: auto; }
 .collection-fan .poster { border-radius: var(--r); box-shadow: none; }
