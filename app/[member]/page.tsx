@@ -6,6 +6,8 @@ import CommunityTile from "@/components/CommunityTile";
 import ProfileEditor from "@/components/ProfileEditor";
 import MoreMenu from "@/components/MoreMenu";
 import ShareButton from "@/components/ShareButton";
+import VerifiedBadge from "@/components/VerifiedBadge";
+import { VERIFIED } from "@/lib/site";
 import { getCollaboratingOn, getMember } from "@/lib/community";
 import { countryName, initials } from "@/lib/format";
 import { getServerClient } from "@/lib/supabase/server";
@@ -30,7 +32,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   return { title: `${name} (@${found.member.handle})`, description: `Collections of films by Black directors, made by ${name} on Pheelm.` };
 }
 
-/** A member's profile: their name and bio, then their Watchlist (the collections they've made public). */
+/** A member's profile: their name, then their Watchlist (the collections they've made public). */
 export default async function MemberPage({ params }: Params) {
   const handle = handleOf((await params).member);
   if (!handle) notFound();
@@ -79,16 +81,15 @@ export default async function MemberPage({ params }: Params) {
       <header className="person-head">
         {(own || !member.is_private) && (
           <MoreMenu corner label="Profile actions">
-            {own && <ProfileEditor handle={member.handle} displayName={member.display_name} isPrivate={!!member.is_private} country={member.country ?? null} bio={member.bio ?? null} />}
+            {own && <ProfileEditor handle={member.handle} displayName={member.display_name} isPrivate={!!member.is_private} country={member.country ?? null} />}
             {!member.is_private && <ShareButton item title={`${name} on Pheelm`} />}
           </MoreMenu>
         )}
         <span className="portrait portrait-initials" aria-hidden="true">{initials(name.replace(/^@/, ""))}</span>
         <div className="person-text">
-          <h1>{name}</h1>
+          <h1>{name}{VERIFIED[member.handle] && <VerifiedBadge title={VERIFIED[member.handle]} />}</h1>
           {member.country && <p className="person-roles">{countryName(member.country)}</p>}
           <p className="person-sub">@{member.handle}</p>
-          {member.bio && <p className="person-bio-line">{member.bio}</p>}
           {own && member.is_private && <p className="person-sub">Private: only you can see this page.</p>}
         </div>
       </header>

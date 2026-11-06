@@ -28,3 +28,8 @@ export const THREADS_URL = process.env.NEXT_PUBLIC_THREADS_URL ?? "";
 
 /** The date the privacy policy and terms were last changed, shown at the top of each. */
 export const LEGAL_UPDATED = "5 November 2026";
+
+/** Members with a check beside their name, and what it says. */
+export const VERIFIED: Record<string, string> = {
+  leo: "Creative Director at Pheelm",
+};

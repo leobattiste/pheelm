@@ -1470,7 +1470,6 @@ h1, h2, .empty-state p:first-of-type, .decades a,
 }
 .lead, .label, .prose, .bio, .feature-line { line-height: var(--lh-body); }
 .submissions-intro { margin-bottom: var(--space-24); color: var(--muted); }
-.person-bio-line { max-width: 52ch; margin-top: var(--space-8); color: var(--text); white-space: pre-line; overflow-wrap: anywhere; }
 
 .collection-actions { display: flex; flex-wrap: wrap; gap: var(--space-8); }
 
@@ -1722,3 +1721,19 @@ a.person-row-name:hover { text-decoration: underline; text-underline-offset: 0.2
 .more-menu.is-corner .more-button svg { display: block; width: 24px; height: 24px; margin: -3px -3px 0 0; }
 .more-menu.is-corner .more-panel { left: auto; right: 0; top: calc(100% + 8px); }
 .person-head:has(.is-corner) .person-text, .page-head.has-corner > :is(.crumbs, h1) { padding-right: 32px; }
+
+/* Verified check beside a member's name, with their role on hover, focus or tap. */
+.verified { position: relative; display: inline-flex; vertical-align: 0.05em; margin-left: 0.18em; }
+.verified-mark { display: grid; place-items: center; padding: 0; border: 0; background: none; color: var(--ink); cursor: pointer; border-radius: var(--pill); }
+.verified-mark svg { width: 0.62em; height: 0.62em; min-width: 20px; min-height: 20px; }
+.verified-seal { fill: currentColor; }
+.verified-tick { fill: none; stroke: var(--bg); stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.verified-tip {
+  position: absolute; z-index: 20; top: calc(100% + 8px); left: 50%; width: max-content; max-width: 220px;
+  padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--bg); box-shadow: var(--shadow);
+  color: var(--text); font-size: var(--t-sm); font-weight: 400; letter-spacing: 0; line-height: 1.4; white-space: normal;
+  opacity: 0; visibility: hidden; transform: translate(-50%, -4px); transition: opacity 0.14s var(--ease), transform 0.14s var(--ease), visibility 0s linear 0.14s;
+  pointer-events: none;
+}
+.verified:hover .verified-tip, .verified-mark:focus-visible + .verified-tip, .verified[data-open] .verified-tip { opacity: 1; visibility: visible; transform: translate(-50%, 0); transition-delay: 0s; }
+@media (max-width: 639px) { .verified-tip { left: auto; right: -40px; transform: translateY(-4px); } .verified:hover .verified-tip, .verified[data-open] .verified-tip, .verified-mark:focus-visible + .verified-tip { transform: none; } }
