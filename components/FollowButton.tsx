@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
-import { openSignIn } from "./AccountButton";
+import { openSignIn } from "./SignInSheet";
 
 type Status = "loading" | "signed-out" | "off" | "on" | "unavailable";
 

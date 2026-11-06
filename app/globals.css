@@ -357,11 +357,13 @@ svg { flex-shrink: 0; }
   border: 0;
   background: var(--bg);
   color: var(--text);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .menu-sheet[open] { animation: menu-in 0.28s var(--ease); }
 .menu-sheet::backdrop { background: var(--scrim); }
 @keyframes menu-in { from { opacity: 0; transform: translateY(-12px); } }
-.menu-inner { display: flex; flex-direction: column; height: 100%; padding: 0 var(--gutter) calc(var(--space-24) + env(safe-area-inset-bottom)); }
+.menu-inner { display: flex; flex-direction: column; min-height: 100%; padding: 0 var(--gutter) calc(var(--space-24) + env(safe-area-inset-bottom)); }
 .menu-top { display: flex; align-items: center; justify-content: space-between; height: var(--header); }
 .menu-main { display: grid; gap: var(--space-2); padding: var(--space-24) 0; }
 .menu-main a, .menu-link-button { display: block; padding: var(--space-8) 0; color: var(--ink); font-size: var(--t-3xl); font-weight: 600; letter-spacing: -0.03em; line-height: 1.1; }
@@ -1406,8 +1408,6 @@ h1, h2, .menu-main a, .empty-state p:first-child, .decades a,
 .account-page .tab-panel > .film-section:first-of-type, .account-page .tab-panel > section:first-child { margin-top: 0; }
 
 /* Account button and its sheets */
-.account-button { position: relative; }
-.account-button .updates-dot { position: absolute; top: 8px; right: 7px; margin: 0; }
 .account-initials { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: var(--pill); background: var(--raised); color: var(--ink); font-size: var(--t-xs); font-weight: 600; letter-spacing: 0; }
 .account-who { display: flex; align-items: center; gap: var(--space-12); min-width: 0; }
 .account-who .account-initials { width: 40px; height: 40px; font-size: var(--t-sm); }
@@ -1415,48 +1415,22 @@ h1, h2, .menu-main a, .empty-state p:first-child, .decades a,
 .account-who-name { overflow: hidden; color: var(--ink); text-overflow: ellipsis; white-space: nowrap; }
 .account-who-handle { color: var(--muted); font-size: var(--t-sm); }
 
-/* The signed-in pop-up, under the account button */
-.account-wrap { position: relative; }
-.account-pop {
-  position: absolute;
-  top: calc(100% + var(--space-8));
-  right: 0;
-  z-index: 50;
-  width: 272px;
-  max-width: calc(100vw - 2 * var(--gutter));
-  padding: var(--space-8);
-  border: 1px solid var(--line);
-  border-radius: var(--r);
-  background: var(--bg);
-  box-shadow: var(--shadow);
-  transform-origin: top right;
-  animation: menu-float 0.18s var(--ease);
+/* The account part of the menu */
+.menu-account { min-height: 120px; }
+.menu-account .account-who { padding: var(--space-4) 0 var(--space-8); }
+.menu-more a, .menu-more-button, .menu-switch { display: flex; align-items: center; gap: var(--space-8); }
+.menu-more-button { width: 100%; padding: var(--space-8) 0; border: 0; background: none; color: var(--text); font: inherit; font-size: var(--t-lg); text-align: left; cursor: pointer; transition: transform 0.2s var(--ease), color 0.2s; }
+.menu-more a[aria-current="page"] { color: var(--muted); }
+.menu-more .updates-dot { margin: 0; }
+.menu-switch { justify-content: space-between; padding: var(--space-8) 0; font-size: var(--t-lg); color: var(--text); cursor: pointer; }
+.menu-note { color: var(--muted); font-size: var(--t-sm); }
+.menu-account form { display: contents; }
+.menu-button { position: relative; }
+.menu-button .updates-dot { position: absolute; top: 8px; right: 6px; margin: 0; }
+@media (min-width: 900px) {
+  .menu-more-button, .menu-switch { font-size: var(--t-md); }
+  .menu-more-button:hover { color: var(--muted); transform: translateX(4px); }
 }
-.account-pop .account-who { padding: var(--space-8) var(--space-8) var(--space-12); }
-.pop-group { display: grid; padding: var(--space-4) 0; border-top: 1px solid var(--line); }
-.pop-group a, .pop-group button, .pop-switch {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-12);
-  width: 100%;
-  min-height: var(--control);
-  padding: 0 var(--space-8);
-  border: 0;
-  border-radius: var(--r-sm);
-  background: none;
-  color: var(--text);
-  font: inherit;
-  font-size: var(--t-md);
-  text-align: left;
-  cursor: pointer;
-  transition: background-color 0.15s, color 0.15s;
-}
-.pop-group a:hover, .pop-group button:hover, .pop-switch:hover { background: var(--surface); color: var(--ink); }
-.pop-group a[aria-current="page"] { color: var(--muted); }
-.pop-group a:focus-visible, .pop-group button:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--ink); }
-.pop-group .updates-dot { margin: 0; }
-@media (prefers-reduced-motion: reduce) { .account-pop { animation: none; } }
 
 /* On/off switch (a checkbox with role="switch") */
 .switch {

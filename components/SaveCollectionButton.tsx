@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
-import { openSignIn } from "./AccountButton";
+import { openSignIn } from "./SignInSheet";
 
 type Status = "loading" | "signed-out" | "off" | "on" | "own" | "unavailable";
 const PLUS = <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4.5v11M4.5 10h11" /></svg>;

@@ -4,7 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { SITE_NAME } from "@/lib/site";
-import AccountButton from "./AccountButton";
+import AccountMenu from "./AccountMenu";
+import SignInSheet from "./SignInSheet";
+import UpdatesDot from "./UpdatesDot";
 import { openSearch } from "./Search";
 import GridToggle from "./GridToggle";
 import ThemeToggle from "./ThemeToggle";
@@ -14,12 +16,6 @@ const MAIN = [
   { href: "/directors", label: "Directors" },
   { href: "/collections", label: "Collections" },
   { href: "/journal", label: "Journal" },
-];
-
-// Watchlist and the rest of a member's things live in the account menu, by the account button.
-const MORE = [
-  { href: "/submit", label: "Submit a film" },
-  { href: "/about", label: "About" },
 ];
 
 export default function SiteHeader() {
@@ -50,9 +46,9 @@ export default function SiteHeader() {
           <span className="search-trigger-label">Search</span>
           <kbd>⌘K</kbd>
         </button>
-        <AccountButton />
         <button type="button" className="icon-button menu-button" aria-expanded={open} aria-controls="menu" aria-label={open ? "Close menu" : "Open menu"} onClick={toggle}>
           <span className="burger" aria-hidden="true"><span /><span /></span>
+          <UpdatesDot />
         </button>
       </div>
 
@@ -76,13 +72,7 @@ export default function SiteHeader() {
               <Link key={l.href} href={l.href} aria-current={current(l.href)}>{l.label}</Link>
             ))}
           </nav>
-          <nav className="menu-more" aria-label="More">
-            {MORE.map((l) => (
-              <Link key={l.href} href={l.href} aria-current={current(l.href)}>
-                {l.label}
-              </Link>
-            ))}
-          </nav>
+          <AccountMenu onNavigate={() => menu.current?.close()} />
           <div className="menu-foot">
             <div className="menu-setting">
               <span>Posters</span>
@@ -95,6 +85,7 @@ export default function SiteHeader() {
           </div>
         </div>
       </dialog>
+      <SignInSheet />
     </header>
   );
 }
