@@ -2,14 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { FilmGrid } from "@/components/FilmCard";
-import DirectorCard from "@/components/DirectorCard";
-import Poster from "@/components/Poster";
-import { MarkSeen } from "@/components/UpdatesDot";
-import { getDirectors, getFilms, toCard, toDirectorSummary } from "@/lib/data";
+import { getFilms, toCard } from "@/lib/data";
 import { getServerClient } from "@/lib/supabase/server";
 import { createCollection } from "./actions";
 import CollectionSettings from "./CollectionSettings";
-import PublicName from "./PublicName";
 import CommunityTile from "@/components/CommunityTile";
 import { enrich, MIN_FILMS, type Row as CommunityRow } from "@/lib/community";
 
@@ -32,15 +28,14 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
   if (!user) redirect("/login?next=/me");
 
   const sp = await searchParams;
-  const [{ data: saved }, { data: profile }, { data: submissions }, listsResult, films, followsResult, updatesResult, directors] = await Promise.all([
+  // Following and suggestions moved to the Account page.
+  if (sp.c === "following") redirect("/account#following");
+  if (sp.c === "submissions") redirect("/account#suggestions");
+  const [{ data: saved }, { data: profile }, listsResult, films] = await Promise.all([
     db.from("watchlist").select("film_id, added_at").eq("user_id", user.id).order("added_at", { ascending: false }),
     db.from("profiles").select("*").eq("id", user.id).maybeSingle(),
-    db.from("submissions").select("id, title, director, year, status, created_at").eq("user_id", user.id).order("created_at", { ascending: false }),
     db.from("lists").select("id, title, description, is_public, list_films(film_id, added_at)").eq("user_id", user.id).order("created_at"),
     getFilms(),
-    db.from("follows").select("person_id, created_at").eq("user_id", user.id).order("created_at", { ascending: false }),
-    db.rpc("follow_updates"),
-    getDirectors(),
   ]);
   // Collections saved from the community, newest first. Until community.sql has run, none.
   const savedResult = await db
@@ -53,18 +48,13 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
     ? await enrich(((savedResult.data ?? []) as unknown as { lists: CommunityRow | null }[]).map((r) => r.lists).filter((l): l is CommunityRow => !!l))
     : [];
   const handle: string | null = (profile as { handle?: string | null } | null)?.handle ?? null;
-  // Until supabase/follows.sql has run, following isn't available.
-  const followsReady = !followsResult.error;
-  const followedIds = new Set((followsResult.data ?? []).map((f: { person_id: string }) => f.person_id));
-  const followed = directors.filter((d) => followedIds.has(d.id)).map(toDirectorSummary);
-  const updates = (updatesResult.data ?? []) as Update[];
   // Until supabase/member-collections.sql has run, the lists table doesn't exist yet.
   const listsReady = !listsResult.error;
   const lists = (listsResult.data ?? []) as ListRow[];
 
   const byId = new Map(films.map((f) => [f.id, f]));
   const all = (saved ?? []).map((r) => byId.get(r.film_id)).filter((f) => f !== undefined);
-  const selected = sp.c === "submissions" || sp.c === "following" || sp.c === "saved" ? sp.c : lists.find((l) => l.id === sp.c) ?? null;
+  const selected = sp.c === "saved" ? sp.c : lists.find((l) => l.id === sp.c) ?? null;
   const listFilms = (l: ListRow) =>
     [...l.list_films].sort((a, b) => b.added_at.localeCompare(a.added_at)).map((r) => byId.get(r.film_id)).filter((f) => f !== undefined);
 
@@ -72,20 +62,11 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
     <section className="page">
       <header className="page-head">
         <h1>Watchlist</h1>
-        <p className="label">
-          {user.email}
-          {profile?.is_admin && <> · <Link href="/admin">Admin</Link></>}
-        </p>
+        <p className="label">Films you&rsquo;ve saved, your own collections, and collections you&rsquo;ve saved from the community. <Link href="/account">Account settings</Link></p>
       </header>
 
       <nav className="collection-tabs" aria-label="Your collections">
         <Link className="chip" href="/me" aria-pressed={!selected}>All <span className="count">{all.length}</span></Link>
-        {followsReady && (
-          <Link className="chip" href="/me?c=following" aria-pressed={selected === "following"}>
-            Following <span className="count">{followed.length}</span>
-            {updates.length > 0 && selected !== "following" && <span className="updates-dot" aria-label="New films" />}
-          </Link>
-        )}
         {communityReady && savedCollections.length > 0 && (
           <Link className="chip" href="/me?c=saved" aria-pressed={selected === "saved"}>Saved <span className="count">{savedCollections.length}</span></Link>
         )}
@@ -107,15 +88,11 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
       {sp.error === "collection" && <p className="notice error">The collection couldn&rsquo;t be created. Try again.</p>}
       {!listsReady && <p className="notice">Your own collections aren&rsquo;t available yet.</p>}
 
-      {selected === "submissions" ? (
-        <Submissions rows={submissions ?? []} />
-      ) : selected === "saved" ? (
+      {selected === "saved" ? (
         <>
           <div className="section-head"><p className="label">Collections you&rsquo;ve saved from the community.</p></div>
           <ul className="collection-list">{savedCollections.map((c) => <CommunityTile key={c.id} c={c} />)}</ul>
         </>
-      ) : selected === "following" ? (
-        <Following directors={followed} updates={updates} />
       ) : selected ? (
         <>
           <CollectionSettings list={{ id: selected.id, title: selected.title, description: selected.description, is_public: selected.is_public }} count={selected.list_films.length} handle={communityReady ? handle : undefined} minFilms={MIN_FILMS} />
@@ -145,93 +122,6 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
         </>
       )}
 
-      {communityReady && <PublicName handle={handle} displayName={(profile as { display_name?: string | null } | null)?.display_name ?? null} />}
-
-      <div className="me-foot">
-        <Link className="link-button" href="/me?c=submissions">Your submissions ({submissions?.length ?? 0})</Link>
-        <form action="/auth/signout" method="post">
-          <button className="button ghost small" type="submit">Sign out</button>
-        </form>
-      </div>
     </section>
-  );
-}
-
-type Update = { film_id: string; slug: string; title: string; year: number; poster_url: string | null; director_name: string; director_slug: string; added_at: string };
-
-/** Directors the member follows, and the films by them added since they followed. */
-function Following({ directors, updates }: { directors: ReturnType<typeof toDirectorSummary>[]; updates: Update[] }) {
-  if (!directors.length) {
-    return (
-      <div className="empty-state">
-        <p>You&rsquo;re not following anyone yet.</p>
-        <p className="muted">Press <strong>Follow</strong> on a director&rsquo;s page to see their new films here as they&rsquo;re added.</p>
-        <Link className="button ghost small" href="/directors">Browse directors</Link>
-      </div>
-    );
-  }
-  const fmt = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short" });
-  return (
-    <>
-      <MarkSeen newest={updates[0]?.added_at ?? null} />
-      <section className="film-section" aria-labelledby="new-h" style={{ marginTop: 0 }}>
-        <h2 id="new-h">New from directors you follow</h2>
-        {updates.length ? (
-          <ul className="update-list">
-            {updates.map((u) => (
-              <li key={u.film_id + u.director_slug}>
-                <Link href={`/films/${u.slug}`}>
-                  <Poster title={u.title} year={u.year} directors={[u.director_name]} src={u.poster_url} sizes="40px" />
-                  <span>
-                    <span className="update-title">{u.title}</span>
-                    <span className="update-meta"> · {u.director_name}, {u.year}</span>
-                  </span>
-                  <span className="update-when">Added {fmt.format(new Date(u.added_at))}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="label" style={{ marginBottom: 40 }}>Nothing new yet. Films by these directors will show up here when they&rsquo;re added to Pheelm.</p>
-        )}
-      </section>
-      <section className="film-section" aria-labelledby="following-h">
-        <h2 id="following-h">Directors you follow</h2>
-        <ul className="director-grid">
-          {directors.map((d) => <DirectorCard key={d.id} director={d} />)}
-        </ul>
-      </section>
-    </>
-  );
-}
-
-function Submissions({ rows }: { rows: { id: string; title: string; director: string; year: number | null; status: string }[] }) {
-  return (
-    <>
-      {rows.length ? (
-        <div className="table-wrap">
-          <table className="admin-table">
-            <thead>
-              <tr><th>Film</th><th>Director</th><th>Year</th><th>Status</th></tr>
-            </thead>
-            <tbody>
-              {rows.map((s) => (
-                <tr key={s.id}>
-                  <td>{s.title}</td>
-                  <td>{s.director}</td>
-                  <td>{s.year ?? ""}</td>
-                  <td><span className={`status-pill ${s.status}`}>{s.status}</span></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <p className="empty">You haven&rsquo;t suggested any films yet.</p>
-      )}
-      <p style={{ marginTop: 24 }}>
-        <Link className="button" href="/submit">Submit a film</Link>
-      </p>
-    </>
   );
 }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
+import UpdatesDot from "./UpdatesDot";
 
 export default function AccountLink() {
   const path = usePathname();
@@ -35,7 +36,8 @@ export default function AccountLink() {
     };
   }, []);
 
-  if (state === "in") return <Link href="/me">Account</Link>;
-  const next = path && !path.startsWith("/login") && !path.startsWith("/me") ? `?next=${encodeURIComponent(path)}` : "";
+  // Signed in, it goes to Account, with a dot when directors they follow have new films.
+  if (state === "in") return <Link href="/account" aria-current={path === "/account" ? "page" : undefined}>Account<UpdatesDot /></Link>;
+  const next = path && !path.startsWith("/login") && !path.startsWith("/me") && !path.startsWith("/account") ? `?next=${encodeURIComponent(path)}` : "";
   return <Link href={`/login${next}`} aria-busy={state === "loading"}>Sign in</Link>;
 }

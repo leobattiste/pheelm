@@ -80,7 +80,6 @@ export default function SiteHeader() {
             {MORE.map((l) => (
               <Link key={l.href} href={l.href} aria-current={current(l.href)}>
                 {l.label}
-                {l.href === "/me" && <UpdatesDot />}
               </Link>
             ))}
             <AccountLink />

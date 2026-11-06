@@ -17,8 +17,9 @@ export default function PublicName({ handle, displayName }: { handle: string | n
             <input name="display_name" defaultValue={displayName ?? ""} maxLength={60} placeholder="Leo Baptiste" autoComplete="name" />
           </label>
           <label className="field">
-            Handle <span className="hint">3 to 24 letters, numbers or _</span>
-            <input name="handle" defaultValue={handle ?? ""} maxLength={24} pattern="[A-Za-z0-9_]{3,24}" placeholder="leo" autoCapitalize="none" spellCheck={false} />
+            Handle
+            <input name="handle" defaultValue={handle ?? ""} maxLength={24} pattern="[A-Za-z0-9_]{3,24}" placeholder="leo" autoCapitalize="none" spellCheck={false} aria-describedby="handle-hint" />
+            <span className="hint" id="handle-hint">3 to 24 letters, numbers or _</span>
           </label>
         </div>
         {state && <p className={state.ok ? "notice ok" : "notice error"} role="status">{state.message}</p>}

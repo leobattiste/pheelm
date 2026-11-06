@@ -1147,7 +1147,6 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 .collection-desc-full { max-width: 60ch; margin-top: var(--space-12); color: var(--text); }
 .collection-edit { display: grid; gap: var(--space-16); max-width: 560px; margin-bottom: var(--space-32); padding: var(--space-20); border-radius: var(--r); background: var(--surface); }
 .danger-text { color: var(--error); border-color: color-mix(in srgb, var(--error) 40%, transparent); }
-.me-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-16); margin-top: var(--space-64); padding-top: var(--space-20); border-top: 1px solid var(--line); }
 
 /* The save sheet: tick the collections a film belongs to. */
 .save-intro { padding: var(--space-16) 0 var(--space-12); color: var(--muted); font-size: var(--t-sm); }
@@ -1392,3 +1391,15 @@ h1, h2, .menu-main a, .empty-state p:first-child, .decades a,
 .member-avatar { display: grid; place-items: center; flex: none; width: 80px; height: 120px; border-radius: var(--r); background: var(--raised); color: var(--muted); font-size: var(--t-xl); font-weight: 700; }
 .member-head h1 { font-size: var(--t-3xl); }
 .admin-table tr.is-hidden td { opacity: 0.55; }
+
+/* Account */
+.account-page .page-head .label a { text-decoration: underline; text-underline-offset: 0.2em; }
+.account-panel { display: grid; gap: var(--space-48); max-width: 640px; }
+.account-panel .public-name { margin-top: 0; padding: 0; background: none; }
+.account-section { display: grid; gap: var(--space-12); }
+.account-section h2, .account-panel .public-name h2 { font-size: var(--t-xl); }
+.account-section a { text-decoration: underline; text-underline-offset: 0.2em; }
+.account-email { display: grid; gap: var(--space-12); }
+.account-page .profile-tabs { margin-top: var(--space-24); }
+.account-page .film-section { margin-top: var(--space-48); padding-top: 0; border-top: 0; }
+.account-page .tab-panel > .film-section:first-of-type, .account-page .tab-panel > section:first-child { margin-top: 0; }
