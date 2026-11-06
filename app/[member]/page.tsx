@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import CommunityTile from "@/components/CommunityTile";
 import ProfileEditor from "@/components/ProfileEditor";
 import ShareButton from "@/components/ShareButton";
-import { getMember } from "@/lib/community";
+import { getCollaboratingOn, getMember } from "@/lib/community";
 import { countryName, initials } from "@/lib/format";
 import { getServerClient } from "@/lib/supabase/server";
 
@@ -55,6 +55,8 @@ export default async function MemberPage({ params }: Params) {
     );
   }
 
+  const collaborating = await getCollaboratingOn(member.id);
+
   const collectionsPanel = collections.length ? (
     <ul className="collection-list">{collections.map((c) => <CommunityTile key={c.id} c={c} showOwner={false} />)}</ul>
   ) : (
@@ -89,6 +91,12 @@ export default async function MemberPage({ params }: Params) {
         <h2 id="member-collections-h">Watchlist</h2>
         {collectionsPanel}
       </section>
+      {collaborating.length > 0 && (
+        <section className="film-section member-collections" aria-labelledby="member-collab-h">
+          <h2 id="member-collab-h">Collaborating on</h2>
+          <ul className="collection-list">{collaborating.map((c) => <CommunityTile key={c.id} c={c} />)}</ul>
+        </section>
+      )}
     </section>
   );
 }

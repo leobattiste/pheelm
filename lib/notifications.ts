@@ -1,0 +1,77 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Member } from "./community";
+
+export type NotificationType =
+  | "invite" | "request" | "invite_accepted" | "invite_declined"
+  | "request_accepted" | "request_declined" | "removed" | "comment" | "reply" | "mention";
+
+export type Notification = {
+  id: string;
+  type: NotificationType;
+  created_at: string;
+  read_at: string | null;
+  actor: Member | null;
+  list: { id: string; title: string } | null;
+  comment: { id: string; body: string } | null;
+  /** For invites and requests: whether it can still be answered, and the requester's note. */
+  open: boolean;
+  note: string | null;
+};
+
+type Row = { id: string; type: NotificationType; created_at: string; read_at: string | null; actor_id: string | null; list_id: string | null; comment_id: string | null; user_id: string };
+
+/**
+ * The signed-in member's latest notifications, with who did it, which collection, the comment it's
+ * about, and for invites and requests whether they're still waiting for an answer.
+ */
+export async function getNotifications(db: SupabaseClient, userId: string, limit = 60): Promise<{ available: boolean; items: Notification[] }> {
+  const { data, error } = await db
+    .from("notifications")
+    .select("id, type, created_at, read_at, actor_id, list_id, comment_id, user_id")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) return { available: false, items: [] };
+  const rows = (data ?? []) as Row[];
+  const uniq = (xs: (string | null)[]) => [...new Set(xs.filter((x): x is string => !!x))];
+  const actorIds = uniq(rows.map((r) => r.actor_id));
+  const listIds = uniq(rows.map((r) => r.list_id));
+  const commentIds = uniq(rows.map((r) => r.comment_id));
+
+  const [actors, lists, comments, members] = await Promise.all([
+    actorIds.length ? db.from("member_profiles").select("id, handle, display_name, is_private").in("id", actorIds) : null,
+    listIds.length ? db.from("lists").select("id, title, user_id").in("id", listIds) : null,
+    commentIds.length ? db.from("list_comments").select("id, body, removed_at").in("id", commentIds) : null,
+    listIds.length ? db.from("list_members").select("list_id, user_id, status, note").in("list_id", listIds) : null,
+  ]);
+  const actorBy = new Map(((actors?.data ?? []) as Member[]).map((a) => [a.id, a]));
+  const listBy = new Map(((lists?.data ?? []) as { id: string; title: string }[]).map((l) => [l.id, l]));
+  const commentBy = new Map(((comments?.data ?? []) as { id: string; body: string; removed_at: string | null }[]).filter((c) => !c.removed_at).map((c) => [c.id, c]));
+  const memberRows = (members?.data ?? []) as { list_id: string; user_id: string; status: string; note: string | null }[];
+  const status = (lid: string | null, uid: string | null) => memberRows.find((m) => m.list_id === lid && m.user_id === uid);
+
+  return {
+    available: true,
+    items: rows.map((r) => {
+      // An invite is about me; a request is about the person asking.
+      const m = r.type === "invite" ? status(r.list_id, userId) : r.type === "request" ? status(r.list_id, r.actor_id) : undefined;
+      return {
+        id: r.id,
+        type: r.type,
+        created_at: r.created_at,
+        read_at: r.read_at,
+        actor: (r.actor_id && actorBy.get(r.actor_id)) || null,
+        list: (r.list_id && listBy.get(r.list_id)) || null,
+        comment: (r.comment_id && commentBy.get(r.comment_id)) || null,
+        open: r.type === "invite" ? m?.status === "invited" : r.type === "request" ? m?.status === "requested" : false,
+        note: r.type === "request" ? m?.note ?? null : null,
+      };
+    }),
+  };
+}
+
+/** How many unread notifications the signed-in member has (0 until collaboration.sql has run). */
+export async function unreadCount(db: SupabaseClient, userId: string) {
+  const { count, error } = await db.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", userId).is("read_at", null);
+  return error ? 0 : count ?? 0;
+}

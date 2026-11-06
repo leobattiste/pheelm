@@ -9,6 +9,7 @@ export type CommentItem = {
   body: string;
   created_at: string;
   edited_at: string | null;
+  removed_at?: string | null;
   likes: number;
   liked: boolean;
   author: CommentAuthor | null;
@@ -23,14 +24,12 @@ type Row = Omit<CommentItem, "likes" | "liked" | "author"> & { comment_likes: { 
  */
 export async function getComments(db: SupabaseClient | null, listId: string, viewerId: string | null): Promise<{ available: boolean; comments: CommentItem[] }> {
   if (!db) return { available: false, comments: [] };
-  const { data, error } = await db
-    .from("list_comments")
-    .select("id, parent_id, user_id, body, created_at, edited_at, comment_likes(user_id)")
-    .eq("list_id", listId)
-    .order("created_at", { ascending: true })
-    .limit(500);
+  const read = (cols: string) => db.from("list_comments").select(cols).eq("list_id", listId).order("created_at", { ascending: true }).limit(500);
+  let { data, error } = await read("id, parent_id, user_id, body, created_at, edited_at, removed_at, comment_likes(user_id)");
+  // Before collaboration.sql has run there's no removed_at.
+  if (error) ({ data, error } = await read("id, parent_id, user_id, body, created_at, edited_at, comment_likes(user_id)"));
   if (error) return { available: false, comments: [] };
-  const rows = (data ?? []) as Row[];
+  const rows = (data ?? []) as unknown as Row[];
   const ids = [...new Set(rows.map((r) => r.user_id))];
   const authors = new Map<string, CommentAuthor>();
   if (ids.length) {

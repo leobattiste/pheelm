@@ -110,3 +110,17 @@ export async function collectionExtras(listId: string, userId: string) {
   ]);
   return { owner: (owner as unknown as Member | null) ?? null, saves: (counts.data as { saves: number } | null)?.saves ?? 0 };
 }
+
+/** Public collections a member collaborates on (not their own). Empty until collaboration.sql has run. */
+export async function getCollaboratingOn(memberId: string): Promise<CommunityCollection[]> {
+  const db = anon();
+  if (!db) return [];
+  const { data: rows, error } = await db.from("list_members").select("list_id").eq("user_id", memberId).eq("status", "active");
+  if (error || !rows?.length) return [];
+  const { data } = await db
+    .from("lists")
+    .select("id, title, description, staff_pick, created_at, user_id, list_films(film_id, added_at)")
+    .eq("is_public", true)
+    .in("id", (rows as { list_id: string }[]).map((r) => r.list_id));
+  return (await enrich((data ?? []) as Row[])).sort(order.popular);
+}

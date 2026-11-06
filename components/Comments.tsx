@@ -11,6 +11,9 @@ type Viewer = { id: string; handle: string | null; name: string | null; isPrivat
 type Props = {
   listId: string;
   ownerId: string;
+  collaboratorIds?: string[];
+  pinnedId?: string | null;
+  enabled?: boolean;
   initial: CommentItem[];
   viewer: Viewer;
 };
@@ -19,6 +22,7 @@ type Sort = "top" | "new";
 const MAX = 1000;
 const REPLIES_SHOWN = 2;
 const SELECT = "id, parent_id, user_id, body, created_at, edited_at";
+const PIN = <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7.5 3.5h5l-.8 4.3 2.8 2.7H5.5l2.8-2.7zM10 10.5V17" /></svg>;
 
 /** "now", "5m", "3h", "2d", then a date. */
 function ago(iso: string, now: number) {
@@ -101,10 +105,12 @@ function Composer({
 
 /**
  * The conversation on a member's public collection: comments with one level of replies, likes,
- * editing and deleting, @mentions, and Top or Newest order. Changes show straight away and are
- * saved in the background; if saving fails, the change is undone and a note explains why.
+ * editing and deleting, @mentions, and Top or Newest order. The owner can pin one comment and
+ * turn comments off; the owner and collaborators can remove any comment (one with replies stays
+ * as "Comment removed" so the thread reads); anyone signed in can report one. Changes show
+ * straight away and are saved in the background; if saving fails, the change is undone.
  */
-export default function Comments({ listId, ownerId, initial, viewer }: Props) {
+export default function Comments({ listId, ownerId, collaboratorIds = [], pinnedId = null, enabled = true, initial, viewer }: Props) {
   const [comments, setComments] = useState<CommentItem[]>(initial);
   const [sort, setSort] = useState<Sort>("top");
   const [replyTo, setReplyTo] = useState<string | null>(null);
@@ -114,6 +120,9 @@ export default function Comments({ listId, ownerId, initial, viewer }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
+  const [pinned, setPinned] = useState<string | null>(pinnedId);
+  const [reporting, setReporting] = useState<string | null>(null);
+  const [reported, setReported] = useState<Set<string>>(new Set());
 
   // Keep "5m ago" fresh.
   useEffect(() => {
@@ -123,6 +132,8 @@ export default function Comments({ listId, ownerId, initial, viewer }: Props) {
 
   const me: CommentAuthor | null = viewer?.handle ? { id: viewer.id, handle: viewer.handle, display_name: viewer.name, is_private: viewer.isPrivate } : null;
   const isOwner = viewer?.id === ownerId;
+  const crew = useMemo(() => new Set(collaboratorIds), [collaboratorIds]);
+  const canModerate = isOwner || (!!viewer && crew.has(viewer.id));
 
   const threads = useMemo(() => {
     const tops = comments.filter((c) => !c.parent_id);
@@ -132,8 +143,11 @@ export default function Comments({ listId, ownerId, initial, viewer }: Props) {
     tops.sort(sort === "top"
       ? (a, b) => score(b) - score(a) || b.created_at.localeCompare(a.created_at)
       : (a, b) => b.created_at.localeCompare(a.created_at));
-    return tops.map((c) => ({ c, replies: replies.get(c.id) ?? [] }));
-  }, [comments, sort]);
+    // The pinned comment leads; removed comments with no replies left drop out.
+    const pin = tops.findIndex((c) => c.id === pinned);
+    if (pin > 0) tops.unshift(...tops.splice(pin, 1));
+    return tops.filter((c) => !c.removed_at || replies.get(c.id)?.length).map((c) => ({ c, replies: replies.get(c.id) ?? [] }));
+  }, [comments, sort, pinned]);
 
   const fail = (message: string) => {
     setError(message);
@@ -183,10 +197,43 @@ export default function Comments({ listId, ownerId, initial, viewer }: Props) {
     const db = getBrowserClient();
     if (!db) return;
     const before = comments;
-    setComments((cs) => cs.filter((c) => c.id !== id && c.parent_id !== id));
+    const target = comments.find((c) => c.id === id);
+    const keepsReplies = !!target && !target.parent_id && comments.some((c) => c.parent_id === id);
+    setComments((cs) => keepsReplies
+      ? cs.map((c) => (c.id === id ? { ...c, removed_at: new Date().toISOString(), likes: 0, liked: false } : c))
+      : cs.filter((c) => c.id !== id));
+    if (pinned === id) setPinned(null);
     setConfirming(null);
-    const { error: e } = await db.from("list_comments").delete().eq("id", id);
+    let { error: e } = await db.rpc("remove_comment", { cid: id });
+    // Before collaboration.sql has run, delete directly (replies go with it).
+    if (e && /function|schema cache/i.test(e.message ?? "")) {
+      ({ error: e } = await db.from("list_comments").delete().eq("id", id));
+      if (!e) setComments((cs) => cs.filter((c) => c.id !== id && c.parent_id !== id));
+    }
     if (e) { setComments(before); fail(reason(e)); }
+  };
+
+  const togglePin = async (id: string) => {
+    const db = getBrowserClient();
+    if (!db) return;
+    const next = pinned === id ? null : id;
+    const before = pinned;
+    setPinned(next);
+    const { error: e } = await db.from("lists").update({ pinned_comment_id: next }).eq("id", listId);
+    if (e) { setPinned(before); fail(reason(e)); }
+    else if (next) setSort("top");
+  };
+
+  const report = async (id: string) => {
+    const db = getBrowserClient();
+    if (!db || !viewer) return;
+    setReporting(null);
+    setReported((r) => new Set(r).add(id));
+    const { error: e } = await db.from("comment_reports").insert({ comment_id: id, user_id: viewer.id, reason: "Reported from the collection page" });
+    if (e) {
+      setReported((r) => { const n = new Set(r); n.delete(id); return n; });
+      fail(reason(e));
+    }
   };
 
   const like = async (c: CommentItem) => {
@@ -205,20 +252,31 @@ export default function Comments({ listId, ownerId, initial, viewer }: Props) {
     }
   };
 
-  const total = comments.length;
+  const total = comments.filter((c) => !c.removed_at).length;
 
   const item = (c: CommentItem, reply = false) => {
     const a = c.author;
     const name = a?.display_name || (a ? `@${a.handle}` : "A former member");
     const mine = viewer?.id === c.user_id;
     const pending = c.id.startsWith("temp-");
+    if (c.removed_at) {
+      return (
+        <article className="comment is-removed" id={`comment-${c.id}`}>
+          <span className="comment-avatar" aria-hidden="true" />
+          <div className="comment-main"><p className="comment-body">Comment removed</p></div>
+        </article>
+      );
+    }
+    const isPinned = !reply && pinned === c.id;
     return (
       <article className={`comment${reply ? " is-reply" : ""}${pending ? " is-pending" : ""}`} id={`comment-${c.id}`} aria-busy={pending}>
         <span className="comment-avatar" aria-hidden="true">{initials((a?.display_name || a?.handle || "?").replace(/^@/, ""))}</span>
         <div className="comment-main">
           <header className="comment-head">
             {a && !a.is_private ? <Link href={`/@${a.handle}`} className="comment-name">{name}</Link> : <span className="comment-name">{name}</span>}
-            {c.user_id === ownerId && <span className="comment-badge">Curator</span>}
+            {c.user_id === ownerId && <span className="comment-badge">Owner</span>}
+            {c.user_id !== ownerId && crew.has(c.user_id) && <span className="comment-badge">Collaborator</span>}
+            {isPinned && <span className="comment-pinned">{PIN}Pinned</span>}
             <time className="comment-time" dateTime={c.created_at} title={new Date(c.created_at).toLocaleString()}>{pending ? "Posting…" : ago(c.created_at, now)}</time>
             {c.edited_at && <span className="comment-time">• edited</span>}
           </header>
@@ -237,19 +295,31 @@ export default function Comments({ listId, ownerId, initial, viewer }: Props) {
                 <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 16.5s-6-3.6-6-8.1A3.4 3.4 0 0 1 10 6.3a3.4 3.4 0 0 1 6 2.1c0 4.5-6 8.1-6 8.1z" /></svg>
                 {c.likes > 0 && <span>{c.likes}</span>}
               </button>
-              {!reply && (
+              {!reply && enabled && (
                 <button type="button" className="comment-act" onClick={() => (me ? setReplyTo(replyTo === c.id ? null : c.id) : viewer ? undefined : openSignIn())}
                   disabled={!!viewer && !me}>Reply</button>
               )}
               {mine && <button type="button" className="comment-act" onClick={() => { setEditing(c.id); setConfirming(null); }}>Edit</button>}
-              {(mine || isOwner) && (confirming === c.id ? (
+              {isOwner && !reply && <button type="button" className="comment-act" onClick={() => togglePin(c.id)}>{isPinned ? "Unpin" : "Pin"}</button>}
+              {(mine || canModerate) && (confirming === c.id ? (
                 <span className="comment-confirm" role="group" aria-label="Delete this comment?">
-                  Delete{!reply && comments.some((x) => x.parent_id === c.id) ? " with replies" : ""}?
+                  {mine ? "Delete" : "Remove"} this comment?
                   <button type="button" className="comment-act danger" onClick={() => remove(c.id)}>Delete</button>
                   <button type="button" className="comment-act" onClick={() => setConfirming(null)}>Keep</button>
                 </span>
               ) : (
                 <button type="button" className="comment-act" onClick={() => setConfirming(c.id)}>{mine ? "Delete" : "Remove"}</button>
+              ))}
+              {viewer && !mine && !canModerate && (reported.has(c.id) ? (
+                <span className="comment-time">Reported. Thanks.</span>
+              ) : reporting === c.id ? (
+                <span className="comment-confirm" role="group" aria-label="Report this comment?">
+                  Report to Pheelm?
+                  <button type="button" className="comment-act danger" onClick={() => report(c.id)}>Report</button>
+                  <button type="button" className="comment-act" onClick={() => setReporting(null)}>Cancel</button>
+                </span>
+              ) : (
+                <button type="button" className="comment-act" onClick={() => setReporting(c.id)}>Report</button>
               ))}
             </div>
           )}
@@ -270,7 +340,9 @@ export default function Comments({ listId, ownerId, initial, viewer }: Props) {
         )}
       </div>
 
-      {me ? (
+      {!enabled ? (
+        <p className="comments-gate">Comments are turned off for this collection.</p>
+      ) : me ? (
         <div className="comment-new">
           <span className="comment-avatar" aria-hidden="true">{initials((me.display_name || me.handle).replace(/^@/, ""))}</span>
           <Composer label="Add a comment" placeholder={isOwner ? "Say something about your collection" : "Add a comment"} submitLabel="Post" busy={busy}

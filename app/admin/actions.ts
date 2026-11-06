@@ -342,6 +342,21 @@ export async function setListFlag(f: FormData) {
 }
 
 /** Dismisses a report once it's been dealt with. */
+export async function resolveCommentReport(f: FormData) {
+  const db = await adminClient();
+  await db.from("comment_reports").update({ resolved: true }).eq("id", String(f.get("id")));
+  revalidatePath("/admin/community");
+}
+
+/** Removes a reported comment (it stays as "Comment removed" if it has replies) and closes its reports. */
+export async function removeReportedComment(f: FormData) {
+  const db = await adminClient();
+  const commentId = String(f.get("comment_id"));
+  await db.rpc("remove_comment", { cid: commentId });
+  await db.from("comment_reports").update({ resolved: true }).eq("comment_id", commentId);
+  revalidatePath("/admin/community");
+}
+
 export async function resolveReport(f: FormData) {
   const db = await adminClient();
   await db.from("list_reports").update({ resolved: true }).eq("id", String(f.get("id")));

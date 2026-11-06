@@ -6,10 +6,11 @@ import { useEffect, useState } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
 import { openSignIn } from "./SignInSheet";
 
-type Me = { email: string; handle: string | null; name: string | null; isPrivate: boolean | null };
+type Me = { email: string; handle: string | null; name: string | null; isPrivate: boolean | null; unread: number };
 
 /**
- * The account part of the menu. Signed out: Sign in. Signed in: Profile, Watchlist, Settings and
+ * The account part of the menu. Signed out: Sign in. Signed in: Profile, Notifications (with a
+ * count of new ones), Watchlist, Settings and
  * Log out.
  */
 export default function AccountMenu({ onNavigate }: { onNavigate: () => void }) {
@@ -23,16 +24,25 @@ export default function AccountMenu({ onNavigate }: { onNavigate: () => void }) 
     const load = async () => {
       const { data: { user } } = await db.auth.getUser();
       if (!user) return active && setMe(null);
-      const { data: p } = await db.from("profiles").select("*").eq("id", user.id).maybeSingle();
+      const [{ data: p }, unread] = await Promise.all([
+        db.from("profiles").select("*").eq("id", user.id).maybeSingle(),
+        db.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", user.id).is("read_at", null),
+      ]);
       const profile = (p ?? {}) as { handle?: string | null; display_name?: string | null; is_private?: boolean };
-      if (active) setMe({ email: user.email ?? "", handle: profile.handle ?? null, name: profile.display_name ?? null, isPrivate: "is_private" in profile ? !!profile.is_private : null });
+      if (active) setMe({ email: user.email ?? "", handle: profile.handle ?? null, name: profile.display_name ?? null, isPrivate: "is_private" in profile ? !!profile.is_private : null, unread: unread.error ? 0 : unread.count ?? 0 });
     };
     void load().catch(() => active && setMe(null));
     // Don't query inside the auth callback itself: it can deadlock the client mid-change.
     const { data } = db.auth.onAuthStateChange(() => { setTimeout(() => { if (active) void load().catch(() => {}); }, 0); });
     const onProfile = () => void load().catch(() => {});
     window.addEventListener("profilechange", onProfile);
-    return () => { active = false; data.subscription.unsubscribe(); window.removeEventListener("profilechange", onProfile); };
+    window.addEventListener("notificationschange", onProfile);
+    return () => {
+      active = false;
+      data.subscription.unsubscribe();
+      window.removeEventListener("profilechange", onProfile);
+      window.removeEventListener("notificationschange", onProfile);
+    };
   }, []);
 
   if (me === undefined) return <div className="menu-more menu-account" aria-busy="true" />;
@@ -52,6 +62,10 @@ export default function AccountMenu({ onNavigate }: { onNavigate: () => void }) 
     <nav className="menu-more menu-account" aria-label="Your account">
       <Link href={me.handle ? `/@${me.handle}` : "/profile"} aria-current={me.handle ? current(`/@${me.handle}`) : undefined}>
         {me.handle ? "Profile" : "Create profile"}
+      </Link>
+      <Link href="/notifications" aria-current={current("/notifications")}>
+        Notifications
+        {me.unread > 0 && <span className="badge" aria-label={`${me.unread} new`}>{me.unread > 9 ? "9+" : me.unread}</span>}
       </Link>
       <Link href="/me" aria-current={current("/me")}>Watchlist</Link>
       <Link href="/account" aria-current={current("/account")}>Settings</Link>

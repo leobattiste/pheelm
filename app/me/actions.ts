@@ -38,7 +38,13 @@ export async function updateCollection(form: FormData) {
   };
   // Only the owner's form has the Public switch; collaborators change the words only.
   if (form.has("has_public")) changes.is_public = form.get("is_public") === "on";
-  await db.from("lists").update(changes).eq("id", id);
+  if (form.has("has_comments")) changes.comments_enabled = form.get("comments_enabled") === "on";
+  const { error } = await db.from("lists").update(changes).eq("id", id);
+  // Before collaboration.sql has run there's no comments switch; save the rest.
+  if (error && "comments_enabled" in changes) {
+    delete changes.comments_enabled;
+    await db.from("lists").update(changes).eq("id", id);
+  }
   revalidatePath("/me");
   revalidatePath(`/c/${id}`);
   redirect(`/c/${id}`);

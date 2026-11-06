@@ -18,8 +18,9 @@ type ListRow = CommunityRow & { is_public: boolean };
 const LIST_COLS = "id, title, description, is_public, staff_pick, created_at, user_id, list_films(film_id, added_at)";
 
 /**
- * Your Watchlist: everything you've saved, then your collections as cards (each opens on its own
- * page, where you edit it), then collections you've saved from the community.
+ * Your Watchlist: everything you've saved, then your collections and the ones you collaborate on
+ * as cards (each opens on its own page, where it's edited), then collections saved from the
+ * community.
  */
 export default async function MePage({ searchParams }: { searchParams: Promise<{ c?: string; error?: string }> }) {
   const db = await getServerClient();
@@ -40,11 +41,13 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
   if (sp.c === "following" || sp.c === "saved") redirect("/me");
   if (sp.c === "submissions") redirect("/account#submissions");
 
-  const [{ data: saved }, listsResult, savedResult, films] = await Promise.all([
+  const [{ data: saved }, listsResult, savedResult, films, sharedResult] = await Promise.all([
     db.from("watchlist").select("film_id, added_at").eq("user_id", user.id).order("added_at", { ascending: false }),
     db.from("lists").select(LIST_COLS).eq("user_id", user.id).order("created_at", { ascending: false }),
     db.from("list_saves").select("created_at, lists(id, title, description, staff_pick, created_at, user_id, list_films(film_id, added_at))").eq("user_id", user.id).order("created_at", { ascending: false }),
     getFilms(),
+    // Collections you collaborate on. Until collaboration.sql has run, none.
+    db.from("list_members").select("list_id").eq("user_id", user.id).eq("status", "active"),
   ]);
 
   const byId = new Map(films.map((f) => [f.id, f]));
@@ -74,8 +77,13 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
 
   const ownRows = (listsResult.data ?? []) as ListRow[];
   const publicById = new Map(ownRows.map((l) => [l.id, l.is_public]));
-  const [own, savedCollections] = await Promise.all([
+  const sharedIds = ((sharedResult.data ?? []) as { list_id: string }[]).map((r) => r.list_id);
+  const sharedRows = sharedIds.length
+    ? (((await db.from("lists").select(LIST_COLS).in("id", sharedIds).order("created_at", { ascending: false })).data ?? []) as ListRow[])
+    : [];
+  const [own, shared, savedCollections] = await Promise.all([
     enrich(ownRows),
+    enrich(sharedRows),
     enrich(((savedResult.data ?? []) as unknown as { lists: CommunityRow | null }[]).map((r) => r.lists).filter((l): l is CommunityRow => !!l)),
   ]);
   const latest = all.slice(0, 3);
@@ -104,6 +112,7 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
           </Link>
         </li>
         {own.map((c) => <CommunityTile key={c.id} c={c} showOwner={false} badge={publicById.get(c.id) ? "Public" : "Private"} />)}
+        {shared.map((c) => <CommunityTile key={c.id} c={c} badge="Shared" />)}
         <li>
           <form action={createCollection} className="collection-tile new-collection-card">
             <span className="new-collection-plus" aria-hidden="true">

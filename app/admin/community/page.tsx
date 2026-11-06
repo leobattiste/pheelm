@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin";
 import { MIN_FILMS } from "@/lib/community";
-import { resolveReport, setListFlag } from "../actions";
+import { removeReportedComment, resolveCommentReport, resolveReport, setListFlag } from "../actions";
 
 /** Public member collections: staff picks, hiding, and reports from visitors. */
 export default async function AdminCommunity() {
@@ -25,6 +25,14 @@ export default async function AdminCommunity() {
     db.from("list_save_counts").select("list_id, saves").in("list_id", rows.length ? rows.map((r) => r.id) : ["00000000-0000-0000-0000-000000000000"]),
   ]);
   const handle = new Map((people ?? []).map((p) => [p.id, p.handle]));
+  // Reported comments (none until collaboration.sql has run).
+  const commentReports = await db
+    .from("comment_reports")
+    .select("id, created_at, comment_id, list_comments(id, body, list_id, removed_at, lists(title))")
+    .eq("resolved", false)
+    .order("created_at", { ascending: false });
+  type CR = { id: string; created_at: string; comment_id: string; list_comments: { id: string; body: string; list_id: string; removed_at: string | null; lists: { title: string } | null } | null };
+  const reportedComments = ((commentReports.data ?? []) as unknown as CR[]).filter((r) => r.list_comments && !r.list_comments.removed_at);
   const saves = new Map((counts ?? []).map((c) => [c.list_id, c.saves]));
   const flag = (id: string, field: "hidden" | "staff_pick", on: boolean, label: string) => (
     <form action={setListFlag}>
@@ -61,6 +69,31 @@ export default async function AdminCommunity() {
           <p className="muted">No reports.</p>
         )}
       </section>
+
+      {!commentReports.error && (
+        <section className="fieldset">
+          <h2>Reported comments</h2>
+          {reportedComments.length ? (
+            <ul className="inbox">
+              {reportedComments.map((r) => (
+                <li key={r.id}>
+                  <div className="inbox-head">
+                    <Link href={`/c/${r.list_comments!.list_id}#comment-${r.comment_id}`}><strong>On {r.list_comments!.lists?.title ?? "a collection"}</strong></Link>
+                    <span className="muted">{new Date(r.created_at).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}</span>
+                  </div>
+                  <p className="inbox-body">&ldquo;{r.list_comments!.body}&rdquo;</p>
+                  <div className="actions">
+                    <form action={removeReportedComment}><input type="hidden" name="id" value={r.id} /><input type="hidden" name="comment_id" value={r.comment_id} /><button className="button ghost small danger-text" type="submit">Remove comment</button></form>
+                    <form action={resolveCommentReport}><input type="hidden" name="id" value={r.id} /><button className="button ghost small" type="submit">Dismiss</button></form>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="muted">No reported comments.</p>
+          )}
+        </section>
+      )}
 
       <p className="muted">
         Public collections appear in the community once they have a title, at least {MIN_FILMS} films and their maker has a public name.

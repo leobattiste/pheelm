@@ -7,7 +7,7 @@ import { getBrowserClient } from "@/lib/supabase/client";
 import { openSignIn } from "./SignInSheet";
 
 type Status = "loading" | "signed-out" | "off" | "on";
-type List = { id: string; title: string; count: number; has: boolean };
+type List = { id: string; title: string; count: number; has: boolean; shared?: boolean };
 
 // A plus (cross) before the film is saved, a checkmark once it is.
 const PLUS = <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4.5v11M4.5 10h11" /></svg>;
@@ -42,15 +42,21 @@ export default function WatchlistButton({ filmId, filmTitle }: { filmId: string;
   const loadLists = async () => {
     const db = getBrowserClient();
     if (!db || !userId) return;
-    const { data } = await db.from("lists").select("id, title, list_films(film_id)").eq("user_id", userId).order("created_at");
-    setLists(
-      (data ?? []).map((l: { id: string; title: string; list_films: { film_id: string }[] }) => ({
-        id: l.id,
-        title: l.title,
-        count: l.list_films.length,
-        has: l.list_films.some((f) => f.film_id === filmId),
-      })),
-    );
+    type Row = { id: string; title: string; list_films: { film_id: string }[] };
+    const [{ data }, shared] = await Promise.all([
+      db.from("lists").select("id, title, list_films(film_id)").eq("user_id", userId).order("created_at"),
+      // Collections you collaborate on (none until collaboration.sql has run).
+      db.from("list_members").select("lists(id, title, list_films(film_id))").eq("user_id", userId).eq("status", "active"),
+    ]);
+    const toList = (l: Row, isShared: boolean): List => ({
+      id: l.id,
+      title: l.title,
+      count: l.list_films.length,
+      has: l.list_films.some((f) => f.film_id === filmId),
+      shared: isShared,
+    });
+    const sharedLists = ((shared.data ?? []) as unknown as { lists: Row | null }[]).map((r) => r.lists).filter((l): l is Row => !!l);
+    setLists([...(data ?? []).map((l: Row) => toList(l, false)), ...sharedLists.map((l) => toList(l, true))]);
   };
 
   if (status === "signed-out" || status === "loading") {
@@ -111,8 +117,9 @@ export default function WatchlistButton({ filmId, filmTitle }: { filmId: string;
 
   const remove = async () => {
     setBusy(true);
-    // Leaving All also takes the film out of every collection it's in.
-    const ids = (lists ?? []).filter((l) => l.has).map((l) => l.id);
+    // Leaving All also takes the film out of your own collections. Shared ones keep it, since
+    // other people chose it too.
+    const ids = (lists ?? []).filter((l) => l.has && !l.shared).map((l) => l.id);
     if (ids.length) await db.from("list_films").delete().eq("film_id", filmId).in("list_id", ids);
     const { error } = await db.from("watchlist").delete().eq("user_id", userId).eq("film_id", filmId);
     setBusy(false);
@@ -157,7 +164,7 @@ export default function WatchlistButton({ filmId, filmTitle }: { filmId: string;
                 <li key={l.id}>
                   <button type="button" className="save-row" role="checkbox" aria-checked={l.has} onClick={() => toggleList(l)}>
                     <span className={`save-check${l.has ? " is-on" : ""}`} aria-hidden="true">{l.has && CHECK}</span>
-                    <span className="save-name">{l.title}</span>
+                    <span className="save-name">{l.title}{l.shared && <span className="tile-badge">Shared</span>}</span>
                     <span className="save-count">{l.count} {l.count === 1 ? "film" : "films"}</span>
                   </button>
                 </li>

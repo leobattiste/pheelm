@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { deleteCollection, updateCollection } from "@/app/me/actions";
 
 type Props = {
-  list: { id: string; title: string; description: string | null; is_public: boolean };
+  list: { id: string; title: string; description: string | null; is_public: boolean; comments_enabled?: boolean };
   /** Owners also choose public or private and can delete; collaborators edit the words only. */
   isOwner: boolean;
   collaborators?: number;
@@ -50,6 +50,14 @@ export default function CollectionEditor({ list, isOwner, collaborators = 0 }: P
                     <span className="hint">Anyone with the link can see it, and it can appear in the community. Private collections are only visible to you{collaborators ? " and your collaborators" : ""}.</span>
                   </span>
                   <input type="checkbox" role="switch" className="switch" name="is_public" defaultChecked={list.is_public} />
+                </label>
+                <input type="hidden" name="has_comments" value="1" />
+                <label className="switch-row">
+                  <span>
+                    <span className="switch-label">Allow comments</span>
+                    <span className="hint">When off, existing comments stay visible but no one can add new ones.</span>
+                  </span>
+                  <input type="checkbox" role="switch" className="switch" name="comments_enabled" defaultChecked={list.comments_enabled ?? true} />
                 </label>
                 <div className="danger-zone">
                   {confirming ? (
