@@ -1000,13 +1000,13 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 
 /* Every profile (directors and members): the photo, with name, country, @username and buttons
    stacked beside it, on phones too. */
-.person-head { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-16); align-items: center; padding: clamp(var(--space-32), 6vw, var(--space-64)) 0 0; }
+.person-head { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-16); align-items: center; margin-top: clamp(var(--space-24), 4vw, var(--space-48)); padding: var(--space-16); border-radius: var(--r); background: var(--surface); }
 .person-head h1 { font-size: var(--t-3xl); overflow-wrap: anywhere; }
 .person-sub { color: var(--muted); }
 /* Profile portraits keep TMDB's 2:3 shape, so nothing is cut off. */
-.person-head .portrait { width: 104px; height: 156px; aspect-ratio: 2 / 3; font-size: var(--t-xl); }
+.person-head .portrait { width: 96px; height: 144px; aspect-ratio: 2 / 3; font-size: var(--t-xl); }
 @media (min-width: 640px) {
-  .person-head { gap: var(--space-24); }
+  .person-head { gap: var(--space-24); padding: var(--space-24); }
   .person-head .portrait { width: 140px; height: 210px; font-size: var(--t-2xl); }
 }
 .person-text { display: grid; gap: var(--space-16); align-content: start; }
@@ -1016,7 +1016,7 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 .person-facts dt { color: var(--muted); font-size: var(--t-xs); }
 .person-facts dd { color: var(--ink); font-size: var(--t-sm); font-weight: 600; }
 @media (min-width: 900px) {
-  .person-head { gap: var(--space-40); }
+  .person-head { gap: var(--space-40); padding: var(--space-32); }
   .person-head .portrait { width: 180px; height: 270px; }
 }
 .filmography { display: grid; gap: 1px; overflow: hidden; border-radius: var(--r); background: var(--bg); }
