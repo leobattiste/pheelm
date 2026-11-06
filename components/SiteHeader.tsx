@@ -58,7 +58,8 @@ export default function SiteHeader() {
         onClose={() => setOpen(false)}
         onClick={(e) => { if (e.target === menu.current) menu.current?.close(); }}
       >
-        <div className="menu-inner">
+        {/* Focus lands on the menu itself when it opens, so no link shows a focus ring. */}
+        <div className="menu-inner" tabIndex={-1} autoFocus>
           <div className="menu-top">
             <Link href="/" className="wordmark wordmark-type" aria-label={`${SITE_NAME}, home`}>{WORDMARK}</Link>
             <button type="button" className="icon-button" onClick={() => menu.current?.close()} aria-label="Close menu">
