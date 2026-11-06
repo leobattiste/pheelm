@@ -103,7 +103,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <nav aria-labelledby="footer-you">
               <h2 id="footer-you">You</h2>
               <Link href="/me">Watchlist</Link>
-              <Link href="/account">Account</Link>
+              <Link href="/profile">Profile</Link>
+              <Link href="/account">Settings</Link>
               <Link href="/newsletter">Newsletter</Link>
               {INSTAGRAM_URL && <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">Instagram</a>}
               {THREADS_URL && <a href={THREADS_URL} target="_blank" rel="noopener noreferrer">Threads</a>}

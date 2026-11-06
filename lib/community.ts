@@ -6,7 +6,16 @@ import type { Film } from "./types";
 /** A collection to list in the community: needs a title, this many films and a member name. */
 export const MIN_FILMS = 5;
 
-export type Member = { id: string; handle: string; display_name: string | null };
+export type Member = { id: string; handle: string; display_name: string | null; is_private?: boolean };
+
+// Asks for the private setting too, and falls back to the basic columns until profiles-private.sql has run.
+const FULL = "id, handle, display_name, is_private";
+const BASIC = "id, handle, display_name";
+async function members<T>(run: (cols: string) => PromiseLike<{ data: T | null; error: unknown }>): Promise<T | null> {
+  const first = await run(FULL);
+  if (!first.error) return first.data;
+  return (await run(BASIC)).data;
+}
 export type CommunityCollection = {
   id: string;
   title: string;
@@ -31,11 +40,11 @@ export async function enrich(rows: Row[]): Promise<CommunityCollection[]> {
   const owners = [...new Set(rows.map((r) => r.user_id))];
   const [films, people, counts] = await Promise.all([
     getFilms(),
-    db.from("member_profiles").select("id, handle, display_name").in("id", owners),
+    members((cols) => db.from("member_profiles").select(cols).in("id", owners)),
     db.from("list_save_counts").select("list_id, saves").in("list_id", ids),
   ]);
   const byId = new Map(films.map((f) => [f.id, f]));
-  const ownerById = new Map(((people.data ?? []) as Member[]).map((p) => [p.id, p]));
+  const ownerById = new Map(((people ?? []) as unknown as Member[]).map((p) => [p.id, p]));
   const savesById = new Map(((counts.data ?? []) as { list_id: string; saves: number }[]).map((c) => [c.list_id, c.saves]));
   return rows.map((r) => ({
     id: r.id,
@@ -79,7 +88,7 @@ export async function getCommunityCollections({ sort = "popular", filmId, limit 
 export async function getMember(handle: string) {
   const db = anon();
   if (!db) return null;
-  const { data: member } = await db.from("member_profiles").select("id, handle, display_name").eq("handle", handle.toLowerCase()).maybeSingle();
+  const member = (await members((cols) => db.from("member_profiles").select(cols).eq("handle", handle.toLowerCase()).maybeSingle())) as Member | null;
   if (!member) return null;
   const { data } = await db
     .from("lists")
@@ -88,7 +97,7 @@ export async function getMember(handle: string) {
     .eq("user_id", member.id)
     .order("created_at", { ascending: false });
   const collections = (await enrich((data ?? []) as Row[])).sort(order.popular);
-  return { member: member as Member, collections };
+  return { member, collections };
 }
 
 /** The owner and save count for one collection page. */
@@ -96,8 +105,8 @@ export async function collectionExtras(listId: string, userId: string) {
   const db = anon();
   if (!db) return { owner: null, saves: 0 };
   const [owner, counts] = await Promise.all([
-    db.from("member_profiles").select("id, handle, display_name").eq("id", userId).maybeSingle(),
+    members((cols) => db.from("member_profiles").select(cols).eq("id", userId).maybeSingle()),
     db.from("list_save_counts").select("saves").eq("list_id", listId).maybeSingle(),
   ]);
-  return { owner: (owner.data as Member | null) ?? null, saves: (counts.data as { saves: number } | null)?.saves ?? 0 };
+  return { owner: (owner as unknown as Member | null) ?? null, saves: (counts.data as { saves: number } | null)?.saves ?? 0 };
 }

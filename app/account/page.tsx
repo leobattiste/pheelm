@@ -2,18 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import Tabs from "@/components/Tabs";
-import { getDirectors, toDirectorSummary } from "@/lib/data";
 import { getServerClient } from "@/lib/supabase/server";
-import PublicName from "../me/PublicName";
 import EmailForm from "./EmailForm";
-import { Following, Submissions, type Update } from "./sections";
+import { Submissions } from "./sections";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Account", robots: { index: false } };
 
 /**
- * Where members manage who they are on Pheelm: their public name, sign-in email, the directors
- * they follow, the films they've suggested, and their data. Their films live on the Watchlist.
+ * Settings: the sign-in email, the films a member has suggested, and their data. Their name,
+ * handle, privacy and the directors they follow are on their profile; their films on the Watchlist.
  */
 export default async function AccountPage() {
   const db = await getServerClient();
@@ -28,28 +26,26 @@ export default async function AccountPage() {
   const { data: { user } } = await db.auth.getUser();
   if (!user) redirect("/login?next=/account");
 
-  const [{ data: profile }, { data: submissions }, followsResult, updatesResult, directors] = await Promise.all([
+  const [{ data: profile }, { data: submissions }] = await Promise.all([
     db.from("profiles").select("*").eq("id", user.id).maybeSingle(),
     db.from("submissions").select("id, title, director, year, status, created_at").eq("user_id", user.id).order("created_at", { ascending: false }),
-    db.from("follows").select("person_id, created_at").eq("user_id", user.id).order("created_at", { ascending: false }),
-    db.rpc("follow_updates"),
-    getDirectors(),
   ]);
   const p = (profile ?? {}) as { handle?: string | null; display_name?: string | null; is_admin?: boolean };
-  // Public names need community.sql; following needs follows.sql. Each part shows once its SQL has run.
-  const namesReady = "handle" in p;
-  const followsReady = !followsResult.error;
-  const followedIds = new Set((followsResult.data ?? []).map((f: { person_id: string }) => f.person_id));
-  const followed = directors.filter((d) => followedIds.has(d.id)).map(toDirectorSummary);
-  const updates = (updatesResult.data ?? []) as Update[];
 
   const tabs = [
     {
-      id: "profile",
-      label: "Profile",
+      id: "account",
+      label: "Account",
       panel: (
         <div className="account-panel">
-          {namesReady && <PublicName handle={p.handle ?? null} displayName={p.display_name ?? null} />}
+          <section className="account-section" aria-labelledby="profile-h">
+            <h2 id="profile-h">Profile</h2>
+            <p className="muted">
+              {p.handle
+                ? <>Your name, handle, privacy and the directors you follow are on <Link href={`/@${p.handle}`}>your profile</Link>.</>
+                : <>Choose a handle to get a profile page for your public collections and the directors you follow. <Link href="/profile">Create your profile</Link></>}
+            </p>
+          </section>
           <section className="account-section" aria-labelledby="signin-h">
             <h2 id="signin-h">Sign-in email</h2>
             <p className="muted">You sign in with a link or code sent to this address. No password needed.</p>
@@ -68,9 +64,6 @@ export default async function AccountPage() {
         </div>
       ),
     },
-    ...(followsReady
-      ? [{ id: "following", label: `Following${followed.length ? ` (${followed.length})` : ""}`, panel: <Following directors={followed} updates={updates} /> }]
-      : []),
     {
       id: "suggestions",
       label: `Suggestions${submissions?.length ? ` (${submissions.length})` : ""}`,

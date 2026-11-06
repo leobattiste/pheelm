@@ -53,7 +53,7 @@ export default async function MemberCollectionPage({ params }: Params) {
     <section className="page">
       <header className="page-head">
         <p className="crumbs">
-          {owner ? <>A collection by <Link href={`/@${owner.handle}`}>@{owner.handle}</Link></> : "A collection on Pheelm"}
+          {owner ? <>A collection by {owner.is_private ? `@${owner.handle}` : <Link href={`/@${owner.handle}`}>@{owner.handle}</Link>}</> : "A collection on Pheelm"}
           {staffPick && <span className="staff-pick">Staff pick</span>}
         </p>
         <h1>{list.title}</h1>

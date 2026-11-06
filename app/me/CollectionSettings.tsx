@@ -49,7 +49,7 @@ export default function CollectionSettings({ list, count, handle, minFilms = 5 }
           <p className="community-status">
             {handle && count >= minFilms
               ? <>In the community, by <a href={`/@${handle}`}>@{handle}</a>.</>
-              : <>To appear in the community: {[count < minFilms && `add ${minFilms - count} more ${minFilms - count === 1 ? "film" : "films"}`, !handle && "choose a public name below"].filter(Boolean).join(" and ")}.</>}
+              : <>To appear in the community: {count < minFilms && `add ${minFilms - count} more ${minFilms - count === 1 ? "film" : "films"}`}{count < minFilms && !handle && " and "}{!handle && <a href="/profile">create your profile</a>}.</>}
           </p>
         )}
       </div>
