@@ -38,6 +38,7 @@ export default async function Home() {
 
   return (
     <>
+      <div className="home-lead">
       <section className="statement is-hero" aria-labelledby="home-title">
         <div className="statement-body">
           <h1 id="home-title">Discover films by Black directors.</h1>
@@ -48,9 +49,10 @@ export default async function Home() {
         </div>
       </section>
 
-      <Row title="Essential films" bare>
-        {essential.map((f, i) => <FilmCard key={f.id} film={toCard(f)} priority={i < 4} posterOnly />)}
+      <Row title="Essential films" bare interactive fit>
+        {essential.map((f, i) => <FilmCard key={f.id} film={toCard(f)} priority={i < 4} posterOnly sizes="(min-width: 900px) 34vw, 72vw" />)}
       </Row>
+      </div>
 
       <section className="statement" aria-labelledby="directors-title">
         <div className="statement-body">

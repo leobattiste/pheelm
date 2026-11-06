@@ -1764,3 +1764,31 @@ a.person-row-name:hover { text-decoration: underline; text-underline-offset: 0.2
 .row-track:has(.collection-tile) { grid-auto-columns: 82%; }
 @media (min-width: 640px) { .row-track:has(.collection-tile) { grid-auto-columns: 46%; } }
 @media (min-width: 900px) { .row-track:has(.collection-tile) { grid-auto-columns: 360px; } }
+
+/* Home: the hero and the films row fill the first screen; the posters grow with the space left. */
+.home-lead { display: flex; flex-direction: column; min-height: calc(100svh - var(--header)); }
+.home-lead > .row { display: flex; flex: 1; flex-direction: column; padding-bottom: clamp(var(--space-16), 3vh, var(--space-40)); }
+.home-lead .row-viewport { position: relative; flex: 1; min-height: 300px; }
+.home-lead .row-track { position: absolute; inset: 0; grid-auto-columns: var(--poster-w, 260px); align-items: start; }
+.home-lead .film-card .poster { margin-bottom: 0; }
+
+/* Interactive rows: the poster under the pointer leans toward it, with a glare where it points. */
+.row.is-interactive .row-track { cursor: grab; }
+.row.is-interactive .row-track.is-dragging { cursor: grabbing; scroll-snap-type: none; user-select: none; }
+.row.is-interactive .row-track.is-dragging a { pointer-events: none; }
+.row.is-interactive .film-card .poster {
+  transform: perspective(1100px) rotateY(var(--rx, 0deg)) rotateX(var(--ry, 0deg)) scale(var(--lift, 1));
+  transition: transform 0.6s var(--ease), box-shadow 0.6s var(--ease), filter 0.4s var(--ease);
+}
+.row.is-interactive .film-card a:hover .poster { transform: perspective(1100px) rotateY(var(--rx, 0deg)) rotateX(var(--ry, 0deg)) scale(var(--lift, 1)); }
+.row.is-interactive .film-card.is-active .poster { --lift: 1.02; transition-duration: 0.15s, 0.4s, 0.4s; box-shadow: var(--shadow); }
+.row.is-interactive .film-card .poster::after {
+  content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none; opacity: 0;
+  background: radial-gradient(circle at var(--gx, 50%) var(--gy, 50%), rgb(255 255 255 / 0.22), transparent 55%);
+  transition: opacity 0.4s var(--ease);
+}
+.row.is-interactive .film-card.is-active .poster::after { opacity: 1; }
+.row.is-interactive .row-track:has(.is-active) .film-card:not(.is-active) .poster { filter: brightness(0.72) saturate(0.85); }
+@media (prefers-reduced-motion: reduce) {
+  .row.is-interactive .film-card .poster { transform: none !important; }
+}
