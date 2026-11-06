@@ -4,8 +4,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import CommunityTile from "@/components/CommunityTile";
 import { getCommunityCollections, MIN_FILMS, type Sort } from "@/lib/community";
-import { getFacets, getFilm } from "@/lib/data";
-import { countryName } from "@/lib/format";
+import { getFilm } from "@/lib/data";
 
 export const metadata: Metadata = { title: "Collections", description: PAGE_COPY.collections };
 
@@ -17,7 +16,7 @@ export default async function CollectionsPage({ searchParams }: { searchParams: 
   const sp = await searchParams;
   const sort: Sort = sp.sort === "new" ? "new" : "popular";
   const film = sp.film ? await getFilm(sp.film) : null;
-  const [list, facets] = await Promise.all([getCommunityCollections({ sort, filmId: film?.id }), getFacets()]);
+  const list = await getCommunityCollections({ sort, filmId: film?.id });
   const href = (s: Sort) => `/collections?sort=${s}${film ? `&film=${film.slug}` : ""}`;
 
   return (
@@ -45,17 +44,6 @@ export default async function CollectionsPage({ searchParams }: { searchParams: 
           <p>No collections {film ? "with this film " : ""}yet.</p>
           <p className="muted">Make one from your Watchlist: give it a title, add at least {MIN_FILMS} films and set it to public.</p>
         </div>
-      )}
-
-      {!film && (
-        <section className="collection-group">
-          <h3>Every country</h3>
-          <ul className="chip-list">
-            {[...facets.countries].sort((a, b) => countryName(a[0]).localeCompare(countryName(b[0]))).map(([c, n]) => (
-              <li key={c}><Link className="chip" href={`/films?country=${c}`}>{countryName(c)} <span className="count">{n}</span></Link></li>
-            ))}
-          </ul>
-        </section>
       )}
     </section>
   );
