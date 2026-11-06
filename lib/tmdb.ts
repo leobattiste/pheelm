@@ -48,15 +48,17 @@ export async function searchMovies(query: string, year?: number): Promise<Search
 }
 
 /** Finds the TMDB film that matches a title, year and director, checking credits to avoid remakes and namesakes. */
-export async function findMovie(title: string, year: number, directors: string[]): Promise<number | null> {
+export async function findMovie(title: string, year: number, directors: string[], opts: { partial?: boolean } = {}): Promise<number | null> {
   const results = await searchMovies(title, year);
   const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z]/g, "");
-  const wanted = new Set(directors.map(norm));
-  const close = results.filter((r) => !r.year || Math.abs(r.year - year) <= 2).slice(0, 4);
+  const wanted = directors.map(norm).filter(Boolean);
+  // Exact full names, or (partial) a surname that appears in the director's name.
+  const matches = (name: string) => (opts.partial ? wanted.some((w) => norm(name).includes(w)) : wanted.includes(norm(name)));
+  const close = results.filter((r) => !r.year || Math.abs(r.year - year) <= 2).slice(0, opts.partial ? 6 : 4);
   for (const r of close) {
-    if (!wanted.size) return r.id;
+    if (!wanted.length) return r.id;
     const credits = await get<{ crew: any[] }>(`/movie/${r.id}/credits`);
-    if (credits.crew.some((c) => c.job === "Director" && wanted.has(norm(c.name)))) return r.id;
+    if (credits.crew.some((c) => c.job === "Director" && matches(c.name))) return r.id;
   }
   return null;
 }

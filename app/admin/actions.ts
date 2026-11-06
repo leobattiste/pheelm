@@ -234,6 +234,24 @@ export async function addMany(lines: { title: string; year: number | null }[], p
   return Promise.all(lines.map((l) => addOne(l.title, l.year, publish, collectionId)));
 }
 
+/**
+ * A few films from the queue (data/film-queue.json) at once. Each is added and published only when
+ * TMDB credits one of its expected directors, so a namesake or remake never gets in.
+ */
+export async function addQueued(items: { t: string; y: number; d: string[] }[]): Promise<AddResult[]> {
+  return Promise.all(items.map(async (i) => {
+    try {
+      if (!tmdbEnabled) return { status: "not-found" as const, message: "Add TMDB_API_KEY in Vercel to switch on adding films from TMDB." };
+      const db = await adminClient();
+      const r = await addFilmByTitle(db, i.t, i.y, { publish: true, directors: i.d });
+      if (r.status === "added") refresh();
+      return r;
+    } catch (e) {
+      return { status: "not-found" as const, message: `${i.t}: ${e instanceof Error ? e.message : "something went wrong."}` };
+    }
+  }));
+}
+
 /** A few films' TMDB imports at once, for the same reason. */
 export async function importMany(ids: string[]): Promise<Result[]> {
   return Promise.all(ids.map((id) => importOne(id)));

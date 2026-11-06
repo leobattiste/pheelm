@@ -78,7 +78,7 @@ export async function addFilmByTitle(
   db: SupabaseClient,
   title: string,
   year: number | null,
-  options: { publish: boolean; collectionId?: string | null },
+  options: { publish: boolean; collectionId?: string | null; directors?: string[] },
 ): Promise<AddResult> {
   const label = year ? `${title} (${year})` : title;
 
@@ -92,8 +92,18 @@ export async function addFilmByTitle(
   }
 
   // Without a year, take TMDB's best match for the title.
-  const tmdbId = year ? await findMovie(title, year, []) : ((await searchMovies(title))[0]?.id ?? null);
-  if (!tmdbId) return { status: "not-found", message: `${label}: no confident match on TMDB. Add it by hand with its TMDB id.` };
+  // With expected directors, only a TMDB film they directed counts.
+  const tmdbId = year
+    ? await findMovie(title, year, options.directors ?? [], { partial: !!options.directors?.length })
+    : ((await searchMovies(title))[0]?.id ?? null);
+  if (!tmdbId) {
+    return {
+      status: "not-found",
+      message: options.directors?.length
+        ? `${label}: no TMDB film by ${options.directors.join(" or ")} under this title and year.`
+        : `${label}: no confident match on TMDB. Add it by hand with its TMDB id.`,
+    };
+  }
 
   const { data: byTmdb } = await db.from("films").select("id, title").eq("tmdb_id", tmdbId).maybeSingle();
   if (byTmdb) {

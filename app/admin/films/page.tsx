@@ -5,6 +5,8 @@ import { TYPE_LABELS } from "@/lib/format";
 import type { FilmType } from "@/lib/types";
 import { createFilm } from "../actions";
 import BulkAdd from "./BulkAdd";
+import FilmQueue from "./FilmQueue";
+import queue from "@/data/film-queue.json";
 
 export default async function AdminFilms({ searchParams }: { searchParams: Promise<{ status?: string; missing?: string; q?: string }> }) {
   const { db, user } = await requireAdmin();
@@ -13,11 +15,17 @@ export default async function AdminFilms({ searchParams }: { searchParams: Promi
   if (sp.status === "draft") query = query.eq("status", "draft");
   if (sp.missing === "poster") query = query.is("poster_url", null);
   if (sp.q) query = query.ilike("title", `%${sp.q}%`);
-  const [{ data: films }, { data: collections }] = await Promise.all([
+  const [{ data: films }, { data: collections }, { data: all }] = await Promise.all([
     query,
     // The admin's own collections (Pheelm's collections live there since they moved to @leo).
     db.from("lists").select("id, title").eq("user_id", user.id).order("created_at", { ascending: false }),
+    db.from("films").select("title, year").limit(5000),
   ]);
+  // Queued films not on the site yet (same title within a year).
+  const plain = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const have = new Map<string, number[]>();
+  for (const f of all ?? []) have.set(plain(f.title), [...(have.get(plain(f.title)) ?? []), f.year]);
+  const waiting = (queue as { t: string; y: number; d: string[] }[]).filter((q) => !(have.get(plain(q.t)) ?? []).some((y) => Math.abs(y - q.y) <= 1));
 
   return (
     <>
@@ -37,6 +45,8 @@ export default async function AdminFilms({ searchParams }: { searchParams: Promi
           <button className="button" type="submit">Create draft</button>
         </div>
       </form>
+
+      <FilmQueue items={waiting} />
 
       <BulkAdd collections={collections ?? []} />
 
