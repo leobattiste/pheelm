@@ -1704,3 +1704,6 @@ a.person-row-name:hover { text-decoration: underline; text-underline-offset: 0.2
 .follow-note:empty { display: none; }
 .follow .button[aria-pressed="true"] { border-color: var(--ink); }
 .notif-poster { object-fit: cover; border-radius: 6px; }
+.more-panel .follow { display: contents; }
+.more-panel .follow-note { display: none; }
+.more-panel .follow .button[aria-pressed="true"] { border: 0; }

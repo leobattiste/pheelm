@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Portrait } from "@/components/DirectorCard";
 import FollowButton from "@/components/FollowButton";
+import MoreMenu from "@/components/MoreMenu";
+import ShareButton from "@/components/ShareButton";
 import { PersonLinks } from "@/components/PersonDetails";
 import { FilmGrid } from "@/components/FilmCard";
 import Tabs from "@/components/Tabs";
@@ -79,7 +81,10 @@ export default async function DirectorPage({ params }: { params: Promise<{ slug:
           <h1>{director.name}</h1>
           {director.country && <p className="person-roles">{countryName(director.country)}</p>}
           <div className="person-actions">
-            <FollowButton personId={director.id} name={director.name} />
+            <MoreMenu label={`Actions for ${director.name}`}>
+              <FollowButton personId={director.id} name={director.name} />
+              <ShareButton item title={`${director.name} on Pheelm`} />
+            </MoreMenu>
           </div>
         </div>
       </header>
