@@ -1750,25 +1750,13 @@ a.person-row-name:hover { text-decoration: underline; text-underline-offset: 0.2
 .menu-inner:focus { outline: none; }
 .menu-top .wordmark:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 
-/* Home: statements on black, each followed by the row it introduces. Black in both themes. */
-.statement { display: flex; align-items: flex-end; width: 100%; margin-top: clamp(var(--space-48), 7vw, var(--space-96)); padding: clamp(var(--space-64), 10vw, 160px) var(--gutter); background: #000; color: #fff; }
-.statement-body { display: grid; gap: var(--space-20); max-width: 860px; }
-.statement h1, .statement h2 { color: #fff; font-size: clamp(2.25rem, 6vw, 4.5rem); font-weight: 600; line-height: 1.02; letter-spacing: -0.035em; text-wrap: balance; }
-.statement h2 { font-size: clamp(2rem, 4.6vw, 3.5rem); }
-.statement p { max-width: 44ch; color: rgb(255 255 255 / 0.72); font-size: var(--t-lg); line-height: 1.45; text-wrap: pretty; }
-.statement .actions { margin-top: var(--space-8); }
-.statement .button { background: #fff; color: #000; border-color: #fff; }
-.statement .button:hover { background: rgb(255 255 255 / 0.88); }
-.statement .button.ghost { background: transparent; color: #fff; border-color: rgb(255 255 255 / 0.3); }
-.statement .button.ghost:hover { background: rgb(255 255 255 / 0.1); }
-.statement :focus-visible { outline-color: #fff; }
-/* The first statement sits under the header and fills most of the first screen. */
-.statement.is-hero { min-height: min(72svh, 820px); margin-top: 0; padding-top: calc(var(--header) + var(--space-64)); }
-main:has(> .statement.is-hero:first-child) { margin-top: calc(var(--header) * -1); }
-body:has(.statement.is-hero) .site-header { background: transparent; border-color: transparent; }
-body:has(.statement.is-hero) .site-header :is(.wordmark, .icon-button) { color: #fff; }
-body:has(.statement.is-hero) .search-trigger { background: rgb(255 255 255 / 0.1); border-color: rgb(255 255 255 / 0.2); color: rgb(255 255 255 / 0.8); }
+/* Home: short statements in the page's own type, each followed by the row it introduces. */
+.statement { padding: clamp(var(--space-64), 9vw, 128px) var(--gutter) 0; }
+.statement-body { display: grid; gap: var(--space-12); max-width: 720px; }
+.statement h1, .statement h2 { font-size: var(--t-3xl); }
+.statement .actions { margin-top: var(--space-12); }
+.statement.is-hero { padding-top: clamp(var(--space-32), 6vw, var(--space-64)); }
+.statement + .row { padding-top: clamp(var(--space-32), 4vw, var(--space-48)); }
 .row-track:has(.collection-tile) { grid-auto-columns: 82%; }
 @media (min-width: 640px) { .row-track:has(.collection-tile) { grid-auto-columns: 46%; } }
 @media (min-width: 900px) { .row-track:has(.collection-tile) { grid-auto-columns: 360px; } }
-@media (min-width: 900px) { .statement.is-hero { min-height: min(86svh, 820px); } }

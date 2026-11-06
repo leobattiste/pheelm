@@ -41,7 +41,7 @@ export default async function Home() {
       <section className="statement is-hero" aria-labelledby="home-title">
         <div className="statement-body">
           <h1 id="home-title">Discover films by Black directors.</h1>
-          <p>Pheelm is a platform to discover and learn more about films directed by Black filmmakers around the world.</p>
+          <p className="lead">Pheelm is a platform to discover and learn more about films directed by Black filmmakers around the world.</p>
           <div className="actions">
             <Link className="button" href="/films">Browse films</Link>
           </div>
@@ -55,7 +55,7 @@ export default async function Home() {
       <section className="statement" aria-labelledby="directors-title">
         <div className="statement-body">
           <h2 id="directors-title">Get to know the directors.</h2>
-          <p>
+          <p className="lead">
             {directors.length} directors from {facets.countries.length} countries, from Oscar Micheaux in the 1920s to
             the filmmakers winning at Cannes today. Follow the ones you love to hear when they have a new film.
           </p>
@@ -72,7 +72,7 @@ export default async function Home() {
       <section className="statement" aria-labelledby="community-title">
         <div className="statement-body">
           <h2 id="community-title">Made with the community.</h2>
-          <p>
+          <p className="lead">
             Save films to your Watchlist, follow directors and make collections to share. Members&rsquo; collections
             sit alongside ours, from film movements to personal favorites.
           </p>
