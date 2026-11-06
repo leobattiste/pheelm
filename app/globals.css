@@ -1368,3 +1368,27 @@ h1, h2, .menu-main a, .empty-state p:first-child, .decades a,
 .inbox li { display: grid; gap: var(--space-12); padding: var(--space-20); border-radius: var(--r); background: var(--surface); }
 .inbox-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-8) var(--space-12); }
 .inbox-body { max-width: 72ch; white-space: pre-wrap; }
+
+/* Community collections ----------------------------------------------------------------------- */
+.collections-part { font-size: var(--t-2xl); }
+.collection-group > h3 { margin-bottom: var(--space-20); font-size: var(--t-xl); }
+.collections-jump { margin-top: var(--space-24); }
+.collections-jump a { display: inline-flex; align-items: center; }
+.community-part .section-head { margin-bottom: var(--space-8); }
+.community-intro { max-width: 64ch; margin-bottom: var(--space-24); }
+.community-intro a, .community-status a, .public-name a { text-decoration: underline; text-underline-offset: 0.2em; }
+.staff-pick { display: inline-flex; align-items: center; margin-left: var(--space-8); padding: 2px var(--space-8); border: 1px solid var(--line); border-radius: var(--pill); color: var(--text); font-size: var(--t-xs); font-weight: 400; letter-spacing: 0; vertical-align: middle; }
+.segmented-links { display: flex; gap: var(--space-8); }
+.collection-actions { margin-top: var(--space-8); }
+.save-collection { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--space-12); }
+.save-count-label { color: var(--muted); font-size: var(--t-sm); }
+.collection-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-16); margin-top: var(--space-48); }
+.report-form { display: grid; gap: var(--space-16); padding-bottom: var(--space-8); }
+.report-reasons { display: grid; gap: var(--space-12); margin: 0; padding: 0; border: 0; }
+.community-status { margin-top: var(--space-8); color: var(--muted); font-size: var(--t-sm); }
+.public-name { display: grid; gap: var(--space-12); max-width: 640px; margin-top: var(--space-64); padding: var(--space-24); border-radius: var(--r); background: var(--surface); }
+.public-name h2 { font-size: var(--t-xl); }
+.member-head { display: flex; align-items: center; gap: var(--space-20); padding: var(--space-48) 0 var(--space-32); }
+.member-avatar { display: grid; place-items: center; flex: none; width: 80px; height: 120px; border-radius: var(--r); background: var(--raised); color: var(--muted); font-size: var(--t-xl); font-weight: 700; }
+.member-head h1 { font-size: var(--t-3xl); }
+.admin-table tr.is-hidden td { opacity: 0.55; }

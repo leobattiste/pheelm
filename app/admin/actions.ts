@@ -380,3 +380,20 @@ export async function setMessageHandled(f: FormData) {
   await db.from("messages").update({ handled: f.get("handled") === "true" }).eq("id", String(f.get("id")));
   revalidatePath("/admin/inbox");
 }
+
+/** Staff-picks or hides a member's collection (or undoes it). */
+export async function setListFlag(f: FormData) {
+  const db = await adminClient();
+  const field = f.get("field") === "staff_pick" ? "staff_pick" : "hidden";
+  await db.from("lists").update({ [field]: f.get("value") === "true" }).eq("id", String(f.get("id")));
+  revalidatePath("/admin/community");
+  revalidatePath("/collections");
+  revalidatePath("/collections/community");
+}
+
+/** Dismisses a report once it's been dealt with. */
+export async function resolveReport(f: FormData) {
+  const db = await adminClient();
+  await db.from("list_reports").update({ resolved: true }).eq("id", String(f.get("id")));
+  revalidatePath("/admin/community");
+}

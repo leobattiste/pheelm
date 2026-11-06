@@ -41,7 +41,9 @@ In Supabase, go to **Authentication > URL Configuration**:
 - **Site URL**: your Vercel address
 - **Redirect URLs**: add `https://YOUR-ADDRESS/auth/callback` (and `http://localhost:3000/auth/callback` to run it on your computer)
 
-For members' collections, following directors, people's TMDB details, and the newsletter and contact inbox, also run `supabase/member-collections.sql`, `supabase/follows.sql`, `supabase/people-details.sql` and `supabase/platform.sql` (all are included in `schema.sql` too).
+For members' collections, following directors, people's TMDB details, and the newsletter and contact inbox, also run `supabase/member-collections.sql`, `supabase/follows.sql`, `supabase/people-details.sql`, `supabase/platform.sql` and `supabase/community.sql` (all are included in `schema.sql` too).
+
+Community collections: members' public collections with a title, at least 5 films and a public name (set on their Watchlist page) appear under Collections → From the community, and each member gets a page at `/@handle`. Manage staff picks, hidden collections and reports in `/admin/community`.
 
 To show your contact email, Instagram and Threads in the footer and on the Contact page, add `NEXT_PUBLIC_CONTACT_EMAIL`, `NEXT_PUBLIC_INSTAGRAM_URL` and `NEXT_PUBLIC_THREADS_URL` in Vercel and redeploy. Newsletter sign-ups and messages appear in `/admin/inbox`, where the list can be downloaded as a CSV for your email service.
 

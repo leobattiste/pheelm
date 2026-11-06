@@ -6,7 +6,7 @@ import { deleteCollection, updateCollection } from "./actions";
 type List = { id: string; title: string; description: string | null; is_public: boolean };
 
 /** A collection's heading, with editing, sharing and deleting tucked behind "Edit". */
-export default function CollectionSettings({ list, count }: { list: List; count: number }) {
+export default function CollectionSettings({ list, count, handle, minFilms = 5 }: { list: List; count: number; handle?: string | null; minFilms?: number }) {
   const [editing, setEditing] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -24,7 +24,7 @@ export default function CollectionSettings({ list, count }: { list: List; count:
         <input type="hidden" name="id" value={list.id} />
         <label className="field">Name<input name="title" defaultValue={list.title} maxLength={80} required /></label>
         <label className="field">Description <span className="hint">optional</span><textarea name="description" defaultValue={list.description ?? ""} maxLength={500} /></label>
-        <label className="check"><input type="checkbox" name="is_public" defaultChecked={list.is_public} /> Public: anyone with the link can see it</label>
+        <label className="check"><input type="checkbox" name="is_public" defaultChecked={list.is_public} /> Public: anyone with the link can see it, and it can appear in the community</label>
         <div className="actions">
           <button className="button" type="submit">Save</button>
           <button className="button ghost" type="button" onClick={() => setEditing(false)}>Cancel</button>
@@ -45,6 +45,13 @@ export default function CollectionSettings({ list, count }: { list: List; count:
           {count} {count === 1 ? "film" : "films"} · {list.is_public ? "Public" : "Private"}
         </p>
         {list.description && <p className="collection-desc-full">{list.description}</p>}
+        {list.is_public && handle !== undefined && (
+          <p className="community-status">
+            {handle && count >= minFilms
+              ? <>In the community, by <a href={`/@${handle}`}>@{handle}</a>.</>
+              : <>To appear in the community: {[count < minFilms && `add ${minFilms - count} more ${minFilms - count === 1 ? "film" : "films"}`, !handle && "choose a public name below"].filter(Boolean).join(" and ")}.</>}
+          </p>
+        )}
       </div>
       <div className="actions">
         {list.is_public && (

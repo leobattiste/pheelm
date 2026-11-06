@@ -52,3 +52,18 @@ export async function deleteCollection(form: FormData) {
   revalidatePath("/me");
   redirect("/me");
 }
+
+export type NameState = { ok: boolean; message: string } | null;
+
+/** Saves the member's public name and handle. Handles are unique and lowercase. */
+export async function updatePublicName(_prev: NameState, form: FormData): Promise<NameState> {
+  const { db, user } = await member();
+  const handle = clip(form.get("handle"), 24).toLowerCase().replace(/^@/, "");
+  const display_name = clip(form.get("display_name"), 60) || null;
+  if (handle && !/^[a-z0-9_]{3,24}$/.test(handle)) return { ok: false, message: "Handles are 3 to 24 letters, numbers or underscores." };
+  const { error } = await db.from("profiles").update({ handle: handle || null, display_name }).eq("id", user.id);
+  if (error?.code === "23505") return { ok: false, message: `@${handle} is taken. Try another.` };
+  if (error) return { ok: false, message: "That didn't save. Try again." };
+  revalidatePath("/me");
+  return { ok: true, message: handle ? `Saved. Your page is pheelm.com/@${handle}.` : "Saved." };
+}

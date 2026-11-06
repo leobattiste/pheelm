@@ -10,6 +10,7 @@ import ShareButton from "@/components/ShareButton";
 import TrailerButton from "@/components/TrailerButton";
 import WatchSection from "@/components/WatchSection";
 import WatchlistButton from "@/components/WatchlistButton";
+import { getCommunityCollections } from "@/lib/community";
 import { getCollections, getDirectors, getFilm, getFilms, toCard } from "@/lib/data";
 import { personInfo, roleLabel, sentence } from "@/lib/roles";
 import { countryName, inkFor, listJoin, runtimeLabel, trailerEmbed, TYPE_LABELS } from "@/lib/format";
@@ -69,7 +70,7 @@ export default async function FilmPage({ params }: Params) {
   const film = await getFilm((await params).slug);
   if (!film) notFound();
 
-  const [all, collections, allDirectors] = await Promise.all([getFilms(), getCollections(), getDirectors()]);
+  const [all, collections, allDirectors, community] = await Promise.all([getFilms(), getCollections(), getDirectors(), getCommunityCollections({ filmId: film.id })]);
   const anyDirector = new Set(allDirectors.map((d) => d.id));
   const inCollections = collections.filter((c) => film.collections.some((fc) => fc.slug === c.slug));
   const directorIds = new Set(film.directors.map((d) => d.id));
@@ -261,14 +262,21 @@ export default async function FilmPage({ params }: Params) {
       </article>
 
       {/* 6. Keep exploring. */}
-      {inCollections.length > 0 && (
+      {(inCollections.length > 0 || community.length > 0) && (
         <section className="related" aria-labelledby="in-collections-h">
           <div className="section-head">
             <h2 id="in-collections-h">Featured in</h2>
+            {community.length > 0 && (
+              <Link className="button ghost small" href={`/collections/community?film=${film.slug}`}>
+                {community.length} community {community.length === 1 ? "collection" : "collections"}
+              </Link>
+            )}
           </div>
-          <ul className="collection-list">
-            {inCollections.map((c) => <CollectionTile key={c.id} collection={c} />)}
-          </ul>
+          {inCollections.length > 0 && (
+            <ul className="collection-list">
+              {inCollections.map((c) => <CollectionTile key={c.id} collection={c} />)}
+            </ul>
+          )}
         </section>
       )}
       {moreByDirector.length > 0 && (

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import CollectionTile from "@/components/CollectionTile";
+import CommunityTile from "@/components/CommunityTile";
+import { getCommunityCollections, MIN_FILMS } from "@/lib/community";
 import { getCollections, getFacets } from "@/lib/data";
 import { countryName } from "@/lib/format";
 
@@ -16,21 +18,27 @@ const KIND_LABELS: Record<string, string> = {
 };
 
 export default async function CollectionsPage() {
-  const [collections, facets] = await Promise.all([getCollections(), getFacets()]);
+  const [collections, facets, community] = await Promise.all([getCollections(), getFacets(), getCommunityCollections({ limit: 6 })]);
 
   return (
     <section className="page">
       <header className="page-head">
         <h1>Collections</h1>
-        <p className="lead">Films grouped by movement, theme, country and form.</p>
+        <p className="lead">Films grouped by movement, theme, country and form, by Pheelm and by its community.</p>
+        <nav className="profile-tabs collections-jump" aria-label="Collections">
+          <a className="chip" aria-selected="true" href="#from-pheelm">From Pheelm</a>
+          <Link className="chip" href="/collections/community">From the community</Link>
+        </nav>
       </header>
+
+      <h2 className="visually-hidden" id="from-pheelm">From Pheelm</h2>
 
       {KIND_ORDER.map((kind) => {
         const list = collections.filter((c) => c.kind === kind);
         if (!list.length) return null;
         return (
           <section key={kind} className="collection-group">
-            <h2>{KIND_LABELS[kind]}</h2>
+            <h3>{KIND_LABELS[kind]}</h3>
             <ul className="collection-list">
               {list.map((c) => <CollectionTile key={c.id} collection={c} />)}
             </ul>
@@ -38,8 +46,23 @@ export default async function CollectionsPage() {
         );
       })}
 
+      <section className="collection-group community-part" aria-labelledby="from-community">
+        <div className="section-head">
+          <h2 className="collections-part" id="from-community">From the community</h2>
+          <Link className="button ghost small" href="/collections/community">See all</Link>
+        </div>
+        <p className="muted community-intro">
+          Collections made by members. Make your own from your <Link href="/me">Watchlist</Link>: give it a title, add at least {MIN_FILMS} films and make it public.
+        </p>
+        {community.length ? (
+          <ul className="collection-list">{community.map((c) => <CommunityTile key={c.id} c={c} />)}</ul>
+        ) : (
+          <div className="empty-state"><p>No community collections yet.</p><p className="muted">Be the first: make one from your Watchlist and set it to public.</p></div>
+        )}
+      </section>
+
       <section className="collection-group">
-        <h2>Every country</h2>
+        <h3>Every country</h3>
         <ul className="chip-list">
           {[...facets.countries].sort((a, b) => countryName(a[0]).localeCompare(countryName(b[0]))).map(([c, n]) => (
             <li key={c}><Link className="chip" href={`/films?country=${c}`}>{countryName(c)} <span className="count">{n}</span></Link></li>
