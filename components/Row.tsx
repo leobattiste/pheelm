@@ -5,8 +5,8 @@ import { useEffect, useRef } from "react";
 
 /**
  * A short, curated row that scrolls sideways, with arrow buttons on desktop.
- * Interactive rows also tilt the poster under the pointer toward it, with a soft glare,
- * and can be dragged sideways with a mouse.
+ * Interactive rows move each poster's image slightly against the scroll (parallax), tilt the
+ * poster under the pointer toward it with a soft glare, and can be dragged sideways with a mouse.
  */
 export default function Row({ title, href, linkLabel, intro, bare, interactive, fit, className = "", children }: {
   title: string;
@@ -39,6 +39,35 @@ export default function Row({ title, href, linkLabel, intro, bare, interactive, 
     ro.observe(box);
     return () => ro.disconnect();
   }, [fit]);
+
+  // Parallax: as the row moves, each poster's image drifts within its frame, against the scroll.
+  useEffect(() => {
+    const el = track.current;
+    if (!el || !interactive || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const view = el.getBoundingClientRect();
+      const mid = view.left + view.width / 2;
+      for (const card of el.querySelectorAll<HTMLElement>(".film-card")) {
+        const r = card.getBoundingClientRect();
+        if (r.right < view.left - r.width || r.left > view.right + r.width) continue;
+        // -1 at the left edge of the row, 0 in the middle, 1 at the right edge.
+        const t = Math.max(-1, Math.min(1, (r.left + r.width / 2 - mid) / (view.width / 2)));
+        card.style.setProperty("--px", `${(-t * 8).toFixed(2)}%`);
+      }
+    };
+    const queue = () => { if (!frame) frame = requestAnimationFrame(update); };
+    update();
+    el.addEventListener("scroll", queue, { passive: true });
+    window.addEventListener("resize", queue);
+    return () => {
+      cancelAnimationFrame(frame);
+      el.removeEventListener("scroll", queue);
+      window.removeEventListener("resize", queue);
+    };
+  }, [interactive]);
+
   const page = (dir: 1 | -1) => {
     const el = track.current;
     if (el) el.scrollBy({ left: dir * el.clientWidth * 0.85, behavior: "smooth" });

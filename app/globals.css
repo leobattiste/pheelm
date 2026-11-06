@@ -1789,6 +1789,10 @@ a.person-row-name:hover { text-decoration: underline; text-underline-offset: 0.2
 }
 .row.is-interactive .film-card.is-active .poster::after { opacity: 1; }
 .row.is-interactive .row-track:has(.is-active) .film-card:not(.is-active) .poster { filter: brightness(0.72) saturate(0.85); }
+/* Parallax: the image is a little wider than its frame and slides inside it as the row scrolls. */
+.row.is-interactive .film-card .poster img { width: 120%; max-width: none; margin-left: -10%; transform: translate3d(var(--px, 0%), 0, 0); will-change: transform; }
+.row.is-interactive .film-card .poster-card-title { transform: translate3d(calc(var(--px, 0%) * 0.6), 0, 0); }
 @media (prefers-reduced-motion: reduce) {
   .row.is-interactive .film-card .poster { transform: none !important; }
+  .row.is-interactive .film-card .poster img { width: 100%; margin-left: 0; transform: none; }
 }
