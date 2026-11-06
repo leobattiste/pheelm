@@ -3,14 +3,15 @@
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useRef } from "react";
 import { updatePublicName, type NameState } from "@/app/me/actions";
+import { COUNTRY_OPTIONS } from "@/lib/countries";
 
-type Props = { handle: string; displayName: string | null; isPrivate: boolean };
+type Props = { handle: string; displayName: string | null; isPrivate: boolean; country: string | null };
 
 /**
- * "Edit profile" on your own profile page: name, handle and the private setting, in a modal.
+ * "Edit profile" on your own profile page: name, country, handle and the private setting, in a modal.
  * Opens on its own when the page is reached with ?edit (from the account menu).
  */
-export default function ProfileEditor({ handle, displayName, isPrivate }: Props) {
+export default function ProfileEditor({ handle, displayName, isPrivate, country }: Props) {
   const router = useRouter();
   const modal = useRef<HTMLDialogElement>(null);
   const [state, action, pending] = useActionState<NameState, FormData>(updatePublicName, null);
@@ -47,6 +48,13 @@ export default function ProfileEditor({ handle, displayName, isPrivate }: Props)
             <label className="field">
               Name
               <input name="display_name" defaultValue={displayName ?? ""} maxLength={60} placeholder="Your name" autoComplete="name" />
+            </label>
+            <label className="field">
+              Country
+              <select name="country" defaultValue={country ?? ""}>
+                <option value="">Not shown</option>
+                {COUNTRY_OPTIONS.map(([code, name]) => <option key={code} value={code}>{name}</option>)}
+              </select>
             </label>
             <label className="field">
               Handle

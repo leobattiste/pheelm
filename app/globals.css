@@ -998,10 +998,17 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 
 /* People ------------------------------------------------------------------------------- */
 
-.person-head { display: grid; gap: var(--space-24); padding: clamp(var(--space-32), 6vw, var(--space-64)) 0 0; }
-.person-head h1 { font-size: var(--t-3xl); }
+/* Every profile (directors and members): the photo, with name, country, @username and buttons
+   stacked beside it, on phones too. */
+.person-head { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-16); align-items: center; padding: clamp(var(--space-32), 6vw, var(--space-64)) 0 0; }
+.person-head h1 { font-size: var(--t-3xl); overflow-wrap: anywhere; }
+.person-sub { color: var(--muted); }
 /* Profile portraits keep TMDB's 2:3 shape, so nothing is cut off. */
-.person-head .portrait { width: 120px; height: 180px; aspect-ratio: 2 / 3; font-size: var(--t-2xl); }
+.person-head .portrait { width: 104px; height: 156px; aspect-ratio: 2 / 3; font-size: var(--t-xl); }
+@media (min-width: 640px) {
+  .person-head { gap: var(--space-24); }
+  .person-head .portrait { width: 140px; height: 210px; font-size: var(--t-2xl); }
+}
 .person-text { display: grid; gap: var(--space-16); align-content: start; }
 .bio { max-width: 64ch; font-size: var(--t-lg); line-height: 1.6; }
 .person-facts { display: flex; flex-wrap: wrap; gap: var(--space-8); }
@@ -1009,7 +1016,7 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 .person-facts dt { color: var(--muted); font-size: var(--t-xs); }
 .person-facts dd { color: var(--ink); font-size: var(--t-sm); font-weight: 600; }
 @media (min-width: 900px) {
-  .person-head:has(.portrait) { grid-template-columns: 180px 1fr; gap: var(--space-40); align-items: start; }
+  .person-head { gap: var(--space-40); }
   .person-head .portrait { width: 180px; height: 270px; }
 }
 .filmography { display: grid; gap: 1px; overflow: hidden; border-radius: var(--r); background: var(--bg); }
@@ -1321,8 +1328,8 @@ h1, h2, .menu-main a, .empty-state p:first-child, .decades a,
 /* People ------------------------------------------------------------------------------------
    Directors have a profile with tabs; cast and crew open in a sheet with the same details. */
 .person-roles { color: var(--ink); }
-.person-head .person-text { gap: var(--space-8); }
-.person-head .person-actions { margin-top: var(--space-12); }
+.person-head .person-text { gap: var(--space-4); }
+.person-head .person-actions { margin-top: var(--space-12); font-size: var(--t-sm); }
 .person-links { display: flex; flex-wrap: wrap; gap: var(--space-8); }
 
 /* Profile tabs: plain text, left-aligned, with a hairline across the full width and a line under
@@ -1341,7 +1348,7 @@ h1, h2, .menu-main a, .empty-state p:first-child, .decades a,
 .person-dates { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
 .person-details { display: grid; gap: var(--space-16); }
-.person-details-head { display: flex; align-items: flex-end; gap: var(--space-16); }
+.person-details-head { display: flex; align-items: center; gap: var(--space-16); }
 .person-details .portrait { width: 72px; height: 108px; aspect-ratio: 2 / 3; font-size: var(--t-lg); }
 .person-details-name { display: grid; gap: var(--space-4); min-width: 0; }
 .person-details h1, .person-details h2 { font-size: var(--t-2xl); }
@@ -1390,9 +1397,6 @@ h1, h2, .menu-main a, .empty-state p:first-child, .decades a,
 .community-status { margin-top: var(--space-8); color: var(--muted); font-size: var(--t-sm); }
 .public-name { display: grid; gap: var(--space-12); max-width: 640px; margin-top: var(--space-64); padding: var(--space-24); border-radius: var(--r); background: var(--surface); }
 .public-name h2 { font-size: var(--t-xl); }
-.member-head { display: flex; align-items: center; gap: var(--space-20); padding: var(--space-48) 0 var(--space-32); }
-.member-avatar { display: grid; place-items: center; flex: none; width: 80px; height: 120px; border-radius: var(--r); background: var(--raised); color: var(--muted); font-size: var(--t-xl); font-weight: 700; }
-.member-head h1 { font-size: var(--t-3xl); }
 .admin-table tr.is-hidden td { opacity: 0.55; }
 
 /* Account */
@@ -1465,9 +1469,6 @@ h1, h2, .menu-main a, .empty-state p:first-child, .decades a,
 .switch-row .hint { color: var(--muted); font-size: var(--t-sm); line-height: var(--lh-snug); }
 
 /* Profile pages */
-.member-head-text { display: grid; gap: var(--space-4); min-width: 0; }
-.member-own { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-12); margin-top: var(--space-12); font-size: var(--t-sm); }
-.member-page .profile-tabs { margin-top: 0; }
 .member-page .film-section { margin-top: var(--space-48); padding-top: 0; border-top: 0; }
 .member-page .tab-panel > .film-section:first-of-type { margin-top: 0; }
 .profile-form { display: flex; flex-direction: column; flex: 1; min-height: 0; }

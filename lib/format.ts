@@ -1,5 +1,6 @@
 import type React from "react";
 import type { FilmType, Role } from "./types";
+import { ALL_COUNTRIES } from "./countries";
 
 export const COUNTRIES: Record<string, string> = {
   US: "United States", GB: "United Kingdom", FR: "France", SN: "Senegal", ML: "Mali",
@@ -14,7 +15,7 @@ export const COUNTRIES: Record<string, string> = {
   BS: "Bahamas", DO: "Dominican Republic", PR: "Puerto Rico", GF: "French Guiana", RE: "Réunion",
 };
 
-export const countryName = (code: string) => COUNTRIES[code] ?? code;
+export const countryName = (code: string) => COUNTRIES[code] ?? ALL_COUNTRIES[code] ?? code;
 
 export const TYPE_LABELS: Record<FilmType, string> = {
   feature: "Feature",

@@ -1,5 +1,6 @@
 "use server";
 
+import { ALL_COUNTRIES } from "@/lib/countries";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getServerClient } from "@/lib/supabase/server";
@@ -66,10 +67,16 @@ export async function updatePublicName(_prev: NameState, form: FormData): Promis
   if (handle && !/^[a-z0-9_]{3,24}$/.test(handle)) return { ok: false, message: "Handles are 3 to 24 letters, numbers or underscores." };
   const changes: Record<string, unknown> = { handle: handle || null, display_name };
   if (form.has("has_private")) changes.is_private = form.get("is_private") === "on";
+  if (form.has("country")) {
+    const country = clip(form.get("country"), 2).toUpperCase();
+    if (country && !ALL_COUNTRIES[country]) return { ok: false, message: "Choose a country from the list." };
+    changes.country = country || null;
+  }
   let { error } = await db.from("profiles").update(changes).eq("id", user.id);
   // Before profiles-private.sql has run, save the rest.
   if (error?.code === "42703" || error?.code === "PGRST204") {
     delete changes.is_private;
+    delete changes.country;
     ({ error } = await db.from("profiles").update(changes).eq("id", user.id));
   }
   if (error?.code === "23505") return { ok: false, message: `@${handle} is taken. Try another.` };

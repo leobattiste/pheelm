@@ -7,7 +7,7 @@ import ProfileEditor from "@/components/ProfileEditor";
 import Tabs from "@/components/Tabs";
 import { getMember } from "@/lib/community";
 import { getDirectors, toDirectorSummary } from "@/lib/data";
-import { initials } from "@/lib/format";
+import { countryName, initials } from "@/lib/format";
 import { getServerClient } from "@/lib/supabase/server";
 import { Following, type Update } from "../account/sections";
 
@@ -47,11 +47,11 @@ export default async function MemberPage({ params }: Params) {
   if (member.is_private && !own) {
     return (
       <section className="page">
-        <header className="member-head">
-          <span className="member-avatar" aria-hidden="true">{initials(member.handle)}</span>
-          <div>
+        <header className="person-head">
+          <span className="portrait portrait-initials" aria-hidden="true">{initials(member.handle)}</span>
+          <div className="person-text">
             <h1>@{member.handle}</h1>
-            <p className="muted">This profile is private.</p>
+            <p className="person-sub">This profile is private.</p>
           </div>
         </header>
       </section>
@@ -68,7 +68,6 @@ export default async function MemberPage({ params }: Params) {
     .filter((d) => order.has(d.id))
     .sort((a, b) => order.get(a.id)! - order.get(b.id)!)
     .map(toDirectorSummary);
-  const saves = collections.reduce((n, c) => n + c.saves, 0);
 
   const tabs = [
     {
@@ -103,18 +102,16 @@ export default async function MemberPage({ params }: Params) {
 
   return (
     <section className="page member-page">
-      <header className="member-head">
-        <span className="member-avatar" aria-hidden="true">{initials(name.replace(/^@/, ""))}</span>
-        <div className="member-head-text">
+      <header className="person-head">
+        <span className="portrait portrait-initials" aria-hidden="true">{initials(name.replace(/^@/, ""))}</span>
+        <div className="person-text">
           <h1>{name}</h1>
-          <p className="muted">
-            @{member.handle}
-            {saves > 0 && ` • Collections saved ${saves} ${saves === 1 ? "time" : "times"}`}
-          </p>
+          {member.country && <p className="person-roles">{countryName(member.country)}</p>}
+          <p className="person-sub">@{member.handle}</p>
           {own && (
-            <div className="member-own">
-              <ProfileEditor handle={member.handle} displayName={member.display_name} isPrivate={!!member.is_private} />
-              <span className="muted">{member.is_private ? "Private: only you can see this page" : "Public profile"}</span>
+            <div className="person-actions">
+              <ProfileEditor handle={member.handle} displayName={member.display_name} isPrivate={!!member.is_private} country={member.country ?? null} />
+              <span className="person-sub">{member.is_private ? "Private: only you can see this page" : "Public profile"}</span>
             </div>
           )}
         </div>
