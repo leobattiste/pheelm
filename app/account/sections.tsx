@@ -1,28 +1,5 @@
 import { PAGE_COPY } from "@/lib/site";
 import Link from "next/link";
-import DirectorCard from "@/components/DirectorCard";
-import type { DirectorSummary } from "@/lib/types";
-
-/** The directors a member follows, on their own profile. */
-export function Following({ directors }: { directors: DirectorSummary[] }) {
-  if (!directors.length) {
-    return (
-      <div className="empty-state">
-        <p>You&rsquo;re not following anyone yet.</p>
-        <p className="muted">Press <strong>Follow</strong> on a director&rsquo;s page to keep them here.</p>
-        <Link className="button ghost small" href="/directors">Browse directors</Link>
-      </div>
-    );
-  }
-  return (
-    <section className="film-section" aria-labelledby="following-h" style={{ marginTop: 0 }}>
-      <h2 id="following-h">Directors you follow</h2>
-      <ul className="director-grid">
-        {directors.map((d) => <DirectorCard key={d.id} director={d} />)}
-      </ul>
-    </section>
-  );
-}
 
 export function Submissions({ rows }: { rows: { id: string; title: string; director: string; year: number | null; status: string }[] }) {
   return (

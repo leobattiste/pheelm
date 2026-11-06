@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Portrait } from "@/components/DirectorCard";
-import FollowButton from "@/components/FollowButton";
 import { PersonLinks } from "@/components/PersonDetails";
 import { FilmGrid } from "@/components/FilmCard";
 import Tabs from "@/components/Tabs";
@@ -78,9 +77,6 @@ export default async function DirectorPage({ params }: { params: Promise<{ slug:
         <div className="person-text">
           <h1>{director.name}</h1>
           {director.country && <p className="person-roles">{countryName(director.country)}</p>}
-          <div className="person-actions">
-            <FollowButton personId={director.id} name={director.name} />
-          </div>
         </div>
       </header>
       <Tabs tabs={tabs} />

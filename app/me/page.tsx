@@ -29,8 +29,8 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
   if (!user) redirect("/login?next=/me");
 
   const sp = await searchParams;
-  // Following and suggestions moved to the Account page.
-  if (sp.c === "following") redirect("/profile?tab=following");
+  // Old links: following is gone, submissions moved to the Account page.
+  if (sp.c === "following") redirect("/profile");
   if (sp.c === "submissions") redirect("/account#submissions");
   const [{ data: saved }, { data: profile }, listsResult, films] = await Promise.all([
     db.from("watchlist").select("film_id, added_at").eq("user_id", user.id).order("added_at", { ascending: false }),

@@ -19,7 +19,7 @@ export default function TermsPage() {
 
         <h2>Your account</h2>
         <p>
-          You need an account to keep a watchlist, make collections, follow directors or suggest films. Keep access to your email secure, since
+          You need an account to keep a watchlist, make collections or suggest films. Keep access to your email secure, since
           that&rsquo;s how you sign in. You can delete your account at any time by <Link href="/contact?topic=privacy">contacting us</Link>.
         </p>
 

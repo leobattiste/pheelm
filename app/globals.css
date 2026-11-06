@@ -1357,8 +1357,6 @@ h1, h2, .menu-main a, .empty-state p:first-child, .decades a,
 .error-detail { color: var(--muted); font-size: var(--t-xs); overflow-wrap: anywhere; }
 
 .follow { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--space-8) var(--space-12); }
-.follow-note { color: var(--muted); font-size: var(--t-sm); }
-.follow-note:empty { display: none; }
 
 /* Profiles and the person sheet have no separator lines. */
 .person-sheet .modal-head, .signin-sheet .modal-head { border-bottom: 0; }
@@ -1472,7 +1470,7 @@ h1, h2, .menu-main a, .empty-state p:first-child, .decades a,
 
 /* Sentences everywhere: 16px, regular weight. Headings keep their own sizes. */
 .lead, .label, .prose, .prose blockquote, .bio, .person-bio p, .row-title p, .collection-desc,
-.save-intro, .save-note, .notice, .form-note, .watch-credit, .follow-note, .community-status,
+.save-intro, .save-note, .notice, .form-note, .watch-credit, .community-status,
 .menu-note, .switch-row .hint, .field .hint, .search-note, .spotlight-desc, .feature-line,
 .empty-state p:not(:first-child), .watch-empty, .info-page .prose p {
   font-size: var(--t-md);

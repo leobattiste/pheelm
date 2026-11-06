@@ -41,7 +41,7 @@ export default async function AboutPage() {
           <Link href="/collections">Collections</Link> group films by movement, theme, country and form, and the <Link href="/journal">Journal</Link>{" "}
           tells the stories behind them.
         </p>
-        <p>With a free account you can keep a watchlist, make your own collections and follow directors to hear when their films are added.</p>
+        <p>With a free account you can keep a watchlist and make your own collections.</p>
 
         <h2>Where the information comes from</h2>
         <p>

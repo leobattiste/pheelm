@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "Account", description: PAGE_COPY.acc
 
 /**
  * Settings: the sign-in email, the films a member has suggested, and their data. Their name,
- * handle, privacy and the directors they follow are on their profile; their films on the Watchlist.
+ * handle and privacy are on their profile; their films on the Watchlist.
  */
 export default async function AccountPage() {
   const db = await getServerClient();
@@ -43,8 +43,8 @@ export default async function AccountPage() {
             <h2 id="profile-h">Profile</h2>
             <p className="muted">
               {p.handle
-                ? <>Your name, handle, privacy and the directors you follow are on <Link href={`/@${p.handle}`}>your profile</Link>.</>
-                : <>Choose a handle to get a profile page for your public collections and the directors you follow. <Link href="/profile">Create your profile</Link></>}
+                ? <>Your name, handle and privacy are on <Link href={`/@${p.handle}`}>your profile</Link>.</>
+                : <>Choose a handle to get a profile page for your public collections. <Link href="/profile">Create your profile</Link></>}
             </p>
           </section>
           <section className="account-section" aria-labelledby="signin-h">

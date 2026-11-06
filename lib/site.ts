@@ -13,7 +13,7 @@ export const PAGE_COPY = {
   journal: "Read stories, interviews, and articles about films and filmmakers.",
   about: "Learn more about Pheelm and why we created the platform.",
   submit: "Help grow the platform by suggesting films we're missing.",
-  signIn: "Sign in or create an account to save films and follow directors.",
+  signIn: "Sign in or create an account to save films and make collections.",
   account: "Manage your account and your film submissions.",
   watchlist: "Save films you want to watch later.",
   submissions: "View your film submissions and their status.",

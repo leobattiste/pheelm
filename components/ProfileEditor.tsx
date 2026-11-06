@@ -65,7 +65,7 @@ export default function ProfileEditor({ handle, displayName, isPrivate, country 
             <label className="switch-row">
               <span>
                 <span className="switch-label">Private profile</span>
-                <span className="hint">Only you can see your profile and who you follow. Collections you make public stay in the community.</span>
+                <span className="hint">Only you can see your profile. Collections you make public stay in the community.</span>
               </span>
               <input type="checkbox" role="switch" className="switch" name="is_private" defaultChecked={isPrivate} />
             </label>

@@ -22,7 +22,7 @@ export default function PrivacyPage() {
         <h2>What we collect</h2>
         <ul>
           <li><strong>Your account.</strong> Your email address, so you can sign in with a link or code. No password is stored.</li>
-          <li><strong>What you save.</strong> Your watchlist, your collections (and whether each is public), the directors you follow and the films you suggest.</li>
+          <li><strong>What you save.</strong> Your watchlist, your collections (and whether each is public) and the films you suggest.</li>
           <li><strong>Newsletter.</strong> Your email address and when you signed up.</li>
           <li><strong>Messages.</strong> What you send through the contact and partnership forms: your name, email, organisation and message.</li>
           <li><strong>Visits.</strong> Anonymous, aggregated page views (which pages are popular, from which countries and devices), measured without cookies and without identifying you.</li>
