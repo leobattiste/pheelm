@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import Icon, { type IconName } from "@/components/Icon";
 import { Avatar } from "@/components/PeopleSheet";
+import { initials } from "@/lib/format";
 import { getNotifications, type Notification } from "@/lib/notifications";
 import { getServerClient } from "@/lib/supabase/server";
 import { respondToInvite, respondToRequest } from "../c/actions";
@@ -37,10 +38,12 @@ function Line({ n }: { n: Notification }) {
     case "comment": return <>{who} commented on {list} {quote}</>;
     case "reply": return <>{who} replied to your comment on {list} {quote}</>;
     case "mention": return <>{who} mentioned you on {list} {quote}</>;
+    case "new_film": return <>New from <strong>{n.person?.name ?? "a director you follow"}</strong>: <strong>{n.film?.title ?? "a film"}</strong>{n.film?.year ? ` (${n.film.year})` : ""}</>;
   }
 }
 
 function href(n: Notification) {
+  if (n.type === "new_film") return n.film ? `/films/${n.film.slug}` : null;
   if (!n.list || n.type === "removed") return null;
   if (n.comment) return `/c/${n.list.id}#comment-${n.comment.id}`;
   if (n.type === "request") return `/c/${n.list.id}?people`;
@@ -49,7 +52,7 @@ function href(n: Notification) {
 
 const KIND_ICONS: Record<Notification["type"], IconName> = {
   invite: "userPlus", request: "door", invite_accepted: "check", invite_declined: "x",
-  request_accepted: "check", request_declined: "x", removed: "x", comment: "comment", reply: "reply", mention: "at",
+  request_accepted: "check", request_declined: "x", removed: "x", comment: "comment", reply: "reply", mention: "at", new_film: "film",
 };
 
 function Item({ n }: { n: Notification }) {
@@ -57,7 +60,12 @@ function Item({ n }: { n: Notification }) {
   return (
     <li className={`notif${n.read_at ? "" : " is-unread"}`}>
       <span className="notif-avatar">
-        {n.actor ? <Avatar m={n.actor} /> : <span className="avatar" aria-hidden="true" />}
+        {n.type === "new_film" ? (
+          n.film?.poster_url
+            // eslint-disable-next-line @next/next/no-img-element
+            ? <img className="avatar notif-poster" src={n.film.poster_url} alt="" width={36} height={36} loading="lazy" />
+            : <span className="avatar notif-poster" aria-hidden="true">{initials(n.person?.name ?? n.film?.title ?? "")}</span>
+        ) : n.actor ? <Avatar m={n.actor} /> : <span className="avatar" aria-hidden="true" />}
         <span className={`notif-kind is-${n.type}`}><Icon name={KIND_ICONS[n.type]} /></span>
       </span>
       <div className="notif-main">
@@ -123,7 +131,7 @@ export default async function NotificationsPage() {
       <header className="page-head">
         <h1>Notifications</h1>
         <p className="lead">
-          {waiting ? `${waiting} waiting for your answer.` : "Invites, requests and comments on your collections."}
+          {waiting ? `${waiting} waiting for your answer.` : "New films from directors you follow, and invites, requests and comments on your collections."}
         </p>
         {items.length > 0 && (
           <div className="collection-actions">
@@ -139,7 +147,7 @@ export default async function NotificationsPage() {
         <div className="empty-state">
           <Icon name="bell" className="empty-icon" />
           <p>You&rsquo;re all caught up.</p>
-          <p className="muted">When someone invites you to a collection, asks to join yours, or comments, it shows up here.</p>
+          <p className="muted">Follow a director to hear when their new films are added. Invites, requests and comments on your collections show up here too.</p>
           <Link className="button ghost small" href="/collections">Browse collections</Link>
         </div>
       ) : (

@@ -40,7 +40,7 @@ export default async function AboutPage() {
           <Link href="/directors">Directors</Link> have their own profiles, with their biography and every film of theirs here.{" "}
           <Link href="/collections">Collections</Link> group films by movement, theme, country and form.
         </p>
-        <p>With a free account you can keep a watchlist and make your own collections.</p>
+        <p>With a free account you can keep a watchlist, make your own collections and follow directors to hear when their new films are added.</p>
 
         <h2>Where the information comes from</h2>
         <p>

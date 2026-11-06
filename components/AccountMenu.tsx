@@ -52,7 +52,7 @@ export default function AccountMenu({ onNavigate }: { onNavigate: () => void }) 
     return (
       <nav className="menu-more menu-account" aria-label="Account">
         <button type="button" className="menu-more-button" onClick={() => { onNavigate(); openSignIn(); }}><Icon name="login" />Sign in</button>
-        <p className="menu-note">Save films and make your own collections.</p>
+        <p className="menu-note">Save films, make collections and follow directors.</p>
       </nav>
     );
   }

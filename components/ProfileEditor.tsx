@@ -34,7 +34,10 @@ export default function ProfileEditor({ handle, displayName, isPrivate, country,
 
   return (
     <>
-      <button type="button" className="button ghost" aria-haspopup="dialog" onClick={() => modal.current?.showModal()}>Edit profile</button>
+      <button type="button" className="button ghost" aria-haspopup="dialog" onClick={() => modal.current?.showModal()}>
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 4.5l2 2L8 14l-3 1 1-3z" /></svg>
+        Edit profile
+      </button>
       <dialog ref={modal} className="modal" aria-labelledby="edit-profile-title" onClick={(e) => { if (e.target === modal.current) modal.current?.close(); }}>
         <div className="modal-head">
           <span className="sheet-handle" aria-hidden="true" />

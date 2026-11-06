@@ -23,7 +23,10 @@ export default function ReportCollection({ listId }: { listId: string }) {
 
   return (
     <>
-      <button type="button" className="link-button" onClick={() => sheet.current?.showModal()}>Report this collection</button>
+      <button type="button" className="button ghost" onClick={() => sheet.current?.showModal()}>
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 17V3.5M5 4h9.5l-2 3.5 2 3.5H5" /></svg>
+        Report
+      </button>
       <dialog ref={sheet} className="modal" aria-labelledby="report-title" onClick={(e) => { if (e.target === sheet.current) sheet.current?.close(); }}>
         <div className="modal-head">
           <span className="sheet-handle" aria-hidden="true" />

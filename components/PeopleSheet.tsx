@@ -1,5 +1,6 @@
 "use client";
 
+import Icon from "./Icon";
 import Link from "next/link";
 import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { inviteCollaborator, removeCollaborator, respondToRequest, type CollabState } from "@/app/c/actions";
@@ -147,7 +148,6 @@ function InviteField({ listId, exclude, full }: { listId: string; exclude: strin
 export default function PeopleSheet({ listId, owner, collaborators, invited, requests, isOwner, isCollaborator, max }: Props) {
   const modal = useRef<HTMLDialogElement>(null);
   const [leaving, setLeaving] = useState(false);
-  const crowd = [owner, ...collaborators].filter((m): m is Member => !!m);
 
   // Reopen after an action (the page comes back with ?people).
   useEffect(() => {
@@ -164,9 +164,7 @@ export default function PeopleSheet({ listId, owner, collaborators, invited, req
   return (
     <>
       <button type="button" className="button ghost people-button" aria-haspopup="dialog" onClick={() => modal.current?.showModal()}>
-        <span className="avatar-stack" aria-hidden="true">
-          {crowd.slice(0, 3).map((m) => <Avatar key={m.id} m={m} size={24} />)}
-        </span>
+        <Icon name="users" />
         People
         {pending > 0 && <span className="badge" aria-label={`${pending} waiting`}>{pending}</span>}
       </button>

@@ -6,6 +6,7 @@ import CollectionEditor from "@/components/CollectionEditor";
 import Comments from "@/components/Comments";
 import Icon from "@/components/Icon";
 import { FilmGrid } from "@/components/FilmCard";
+import MoreMenu from "@/components/MoreMenu";
 import PeopleSheet from "@/components/PeopleSheet";
 import ReportCollection from "@/components/ReportCollection";
 import SaveCollectionButton from "@/components/SaveCollectionButton";
@@ -143,43 +144,46 @@ export default async function MemberCollectionPage({ params }: Params) {
         )}
 
         <div className="collection-actions">
-          {canEdit && (
-            <CollectionEditor
-              list={{ ...list, comments_enabled: list.comments_enabled ?? true }}
-              isOwner={isOwner}
-              collaborators={collab.collaborators.length}
-            />
-          )}
-          {collab.available && (canEdit || collab.collaborators.length > 0) && (
-            <PeopleSheet
-              listId={list.id}
-              owner={owner}
-              collaborators={collab.collaborators}
-              invited={collab.invited}
-              requests={collab.requests}
-              isOwner={isOwner}
-              isCollaborator={isCollaborator}
-              max={MAX_COLLABORATORS}
-            />
-          )}
-          {!canEdit && list.is_public && <SaveCollectionButton listId={list.id} ownerId={list.user_id} initialSaves={saves} />}
-          {collab.available && !canEdit && !invitedMe && list.is_public && (
-            <AskToCollaborate
-              listId={list.id}
-              ownerHandle={owner?.handle ?? null}
-              signedIn={!!viewer}
-              hasProfile={!!vp?.handle}
-              status={collab.mine?.status === "requested" ? "requested" : collab.mine?.status === "declined" ? "declined" : null}
-              againOn={againOn}
-            />
-          )}
-          {commentsOn && (
-            <a className="button ghost" href="#comments">
-              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h9A1.5 1.5 0 0 1 16 5.5v6a1.5 1.5 0 0 1-1.5 1.5H9l-3.5 3v-3h0A1.5 1.5 0 0 1 4 11.5z" /></svg>
-              {comments.length ? `${comments.length} ${comments.length === 1 ? "comment" : "comments"}` : "Comment"}
-            </a>
-          )}
-          {list.is_public && <ShareButton title={list.title} />}
+          <MoreMenu label="Collection actions">
+            {canEdit && (
+              <CollectionEditor
+                list={{ ...list, comments_enabled: list.comments_enabled ?? true }}
+                isOwner={isOwner}
+                collaborators={collab.collaborators.length}
+              />
+            )}
+            {collab.available && (canEdit || collab.collaborators.length > 0) && (
+              <PeopleSheet
+                listId={list.id}
+                owner={owner}
+                collaborators={collab.collaborators}
+                invited={collab.invited}
+                requests={collab.requests}
+                isOwner={isOwner}
+                isCollaborator={isCollaborator}
+                max={MAX_COLLABORATORS}
+              />
+            )}
+            {!canEdit && list.is_public && <SaveCollectionButton listId={list.id} ownerId={list.user_id} initialSaves={saves} />}
+            {collab.available && !canEdit && !invitedMe && list.is_public && (
+              <AskToCollaborate
+                listId={list.id}
+                ownerHandle={owner?.handle ?? null}
+                signedIn={!!viewer}
+                hasProfile={!!vp?.handle}
+                status={collab.mine?.status === "requested" ? "requested" : collab.mine?.status === "declined" ? "declined" : null}
+                againOn={againOn}
+              />
+            )}
+            {commentsOn && (
+              <a className="button ghost" href="#comments">
+                <Icon name="comment" />
+                {comments.length ? `${comments.length} ${comments.length === 1 ? "comment" : "comments"}` : "Comment"}
+              </a>
+            )}
+            {list.is_public && <ShareButton item title={list.title} />}
+            {!canEdit && list.is_public && <ReportCollection listId={list.id} />}
+          </MoreMenu>
         </div>
         {isOwner && list.is_public && !inCommunity && (
           <p className="community-status">
@@ -212,10 +216,9 @@ export default async function MemberCollectionPage({ params }: Params) {
           viewer={viewer ? { id: viewer.id, handle: vp?.handle ?? null, name: vp?.display_name ?? null, isPrivate: !!vp?.is_private } : null}
         />
       )}
-      {!canEdit && (
+      {!canEdit && !viewer && (
         <div className="collection-foot">
-          {!viewer && <p className="label">Make collections of your own: <Link href="/me">sign in and start saving films</Link>.</p>}
-          {list.is_public && <ReportCollection listId={list.id} />}
+          <p className="label">Make collections of your own: <Link href="/me">sign in and start saving films</Link>.</p>
         </div>
       )}
     </section>

@@ -1671,3 +1671,36 @@ a.person-row-name:hover { text-decoration: underline; text-underline-offset: 0.2
   .menu-main { padding: var(--space-8) 0 var(--space-12); }
   .menu-main a { font-size: var(--t-md); padding: var(--space-8) 0; }
 }
+
+/* "⋯" menu of actions (profiles, collections) ------------------------------------------------ */
+.more-menu { position: relative; display: inline-block; }
+.more-button svg { fill: currentColor; stroke: none; }
+.more-panel {
+  position: absolute; z-index: 30; top: calc(100% + 6px); left: 0;
+  display: grid; min-width: 220px; padding: 6px;
+  border: 1px solid var(--line); border-radius: var(--r); background: var(--bg); box-shadow: var(--shadow);
+  visibility: hidden; opacity: 0; transform: translateY(-4px);
+  transition: opacity 0.14s var(--ease), transform 0.14s var(--ease), visibility 0s linear 0.14s;
+}
+.more-panel[data-open] { visibility: visible; opacity: 1; transform: none; transition-delay: 0s; }
+/* The menu only hides; a sheet opened from it stays visible. */
+.more-panel dialog[open] { visibility: visible; opacity: 1; }
+.more-panel :is(.button, .link-button):not(dialog *) {
+  display: flex; align-items: center; justify-content: flex-start; gap: 10px; width: 100%;
+  height: auto; min-height: 44px; padding: 10px 12px; border: 0; border-radius: calc(var(--r) - 6px);
+  background: none; color: var(--text); font-size: var(--t-md); font-weight: 400; text-decoration: none; text-align: left;
+}
+.more-panel :is(.button, .link-button):not(dialog *):hover, .more-panel :is(.button, .link-button):not(dialog *):focus-visible { background: var(--control-hover); }
+.more-panel :is(.button, .link-button):not(dialog *) svg { width: 20px; height: 20px; flex: none; color: var(--muted); }
+.more-panel .button.is-static:not(dialog *) { color: var(--muted); }
+.more-panel .button.is-static:not(dialog *):hover { background: none; }
+.more-panel .save-collection { display: contents; }
+.more-panel .save-count-label { display: none; }
+.more-panel .people-button .badge { margin-left: auto; }
+.more-panel .ask-sent { display: flex; align-items: center; justify-content: space-between; padding-right: 12px; }
+.more-panel .ask-sent .link-button:not(dialog *) { width: auto; min-height: 0; padding: 0; color: var(--muted); text-decoration: underline; }
+.more-panel .ask-sent .link-button:not(dialog *):hover { background: none; }
+.follow-note { color: var(--muted); font-size: var(--t-sm); }
+.follow-note:empty { display: none; }
+.follow .button[aria-pressed="true"] { border-color: var(--ink); }
+.notif-poster { object-fit: cover; border-radius: 6px; }

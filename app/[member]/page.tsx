@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import CommunityTile from "@/components/CommunityTile";
 import ProfileEditor from "@/components/ProfileEditor";
+import MoreMenu from "@/components/MoreMenu";
 import ShareButton from "@/components/ShareButton";
 import { getCollaboratingOn, getMember } from "@/lib/community";
 import { countryName, initials } from "@/lib/format";
@@ -82,10 +83,14 @@ export default async function MemberPage({ params }: Params) {
           {member.country && <p className="person-roles">{countryName(member.country)}</p>}
           <p className="person-sub">@{member.handle}</p>
           {member.bio && <p className="person-bio-line">{member.bio}</p>}
-          <div className="person-actions">
-            {own && <ProfileEditor handle={member.handle} displayName={member.display_name} isPrivate={!!member.is_private} country={member.country ?? null} bio={member.bio ?? null} />}
-            {!member.is_private && <ShareButton title={`${name} on Pheelm`} />}
-          </div>
+          {(own || !member.is_private) && (
+            <div className="person-actions">
+              <MoreMenu label="Profile actions">
+                {own && <ProfileEditor handle={member.handle} displayName={member.display_name} isPrivate={!!member.is_private} country={member.country ?? null} bio={member.bio ?? null} />}
+                {!member.is_private && <ShareButton item title={`${name} on Pheelm`} />}
+              </MoreMenu>
+            </div>
+          )}
           {own && member.is_private && <p className="person-sub">Private: only you can see this page.</p>}
         </div>
       </header>
