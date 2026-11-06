@@ -364,8 +364,9 @@ svg { flex-shrink: 0; }
 .menu-inner { display: flex; flex-direction: column; height: 100%; padding: 0 var(--gutter) calc(var(--space-24) + env(safe-area-inset-bottom)); }
 .menu-top { display: flex; align-items: center; justify-content: space-between; height: var(--header); }
 .menu-main { display: grid; gap: var(--space-2); padding: var(--space-24) 0; }
-.menu-main a { padding: var(--space-8) 0; color: var(--ink); font-size: var(--t-3xl); font-weight: 600; letter-spacing: -0.03em; line-height: 1.1; }
+.menu-main a, .menu-link-button { display: block; padding: var(--space-8) 0; color: var(--ink); font-size: var(--t-3xl); font-weight: 600; letter-spacing: -0.03em; line-height: 1.1; }
 .menu-main a[aria-current="page"] { color: var(--muted); }
+.menu-link-button { width: 100%; border: 0; background: none; font-family: inherit; text-align: left; cursor: pointer; transition: transform 0.2s var(--ease), color 0.2s; }
 .menu-more { display: grid; gap: var(--space-4); padding: var(--space-20) 0; border-top: 1px solid var(--line); }
 .menu-more a { padding: var(--space-8) 0; font-size: var(--t-lg); color: var(--text); }
 .menu-foot { display: grid; gap: var(--space-16); margin-top: auto; padding-top: var(--space-20); border-top: 1px solid var(--line); font-size: var(--t-sm); color: var(--muted); }
@@ -393,8 +394,8 @@ svg { flex-shrink: 0; }
   .menu-inner { height: auto; padding: 0 var(--space-20) var(--space-20); }
   .menu-top { height: 60px; }
   .menu-main { padding: var(--space-8) 0 var(--space-16); }
-  .menu-main a { padding: var(--space-8) 0; font-size: var(--t-2xl); }
-  .menu-main a:hover, .menu-more a:hover { color: var(--muted); }
+  .menu-main a, .menu-link-button { padding: var(--space-8) 0; font-size: var(--t-2xl); }
+  .menu-main a:hover, .menu-more a:hover, .menu-link-button:hover { color: var(--muted); }
   .menu-more { padding: var(--space-12) 0; }
   .menu-more a { padding: var(--space-8) 0; font-size: var(--t-md); }
   .menu-foot { margin-top: 0; padding-top: var(--space-16); }
@@ -1224,10 +1225,10 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 .film-card a:active .poster { transform: scale(0.97); }
 .collection-tile:active, .cast a:active, .cast button:active { transform: scale(0.98); }
 .chip:active, .icon-button:active, .segmented button:active, .button.ghost:active { transform: scale(0.94); }
-.menu-main a:active, .menu-more a:active { transform: translateX(4px); }
+.menu-main a:active, .menu-more a:active, .menu-link-button:active { transform: translateX(4px); }
 @media (hover: hover) {
   .chip:hover, .icon-button:hover { transform: translateY(-1px); }
-  .menu-main a:hover, .menu-more a:hover { transform: translateX(4px); }
+  .menu-main a:hover, .menu-more a:hover, .menu-link-button:hover { transform: translateX(4px); }
   .collection-tile:hover { transform: translateY(-3px); }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1360,7 +1361,7 @@ h1, h2, .menu-main a, .empty-state p:first-child, .decades a,
 .follow-note:empty { display: none; }
 
 /* Profiles and the person sheet have no separator lines. */
-.person-sheet .modal-head { border-bottom: 0; }
+.person-sheet .modal-head, .signin-sheet .modal-head { border-bottom: 0; }
 
 /* Admin inbox */
 .inbox { display: grid; gap: var(--space-12); }
@@ -1403,3 +1404,20 @@ h1, h2, .menu-main a, .empty-state p:first-child, .decades a,
 .account-page .profile-tabs { margin-top: var(--space-24); }
 .account-page .film-section { margin-top: var(--space-48); padding-top: 0; border-top: 0; }
 .account-page .tab-panel > .film-section:first-of-type, .account-page .tab-panel > section:first-child { margin-top: 0; }
+
+/* Account button and its sheets */
+.account-button { position: relative; }
+.account-button .updates-dot { position: absolute; top: 8px; right: 7px; margin: 0; }
+.account-initials { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: var(--pill); background: var(--raised); color: var(--ink); font-size: var(--t-xs); font-weight: 600; letter-spacing: 0; }
+.account-who { display: flex; align-items: center; gap: var(--space-12); min-width: 0; }
+.account-who .account-initials { width: 40px; height: 40px; font-size: var(--t-sm); }
+.account-who-text { display: grid; min-width: 0; }
+.account-who-name { overflow: hidden; color: var(--ink); text-overflow: ellipsis; white-space: nowrap; }
+.account-who-handle { color: var(--muted); font-size: var(--t-sm); }
+.account-sheet .menu-main .updates-dot { vertical-align: super; }
+.signin-sheet .modal-body { padding-top: 0; padding-bottom: var(--space-32); }
+.signin { display: grid; gap: var(--space-16); }
+.signin h2 { font-size: var(--t-3xl); }
+.signin .lead { font-size: var(--t-md); }
+.signin .form { display: grid; gap: var(--space-16); }
+.signin-page .signin h2 { font-size: var(--t-3xl); }

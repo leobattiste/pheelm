@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
+import { openSignIn } from "./AccountButton";
 
 type Status = "loading" | "signed-out" | "off" | "on" | "unavailable";
 
@@ -48,7 +49,8 @@ export default function FollowButton({ personId, name }: { personId: string; nam
   }
   if (status === "signed-out" || status === "loading") {
     return (
-      <Link className="pill-button" href={`/login?next=${encodeURIComponent(path)}`} aria-busy={status === "loading"}>
+      <Link className="pill-button" href={`/login?next=${encodeURIComponent(path)}`} aria-busy={status === "loading"}
+        onClick={(e) => { if (status === "signed-out" && openSignIn()) e.preventDefault(); }}>
         {PLUS}
         Follow
       </Link>

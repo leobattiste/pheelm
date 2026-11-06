@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
+import { openSignIn } from "./AccountButton";
 
 type Status = "loading" | "signed-out" | "off" | "on";
 type List = { id: string; title: string; count: number; has: boolean };
@@ -54,7 +55,8 @@ export default function WatchlistButton({ filmId, filmTitle }: { filmId: string;
 
   if (status === "signed-out" || status === "loading") {
     return (
-      <Link className="pill-button" data-action="watchlist" href={`/login?next=${encodeURIComponent(path)}`} aria-busy={status === "loading"}>
+      <Link className="pill-button" data-action="watchlist" href={`/login?next=${encodeURIComponent(path)}`} aria-busy={status === "loading"}
+        onClick={(e) => { if (status === "signed-out" && openSignIn()) e.preventDefault(); }}>
         {PLUS}
         Watchlist
       </Link>

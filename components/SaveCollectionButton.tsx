@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
+import { openSignIn } from "./AccountButton";
 
 type Status = "loading" | "signed-out" | "off" | "on" | "own" | "unavailable";
 const PLUS = <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4.5v11M4.5 10h11" /></svg>;
@@ -36,7 +37,8 @@ export default function SaveCollectionButton({ listId, ownerId, initialSaves }: 
   if (status === "signed-out" || status === "loading") {
     return (
       <span className="save-collection">
-        <Link className="button ghost small" href={`/login?next=${encodeURIComponent(path)}`} aria-busy={status === "loading"}>{PLUS}Save</Link>
+        <Link className="button ghost small" href={`/login?next=${encodeURIComponent(path)}`} aria-busy={status === "loading"}
+        onClick={(e) => { if (status === "signed-out" && openSignIn()) e.preventDefault(); }}>{PLUS}Save</Link>
         {count}
       </span>
     );
