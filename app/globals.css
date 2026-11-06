@@ -1737,3 +1737,7 @@ a.person-row-name:hover { text-decoration: underline; text-underline-offset: 0.2
 }
 .verified:hover .verified-tip, .verified-mark:focus-visible + .verified-tip, .verified[data-open] .verified-tip { opacity: 1; visibility: visible; transform: translate(-50%, 0); transition-delay: 0s; }
 @media (max-width: 639px) { .verified-tip { left: auto; right: -40px; transform: translateY(-4px); } .verified:hover .verified-tip, .verified[data-open] .verified-tip, .verified-mark:focus-visible + .verified-tip { transform: none; } }
+
+/* Wordmark: "pheelm" in Beth Ellen, letters only. */
+.wordmark-type { font-family: var(--font-wordmark), cursive; font-weight: 400; font-size: 22px; letter-spacing: 0; line-height: 1; padding-block: 4px; }
+.footer-mark.wordmark-type { font-size: 26px; }

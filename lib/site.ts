@@ -1,5 +1,7 @@
 /** Change the name and tagline here; everything on the site reads from this file. */
 export const SITE_NAME = "Pheelm";
+/** How the name is set as the logo: lowercase, in Beth Ellen. */
+export const WORDMARK = "pheelm";
 export const SITE_TAGLINE = "Discover films by Black directors around the world.";
 export const SITE_DESCRIPTION =
   "A platform to explore films, discover the people behind them, and learn more about their work.";

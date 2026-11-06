@@ -10,7 +10,7 @@ import SiteHeader from "@/components/SiteHeader";
 import ThemeToggle from "@/components/ThemeToggle";
 import { TransitionWatcher } from "@/components/Transitions";
 import Icon from "@/components/Icon";
-import { INSTAGRAM_URL, SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE, THREADS_URL } from "@/lib/site";
+import { WORDMARK, INSTAGRAM_URL, SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE, THREADS_URL } from "@/lib/site";
 import { SITE_URL } from "@/lib/supabase/config";
 import { themeScript } from "@/lib/theme";
 import "./globals.css";
@@ -25,6 +25,14 @@ const nacelle = localFont({
   ],
   variable: "--font-nacelle",
   display: "swap",
+});
+
+// The wordmark only: Beth Ellen by Rob Jelinski (SIL Open Font License).
+const bethEllen = localFont({
+  src: "./fonts/BethEllen-Regular.woff2",
+  weight: "400",
+  variable: "--font-wordmark",
+  display: "block",
 });
 
 export const metadata: Metadata = {
@@ -45,7 +53,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-theme="dark" data-grid="large" className={nacelle.variable} suppressHydrationWarning>
+    <html lang="en" data-theme="dark" data-grid="large" className={`${nacelle.variable} ${bethEllen.variable}`} suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://image.tmdb.org" />
       </head>
@@ -59,7 +67,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <footer className="site-footer">
           <div className="footer-top">
             <div className="footer-about">
-              <Link href="/" className="footer-mark">{SITE_NAME}</Link>
+              <Link href="/" className="footer-mark wordmark-type" aria-label={`${SITE_NAME}, home`}>{WORDMARK}</Link>
               <p>{SITE_TAGLINE}</p>
             </div>
             <section className="footer-follow" aria-labelledby="footer-follow">

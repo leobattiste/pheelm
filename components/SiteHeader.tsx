@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { SITE_NAME } from "@/lib/site";
+import { SITE_NAME, WORDMARK } from "@/lib/site";
 import AccountMenu from "./AccountMenu";
 import Icon, { type IconName } from "./Icon";
 import SignInSheet from "./SignInSheet";
@@ -38,7 +38,7 @@ export default function SiteHeader() {
 
   return (
     <header className="site-header">
-      <Link href="/" className="wordmark">{SITE_NAME}</Link>
+      <Link href="/" className="wordmark wordmark-type" aria-label={`${SITE_NAME}, home`}>{WORDMARK}</Link>
       <div className="header-tools">
         <button type="button" className="icon-button search-trigger" onClick={openSearch} aria-label="Search">
           <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="5.5" /><path d="m13 13 4 4" /></svg>
@@ -60,7 +60,7 @@ export default function SiteHeader() {
       >
         <div className="menu-inner">
           <div className="menu-top">
-            <Link href="/" className="wordmark">{SITE_NAME}</Link>
+            <Link href="/" className="wordmark wordmark-type" aria-label={`${SITE_NAME}, home`}>{WORDMARK}</Link>
             <button type="button" className="icon-button" onClick={() => menu.current?.close()} aria-label="Close menu">
               <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" /></svg>
             </button>
