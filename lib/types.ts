@@ -61,19 +61,6 @@ export type CollectionRow = {
   sort_order: number;
 };
 
-export type ArticleRow = {
-  id: string;
-  slug: string;
-  title: string;
-  dek: string | null;
-  kind: "essay" | "interview" | "history" | "story" | "news";
-  author: string | null;
-  cover_url: string | null;
-  body: string;
-  film_ids: string[];
-  status: "draft" | "published";
-  published_at: string | null;
-};
 
 export type Credit = { person: PersonRow; role: Role; character: string | null };
 

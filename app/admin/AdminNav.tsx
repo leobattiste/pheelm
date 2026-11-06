@@ -8,7 +8,6 @@ const LINKS = [
   { href: "/admin/films", label: "Films" },
   { href: "/admin/people", label: "Directors & people" },
   { href: "/admin/collections", label: "Collections" },
-  { href: "/admin/journal", label: "Journal" },
   { href: "/admin/submissions", label: "Submissions" },
   { href: "/admin/community", label: "Community" },
   { href: "/admin/inbox", label: "Inbox" },

@@ -11,7 +11,6 @@ const WAYS: [string, string][] = [
   ["Festivals", "Bring your programme, past winners and retrospectives to a global audience with a dedicated collection, and keep them findable long after the festival ends."],
   ["Distributors and streaming services", "Make sure your films are listed with accurate details, trailers and where to watch, and featured when they're released."],
   ["Schools, libraries and film societies", "Build curated collections for courses and screenings, and point students and members to where each film can be watched."],
-  ["Writers and critics", "Pitch an essay, interview or history for the Journal."],
 ];
 
 export default function PartnershipsPage() {

@@ -751,15 +751,6 @@ main { width: 100%; }
 
 /* Journal -------------------------------------------------------------------------------- */
 
-.article-grid { display: grid; gap: var(--space-16); padding: 0 var(--gutter); }
-@media (min-width: 900px) { .article-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-.article-grid a, .article-list a { display: grid; gap: var(--space-12); }
-.article-grid img, .article-list img { aspect-ratio: 3 / 2; width: 100%; object-fit: cover; border-radius: var(--r); }
-.article-title { color: var(--ink); font-size: var(--t-xl); font-weight: 600; line-height: 1.15; letter-spacing: -0.02em; }
-.article-grid a:hover .article-title, .article-list a:hover .article-title { text-decoration: underline; }
-.article-dek { color: var(--muted); }
-.article-list { display: grid; gap: var(--space-40); }
-.article-cover { width: 100%; border-radius: var(--r); margin-bottom: var(--space-40); }
 .prose { display: grid; gap: 1.1em; max-width: 68ch; font-size: var(--t-lg); line-height: var(--lh-body); }
 .prose h2 { margin-top: 0.8em; font-size: var(--t-2xl); }
 .prose h3 { margin-top: 0.6em; font-size: var(--t-xl); }
@@ -1237,7 +1228,6 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 /* Everything set at 20px or larger is bold (Nacelle Bold, 700). Long reading text at
    20px (intros, synopses, articles) stays regular so it's comfortable to read. */
 h1, h2, .menu-main a, .empty-state p:first-child, .decades a,
-.article-title, .film-title, .feature h1, .intro p, .stat strong,
 .portrait-initials, .person-head .portrait, .field input.code-input {
   font-weight: 700;
 }

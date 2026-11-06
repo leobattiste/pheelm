@@ -4,7 +4,7 @@ import local from "@/data/catalog.json";
 import { decadeOf } from "./format";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseEnabled } from "./supabase/config";
 import type {
-  ArticleRow, Collection, CollectionRow, CreditRow, Director, DirectorSummary, Film, FilmCard, FilmRow, PersonRow,
+  Collection, CollectionRow, CreditRow, Director, DirectorSummary, Film, FilmCard, FilmRow, PersonRow,
 } from "./types";
 
 type Raw = {
@@ -13,7 +13,6 @@ type Raw = {
   credits: CreditRow[];
   collections: CollectionRow[];
   collection_films: { collection_id: string; film_id: string; sort: number }[];
-  articles: ArticleRow[];
 };
 
 /** Supabase returns at most 1,000 rows per request, so read big tables in pages. */
@@ -49,19 +48,18 @@ const load = cache((): Promise<Raw> => {
 async function fetchCatalog(): Promise<Raw> {
   const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: false } });
   try {
-    const [films, people, credits, collections, collection_films, articles] = await Promise.all([
+    const [films, people, credits, collections, collection_films] = await Promise.all([
       readAll<FilmRow>(db, "films", (q) => q.eq("status", "published")),
       readAll<PersonRow>(db, "people"),
       readAll<CreditRow>(db, "credits"),
       readAll<CollectionRow>(db, "collections"),
       readAll<Raw["collection_films"][number]>(db, "collection_films"),
-      readAll<ArticleRow>(db, "articles", (q) => q.eq("status", "published")),
     ]);
     if (!films.length) {
       console.warn("⚠ Supabase has no published films yet, so the starter catalog is shown. Run supabase/seed.sql.");
       return local as unknown as Raw;
     }
-    return { films, people, credits, collections, collection_films, articles };
+    return { films, people, credits, collections, collection_films };
   } catch (e) {
     // While building, a database problem shouldn't stop the deploy (Vercel would keep serving the
     // old version, without accounts). Build with the starter catalog and say why in the build log.
@@ -144,9 +142,7 @@ function buildCatalog(raw: Raw) {
     }))
     .sort((a, b) => a.sort_order - b.sort_order || a.title.localeCompare(b.title));
 
-  const articles = [...raw.articles].sort((a, b) => (b.published_at ?? "").localeCompare(a.published_at ?? ""));
-
-  return { films, filmById, directors, collections, articles, people: raw.people };
+  return { films, filmById, directors, collections, people: raw.people };
 }
 
 export async function getFilms() {
@@ -182,17 +178,6 @@ export async function getCollections() {
 
 export async function getCollection(slug: string) {
   return (await catalog()).collections.find((c) => c.slug === slug) ?? null;
-}
-
-export async function getArticles() {
-  return (await catalog()).articles;
-}
-
-export async function getArticle(slug: string) {
-  const { articles, filmById } = await catalog();
-  const article = articles.find((a) => a.slug === slug);
-  if (!article) return null;
-  return { article, films: article.film_ids.map((id) => filmById.get(id)).filter((f): f is Film => Boolean(f)) };
 }
 
 const wins = (f: Film) => f.awards.filter((a) => a.result === "won").length;

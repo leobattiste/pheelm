@@ -29,6 +29,13 @@ const nextConfig: NextConfig = {
   },
   staticPageGenerationTimeout: 180,
   poweredByHeader: false,
+  // The Journal was removed; old links go to the home page.
+  async redirects() {
+    return [
+      { source: "/journal", destination: "/", permanent: true },
+      { source: "/journal/:slug*", destination: "/", permanent: true },
+    ];
+  },
   async headers() {
     return [
       {

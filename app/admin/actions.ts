@@ -301,56 +301,6 @@ export async function deleteCollection(f: FormData) {
   redirect("/admin/collections");
 }
 
-// Journal ----------------------------------------------------------------------------------
-
-export async function createArticle(f: FormData) {
-  const db = await adminClient();
-  const title = str(f, "title", 300);
-  if (!title) throw new Error("Add a title.");
-  let slug = slugify(title);
-  const { data: clash } = await db.from("articles").select("id").eq("slug", slug).maybeSingle();
-  if (clash) slug = `${slug}-${Date.now().toString(36)}`;
-  const { data, error } = await db.from("articles").insert({ title, slug }).select("id").single();
-  if (error || !data) throw new Error(error?.message);
-  redirect(`/admin/journal/${data.id}`);
-}
-
-export async function saveArticle(_prev: Result, f: FormData): Promise<Result> {
-  try {
-    const db = await adminClient();
-    const title = str(f, "title", 300);
-    if (!title) return { ok: false, message: "Add a title." };
-    const status = str(f, "status") === "published" ? "published" : "draft";
-    const cover = (await upload(db, f.get("cover_file"), "journal")) ?? nullable(f, "cover_url", 1000);
-    const date = str(f, "published_at");
-    const { error } = await db.from("articles").update({
-      title,
-      slug: slugify(str(f, "slug") || title),
-      dek: nullable(f, "dek", 500),
-      kind: str(f, "kind") || "essay",
-      author: nullable(f, "author", 200),
-      cover_url: cover,
-      body: str(f, "body", 100000),
-      film_ids: f.getAll("films").map(String),
-      status,
-      published_at: date ? new Date(date).toISOString() : status === "published" ? new Date().toISOString() : null,
-      updated_at: new Date().toISOString(),
-    }).eq("id", str(f, "id"));
-    if (error) return { ok: false, message: error.code === "23505" ? "Another story already uses that address." : error.message };
-    refresh();
-    return { ok: true, message: status === "published" ? "Published." : "Saved as a draft." };
-  } catch (e) {
-    return fail(e);
-  }
-}
-
-export async function deleteArticle(f: FormData) {
-  const db = await adminClient();
-  await db.from("articles").delete().eq("id", str(f, "id"));
-  refresh();
-  redirect("/admin/journal");
-}
-
 // Submissions ---------------------------------------------------------------------------------
 
 export async function reviewSubmission(f: FormData) {

@@ -38,16 +38,15 @@ export default async function AboutPage() {
         <p>
           <Link href="/films">Films</Link> can be searched and filtered by type, decade, country, language and genre.{" "}
           <Link href="/directors">Directors</Link> have their own profiles, with their biography and every film of theirs here.{" "}
-          <Link href="/collections">Collections</Link> group films by movement, theme, country and form, and the <Link href="/journal">Journal</Link>{" "}
-          tells the stories behind them.
+          <Link href="/collections">Collections</Link> group films by movement, theme, country and form.
         </p>
         <p>With a free account you can keep a watchlist and make your own collections.</p>
 
         <h2>Where the information comes from</h2>
         <p>
           Film details, posters, cast and crew come from <a href="https://www.themoviedb.org" target="_blank" rel="noopener noreferrer">TMDB</a>, and
-          streaming information from JustWatch through TMDB. {SITE_NAME} uses the TMDB API but is not endorsed or certified by TMDB. Awards,
-          collections and everything in the Journal are put together by us. Posters and stills belong to their filmmakers and distributors.
+          streaming information from JustWatch through TMDB. {SITE_NAME} uses the TMDB API but is not endorsed or certified by TMDB. Awards and
+          collections are put together by us. Posters and stills belong to their filmmakers and distributors.
         </p>
         <p>
           Spotted a mistake? <Link href="/contact">Tell us</Link> and we&rsquo;ll fix it.

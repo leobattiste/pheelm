@@ -11,12 +11,11 @@ export default async function AdminHome() {
     if (filter) q = filter(q);
     return (await q).count ?? 0;
   };
-  const [films, drafts, people, collections, articles, pending, members] = await Promise.all([
+  const [films, drafts, people, collections, pending, members] = await Promise.all([
     count("films", (q) => q.eq("status", "published")),
     count("films", (q) => q.eq("status", "draft")),
     count("people"),
     count("collections"),
-    count("articles"),
     count("submissions", (q) => q.eq("status", "pending")),
     count("profiles"),
   ]);
@@ -35,7 +34,6 @@ export default async function AdminHome() {
         <Link className="stat" href="/admin/films?status=draft"><strong>{drafts}</strong><span>Drafts</span></Link>
         <Link className="stat" href="/admin/people"><strong>{people}</strong><span>People</span></Link>
         <Link className="stat" href="/admin/collections"><strong>{collections}</strong><span>Collections</span></Link>
-        <Link className="stat" href="/admin/journal"><strong>{articles}</strong><span>Journal stories</span></Link>
         <Link className="stat" href="/admin/submissions"><strong>{pending}</strong><span>Submissions to review</span></Link>
         <div className="stat"><strong>{members}</strong><span>Members</span></div>
         <Link className="stat" href="/admin/films?missing=poster"><strong>{missing?.length ?? 0}</strong><span>Films without a poster</span></Link>

@@ -6,7 +6,7 @@ import Poster from "@/components/Poster";
 import Row from "@/components/Row";
 import TrailerButton from "@/components/TrailerButton";
 import FilmLink from "@/components/Transitions";
-import { getArticles, getCollections, getDirectors, getFacets, getFilms, toCard, toDirectorSummary } from "@/lib/data";
+import { getCollections, getDirectors, getFacets, getFilms, toCard, toDirectorSummary } from "@/lib/data";
 import { trailerEmbed, tintStyle } from "@/lib/format";
 import { PAGE_COPY } from "@/lib/site";
 import { firstSentence } from "@/lib/text";
@@ -17,8 +17,8 @@ export const metadata: Metadata = { description: PAGE_COPY.home };
 const WEEK = 7 * 24 * 60 * 60 * 1000;
 
 export default async function Home() {
-  const [films, directors, collections, facets, articles] = await Promise.all([
-    getFilms(), getDirectors(), getCollections(), getFacets(), getArticles(),
+  const [films, directors, collections, facets] = await Promise.all([
+    getFilms(), getDirectors(), getCollections(), getFacets(),
   ]);
 
   // The film of the week rotates through the featured films, preferring ones with a still.
@@ -163,29 +163,6 @@ export default async function Home() {
           ))}
         </nav>
       </section>
-
-      {articles.length > 0 && (
-        <section className="row" aria-labelledby="journal-title">
-          <div className="row-head">
-            <h2 id="journal-title">From the Journal</h2>
-            <div className="row-tools"><Link href="/journal">All stories</Link></div>
-          </div>
-          <ul className="article-grid">
-            {articles.slice(0, 3).map((a) => (
-              <li key={a.id}>
-                <Link href={`/journal/${a.slug}`}>
-                  {a.cover_url && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={a.cover_url} alt="" loading="lazy" />
-                  )}
-                  <span className="article-title">{a.title}</span>
-                  {a.dek && <span className="article-dek">{a.dek}</span>}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
     </>
   );
 }

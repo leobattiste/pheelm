@@ -10,7 +10,6 @@ export const PAGE_COPY = {
   films: "Explore films by Black directors across countries, genres, and years.",
   directors: "Discover Black directors, their backgrounds, and their work.",
   collections: "Explore curated selections of films based on themes, genres, and more.",
-  journal: "Read stories, interviews, and articles about films and filmmakers.",
   about: "Learn more about Pheelm and why we created the platform.",
   submit: "Help grow the platform by suggesting films we're missing.",
   signIn: "Sign in or create an account to save films and make collections.",

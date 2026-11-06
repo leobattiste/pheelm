@@ -14,7 +14,6 @@ const MAIN = [
   { href: "/films", label: "Films" },
   { href: "/directors", label: "Directors" },
   { href: "/collections", label: "Collections" },
-  { href: "/journal", label: "Journal" },
 ];
 
 export default function SiteHeader() {

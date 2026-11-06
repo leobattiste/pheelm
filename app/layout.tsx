@@ -91,7 +91,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/films">Films</Link>
               <Link href="/directors">Directors</Link>
               <Link href="/collections">Collections</Link>
-              <Link href="/journal">Journal</Link>
             </nav>
             <nav aria-labelledby="footer-pheelm">
               <h2 id="footer-pheelm">{SITE_NAME}</h2>
