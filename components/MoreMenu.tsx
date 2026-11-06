@@ -7,7 +7,7 @@ import { useEffect, useId, useRef, useState, type ReactNode } from "react";
  * closed (it's only hidden), so an action that opens a sheet keeps it open after the menu closes.
  * The menu closes on an outside click, Escape, or once an action is pressed.
  */
-export default function MoreMenu({ label = "More actions", children }: { label?: string; children: ReactNode }) {
+export default function MoreMenu({ label = "More actions", children, corner = false }: { label?: string; children: ReactNode; corner?: boolean }) {
   const [open, setOpen] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
   const button = useRef<HTMLButtonElement>(null);
@@ -32,7 +32,7 @@ export default function MoreMenu({ label = "More actions", children }: { label?:
   }, [open]);
 
   return (
-    <div className="more-menu" ref={wrap}>
+    <div className={`more-menu${corner ? " is-corner" : ""}`} ref={wrap}>
       <button
         ref={button}
         type="button"

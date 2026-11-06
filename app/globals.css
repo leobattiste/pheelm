@@ -1707,3 +1707,18 @@ a.person-row-name:hover { text-decoration: underline; text-underline-offset: 0.2
 .more-panel .follow { display: contents; }
 .more-panel .follow-note { display: none; }
 .more-panel .follow .button[aria-pressed="true"] { border: 0; }
+
+/* The ⋯ menu sits in the top-right corner of the header, flush with its padding, no circle. */
+.person-head { position: relative; --head-pad: var(--space-16); }
+@media (min-width: 640px) { .person-head { --head-pad: var(--space-24); } }
+@media (min-width: 900px) { .person-head { --head-pad: var(--space-32); } }
+.page-head.has-corner { position: relative; --head-pad-top: clamp(var(--space-32), 6vw, var(--space-64)); }
+.more-menu.is-corner { position: absolute; z-index: 5; top: var(--head-pad); right: var(--head-pad); }
+.page-head .more-menu.is-corner { top: var(--head-pad-top); right: 0; }
+.more-menu.is-corner .more-button {
+  width: auto; height: auto; padding: 0; border: 0; background: none; border-radius: var(--r-sm); color: var(--ink);
+}
+.more-menu.is-corner .more-button:hover { background: none; color: var(--muted); }
+.more-menu.is-corner .more-button svg { display: block; width: 24px; height: 24px; margin: -3px -3px 0 0; }
+.more-menu.is-corner .more-panel { left: auto; right: 0; top: calc(100% + 8px); }
+.person-head:has(.is-corner) .person-text, .page-head.has-corner > :is(.crumbs, h1) { padding-right: 32px; }

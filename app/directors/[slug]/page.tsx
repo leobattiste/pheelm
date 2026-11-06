@@ -76,16 +76,14 @@ export default async function DirectorPage({ params }: { params: Promise<{ slug:
   return (
     <article className="page profile">
       <header className="person-head">
+        <MoreMenu corner label={`Actions for ${director.name}`}>
+          <FollowButton personId={director.id} name={director.name} />
+          <ShareButton item title={`${director.name} on Pheelm`} />
+        </MoreMenu>
         <Portrait director={director} />
         <div className="person-text">
           <h1>{director.name}</h1>
           {director.country && <p className="person-roles">{countryName(director.country)}</p>}
-          <div className="person-actions">
-            <MoreMenu label={`Actions for ${director.name}`}>
-              <FollowButton personId={director.id} name={director.name} />
-              <ShareButton item title={`${director.name} on Pheelm`} />
-            </MoreMenu>
-          </div>
         </div>
       </header>
       <Tabs tabs={tabs} />

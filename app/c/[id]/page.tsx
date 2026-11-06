@@ -107,7 +107,47 @@ export default async function MemberCollectionPage({ params }: Params) {
 
   return (
     <section className="page">
-      <header className="page-head">
+      <header className="page-head has-corner">
+        <MoreMenu corner label="Collection actions">
+          {canEdit && (
+            <CollectionEditor
+              list={{ ...list, comments_enabled: list.comments_enabled ?? true }}
+              isOwner={isOwner}
+              collaborators={collab.collaborators.length}
+            />
+          )}
+          {collab.available && (canEdit || collab.collaborators.length > 0) && (
+            <PeopleSheet
+              listId={list.id}
+              owner={owner}
+              collaborators={collab.collaborators}
+              invited={collab.invited}
+              requests={collab.requests}
+              isOwner={isOwner}
+              isCollaborator={isCollaborator}
+              max={MAX_COLLABORATORS}
+            />
+          )}
+          {!canEdit && list.is_public && <SaveCollectionButton listId={list.id} ownerId={list.user_id} initialSaves={saves} />}
+          {collab.available && !canEdit && !invitedMe && list.is_public && (
+            <AskToCollaborate
+              listId={list.id}
+              ownerHandle={owner?.handle ?? null}
+              signedIn={!!viewer}
+              hasProfile={!!vp?.handle}
+              status={collab.mine?.status === "requested" ? "requested" : collab.mine?.status === "declined" ? "declined" : null}
+              againOn={againOn}
+            />
+          )}
+          {commentsOn && (
+            <a className="button ghost" href="#comments">
+              <Icon name="comment" />
+              {comments.length ? `${comments.length} ${comments.length === 1 ? "comment" : "comments"}` : "Comment"}
+            </a>
+          )}
+          {list.is_public && <ShareButton item title={list.title} />}
+          {!canEdit && list.is_public && <ReportCollection listId={list.id} />}
+        </MoreMenu>
         <p className="crumbs">
           {canEdit && <><Link href="/me">Your Watchlist</Link>{" • "}</>}
           {owner ? <>A collection by <Handle m={owner} /></> : "A collection on Pheelm"}
@@ -143,48 +183,6 @@ export default async function MemberCollectionPage({ params }: Params) {
           </div>
         )}
 
-        <div className="collection-actions">
-          <MoreMenu label="Collection actions">
-            {canEdit && (
-              <CollectionEditor
-                list={{ ...list, comments_enabled: list.comments_enabled ?? true }}
-                isOwner={isOwner}
-                collaborators={collab.collaborators.length}
-              />
-            )}
-            {collab.available && (canEdit || collab.collaborators.length > 0) && (
-              <PeopleSheet
-                listId={list.id}
-                owner={owner}
-                collaborators={collab.collaborators}
-                invited={collab.invited}
-                requests={collab.requests}
-                isOwner={isOwner}
-                isCollaborator={isCollaborator}
-                max={MAX_COLLABORATORS}
-              />
-            )}
-            {!canEdit && list.is_public && <SaveCollectionButton listId={list.id} ownerId={list.user_id} initialSaves={saves} />}
-            {collab.available && !canEdit && !invitedMe && list.is_public && (
-              <AskToCollaborate
-                listId={list.id}
-                ownerHandle={owner?.handle ?? null}
-                signedIn={!!viewer}
-                hasProfile={!!vp?.handle}
-                status={collab.mine?.status === "requested" ? "requested" : collab.mine?.status === "declined" ? "declined" : null}
-                againOn={againOn}
-              />
-            )}
-            {commentsOn && (
-              <a className="button ghost" href="#comments">
-                <Icon name="comment" />
-                {comments.length ? `${comments.length} ${comments.length === 1 ? "comment" : "comments"}` : "Comment"}
-              </a>
-            )}
-            {list.is_public && <ShareButton item title={list.title} />}
-            {!canEdit && list.is_public && <ReportCollection listId={list.id} />}
-          </MoreMenu>
-        </div>
         {isOwner && list.is_public && !inCommunity && (
           <p className="community-status">
             To appear in the community:{" "}

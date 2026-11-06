@@ -77,20 +77,18 @@ export default async function MemberPage({ params }: Params) {
   return (
     <section className="page member-page">
       <header className="person-head">
+        {(own || !member.is_private) && (
+          <MoreMenu corner label="Profile actions">
+            {own && <ProfileEditor handle={member.handle} displayName={member.display_name} isPrivate={!!member.is_private} country={member.country ?? null} bio={member.bio ?? null} />}
+            {!member.is_private && <ShareButton item title={`${name} on Pheelm`} />}
+          </MoreMenu>
+        )}
         <span className="portrait portrait-initials" aria-hidden="true">{initials(name.replace(/^@/, ""))}</span>
         <div className="person-text">
           <h1>{name}</h1>
           {member.country && <p className="person-roles">{countryName(member.country)}</p>}
           <p className="person-sub">@{member.handle}</p>
           {member.bio && <p className="person-bio-line">{member.bio}</p>}
-          {(own || !member.is_private) && (
-            <div className="person-actions">
-              <MoreMenu label="Profile actions">
-                {own && <ProfileEditor handle={member.handle} displayName={member.display_name} isPrivate={!!member.is_private} country={member.country ?? null} bio={member.bio ?? null} />}
-                {!member.is_private && <ShareButton item title={`${name} on Pheelm`} />}
-              </MoreMenu>
-            </div>
-          )}
           {own && member.is_private && <p className="person-sub">Private: only you can see this page.</p>}
         </div>
       </header>
