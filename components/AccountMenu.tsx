@@ -4,16 +4,14 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { setProfilePrivate } from "@/app/me/actions";
-import { initials } from "@/lib/format";
 import { getBrowserClient } from "@/lib/supabase/client";
 import { openSignIn } from "./SignInSheet";
-import UpdatesDot from "./UpdatesDot";
 
 type Me = { email: string; handle: string | null; name: string | null; isPrivate: boolean | null };
 
 /**
- * The account part of the menu. Signed out: Sign in. Signed in: who you are, your profile (view,
- * edit, private), then Watchlist, Settings and Log out.
+ * The account part of the menu. Signed out: Sign in. Signed in: your profile (view, edit,
+ * private), then Watchlist, Settings and Log out.
  */
 export default function AccountMenu({ onNavigate }: { onNavigate: () => void }) {
   const path = usePathname();
@@ -59,20 +57,12 @@ export default function AccountMenu({ onNavigate }: { onNavigate: () => void }) 
     );
   }
 
-  const label = me.name || (me.handle ? `@${me.handle}` : me.email);
   const current = (href: string) => (path === href ? "page" : undefined);
 
   return (
     <nav className="menu-more menu-account" aria-label="Your account">
-      <div className="account-who">
-        <span className="account-initials" aria-hidden="true">{initials(label.replace(/^@/, "") || "?")}</span>
-        <span className="account-who-text">
-          <span className="account-who-name">{label}</span>
-          {me.handle && <span className="account-who-handle">@{me.handle}</span>}
-        </span>
-      </div>
       <Link href={me.handle ? `/@${me.handle}` : "/profile"} aria-current={me.handle ? current(`/@${me.handle}`) : undefined}>
-        {me.handle ? "View profile" : "Create profile"}<UpdatesDot />
+        {me.handle ? "View profile" : "Create profile"}
       </Link>
       {me.handle && <Link href={`/@${me.handle}?edit`}>Edit profile</Link>}
       {me.handle && me.isPrivate !== null && (

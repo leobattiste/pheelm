@@ -6,7 +6,6 @@ import { useEffect, useRef, useState } from "react";
 import { SITE_NAME } from "@/lib/site";
 import AccountMenu from "./AccountMenu";
 import SignInSheet from "./SignInSheet";
-import UpdatesDot from "./UpdatesDot";
 import { openSearch } from "./Search";
 import GridToggle from "./GridToggle";
 import ThemeToggle from "./ThemeToggle";
@@ -48,7 +47,6 @@ export default function SiteHeader() {
         </button>
         <button type="button" className="icon-button menu-button" aria-expanded={open} aria-controls="menu" aria-label={open ? "Close menu" : "Open menu"} onClick={toggle}>
           <span className="burger" aria-hidden="true"><span /><span /></span>
-          <UpdatesDot />
         </button>
       </div>
 

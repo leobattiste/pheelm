@@ -9,7 +9,7 @@ import { getMember } from "@/lib/community";
 import { getDirectors, toDirectorSummary } from "@/lib/data";
 import { countryName, initials } from "@/lib/format";
 import { getServerClient } from "@/lib/supabase/server";
-import { Following, type Update } from "../account/sections";
+import { Following } from "../account/sections";
 
 // Who's looking matters (your own page shows Edit and stays visible when private), so render per visit.
 export const dynamic = "force-dynamic";
@@ -58,10 +58,9 @@ export default async function MemberPage({ params }: Params) {
     );
   }
 
-  const [follows, directors, updates] = await Promise.all([
+  const [follows, directors] = await Promise.all([
     db ? db.from("follows").select("person_id, created_at").eq("user_id", member.id).order("created_at", { ascending: false }) : null,
     getDirectors(),
-    own && db ? db.rpc("follow_updates") : null,
   ]);
   const order = new Map(((follows?.data ?? []) as { person_id: string }[]).map((f, i) => [f.person_id, i]));
   const followed = directors
@@ -91,7 +90,7 @@ export default async function MemberPage({ params }: Params) {
       id: "following",
       label: `Following${followed.length ? ` (${followed.length})` : ""}`,
       panel: own ? (
-        <Following directors={followed} updates={(updates?.data ?? []) as Update[]} />
+        <Following directors={followed} />
       ) : followed.length ? (
         <ul className="director-grid">{followed.map((d) => <DirectorCard key={d.id} director={d} />)}</ul>
       ) : (

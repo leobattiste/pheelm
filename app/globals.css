@@ -1213,17 +1213,7 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 .person-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-8); }
 
 /* New films from followed directors */
-.updates-dot { display: inline-block; width: 7px; height: 7px; margin-left: var(--space-8); border-radius: 50%; background: var(--ok); vertical-align: super; }
 .menu-button { position: relative; }
-.menu-button .updates-dot { position: absolute; top: 8px; right: 7px; margin: 0; }
-.update-list { display: grid; gap: var(--space-8); margin-bottom: var(--space-40); }
-.update-list li a { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: var(--space-16); align-items: center; padding: var(--space-8); border-radius: var(--r); }
-.update-list li a:hover { background: var(--surface); }
-.update-list .poster { width: 40px; border-radius: var(--r-sm); }
-.update-list .poster-card > * { display: none; }
-.update-title { color: var(--ink); font-weight: 600; }
-.update-meta { color: var(--muted); font-size: var(--t-sm); }
-.update-when { color: var(--muted); font-size: var(--t-xs); white-space: nowrap; }
 
 /* Small hover and press motion, on touch and pointer alike ---------------------------------- */
 .film-card a, .collection-tile, .chip, .icon-button, .round-button, .pill-button, .button, .segmented button, .cast a, .cast button, .menu-main a, .menu-more a {
@@ -1319,7 +1309,7 @@ h1, h2, .menu-main a, .empty-state p:first-child, .decades a,
 .feature-by, .film-byline, .details dd,
 .cast-name, .cast-role, .award-name, .award-what, .award-year,
 .person-facts dd, .filmography a, .filmography li,
-.hit-title, .hit-meta, .save-name, .update-title, .update-meta {
+.hit-title, .hit-meta, .save-name {
   font-size: var(--t-md);
   font-weight: 400;
   letter-spacing: 0;
@@ -1423,14 +1413,13 @@ h1, h2, .menu-main a, .empty-state p:first-child, .decades a,
 .menu-account { min-height: 120px; }
 .menu-account .account-who { padding: var(--space-4) 0 var(--space-8); }
 .menu-more a, .menu-more-button, .menu-switch { display: flex; align-items: center; gap: var(--space-8); }
+.menu-account a, .menu-account .menu-more-button, .menu-account .menu-switch { font-size: var(--t-md); }
 .menu-more-button { width: 100%; padding: var(--space-8) 0; border: 0; background: none; color: var(--text); font: inherit; font-size: var(--t-lg); text-align: left; cursor: pointer; transition: transform 0.2s var(--ease), color 0.2s; }
 .menu-more a[aria-current="page"] { color: var(--muted); }
-.menu-more .updates-dot { margin: 0; }
 .menu-switch { justify-content: space-between; padding: var(--space-8) 0; font-size: var(--t-lg); color: var(--text); cursor: pointer; }
 .menu-note { color: var(--muted); font-size: var(--t-sm); }
 .menu-account form { display: contents; }
 .menu-button { position: relative; }
-.menu-button .updates-dot { position: absolute; top: 8px; right: 6px; margin: 0; }
 @media (min-width: 900px) {
   .menu-more-button, .menu-switch { font-size: var(--t-md); }
   .menu-more-button:hover { color: var(--muted); transform: translateX(4px); }
