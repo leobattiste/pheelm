@@ -2,23 +2,22 @@
 
 import Icon from "./Icon";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { countryName, decadeOf, TYPE_PLURALS } from "@/lib/format";
-import type { FilmCard, FilmType } from "@/lib/types";
+import { countryName, decadeOf } from "@/lib/format";
+import type { FilmCard } from "@/lib/types";
 import { FilmGrid } from "./FilmCard";
 
 type Facets = { countries: [string, number][]; decades: [string, number][]; languages: [string, number][]; genres: [string, number][] };
 type Sort = "newest" | "oldest" | "title" | "awards";
-const KEYS = ["type", "decade", "country", "language", "genre", "q", "sort"] as const;
+const KEYS = ["decade", "country", "language", "genre", "q", "sort"] as const;
 type Key = (typeof KEYS)[number];
 type State = Partial<Record<Key, string>>;
-const FILTERS = ["type", "decade", "country", "language", "genre"] as const;
+const FILTERS = ["decade", "country", "language", "genre"] as const;
 type Filter = (typeof FILTERS)[number];
 
 const PAGE = 36;
-const TYPES: FilmType[] = ["feature", "documentary", "short", "animation"];
 const SORTS: [Sort, string][] = [["newest", "Newest"], ["oldest", "Oldest"], ["title", "A to Z"], ["awards", "Most awarded"]];
 const plain = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
-const label = (k: Filter, v: string) => (k === "country" ? countryName(v) : k === "type" ? TYPE_PLURALS[v as FilmType] : v);
+const label = (k: Filter, v: string) => (k === "country" ? countryName(v) : v);
 
 /**
  * The Films page: a search bar and a Filters button that opens a modal (a bottom sheet on
@@ -53,7 +52,6 @@ export default function FilmBrowser({ films, facets }: { films: FilmCard[]; face
     const q = s.q ? plain(s.q.trim()) : "";
     return films.filter(
       (f) =>
-        (!s.type || f.type === s.type) &&
         (!s.decade || decadeOf(f.year) === s.decade) &&
         (!s.country || f.countries.includes(s.country)) &&
         (!s.language || f.languages.includes(s.language)) &&
@@ -79,7 +77,6 @@ export default function FilmBrowser({ films, facets }: { films: FilmCard[]; face
   const countFor = (k: Filter, v: string) => filter({ ...state, [k]: v }).length;
 
   const groups: { key: Filter; title: string; options: string[] }[] = [
-    { key: "type", title: "Type", options: TYPES },
     { key: "decade", title: "Decade", options: facets.decades.map(([d]) => d) },
     { key: "country", title: "Country", options: facets.countries.map(([c]) => c).sort((a, b) => countryName(a).localeCompare(countryName(b))) },
     { key: "language", title: "Language", options: facets.languages.map(([l]) => l).sort() },

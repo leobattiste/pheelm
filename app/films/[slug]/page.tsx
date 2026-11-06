@@ -14,7 +14,7 @@ import WatchlistButton from "@/components/WatchlistButton";
 import { getCommunityCollections } from "@/lib/community";
 import { getDirectors, getFilm, getFilms, toCard } from "@/lib/data";
 import { personInfo, roleLabel, sentence } from "@/lib/roles";
-import { countryName, inkFor, listJoin, runtimeLabel, trailerEmbed, TYPE_LABELS } from "@/lib/format";
+import { countryName, inkFor, listJoin, runtimeLabel, trailerEmbed } from "@/lib/format";
 import { SITE_URL } from "@/lib/supabase/config";
 import type { Award, Credit, Role } from "@/lib/types";
 
@@ -131,7 +131,6 @@ export default async function FilmPage({ params }: Params) {
     ["Genre", film.genres.length ? film.genres.map((g, i) => (
       <span key={g}>{i > 0 && ", "}<Link href={`/films?genre=${encodeURIComponent(g)}`}>{g}</Link></span>
     )) : null],
-    ["Type", <Link key="t" href={`/films?type=${film.type}`}>{TYPE_LABELS[film.type]}</Link>],
     ["Running time", runtime],
     ["Released", <Link key="y" href={`/films?decade=${Math.floor(film.year / 10) * 10}s`}>{film.year}</Link>],
   ];
@@ -175,7 +174,6 @@ export default async function FilmPage({ params }: Params) {
                     </span>
                   ))}
                 </span>
-                <Link className="byline-item" href={`/films?type=${film.type}`}>{TYPE_LABELS[film.type]}</Link>
                 <Link className="byline-item" href={`/films?decade=${Math.floor(film.year / 10) * 10}s`}>{film.year}</Link>
                 {runtime && <span className="byline-item">{runtime}</span>}
               </p>
@@ -301,7 +299,7 @@ export default async function FilmPage({ params }: Params) {
 
 const DETAIL_ICONS: Record<string, IconName> = {
   "Original title": "film", Country: "globe", Countries: "globe", Language: "language", Languages: "language",
-  Genre: "sparkle", Type: "film", "Running time": "clock", Released: "calendar",
+  Genre: "sparkle", "Running time": "clock", Released: "calendar",
 };
 
 function AwardList({ awards }: { awards: Award[] }) {
