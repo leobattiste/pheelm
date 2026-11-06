@@ -1324,13 +1324,11 @@ h1, h2, .menu-main a, .empty-state p:first-child, .decades a,
 
 /* Profile tabs: plain text, left-aligned, with a hairline across the full width and a line under
    the open tab. */
-.profile-tabs { display: flex; gap: var(--space-32); margin-top: var(--space-48); border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
+/* Tabs are pills; the selected one is filled. */
+.profile-tabs { display: flex; gap: var(--control-gap); margin-top: var(--space-48); overflow-x: auto; scrollbar-width: none; }
 .profile-tabs::-webkit-scrollbar { display: none; }
-.profile-tabs .chip { position: relative; flex: none; height: var(--control); padding: 0; border: 0; border-radius: 0; background: none; color: var(--muted); font-size: var(--t-md); }
-.profile-tabs .chip:hover { background: none; color: var(--ink); }
-.profile-tabs .chip:active { transform: none; }
-.profile-tabs .chip[aria-selected="true"] { background: none; color: var(--ink); }
-.profile-tabs .chip[aria-selected="true"]::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--ink); }
+.profile-tabs .chip { flex: none; }
+.profile-tabs .chip[aria-selected="true"] { border-color: var(--ink); background: var(--ink); color: var(--on-ink); }
 .tab-panel { padding-top: var(--space-32); }
 .profile-about { display: grid; gap: var(--space-16); max-width: 68ch; }
 .profile-about .details { margin-top: var(--space-16); }
