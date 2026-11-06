@@ -77,8 +77,7 @@ export default async function Home() {
             sit alongside ours, from film movements to personal favorites.
           </p>
           <div className="actions">
-            <Link className="button" href="/login">Join Pheelm</Link>
-            <Link className="button ghost" href="/collections">Explore collections</Link>
+            <Link className="button" href="/collections">Explore collections</Link>
           </div>
         </div>
       </section>
@@ -88,6 +87,16 @@ export default async function Home() {
           {shelf.map((c) => <CommunityTile key={c.id} c={c} showOwner={!c.staff_pick} />)}
         </Row>
       )}
+
+      <section className="statement is-cta" aria-labelledby="join-title">
+        <div className="statement-body">
+          <h2 id="join-title">Start your Watchlist.</h2>
+          <p className="lead">Create a free account to save films, follow directors and make your own collections.</p>
+          <div className="actions">
+            <Link className="button" href="/login">Join Pheelm</Link>
+          </div>
+        </div>
+      </section>
     </>
   );
 }
