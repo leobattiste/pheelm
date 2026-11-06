@@ -25,7 +25,7 @@ export default async function AdminFilms({ searchParams }: { searchParams: Promi
   const plain = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
   const have = new Map<string, number[]>();
   for (const f of all ?? []) have.set(plain(f.title), [...(have.get(plain(f.title)) ?? []), f.year]);
-  const waiting = (queue as { t: string; y: number; d: string[] }[]).filter((q) => !(have.get(plain(q.t)) ?? []).some((y) => Math.abs(y - q.y) <= 1));
+  const waiting = (queue as { t: string; y: number; d: string[]; n?: string }[]).filter((q) => !(have.get(plain(q.t)) ?? []).some((y) => Math.abs(y - q.y) <= 1));
 
   return (
     <>

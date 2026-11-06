@@ -2,7 +2,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import sharp from "sharp";
 import { slugify } from "./format";
-import { findMovie, getMovie, getPersonDetails, searchMovies, type ImportedFilm } from "./tmdb";
+import { findByDirector, findMovie, getMovie, getPersonDetails, searchMovies, type ImportedFilm } from "./tmdb";
 import type { WatchOption } from "./types";
 
 const isTmdbLink = (url: string) => url.includes("themoviedb.org") || url.includes("justwatch.com");
@@ -78,7 +78,7 @@ export async function addFilmByTitle(
   db: SupabaseClient,
   title: string,
   year: number | null,
-  options: { publish: boolean; collectionId?: string | null; directors?: string[] },
+  options: { publish: boolean; collectionId?: string | null; directors?: string[]; directorName?: string },
 ): Promise<AddResult> {
   const label = year ? `${title} (${year})` : title;
 
@@ -93,9 +93,11 @@ export async function addFilmByTitle(
 
   // Without a year, take TMDB's best match for the title.
   // With expected directors, only a TMDB film they directed counts.
-  const tmdbId = year
+  let tmdbId = year
     ? await findMovie(title, year, options.directors ?? [], { partial: !!options.directors?.length })
     : ((await searchMovies(title))[0]?.id ?? null);
+  // Not found by title: look through the director's own films.
+  if (!tmdbId && year && options.directorName) tmdbId = await findByDirector(options.directorName, title, year);
   if (!tmdbId) {
     return {
       status: "not-found",

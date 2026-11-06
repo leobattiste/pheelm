@@ -63,6 +63,32 @@ export async function findMovie(title: string, year: number, directors: string[]
   return null;
 }
 
+/**
+ * Finds a film through its director instead of its title: the director's TMDB directing credits,
+ * within two years of `year`, best title match first, then nearest year. For films TMDB lists under
+ * another title (a translation, the original language).
+ */
+export async function findByDirector(director: string, title: string, year: number): Promise<number | null> {
+  const norm = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const people = await get<{ results: { id: number; name: string; known_for_department?: string }[] }>("/search/person", { query: director, include_adult: "false" });
+  const want = norm(title);
+  for (const person of people.results.slice(0, 3)) {
+    const credits = await get<{ crew: { id: number; job: string; title: string; original_title: string; release_date?: string }[] }>(`/person/${person.id}/movie_credits`);
+    const films = credits.crew
+      .filter((c) => c.job === "Director" && c.release_date)
+      .map((c) => ({ id: c.id, y: Number(c.release_date!.slice(0, 4)), names: [norm(c.title), norm(c.original_title)] }))
+      .filter((c) => Math.abs(c.y - year) <= 2);
+    if (!films.length) continue;
+    const titled = films.find((c) => c.names.some((n) => n && (n === want || n.includes(want) || want.includes(n))));
+    if (titled) return titled.id;
+    // One film in those years can only be this one.
+    if (films.length === 1) return films[0].id;
+    const sameYear = films.filter((c) => c.y === year);
+    if (sameYear.length === 1) return sameYear[0].id;
+  }
+  return null;
+}
+
 export type ImportedPerson = { tmdb_id: number; name: string; role: Role; character: string | null; photo: string | null };
 
 export type ImportedFilm = {

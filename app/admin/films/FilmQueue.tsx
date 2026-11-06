@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { addQueued } from "../actions";
 
-type Item = { t: string; y: number; d: string[] };
+type Item = { t: string; y: number; d: string[]; n?: string };
 type Log = { status: "added" | "exists" | "not-found"; message: string };
 
 /**
