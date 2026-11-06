@@ -28,6 +28,23 @@ const nextConfig: NextConfig = {
     "/films/[slug]/opengraph-image": ["./assets/fonts/**"],
   },
   staticPageGenerationTimeout: 180,
+  poweredByHeader: false,
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          // Nobody else can put the site in a frame (stops clickjacking on sign-in and the admin).
+          { key: "Content-Security-Policy", value: "frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'" },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), browsing-topics=()" },
+        ],
+      },
+    ];
+  },
   env: {
     NEXT_PUBLIC_SUPABASE_URL: supabaseUrl.trim(),
     NEXT_PUBLIC_SUPABASE_ANON_KEY: supabaseKey.trim(),
