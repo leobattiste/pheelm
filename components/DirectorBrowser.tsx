@@ -10,7 +10,7 @@ type Sort = "az" | "films" | "earliest" | "latest";
 type State = { q?: string; country?: string; min?: string; sort?: Sort };
 const KEYS = ["q", "country", "min", "sort"] as const;
 
-const SORTS: [Sort, string][] = [["az", "A to Z"], ["films", "Most films"], ["earliest", "Earliest"], ["latest", "Most recent"]];
+const SORTS: [Sort, string][] = [["films", "Most films"], ["az", "A to Z"], ["earliest", "Earliest"], ["latest", "Most recent"]];
 const MINS: [string, string][] = [["", "Any"], ["2", "2 or more"], ["3", "3 or more"]];
 const plain = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 const surname = (name: string) => plain(name.split(/\s+/).at(-1) ?? name);
@@ -51,7 +51,7 @@ export default function DirectorBrowser({ directors }: { directors: DirectorSumm
       earliest: (a, b) => a.first - b.first,
       latest: (a, b) => b.last - a.last,
     };
-    return [...list].sort(by[state.sort ?? "az"]);
+    return [...list].sort(by[state.sort ?? "films"]);
   }, [directors, state.q, state.country, state.min, state.sort]);
 
 
@@ -118,7 +118,7 @@ export default function DirectorBrowser({ directors }: { directors: DirectorSumm
         <div className="modal-body">
           <label className="field filter-field">
             Sort by
-            <select value={state.sort ?? "az"} onChange={(e) => set("sort", e.target.value === "az" ? "" : e.target.value)}>
+            <select value={state.sort ?? "films"} onChange={(e) => set("sort", e.target.value === "films" ? "" : e.target.value)}>
               {SORTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
             </select>
           </label>

@@ -28,7 +28,6 @@ export default function CommunityTile({ c, showOwner = true, badge }: { c: Commu
         </span>
         <span className="collection-title">
           {c.title}
-          {c.staff_pick && <span className="staff-pick">Staff pick</span>}
           {badge && (
             <span className="tile-icon" title={badge}>
               <Icon name={BADGE_ICONS[badge] ?? "eye"} label={badge} />

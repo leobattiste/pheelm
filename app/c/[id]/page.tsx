@@ -152,7 +152,7 @@ export default async function MemberCollectionPage({ params }: Params) {
           {canEdit && <><Link href="/me">Your Watchlist</Link>{" • "}</>}
           {owner ? <>A collection by <Handle m={owner} /></> : "A collection on Pheelm"}
           {collab.collaborators.length > 0 && <> with <People list={collab.collaborators} /></>}
-          {list.staff_pick && <span className="staff-pick">Staff pick</span>}
+          
         </p>
         <h1>{list.title}</h1>
         {list.description && <p className="lead">{list.description}</p>}
