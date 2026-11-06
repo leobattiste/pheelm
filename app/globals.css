@@ -1324,11 +1324,14 @@ h1, h2, .menu-main a, .empty-state p:first-child, .decades a,
 
 /* Profile tabs: plain text, left-aligned, with a hairline across the full width and a line under
    the open tab. */
-/* Tabs are pills; the selected one is filled. */
+/* Tabs look like the buttons: outlined, with the selected one solid. Full width on phones. */
 .profile-tabs { display: flex; gap: var(--control-gap); margin-top: var(--space-48); overflow-x: auto; scrollbar-width: none; }
 .profile-tabs::-webkit-scrollbar { display: none; }
-.profile-tabs .chip { flex: none; }
+.profile-tabs .chip { flex: none; justify-content: center; height: var(--control); padding: 0 var(--control-pad); border-color: var(--control-border-strong); background: transparent; color: var(--ink); font-weight: 600; }
+.profile-tabs .chip:hover { background: var(--control-hover); }
 .profile-tabs .chip[aria-selected="true"] { border-color: var(--ink); background: var(--ink); color: var(--on-ink); }
+.profile-tabs .chip[aria-selected="true"]:hover { background: color-mix(in srgb, var(--ink) 86%, var(--bg)); }
+@media (max-width: 639px) { .profile-tabs .chip { flex: 1 1 0; min-width: max-content; } }
 .tab-panel { padding-top: var(--space-32); }
 .profile-about { display: grid; gap: var(--space-16); max-width: 68ch; }
 .profile-about .details { margin-top: var(--space-16); }
