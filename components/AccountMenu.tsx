@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
+import Icon from "./Icon";
 import { openSignIn } from "./SignInSheet";
 
 type Me = { email: string; handle: string | null; name: string | null; isPrivate: boolean | null; unread: number };
@@ -50,7 +51,7 @@ export default function AccountMenu({ onNavigate }: { onNavigate: () => void }) 
   if (!me) {
     return (
       <nav className="menu-more menu-account" aria-label="Account">
-        <button type="button" className="menu-more-button" onClick={() => { onNavigate(); openSignIn(); }}>Sign in</button>
+        <button type="button" className="menu-more-button" onClick={() => { onNavigate(); openSignIn(); }}><Icon name="login" />Sign in</button>
         <p className="menu-note">Save films and make your own collections.</p>
       </nav>
     );
@@ -61,16 +62,16 @@ export default function AccountMenu({ onNavigate }: { onNavigate: () => void }) 
   return (
     <nav className="menu-more menu-account" aria-label="Your account">
       <Link href={me.handle ? `/@${me.handle}` : "/profile"} aria-current={me.handle ? current(`/@${me.handle}`) : undefined}>
-        {me.handle ? "Profile" : "Create profile"}
+        <Icon name="user" />{me.handle ? "Profile" : "Create profile"}
       </Link>
       <Link href="/notifications" aria-current={current("/notifications")}>
-        Notifications
+        <Icon name="bell" />Notifications
         {me.unread > 0 && <span className="badge" aria-label={`${me.unread} new`}>{me.unread > 9 ? "9+" : me.unread}</span>}
       </Link>
-      <Link href="/me" aria-current={current("/me")}>Watchlist</Link>
-      <Link href="/account" aria-current={current("/account")}>Settings</Link>
+      <Link href="/me" aria-current={current("/me")}><Icon name="bookmark" />Watchlist</Link>
+      <Link href="/account" aria-current={current("/account")}><Icon name="gear" />Settings</Link>
       <form action="/auth/signout" method="post">
-        <button type="submit" className="menu-more-button">Log out</button>
+        <button type="submit" className="menu-more-button"><Icon name="logout" />Log out</button>
       </form>
     </nav>
   );

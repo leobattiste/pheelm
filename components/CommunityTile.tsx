@@ -1,7 +1,10 @@
 import Link from "next/link";
 import type { CommunityCollection } from "@/lib/community";
 import { tintStyle } from "@/lib/format";
+import Icon, { type IconName } from "./Icon";
 import Poster from "./Poster";
+
+const BADGE_ICONS: Record<string, IconName> = { Private: "lock", Public: "globe", Shared: "users" };
 
 /** A member's collection: three posters, title, who made it, how many films and saves. */
 export default function CommunityTile({ c, showOwner = true, badge }: { c: CommunityCollection; showOwner?: boolean; badge?: string }) {
@@ -26,7 +29,11 @@ export default function CommunityTile({ c, showOwner = true, badge }: { c: Commu
         <span className="collection-title">
           {c.title}
           {c.staff_pick && <span className="staff-pick">Staff pick</span>}
-          {badge && <span className="tile-badge">{badge}</span>}
+          {badge && (
+            <span className="tile-icon" title={badge}>
+              <Icon name={BADGE_ICONS[badge] ?? "eye"} label={badge} />
+            </span>
+          )}
         </span>
         <span className="collection-desc">{meta}</span>
       </Link>

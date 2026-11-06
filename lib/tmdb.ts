@@ -115,22 +115,7 @@ export async function getMovie(id: number): Promise<ImportedFilm> {
   const videos: any[] = (m.videos?.results ?? []).filter((v: any) => v.site === "YouTube" && v.type === "Trailer");
   const trailer = videos.find((v) => v.official) ?? videos[0];
 
-  const watch: WatchOption[] = [];
-  const providers = m["watch/providers"]?.results ?? {};
-  const kinds: [string, WatchOption["kind"]][] = [["flatrate", "stream"], ["free", "free"], ["ads", "free"], ["rent", "rent"], ["buy", "buy"]];
-  for (const region of REGIONS) {
-    const r = providers[region];
-    if (!r) continue;
-    for (const [key, kind] of kinds) {
-      for (const p of r[key] ?? []) {
-        if (!watch.some((w) => w.provider === p.provider_name && w.region === region && w.kind === kind)) {
-          // TMDB gives one page per country listing every option; film pages link each service
-          // to a search for the film on that service instead (lib/watch.ts).
-          watch.push({ provider: p.provider_name, url: r.link, kind, region });
-        }
-      }
-    }
-  }
+  const watch = parseWatch(m["watch/providers"]?.results ?? {});
 
   return {
     tmdb_id: m.id,
@@ -163,4 +148,38 @@ export async function getPersonDetails(id: number) {
     instagram: p.external_ids?.instagram_id || null,
     photo_url: p.profile_path ? `${IMG}/w300${p.profile_path}` : null,
   };
+}
+
+/**
+ * Where to watch, from TMDB's providers list: each service per country and kind, with its logo.
+ * TMDB gives one page per country listing every option; film pages link each service to a
+ * search for the film on that service instead (lib/watch.ts).
+ */
+function parseWatch(providers: Record<string, any>): WatchOption[] {
+  const watch: WatchOption[] = [];
+  const kinds: [string, WatchOption["kind"]][] = [["flatrate", "stream"], ["free", "free"], ["ads", "free"], ["rent", "rent"], ["buy", "buy"]];
+  for (const region of REGIONS) {
+    const r = providers[region];
+    if (!r) continue;
+    for (const [key, kind] of kinds) {
+      for (const p of r[key] ?? []) {
+        if (!watch.some((w) => w.provider === p.provider_name && w.region === region && w.kind === kind)) {
+          watch.push({
+            provider: p.provider_name,
+            url: r.link,
+            kind,
+            region,
+            ...(p.logo_path ? { logo: `https://image.tmdb.org/t/p/w92${p.logo_path}` } : {}),
+          });
+        }
+      }
+    }
+  }
+  return watch;
+}
+
+/** Just a film's where-to-watch options, for refreshing them without a full import. */
+export async function getWatch(id: number): Promise<WatchOption[]> {
+  const data = await get<{ results: Record<string, any> }>(`/movie/${id}/watch/providers`);
+  return parseWatch(data.results ?? {});
 }

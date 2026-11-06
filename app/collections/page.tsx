@@ -1,3 +1,4 @@
+import Icon from "@/components/Icon";
 import { PAGE_COPY } from "@/lib/site";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -40,6 +41,7 @@ export default async function CollectionsPage({ searchParams }: { searchParams: 
         <ul className="collection-list">{list.map((c) => <CommunityTile key={c.id} c={c} />)}</ul>
       ) : (
         <div className="empty-state">
+          <Icon name="stack" className="empty-icon" />
           <p>No collections {film ? "with this film " : ""}yet.</p>
           <p className="muted">Make one from your Watchlist: give it a title, add at least {MIN_FILMS} films and set it to public.</p>
         </div>

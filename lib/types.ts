@@ -2,7 +2,7 @@ export type FilmType = "feature" | "documentary" | "short" | "animation";
 export type Role = "director" | "writer" | "producer" | "cinematographer" | "editor" | "composer" | "cast";
 
 export type Award = { award: string; category: string; result: "won" | "nominated"; year: number };
-export type WatchOption = { provider: string; url: string; kind: "stream" | "rent" | "buy" | "free"; region?: string };
+export type WatchOption = { provider: string; url: string; kind: "stream" | "rent" | "buy" | "free"; region?: string; logo?: string };
 
 export type FilmRow = {
   id: string;

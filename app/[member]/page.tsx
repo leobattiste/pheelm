@@ -1,3 +1,4 @@
+import Icon from "@/components/Icon";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -61,6 +62,7 @@ export default async function MemberPage({ params }: Params) {
     <ul className="collection-list">{collections.map((c) => <CommunityTile key={c.id} c={c} showOwner={false} />)}</ul>
   ) : (
     <div className="empty-state">
+      <Icon name="stack" className="empty-icon" />
       <p>Nothing here yet.</p>
       {own && (
         <>

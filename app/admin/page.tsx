@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/admin";
 import { tmdbEnabled } from "@/lib/tmdb";
 import BulkImport from "./BulkImport";
 import PeopleFill from "./PeopleFill";
+import WatchRefresh from "./WatchRefresh";
 
 export default async function AdminHome() {
   const { db } = await requireAdmin();
@@ -44,6 +45,8 @@ export default async function AdminHome() {
             <BulkImport films={missing ?? []} />
             <h3>People</h3>
             <PeopleFill waiting={waiting} />
+            <h3>Where to watch</h3>
+            <WatchRefresh />
           </>
         ) : (
           <p className="muted">

@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { adminClient } from "@/lib/admin";
 import { slugify } from "@/lib/format";
 import { addFilmByTitle, fillPerson, importFilm, posterColour, type AddResult } from "@/lib/import";
-import { tmdbEnabled } from "@/lib/tmdb";
+import { getWatch, tmdbEnabled } from "@/lib/tmdb";
 import type { Award, Role, WatchOption } from "@/lib/types";
 
 export type Result = { ok: boolean; message: string };
@@ -200,6 +200,29 @@ export async function fillPeople(): Promise<Result & { remaining: number }> {
     return { ok: true, message: `Filled ${data?.length ?? 0} people.`, remaining: count ?? 0 };
   } catch (e) {
     return { ...fail(e), remaining: 0 };
+  }
+}
+
+/**
+ * Refreshes where to watch (and the services' logos) for fifteen films at a time, starting after
+ * `offset`, so it never hits a server time limit. Links added by hand are kept.
+ */
+export async function refreshWatch(offset: number): Promise<Result & { next: number; total: number }> {
+  try {
+    if (!tmdbEnabled) return { ok: false, message: "Add TMDB_API_KEY in Vercel to switch on the import.", next: 0, total: 0 };
+    const db = await adminClient();
+    const { count } = await db.from("films").select("*", { count: "exact", head: true }).not("tmdb_id", "is", null);
+    const { data } = await db.from("films").select("id, tmdb_id, watch").not("tmdb_id", "is", null).order("id").range(offset, offset + 14);
+    await Promise.all((data ?? []).map(async (f) => {
+      const fresh = await getWatch(f.tmdb_id as number);
+      const manual = ((f.watch ?? []) as WatchOption[]).filter((w) => !w.url.includes("themoviedb.org") && !w.url.includes("justwatch.com"));
+      await db.from("films").update({ watch: [...manual, ...fresh], updated_at: new Date().toISOString() }).eq("id", f.id);
+    }));
+    const next = offset + (data?.length ?? 0);
+    if (next >= (count ?? 0)) refresh();
+    return { ok: true, message: `Refreshed ${next} of ${count ?? 0}.`, next, total: count ?? 0 };
+  } catch (e) {
+    return { ...fail(e), next: offset, total: 0 };
   }
 }
 

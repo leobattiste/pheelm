@@ -1,3 +1,4 @@
+import Icon from "./Icon";
 import Link from "next/link";
 import { initials } from "@/lib/format";
 import { bornText, diedText, overallRoles, type PersonInfo } from "@/lib/roles";
@@ -73,12 +74,15 @@ export function PersonLinks({ info }: { info: Pick<PersonInfo, "imdb_id" | "inst
     <div>
       <dt>{links.length > 1 ? "Links" : "Link"}</dt>
       <dd>
-        {links.map((l, i) => (
-          <span key={l.label}>
-            {i > 0 && ", "}
-            <a href={l.href} target="_blank" rel="noopener noreferrer">{l.label}</a>
-          </span>
-        ))}
+        <span className="link-chips">
+          {links.map((l) => (
+            <a key={l.label} className="link-chip" href={l.href} target="_blank" rel="noopener noreferrer">
+              {l.label === "Instagram" && <Icon name="instagram" />}
+              {l.label}
+              <Icon name="external" className="link-out" />
+            </a>
+          ))}
+        </span>
       </dd>
     </div>
   );

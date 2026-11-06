@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import AskToCollaborate from "@/components/AskToCollaborate";
 import CollectionEditor from "@/components/CollectionEditor";
 import Comments from "@/components/Comments";
+import Icon from "@/components/Icon";
 import { FilmGrid } from "@/components/FilmCard";
 import PeopleSheet from "@/components/PeopleSheet";
 import ReportCollection from "@/components/ReportCollection";
@@ -114,12 +115,12 @@ export default async function MemberCollectionPage({ params }: Params) {
         </p>
         <h1>{list.title}</h1>
         {list.description && <p className="lead">{list.description}</p>}
-        <p className="collection-meta">
-          {count} {count === 1 ? "film" : "films"}
-          {list.is_public && saves > 0 && <> • Saved by {saves}</>}
-          {canEdit && <> • {list.is_public ? "Public" : "Private"}</>}
-          {isCollaborator && <> • You&rsquo;re a collaborator</>}
-        </p>
+        <ul className="collection-meta">
+          <li><Icon name="film" />{count} {count === 1 ? "film" : "films"}</li>
+          {list.is_public && saves > 0 && <li><Icon name="bookmark" />Saved by {saves}</li>}
+          {canEdit && <li><Icon name={list.is_public ? "globe" : "lock"} />{list.is_public ? "Public" : "Private"}</li>}
+          {isCollaborator && <li><Icon name="users" />You&rsquo;re a collaborator</li>}
+        </ul>
 
         {invitedMe && (
           <div className="invite-banner" role="region" aria-label="Invitation">
@@ -194,6 +195,7 @@ export default async function MemberCollectionPage({ params }: Params) {
         <FilmGrid films={items.map(toCard)} extras={extras} />
       ) : (
         <div className="empty-state">
+          <Icon name="film" className="empty-icon" />
           <p>This collection is empty for now.</p>
           {canEdit && <p className="muted">On any film, press <strong>Watchlist</strong> and tick &ldquo;{list.title}&rdquo; to add it here.</p>}
         </div>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import Icon, { type IconName } from "@/components/Icon";
 import { Avatar } from "@/components/PeopleSheet";
 import { getNotifications, type Notification } from "@/lib/notifications";
 import { getServerClient } from "@/lib/supabase/server";
@@ -46,11 +47,19 @@ function href(n: Notification) {
   return `/c/${n.list.id}`;
 }
 
+const KIND_ICONS: Record<Notification["type"], IconName> = {
+  invite: "userPlus", request: "door", invite_accepted: "check", invite_declined: "x",
+  request_accepted: "check", request_declined: "x", removed: "x", comment: "comment", reply: "reply", mention: "at",
+};
+
 function Item({ n }: { n: Notification }) {
   const link = href(n);
   return (
     <li className={`notif${n.read_at ? "" : " is-unread"}`}>
-      {n.actor ? <Avatar m={n.actor} /> : <span className="avatar" aria-hidden="true" />}
+      <span className="notif-avatar">
+        {n.actor ? <Avatar m={n.actor} /> : <span className="avatar" aria-hidden="true" />}
+        <span className={`notif-kind is-${n.type}`}><Icon name={KIND_ICONS[n.type]} /></span>
+      </span>
       <div className="notif-main">
         <p className="notif-text">
           {link ? <Link href={link} className="notif-link"><Line n={n} /></Link> : <Line n={n} />}
@@ -128,6 +137,7 @@ export default async function NotificationsPage() {
         <div className="empty-state"><p>Notifications aren&rsquo;t switched on yet.</p></div>
       ) : !items.length ? (
         <div className="empty-state">
+          <Icon name="bell" className="empty-icon" />
           <p>You&rsquo;re all caught up.</p>
           <p className="muted">When someone invites you to a collection, asks to join yours, or comments, it shows up here.</p>
           <Link className="button ghost small" href="/collections">Browse collections</Link>

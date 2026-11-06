@@ -1,5 +1,6 @@
 "use client";
 
+import Icon from "./Icon";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { countryName } from "@/lib/format";
 import type { DirectorSummary } from "@/lib/types";
@@ -100,6 +101,7 @@ export default function DirectorBrowser({ directors }: { directors: DirectorSumm
         </ul>
       ) : (
         <div className="empty-state">
+          <Icon name="search" className="empty-icon" />
           <p>No directors match your search.</p>
           <button type="button" className="button ghost small" onClick={() => commit({})}>Clear search and filters</button>
         </div>

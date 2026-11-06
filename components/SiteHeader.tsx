@@ -5,15 +5,16 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { SITE_NAME } from "@/lib/site";
 import AccountMenu from "./AccountMenu";
+import Icon, { type IconName } from "./Icon";
 import SignInSheet from "./SignInSheet";
 import { openSearch } from "./Search";
 import GridToggle from "./GridToggle";
 import ThemeToggle from "./ThemeToggle";
 
-const MAIN = [
-  { href: "/films", label: "Films" },
-  { href: "/directors", label: "Directors" },
-  { href: "/collections", label: "Collections" },
+const MAIN: { href: string; label: string; icon: IconName }[] = [
+  { href: "/films", label: "Films", icon: "film" },
+  { href: "/directors", label: "Directors", icon: "clapper" },
+  { href: "/collections", label: "Collections", icon: "stack" },
 ];
 
 export default function SiteHeader() {
@@ -66,7 +67,7 @@ export default function SiteHeader() {
           </div>
           <nav className="menu-main" aria-label="Sections">
             {MAIN.map((l) => (
-              <Link key={l.href} href={l.href} aria-current={current(l.href)}>{l.label}</Link>
+              <Link key={l.href} href={l.href} aria-current={current(l.href)}><Icon name={l.icon} />{l.label}</Link>
             ))}
           </nav>
           <AccountMenu onNavigate={() => menu.current?.close()} />

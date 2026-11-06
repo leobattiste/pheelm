@@ -1,3 +1,4 @@
+import Icon from "@/components/Icon";
 import { PAGE_COPY } from "@/lib/site";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -66,6 +67,7 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
           <FilmGrid films={all.map(toCard)} />
         ) : (
           <div className="empty-state">
+            <Icon name="bookmark" className="empty-icon" />
             <p>Nothing saved yet.</p>
             <p className="muted">Press <strong>Watchlist</strong> on any film to save it here.</p>
             <Link className="button ghost small" href="/films">Browse films</Link>

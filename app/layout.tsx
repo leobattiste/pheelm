@@ -9,6 +9,7 @@ import Search from "@/components/Search";
 import SiteHeader from "@/components/SiteHeader";
 import ThemeToggle from "@/components/ThemeToggle";
 import { TransitionWatcher } from "@/components/Transitions";
+import Icon from "@/components/Icon";
 import { INSTAGRAM_URL, SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE, THREADS_URL } from "@/lib/site";
 import { SITE_URL } from "@/lib/supabase/config";
 import { themeScript } from "@/lib/theme";
@@ -105,8 +106,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/profile">Profile</Link>
               <Link href="/account">Settings</Link>
               <Link href="/newsletter">Newsletter</Link>
-              {INSTAGRAM_URL && <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">Instagram</a>}
-              {THREADS_URL && <a href={THREADS_URL} target="_blank" rel="noopener noreferrer">Threads</a>}
+              {INSTAGRAM_URL && <a className="footer-social-link" href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer"><Icon name="instagram" />Instagram</a>}
+              {THREADS_URL && <a className="footer-social-link" href={THREADS_URL} target="_blank" rel="noopener noreferrer"><Icon name="threads" />Threads</a>}
             </nav>
             <nav aria-labelledby="footer-legal">
               <h2 id="footer-legal">Legal</h2>

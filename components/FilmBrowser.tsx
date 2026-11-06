@@ -1,5 +1,6 @@
 "use client";
 
+import Icon from "./Icon";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { countryName, decadeOf, TYPE_PLURALS } from "@/lib/format";
 import type { FilmCard, FilmType } from "@/lib/types";
@@ -130,6 +131,7 @@ export default function FilmBrowser({ films, facets }: { films: FilmCard[]; face
         </>
       ) : (
         <div className="empty-state">
+          <Icon name="search" className="empty-icon" />
           <p>No films match your search.</p>
           <p className="muted">
             Try fewer filters, or <a href="/submit">suggest a film</a> we&rsquo;re missing.

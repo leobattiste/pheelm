@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FilmGrid } from "@/components/FilmCard";
 import CommunityTile from "@/components/CommunityTile";
+import Icon, { type IconName } from "@/components/Icon";
 import FilmActionBar from "@/components/FilmActionBar";
 import PeopleGrid from "@/components/PeopleGrid";
 import Poster from "@/components/Poster";
@@ -213,7 +214,7 @@ export default async function FilmPage({ params }: Params) {
             <dl className="details">
               {details.filter(([, v]) => v).map(([k, v]) => (
                 <div key={k}>
-                  <dt>{k}</dt>
+                  <dt><Icon name={DETAIL_ICONS[k] ?? "film"} />{k}</dt>
                   <dd>{v}</dd>
                 </div>
               ))}
@@ -298,12 +299,20 @@ export default async function FilmPage({ params }: Params) {
   );
 }
 
+const DETAIL_ICONS: Record<string, IconName> = {
+  "Original title": "film", Country: "globe", Countries: "globe", Language: "language", Languages: "language",
+  Genre: "sparkle", Type: "film", "Running time": "clock", Released: "calendar",
+};
+
 function AwardList({ awards }: { awards: Award[] }) {
   return (
     <ul className="award-list">
       {awards.map((a, i) => (
         <li key={i}>
-          <span className={`award-badge ${isRegistry(a) ? "kept" : a.result}`}>{isRegistry(a) ? "Preserved" : a.result === "won" ? "Won" : "Nominated"}</span>
+          <span className={`award-badge ${isRegistry(a) ? "kept" : a.result}`}>
+            {a.result === "won" && !isRegistry(a) && <Icon name="laurel" />}
+            {isRegistry(a) ? "Preserved" : a.result === "won" ? "Won" : "Nominated"}
+          </span>
           <span className="award-text">
             <span className="award-name">{a.award}</span>
             <span className="award-what">{isRegistry(a) ? "Selected for the National Film Registry" : a.category}</span>
