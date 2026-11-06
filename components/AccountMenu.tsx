@@ -1,21 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { setProfilePrivate } from "@/app/me/actions";
 import { getBrowserClient } from "@/lib/supabase/client";
 import { openSignIn } from "./SignInSheet";
 
 type Me = { email: string; handle: string | null; name: string | null; isPrivate: boolean | null };
 
 /**
- * The account part of the menu. Signed out: Sign in. Signed in: Profile, Private profile, then
- * Watchlist, Settings and Log out.
+ * The account part of the menu. Signed out: Sign in. Signed in: Profile, Watchlist, Settings and
+ * Log out.
  */
 export default function AccountMenu({ onNavigate }: { onNavigate: () => void }) {
   const path = usePathname();
-  const router = useRouter();
   const [me, setMe] = useState<Me | null | undefined>(undefined);
 
   useEffect(() => {
@@ -37,15 +35,6 @@ export default function AccountMenu({ onNavigate }: { onNavigate: () => void }) 
     return () => { active = false; data.subscription.unsubscribe(); window.removeEventListener("profilechange", onProfile); };
   }, []);
 
-  const togglePrivate = async () => {
-    if (!me || me.isPrivate === null) return;
-    const next = !me.isPrivate;
-    setMe({ ...me, isPrivate: next });
-    const { ok } = await setProfilePrivate(next).catch(() => ({ ok: false }));
-    if (!ok) return setMe((m) => (m ? { ...m, isPrivate: !next } : m));
-    if (me.handle && path === `/@${me.handle}`) router.refresh();
-  };
-
   if (me === undefined) return <div className="menu-more menu-account" aria-busy="true" />;
 
   if (!me) {
@@ -64,12 +53,6 @@ export default function AccountMenu({ onNavigate }: { onNavigate: () => void }) 
       <Link href={me.handle ? `/@${me.handle}` : "/profile"} aria-current={me.handle ? current(`/@${me.handle}`) : undefined}>
         {me.handle ? "Profile" : "Create profile"}
       </Link>
-      {me.handle && me.isPrivate !== null && (
-        <label className="menu-switch">
-          Private profile
-          <input type="checkbox" role="switch" className="switch" checked={me.isPrivate} onChange={togglePrivate} />
-        </label>
-      )}
       <Link href="/me" aria-current={current("/me")}>Watchlist</Link>
       <Link href="/account" aria-current={current("/account")}>Settings</Link>
       <form action="/auth/signout" method="post">

@@ -218,10 +218,11 @@ drop policy if exists "read own profile" on public.profiles;
 drop policy if exists "update own profile" on public.profiles;
 create policy "read own profile" on public.profiles for select to authenticated
   using (id = (select auth.uid()) or (select public.is_admin()));
+-- is_admin() reads the caller's current status without going through RLS, so members can't
+-- change their own admin flag (a subquery on profiles here would recurse).
 create policy "update own profile" on public.profiles for update to authenticated
   using (id = (select auth.uid()))
-  with check (id = (select auth.uid())
-    and is_admin = (select p.is_admin from public.profiles p where p.id = (select auth.uid())));
+  with check (id = (select auth.uid()) and is_admin = (select public.is_admin()));
 
 -- Submissions.
 drop policy if exists "add submission" on public.submissions;

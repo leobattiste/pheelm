@@ -89,9 +89,3 @@ export async function updatePublicName(_prev: NameState, form: FormData): Promis
   return { ok: true, message: "Saved.", handle: handle || null };
 }
 
-/** Switches the member's profile between public and private, from the account menu. */
-export async function setProfilePrivate(isPrivate: boolean): Promise<{ ok: boolean }> {
-  const { db, user } = await member();
-  const { error } = await db.from("profiles").update({ is_private: isPrivate }).eq("id", user.id);
-  return { ok: !error };
-}

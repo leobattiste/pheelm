@@ -1401,17 +1401,15 @@ h1, h2, .menu-main a, .empty-state p:first-child, .decades a,
 /* The account part of the menu */
 .menu-account { min-height: 120px; }
 .menu-account .account-who { padding: var(--space-4) 0 var(--space-8); }
-.menu-more a, .menu-more-button, .menu-switch { display: flex; align-items: center; gap: var(--space-8); }
-.menu-account a, .menu-account .menu-more-button, .menu-account .menu-switch { font-size: var(--t-md); }
+.menu-more a, .menu-more-button { display: flex; align-items: center; gap: var(--space-8); }
+.menu-account a, .menu-account .menu-more-button { font-size: var(--t-md); }
 .menu-more-button { width: 100%; padding: var(--space-8) 0; border: 0; background: none; color: var(--text); font: inherit; font-size: var(--t-lg); text-align: left; cursor: pointer; transition: transform 0.2s var(--ease), color 0.2s; }
 .menu-more a[aria-current="page"] { color: var(--muted); }
-.menu-switch { justify-content: space-between; padding: var(--space-8) 0; font-size: var(--t-lg); color: var(--text); cursor: pointer; }
 .menu-note { color: var(--muted); font-size: var(--t-sm); }
 .menu-account form { display: contents; }
 .menu-button { position: relative; }
 @media (min-width: 900px) {
-  .menu-more-button, .menu-switch { font-size: var(--t-md); }
-  .menu-more-button:hover { color: var(--muted); transform: translateX(4px); }
+  .menu-more-button,   .menu-more-button:hover { color: var(--muted); transform: translateX(4px); }
 }
 
 /* On/off switch (a checkbox with role="switch") */
