@@ -1,4 +1,5 @@
-import { getCollections, getDirectors, getFilms } from "@/lib/data";
+import { getCommunityCollections } from "@/lib/community";
+import { getDirectors, getFilms } from "@/lib/data";
 import { countryName, ROLE_LABELS } from "@/lib/format";
 import type { Role } from "@/lib/types";
 
@@ -9,7 +10,7 @@ export const revalidate = 300;
  * first time someone opens search.
  */
 export async function GET() {
-  const [films, directors, collections] = await Promise.all([getFilms(), getDirectors(), getCollections()]);
+  const [films, directors, collections] = await Promise.all([getFilms(), getDirectors(), getCommunityCollections()]);
   const directorIds = new Set(directors.map((d) => d.id));
 
   // Cast and crew who aren't directors here, with what they did and how many films.
@@ -43,6 +44,6 @@ export async function GET() {
       p: d.photo_url,
     })),
     people: [...people.values()].map((p) => ({ s: p.s, n: p.n, r: [...p.r].join(", "), f: p.f.size, p: p.p })),
-    collections: collections.map((c) => ({ s: c.slug, t: c.title, n: c.films.length })),
+    collections: collections.map((c) => ({ s: c.id, t: c.title, n: c.films.length })),
   });
 }

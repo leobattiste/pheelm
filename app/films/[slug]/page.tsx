@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FilmGrid } from "@/components/FilmCard";
-import CollectionTile from "@/components/CollectionTile";
+import CommunityTile from "@/components/CommunityTile";
 import FilmActionBar from "@/components/FilmActionBar";
 import PeopleGrid from "@/components/PeopleGrid";
 import Poster from "@/components/Poster";
@@ -11,7 +11,7 @@ import TrailerButton from "@/components/TrailerButton";
 import WatchSection from "@/components/WatchSection";
 import WatchlistButton from "@/components/WatchlistButton";
 import { getCommunityCollections } from "@/lib/community";
-import { getCollections, getDirectors, getFilm, getFilms, toCard } from "@/lib/data";
+import { getDirectors, getFilm, getFilms, toCard } from "@/lib/data";
 import { personInfo, roleLabel, sentence } from "@/lib/roles";
 import { countryName, inkFor, listJoin, runtimeLabel, trailerEmbed, TYPE_LABELS } from "@/lib/format";
 import { SITE_URL } from "@/lib/supabase/config";
@@ -70,12 +70,13 @@ export default async function FilmPage({ params }: Params) {
   const film = await getFilm((await params).slug);
   if (!film) notFound();
 
-  const [all, collections, allDirectors, community] = await Promise.all([getFilms(), getCollections(), getDirectors(), getCommunityCollections({ filmId: film.id })]);
+  const [all, allDirectors, community] = await Promise.all([getFilms(), getDirectors(), getCommunityCollections({ filmId: film.id })]);
   const anyDirector = new Set(allDirectors.map((d) => d.id));
-  const inCollections = collections.filter((c) => film.collections.some((fc) => fc.slug === c.slug));
+  // Films that share a collection with this one.
+  const companions = new Set(community.flatMap((c) => c.films.map((f) => f.id)));
   const directorIds = new Set(film.directors.map((d) => d.id));
   const moreByDirector = all.filter((f) => f.id !== film.id && f.directors.some((d) => directorIds.has(d.id)));
-  // More like this: films that share the most with this one. A shared collection counts most,
+  // More like this: films that share the most with this one. Being in a collection together counts most,
   // then each shared genre and country, then the same decade; closer years break ties.
   const decade = Math.floor(film.year / 10);
   const related = all
@@ -83,7 +84,7 @@ export default async function FilmPage({ params }: Params) {
     .map((f) => ({
       f,
       score:
-        3 * f.collections.filter((c) => film.collections.some((fc) => fc.slug === c.slug)).length +
+        (companions.has(f.id) ? 3 : 0) +
         f.genres.filter((g) => film.genres.includes(g)).length +
         f.countries.filter((c) => film.countries.includes(c)).length +
         (Math.floor(f.year / 10) === decade ? 1 : 0),
@@ -262,21 +263,17 @@ export default async function FilmPage({ params }: Params) {
       </article>
 
       {/* 6. Keep exploring. */}
-      {(inCollections.length > 0 || community.length > 0) && (
+      {community.length > 0 && (
         <section className="related" aria-labelledby="in-collections-h">
           <div className="section-head">
             <h2 id="in-collections-h">Featured in</h2>
-            {community.length > 0 && (
-              <Link className="button ghost small" href={`/collections/community?film=${film.slug}`}>
-                {community.length} community {community.length === 1 ? "collection" : "collections"}
-              </Link>
+            {community.length > 6 && (
+              <Link className="button ghost small" href={`/collections?film=${film.slug}`}>All {community.length}</Link>
             )}
           </div>
-          {inCollections.length > 0 && (
-            <ul className="collection-list">
-              {inCollections.map((c) => <CollectionTile key={c.id} collection={c} />)}
-            </ul>
-          )}
+          <ul className="collection-list">
+            {community.slice(0, 6).map((c) => <CommunityTile key={c.id} c={c} />)}
+          </ul>
         </section>
       )}
       {moreByDirector.length > 0 && (

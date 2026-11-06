@@ -118,11 +118,10 @@ export async function addFilmByTitle(
   return { status: "added", message: `${m.title} (${filmYear})${directors ? `, ${directors}` : ""}: added.`, id: created.id };
 }
 
-async function addToCollection(db: SupabaseClient, filmId: string, collectionId?: string | null, year?: number) {
+/** Adds a newly imported film to one of the admin's collections (newest first, like any added film). */
+async function addToCollection(db: SupabaseClient, filmId: string, collectionId?: string | null, _year?: number) {
   if (!collectionId) return;
-  let sort = year;
-  if (sort === undefined) sort = (await db.from("films").select("year").eq("id", filmId).single()).data?.year ?? 0;
-  await db.from("collection_films").upsert({ collection_id: collectionId, film_id: filmId, sort }, { onConflict: "collection_id,film_id", ignoreDuplicates: true });
+  await db.from("list_films").upsert({ list_id: collectionId, film_id: filmId }, { onConflict: "list_id,film_id", ignoreDuplicates: true });
 }
 
 /**

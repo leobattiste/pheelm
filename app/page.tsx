@@ -6,7 +6,8 @@ import Poster from "@/components/Poster";
 import Row from "@/components/Row";
 import TrailerButton from "@/components/TrailerButton";
 import FilmLink from "@/components/Transitions";
-import { getCollections, getDirectors, getFacets, getFilms, toCard, toDirectorSummary } from "@/lib/data";
+import { getCommunityCollections } from "@/lib/community";
+import { getDirectors, getFacets, getFilms, toCard, toDirectorSummary } from "@/lib/data";
 import { trailerEmbed, tintStyle } from "@/lib/format";
 import { PAGE_COPY } from "@/lib/site";
 import { firstSentence } from "@/lib/text";
@@ -18,7 +19,7 @@ const WEEK = 7 * 24 * 60 * 60 * 1000;
 
 export default async function Home() {
   const [films, directors, collections, facets] = await Promise.all([
-    getFilms(), getDirectors(), getCollections(), getFacets(),
+    getFilms(), getDirectors(), getCommunityCollections(), getFacets(),
   ]);
 
   // The film of the week rotates through the featured films, preferring ones with a still.
@@ -31,7 +32,8 @@ export default async function Home() {
 
   const startHere = featured.filter((f) => f.id !== pick.id);
   const recent = films.filter((f) => f.year >= 2015 && f.id !== pick.id).slice(0, 14);
-  const shelves = collections.filter((c) => c.featured).slice(0, 2);
+  // Two staff picks as rows (they lead the popular order).
+  const shelves = collections.filter((c) => c.staff_pick && c.films.length >= 3).slice(0, 2);
   // Collection spotlight: one collection that isn't already a row, changing each week.
   const spotPool = collections.filter((c) => !shelves.includes(c) && c.films.length >= 3);
   const spotlight = spotPool.length ? spotPool[week % spotPool.length] : null;
@@ -98,7 +100,7 @@ export default async function Home() {
             <p className="spotlight-kicker">Collection spotlight</p>
             <h2 id="spotlight-title">{spotlight.title}</h2>
             {spotlight.description && <p className="spotlight-desc">{spotlight.description}</p>}
-            <Link className="button ghost" href={`/collections/${spotlight.slug}`}>See all {spotlight.films.length} films</Link>
+            <Link className="button ghost" href={`/c/${spotlight.id}`}>See all {spotlight.films.length} films</Link>
           </div>
           <ul className="spotlight-posters">
             {spotlight.films.slice(0, 5).map((f) => (
@@ -113,7 +115,7 @@ export default async function Home() {
       )}
 
       {shelves.slice(0, 1).map((c) => (
-        <Row key={c.id} title={c.title} intro={c.description ?? undefined} href={`/collections/${c.slug}`} linkLabel={`All ${c.films.length}`}>
+        <Row key={c.id} title={c.title} intro={c.description ?? undefined} href={`/c/${c.id}`} linkLabel={`All ${c.films.length}`}>
           {c.films.map((f) => <FilmCard key={f.id} film={toCard(f)} />)}
         </Row>
       ))}
@@ -138,7 +140,7 @@ export default async function Home() {
       )}
 
       {shelves.slice(1).map((c) => (
-        <Row key={c.id} title={c.title} intro={c.description ?? undefined} href={`/collections/${c.slug}`} linkLabel={`All ${c.films.length}`}>
+        <Row key={c.id} title={c.title} intro={c.description ?? undefined} href={`/c/${c.id}`} linkLabel={`All ${c.films.length}`}>
           {c.films.map((f) => <FilmCard key={f.id} film={toCard(f)} />)}
         </Row>
       ))}

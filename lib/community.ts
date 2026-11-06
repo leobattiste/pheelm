@@ -65,8 +65,9 @@ const order: Record<Sort, (a: CommunityCollection, b: CommunityCollection) => nu
 };
 
 /**
- * Members' public collections that qualify for the community: a title, at least five films and a
- * member name. Staff picks lead the popular order. Optionally only those that include one film.
+ * Every public collection that qualifies for the Collections page: a title, a member name, and at
+ * least five films (staff picks always qualify). Staff picks lead the popular order. Optionally
+ * only those that include one film.
  */
 export async function getCommunityCollections({ sort = "popular", filmId, limit }: { sort?: Sort; filmId?: string; limit?: number } = {}) {
   const db = anon();
@@ -78,7 +79,8 @@ export async function getCommunityCollections({ sort = "popular", filmId, limit 
     .order("created_at", { ascending: false })
     .limit(1000);
   if (error) return [];
-  let all = (await enrich(data as Row[])).filter((c) => c.owner && c.films.length >= MIN_FILMS);
+  // Staff picks always show; other collections need a member name and at least five films.
+  let all = (await enrich(data as Row[])).filter((c) => c.owner && (c.staff_pick || c.films.length >= MIN_FILMS));
   if (filmId) all = all.filter((c) => c.films.some((f) => f.id === filmId));
   all.sort(order[sort]);
   return limit ? all.slice(0, limit) : all;
@@ -123,4 +125,12 @@ export async function getCollaboratingOn(memberId: string): Promise<CommunityCol
     .eq("is_public", true)
     .in("id", (rows as { list_id: string }[]).map((r) => r.list_id));
   return (await enrich((data ?? []) as Row[])).sort(order.popular);
+}
+
+/** The collection that used to live at /collections/<slug>, before Pheelm's own moved into @leo's. */
+export async function collectionIdForLegacySlug(slug: string) {
+  const db = anon();
+  if (!db) return null;
+  const { data } = await db.from("lists").select("id").eq("legacy_slug", slug).maybeSingle();
+  return (data as { id: string } | null)?.id ?? null;
 }

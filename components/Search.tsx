@@ -188,7 +188,7 @@ export default function Search() {
       hit.kind === "film" ? `/films/${hit.item.s}`
       : hit.kind === "director" ? `/directors/${hit.item.s}`
       : hit.kind === "person" ? `/people/${hit.item.s}`
-      : `/collections/${hit.item.s}`;
+      : `/c/${hit.item.s}`;
     navigate(href);
   };
 

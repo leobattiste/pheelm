@@ -254,53 +254,6 @@ export async function savePerson(_prev: Result, f: FormData): Promise<Result> {
   }
 }
 
-// Collections --------------------------------------------------------------------------
-
-export async function createCollection(f: FormData) {
-  const db = await adminClient();
-  const title = str(f, "title", 200);
-  if (!title) throw new Error("Add a title.");
-  const { data, error } = await db.from("collections").insert({ title, slug: slugify(title) }).select("id").single();
-  if (error || !data) throw new Error(error?.code === "23505" ? "A collection with that name exists." : error?.message);
-  redirect(`/admin/collections/${data.id}`);
-}
-
-export async function saveCollection(_prev: Result, f: FormData): Promise<Result> {
-  try {
-    const db = await adminClient();
-    const id = str(f, "id");
-    const title = str(f, "title", 200);
-    if (!title) return { ok: false, message: "Add a title." };
-    const { error } = await db.from("collections").update({
-      title,
-      slug: slugify(str(f, "slug") || title),
-      description: nullable(f, "description", 3000),
-      kind: str(f, "kind") || "theme",
-      featured: f.get("featured") === "on",
-      sort_order: int(f, "sort_order") ?? 99,
-    }).eq("id", id);
-    if (error) return { ok: false, message: error.message };
-    const films = f.getAll("films").map(String);
-    await db.from("collection_films").delete().eq("collection_id", id);
-    if (films.length) {
-      const { data: years } = await db.from("films").select("id, year").in("id", films);
-      const yearOf = new Map((years ?? []).map((y) => [y.id, y.year]));
-      await db.from("collection_films").insert(films.map((film_id) => ({ collection_id: id, film_id, sort: yearOf.get(film_id) ?? 0 })));
-    }
-    refresh();
-    return { ok: true, message: `Saved with ${films.length} films.` };
-  } catch (e) {
-    return fail(e);
-  }
-}
-
-export async function deleteCollection(f: FormData) {
-  const db = await adminClient();
-  await db.from("collections").delete().eq("id", str(f, "id"));
-  refresh();
-  redirect("/admin/collections");
-}
-
 // Submissions ---------------------------------------------------------------------------------
 
 export async function reviewSubmission(f: FormData) {

@@ -7,7 +7,7 @@ import { createFilm } from "../actions";
 import BulkAdd from "./BulkAdd";
 
 export default async function AdminFilms({ searchParams }: { searchParams: Promise<{ status?: string; missing?: string; q?: string }> }) {
-  const { db } = await requireAdmin();
+  const { db, user } = await requireAdmin();
   const sp = await searchParams;
   let query = db.from("films").select("id, slug, title, year, type, status, poster_url, featured, tmdb_id, credits(role, people(name))").order("year", { ascending: false }).limit(2000);
   if (sp.status === "draft") query = query.eq("status", "draft");
@@ -15,7 +15,8 @@ export default async function AdminFilms({ searchParams }: { searchParams: Promi
   if (sp.q) query = query.ilike("title", `%${sp.q}%`);
   const [{ data: films }, { data: collections }] = await Promise.all([
     query,
-    db.from("collections").select("id, title").order("sort_order"),
+    // The admin's own collections (Pheelm's collections live there since they moved to @leo).
+    db.from("lists").select("id, title").eq("user_id", user.id).order("created_at", { ascending: false }),
   ]);
 
   return (
