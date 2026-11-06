@@ -90,8 +90,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <nav aria-labelledby="footer-explore">
               <h2 id="footer-explore">Explore</h2>
               <Link href="/films">Films</Link>
-              <Link href="/directors">Directors</Link>
               <Link href="/collections">Collections</Link>
+              <Link href="/directors">Directors</Link>
             </nav>
             <nav aria-labelledby="footer-pheelm">
               <h2 id="footer-pheelm">{SITE_NAME}</h2>
