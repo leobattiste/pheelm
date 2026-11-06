@@ -1478,3 +1478,4 @@ h1, h2, .menu-main a, .empty-state p:first-child, .decades a,
 }
 .lead, .label, .prose, .bio, .feature-line { line-height: var(--lh-body); }
 .submissions-intro { margin-bottom: var(--space-24); color: var(--muted); }
+.person-bio-line { max-width: 52ch; margin-top: var(--space-8); color: var(--text); white-space: pre-line; overflow-wrap: anywhere; }

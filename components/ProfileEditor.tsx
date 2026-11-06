@@ -5,13 +5,13 @@ import { useActionState, useEffect, useRef } from "react";
 import { updatePublicName, type NameState } from "@/app/me/actions";
 import { COUNTRY_OPTIONS } from "@/lib/countries";
 
-type Props = { handle: string; displayName: string | null; isPrivate: boolean; country: string | null };
+type Props = { handle: string; displayName: string | null; isPrivate: boolean; country: string | null; bio: string | null };
 
 /**
- * "Edit profile" on your own profile page: name, country, handle and the private setting, in a modal.
+ * "Edit profile" on your own profile page: name, bio, country, handle and the private setting, in a modal.
  * Opens on its own when the page is reached with ?edit (from the account menu).
  */
-export default function ProfileEditor({ handle, displayName, isPrivate, country }: Props) {
+export default function ProfileEditor({ handle, displayName, isPrivate, country, bio }: Props) {
   const router = useRouter();
   const modal = useRef<HTMLDialogElement>(null);
   const [state, action, pending] = useActionState<NameState, FormData>(updatePublicName, null);
@@ -34,7 +34,7 @@ export default function ProfileEditor({ handle, displayName, isPrivate, country 
 
   return (
     <>
-      <button type="button" className="button ghost small" aria-haspopup="dialog" onClick={() => modal.current?.showModal()}>Edit profile</button>
+      <button type="button" className="button ghost" aria-haspopup="dialog" onClick={() => modal.current?.showModal()}>Edit profile</button>
       <dialog ref={modal} className="modal" aria-labelledby="edit-profile-title" onClick={(e) => { if (e.target === modal.current) modal.current?.close(); }}>
         <div className="modal-head">
           <span className="sheet-handle" aria-hidden="true" />
@@ -48,6 +48,10 @@ export default function ProfileEditor({ handle, displayName, isPrivate, country 
             <label className="field">
               Name
               <input name="display_name" defaultValue={displayName ?? ""} maxLength={60} placeholder="Your name" autoComplete="name" />
+            </label>
+            <label className="field">
+              Bio
+              <textarea name="bio" defaultValue={bio ?? ""} maxLength={300} rows={3} placeholder="A line or two about you and the films you love" />
             </label>
             <label className="field">
               Country

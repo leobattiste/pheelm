@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import CommunityTile from "@/components/CommunityTile";
 import ProfileEditor from "@/components/ProfileEditor";
+import ShareButton from "@/components/ShareButton";
 import { getMember } from "@/lib/community";
 import { countryName, initials } from "@/lib/format";
 import { getServerClient } from "@/lib/supabase/server";
@@ -27,7 +28,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   return { title: `${name} (@${found.member.handle})`, description: `Collections of films by Black directors, made by ${name} on Pheelm.` };
 }
 
-/** A member's profile: their name, then the collections they've made public. */
+/** A member's profile: their name and bio, then their Watchlist (the collections they've made public). */
 export default async function MemberPage({ params }: Params) {
   const handle = handleOf((await params).member);
   if (!handle) notFound();
@@ -58,7 +59,7 @@ export default async function MemberPage({ params }: Params) {
     <ul className="collection-list">{collections.map((c) => <CommunityTile key={c.id} c={c} showOwner={false} />)}</ul>
   ) : (
     <div className="empty-state">
-      <p>No public collections yet.</p>
+      <p>Nothing here yet.</p>
       {own && (
         <>
           <p className="muted">Make one of your collections public from your Watchlist and it shows up here.</p>
@@ -76,16 +77,16 @@ export default async function MemberPage({ params }: Params) {
           <h1>{name}</h1>
           {member.country && <p className="person-roles">{countryName(member.country)}</p>}
           <p className="person-sub">@{member.handle}</p>
-          {own && (
-            <div className="person-actions">
-              <ProfileEditor handle={member.handle} displayName={member.display_name} isPrivate={!!member.is_private} country={member.country ?? null} />
-              <span className="person-sub">{member.is_private ? "Private: only you can see this page" : "Public profile"}</span>
-            </div>
-          )}
+          {member.bio && <p className="person-bio-line">{member.bio}</p>}
+          <div className="person-actions">
+            {own && <ProfileEditor handle={member.handle} displayName={member.display_name} isPrivate={!!member.is_private} country={member.country ?? null} bio={member.bio ?? null} />}
+            {!member.is_private && <ShareButton title={`${name} on Pheelm`} />}
+          </div>
+          {own && member.is_private && <p className="person-sub">Private: only you can see this page.</p>}
         </div>
       </header>
       <section className="film-section member-collections" aria-labelledby="member-collections-h">
-        <h2 id="member-collections-h">Collections</h2>
+        <h2 id="member-collections-h">Watchlist</h2>
         {collectionsPanel}
       </section>
     </section>

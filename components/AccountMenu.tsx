@@ -10,8 +10,8 @@ import { openSignIn } from "./SignInSheet";
 type Me = { email: string; handle: string | null; name: string | null; isPrivate: boolean | null };
 
 /**
- * The account part of the menu. Signed out: Sign in. Signed in: your profile (view, edit,
- * private), then Watchlist, Settings and Log out.
+ * The account part of the menu. Signed out: Sign in. Signed in: Profile, Private profile, then
+ * Watchlist, Settings and Log out.
  */
 export default function AccountMenu({ onNavigate }: { onNavigate: () => void }) {
   const path = usePathname();
@@ -62,9 +62,8 @@ export default function AccountMenu({ onNavigate }: { onNavigate: () => void }) 
   return (
     <nav className="menu-more menu-account" aria-label="Your account">
       <Link href={me.handle ? `/@${me.handle}` : "/profile"} aria-current={me.handle ? current(`/@${me.handle}`) : undefined}>
-        {me.handle ? "View profile" : "Create profile"}
+        {me.handle ? "Profile" : "Create profile"}
       </Link>
-      {me.handle && <Link href={`/@${me.handle}?edit`}>Edit profile</Link>}
       {me.handle && me.isPrivate !== null && (
         <label className="menu-switch">
           Private profile
