@@ -1000,7 +1000,7 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 
 /* Every profile (directors and members): the photo, with name, country, @username and buttons
    stacked beside it, on phones too. */
-.person-head { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-16); align-items: center; margin-top: clamp(var(--space-24), 4vw, var(--space-48)); padding: var(--space-16); border-radius: var(--r); background: var(--surface); }
+.person-head { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-16); align-items: center; margin-top: clamp(var(--space-24), 4vw, var(--space-48)); padding: var(--space-16); border: 1px solid var(--line); border-radius: var(--r); }
 .person-head h1 { font-size: var(--t-3xl); overflow-wrap: anywhere; }
 .person-sub { color: var(--muted); }
 /* Profile portraits keep TMDB's 2:3 shape, so nothing is cut off. */
