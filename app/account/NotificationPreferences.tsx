@@ -49,15 +49,15 @@ export default function NotificationPreferences({ userId, initialDisabled, isAdm
     setSaving(null);
   };
   return (
-    <div className="settings-rows">
+    <div className="form settings-form">
       <p className="muted">Choose which notifications appear in Pheelm. Changes are saved to your account and apply to new notifications.</p>
       {GROUPS.filter((g) => isAdmin || g.title !== "Administration").map((group) => (
         <section className="account-section" key={group.title}>
           <h3>{group.title}</h3>
           {group.items.map(([type, label]) => (
-            <label className="setting-row" key={type}>
-              <span>{label}</span>
-              <input type="checkbox" checked={!disabled.includes(type)} disabled={!!saving} onChange={() => void toggle(type)} aria-label={label} />
+            <label className="switch-row" key={type}>
+              <span className="switch-label">{label}</span>
+              <input type="checkbox" role="switch" className="switch" checked={!disabled.includes(type)} disabled={!!saving} onChange={() => void toggle(type)} aria-label={label} />
             </label>
           ))}
         </section>
