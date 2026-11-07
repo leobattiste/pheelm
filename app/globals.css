@@ -114,7 +114,7 @@ p a:hover, .prose a:hover, dd a:hover { text-decoration-color: currentColor; }
 :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: var(--r-sm); }
 h1, h2, h3, p, ul, ol, dl, dd, figure { margin: 0; }
 ul, ol { padding: 0; list-style: none; }
-h1, h2, h3 { color: var(--ink); font-weight: 600; line-height: var(--lh-tight); letter-spacing: -0.025em; text-wrap: balance; overflow-wrap: break-word; }
+h1, h2, h3 { color: var(--ink); font-weight: 600; line-height: var(--lh-tight); letter-spacing: -0.025em; overflow-wrap: break-word; }
 h1 { font-size: var(--t-3xl); }
 h2 { font-size: var(--t-xl); }
 h3 { font-size: var(--t-md); letter-spacing: 0; line-height: var(--lh-snug); }
@@ -128,7 +128,7 @@ svg { flex-shrink: 0; }
 .skip { position: absolute; left: -999px; top: 8px; z-index: 60; padding: var(--space-8) var(--space-12); border-radius: var(--pill); background: var(--ink); color: var(--on-ink); }
 .skip:focus { left: 8px; }
 .muted { color: var(--muted); }
-.lead { font-size: var(--t-lg); line-height: 1.5; color: var(--muted); max-width: 52ch; }
+.lead { font-size: var(--t-lg); line-height: 1.5; color: var(--muted); }
 .label { font-size: var(--t-sm); color: var(--muted); }
 
 /* Controls ----------------------------------------------------------------------------
@@ -1756,9 +1756,10 @@ a.person-row-name:hover { text-decoration: underline; text-underline-offset: 0.2
 
 /* Home: short statements in the page's own type, each followed by the row it introduces. */
 .statement { padding: clamp(var(--space-64), 9vw, 128px) var(--gutter) 0; }
-.statement-body { display: grid; gap: var(--space-16); max-width: 960px; }
-.statement h1, .statement h2 { max-width: 28ch; font-size: var(--t-3xl); }
-.statement p { max-width: 60ch; color: var(--muted); }
+.statement-body { display: grid; gap: var(--space-16); }
+/* Statements run the full width and wrap only where the screen ends, with no forced line lengths. */
+.statement h1, .statement h2 { font-size: var(--t-3xl); text-wrap: wrap; }
+.statement p { color: var(--muted); text-wrap: wrap; }
 .statement .actions { margin-top: var(--space-12); }
 .statement.is-hero { padding-top: clamp(var(--space-32), 6vw, var(--space-64)); }
 .statement + .row { padding-top: clamp(var(--space-32), 4vw, var(--space-48)); }

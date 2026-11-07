@@ -41,8 +41,8 @@ export default async function Home() {
       <div className="home-lead">
       <section className="statement is-hero" aria-labelledby="home-title">
         <div className="statement-body">
-          <h1 id="home-title">Discover and learn more about films directed by Black filmmakers around the world.</h1>
-          <p>{films.length} films, from the silent era to this year&rsquo;s festivals, and where to watch them.</p>
+          <h1 id="home-title">Discover films by Black directors.</h1>
+          <p>Pheelm is a platform to discover and learn more about films directed by Black filmmakers around the world.</p>
           <div className="actions">
             <Link className="button" href="/films">Browse films</Link>
           </div>
@@ -56,10 +56,10 @@ export default async function Home() {
 
       <section className="statement" aria-labelledby="directors-title">
         <div className="statement-body">
-          <h2 id="directors-title">Get to know the directors, from Oscar Micheaux in the 1920s to the filmmakers winning at Cannes today.</h2>
+          <h2 id="directors-title">Get to know the directors.</h2>
           <p>
-            {directors.length} directors from {facets.countries.length} countries. Follow the ones you love to hear when
-            they have a new film.
+            {directors.length} directors from {facets.countries.length} countries, from Oscar Micheaux in the 1920s to
+            the filmmakers winning at Cannes today. Follow the ones you love to hear when they have a new film.
           </p>
           <div className="actions">
             <Link className="button" href="/directors">Browse directors</Link>
@@ -73,8 +73,11 @@ export default async function Home() {
 
       <section className="statement" aria-labelledby="community-title">
         <div className="statement-body">
-          <h2 id="community-title">Explore collections made by Pheelm and the community, from film movements to personal favorites.</h2>
-          <p>Members&rsquo; collections sit alongside ours. Make your own from your Watchlist and share it.</p>
+          <h2 id="community-title">Made with the community.</h2>
+          <p>
+            Save films to your Watchlist, follow directors and make collections to share. Members&rsquo; collections
+            sit alongside ours, from film movements to personal favorites.
+          </p>
           <div className="actions">
             <Link className="button" href="/collections">Explore collections</Link>
           </div>
@@ -89,7 +92,7 @@ export default async function Home() {
 
       <section className="statement is-cta" aria-labelledby="join-title">
         <div className="statement-body">
-          <h2 id="join-title">Start a Watchlist and keep track of every film you want to see.</h2>
+          <h2 id="join-title">Start your Watchlist.</h2>
           <p>Create a free account to save films, follow directors and make your own collections.</p>
           <div className="actions">
             <Link className="button" href="/login">Join Pheelm</Link>
