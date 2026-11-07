@@ -1,4 +1,6 @@
 import Link from "next/link";
+import DirectorCard from "@/components/DirectorCard";
+import AdminBrowserToolbar from "../AdminBrowserToolbar";
 import { requireAdmin } from "@/lib/admin";
 import { setAdmin } from "../actions";
 
@@ -12,7 +14,7 @@ const SIZE=40;
 export default async function AdminMembers({searchParams}:{searchParams:Promise<{q?:string;segment?:string;page?:string}>}){
   const {db,owner}=await requireAdmin("/admin/members");
   const {data,error}=await db.rpc("admin_members");
-  if(error)return <><div className="admin-head"><h1>Members</h1></div><p className="notice error">Unable to load members.</p></>;
+  if(error)return <><div className="admin-head"><h2 className="admin-section-heading">Members</h2></div><p className="notice error">Unable to load members.</p></>;
   const rows=(data??[]) as Row[];
   const sp=await searchParams;
   const q=(sp.q??"").trim().toLowerCase().slice(0,100);
@@ -31,24 +33,27 @@ export default async function AdminMembers({searchParams}:{searchParams:Promise<
   const href=(p:number)=>`/admin/members?${new URLSearchParams({q,segment,page:String(p)}).toString()}`;
   return (
     <>
-      <div className="admin-head"><div><h1>Members</h1><p className="muted">{rows.length} members · {rows.filter(r=>r.is_admin).length} admins · {rows.filter(r=>new Date(r.created_at).getTime()>=week).length} joined this week</p></div></div>
-      <form className="admin-filters" role="search">
-        <label className="field">Search<input className="search-input" name="q" defaultValue={sp.q??""} placeholder={owner?"Handle, name or email":"Handle or name"}/></label>
-        <label className="field">Filter<select name="segment" defaultValue={segment}><option value="all">Everyone</option><option value="admins">Admins</option><option value="new">New this week</option><option value="active">Signed in recently</option><option value="inactive">Not recently signed in</option></select></label>
-        <button className="button ghost small">Filter</button><Link className="button ghost small" href="/admin/members">Reset</Link>
-      </form>
+      <div className="admin-head"><div><h2 className="admin-section-heading">Members</h2><p className="muted">{rows.length} members · {rows.filter(r=>r.is_admin).length} admins · {rows.filter(r=>new Date(r.created_at).getTime()>=week).length} joined this week</p></div></div>
+      <AdminBrowserToolbar action="/admin/members" query={sp.q ?? ""} placeholder={owner ? "Search handle, name or email" : "Search members"} filters={[
+        { name: "segment", label: "Members", value: segment, options: [{ value: "all", label: "Everyone" }, { value: "admins", label: "Admins" }, { value: "new", label: "New this week" }, { value: "active", label: "Signed in recently" }, { value: "inactive", label: "Not recently signed in" }] },
+      ]} />
       <p className="muted">{filtered.length} matching members. Only the owner can change admin roles.</p>
-      <div className="table-wrap"><table className="admin-table"><thead>
-        <tr><th>Member</th>{owner&&<th>Email</th>}<th>Joined</th><th>Last signed in</th><th>Collections</th><th>Saved</th><th>Comments</th><th /></tr>
-      </thead><tbody>{pageRows.map(r=><tr key={r.id}>
-        <td><Link href={`/admin/members/${r.id}`}>{r.handle?`@${r.handle}`:r.display_name||"No profile yet"}</Link>
-          {r.is_owner?<span className="status-pill">Owner</span>:r.is_admin?<span className="status-pill">Admin</span>:null}
-          {r.is_private&&<span className="status-pill">Private</span>}
-        </td>
-        {owner&&<td>{r.email??"—"}</td>}<td>{day(r.created_at)}</td><td>{day(r.last_seen)}</td><td>{r.lists}</td><td>{r.saved}</td><td>{r.comments}</td>
-        <td>{owner&&!r.is_owner&&<form action={setAdmin}><input type="hidden" name="id" value={r.id}/><input type="hidden" name="make" value={r.is_admin?"false":"true"}/>
-        <button className="button ghost small" type="submit">{r.is_admin?"Remove admin":"Make admin"}</button></form>}</td>
-      </tr>)}</tbody></table></div>
+      <ul className="director-grid admin-member-grid">
+        {pageRows.map(r => <DirectorCard key={r.id} href={`/admin/members/${r.id}`} showPreviews={false} director={{
+          id: r.id, slug: r.id, name: r.display_name || (r.handle ? `@${r.handle}` : "No profile yet"),
+          country: null, photo_url: null, films: 0, first: 0, last: 0, previews: [],
+        }} meta={r.handle ? `@${r.handle}` : "Member"} footer={
+          <div className="admin-card-controls">
+            <div className="admin-tags">{r.is_owner ? <span className="status-pill">Owner</span> : r.is_admin ? <span className="status-pill">Admin</span> : <span className="status-pill">Member</span>}{r.is_private && <span className="status-pill">Private</span>}</div>
+            {owner && r.email && <p className="muted">{r.email}</p>}
+            <dl className="admin-member-stats"><div><dt>Collections</dt><dd>{r.lists}</dd></div><div><dt>Saved</dt><dd>{r.saved}</dd></div><div><dt>Comments</dt><dd>{r.comments}</dd></div></dl>
+            <p className="muted">Joined {day(r.created_at)}<br />Last signed in: {day(r.last_seen)}</p>
+            <div className="actions"><Link className="link-button" href={`/admin/members/${r.id}`}>View member</Link>
+              {owner && !r.is_owner && <form action={setAdmin}><input type="hidden" name="id" value={r.id}/><input type="hidden" name="make" value={r.is_admin ? "false" : "true"}/><button className="button ghost small" type="submit">{r.is_admin ? "Remove admin" : "Make admin"}</button></form>}
+            </div>
+          </div>
+        } />)}
+      </ul>
       {!pageRows.length&&<p className="empty">No matching members.</p>}
       <div className="actions admin-pagination">{page>1&&<Link className="button ghost small" href={href(page-1)}>Previous</Link>}<span className="muted">Page {page} of {Math.max(1,Math.ceil(filtered.length/SIZE))}</span>{page*SIZE<filtered.length&&<Link className="button ghost small" href={href(page+1)}>Next</Link>}</div>
     </>

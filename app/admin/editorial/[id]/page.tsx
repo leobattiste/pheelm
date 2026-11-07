@@ -16,7 +16,7 @@ export default async function EditEditorial({params}:{params:Promise<{id:string}
   return (
     <>
       <div className="admin-head">
-        <div><p className="muted"><Link href="/admin/editorial">Editorial</Link> / {film.year}</p><h1>{film.title}</h1></div>
+        <div><p className="muted"><Link href="/admin/editorial">Editorial</Link> / {film.year}</p><h2 className="admin-section-heading">{film.title}</h2></div>
         <div className="actions"><Link className="button ghost small" href={`/admin/films/${id}`}>Film details</Link>
           {film.status==="published" && <Link className="button ghost small" href={`/films/${film.slug}`}>View film</Link>}
         </div>

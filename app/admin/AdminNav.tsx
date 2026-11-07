@@ -20,7 +20,7 @@ const groups: {
       { label: "Content quality", href: "/admin/quality", icon: "check" },
       { label: "Automation", href: "/admin/automation", icon: "sparkle" },
     ] },
-  { label: "People", href: "/admin/people", icon: "users", routes: ["/admin/people"] },
+  { label: "Directors", href: "/admin/people", icon: "users", routes: ["/admin/people"] },
   { label: "Editorial", href: "/admin/editorial", icon: "pencil", routes: ["/admin/editorial"] },
   { label: "Community", href: "/admin/community", icon: "comment", routes: ["/admin/community", "/admin/submissions"],
     children: [

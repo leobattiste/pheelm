@@ -16,7 +16,7 @@ export default async function EditPerson({ params }: { params: Promise<{ id: str
   return (
     <>
       <div className="admin-head">
-        <h1>{person.name}</h1>
+        <h2 className="admin-section-heading">{person.name}</h2>
         <div className="actions">
           <Link className="button ghost small" href={`/${directs ? "directors" : "people"}/${person.slug}`}>View on site</Link>
         </div>

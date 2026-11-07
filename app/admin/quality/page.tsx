@@ -1,4 +1,6 @@
 import Link from "next/link";
+import FilmCard from "@/components/FilmCard";
+import { getFilms, toCard } from "@/lib/data";
 import { requireAdmin } from "@/lib/admin";
 
 const ISSUES = [
@@ -38,13 +40,14 @@ export default async function QualityPage({ searchParams }: { searchParams: Prom
     db.from("admin_people_quality").select("id", { count: "exact", head: true }).gt("directed", 0).or("bio.is.null,bio.eq."),
     db.from("admin_people_quality").select("id", { count: "exact", head: true }).gt("directed", 0).or("photo_url.is.null,photo_url.eq."),
   ]);
+  const catalog = new Map((await getFilms().catch(() => [])).map(f => [f.id, toCard(f)]));
   const last = Math.ceil((count ?? 0) / PER_PAGE);
   const href = (p: number) => `/admin/quality?issue=${issue}&page=${p}`;
 
   return (
     <>
       <div className="admin-head">
-        <div><h1>Content quality</h1><p className="muted">Find incomplete records and fix them at the source.</p></div>
+        <div><h2 className="admin-section-heading">Content quality</h2><p className="muted">Find incomplete records and fix them at the source.</p></div>
         <Link className="button ghost small" href="/admin/automation">Automation</Link>
       </div>
       <div className="stats">
@@ -54,7 +57,7 @@ export default async function QualityPage({ searchParams }: { searchParams: Prom
           </Link>
         ))}
       </div>
-      <section className="fieldset">
+      <section className="account-section">
         <h2>Directors to complete</h2>
         <div className="actions">
           <Link href="/admin/people?missing=bio">Missing biography: {noBio ?? "—"}</Link>
@@ -68,19 +71,15 @@ export default async function QualityPage({ searchParams }: { searchParams: Prom
       {error ? <p className="notice error">Unable to load content checks. Verify the admin database upgrade.</p> : (
         <>
           <p className="muted">{count ?? 0} films need attention. Select a film to edit it. Missing essays can be managed in Editorial.</p>
-          <div className="table-wrap">
-            <table className="admin-table">
-              <thead><tr><th>Film</th><th>Year</th><th>Status</th><th>Needs attention</th><th /></tr></thead>
-              <tbody>{(films ?? []).map((f) => (
-                <tr key={f.id}>
-                  <td><Link href={`/admin/films/${f.id}`}>{f.title}</Link></td>
-                  <td>{f.year}</td><td><span className={`status-pill ${f.status}`}>{f.status}</span></td>
-                  <td><div className="admin-tags">{(f.issues as string[]).map((label) => <span className="status-pill" key={label}>{label}</span>)}</div></td>
-                  <td><Link href={`/admin/editorial/${f.id}`}>Essay</Link></td>
-                </tr>
-              ))}</tbody>
-            </table>
-          </div>
+          <ul className="film-grid admin-film-grid">
+            {(films ?? []).map(f => <FilmCard key={f.id} href={`/admin/films/${f.id}`} film={catalog.get(f.id) ?? {
+              id: f.id, slug: f.slug, title: f.title, year: f.year, poster_url: null, directors: [], type: "feature",
+              countries: [], languages: [], genres: [], runtime: null, wins: 0,
+            }} controls={<div className="admin-card-controls"><span className={`status-pill ${f.status}`}>{f.status}</span>
+              <div className="admin-tags">{(f.issues as string[]).map(label => <span className="status-pill" key={label}>{label}</span>)}</div>
+              <Link className="link-button" href={`/admin/editorial/${f.id}`}>Edit essay</Link>
+            </div>} />)}
+          </ul>
           {!films?.length && <p className="empty">No matching issues.</p>}
           <div className="actions admin-pagination">
             {page > 1 && <Link className="button ghost small" href={href(page - 1)}>Previous</Link>}
