@@ -1817,3 +1817,16 @@ a.person-row-name:hover { text-decoration: underline; text-underline-offset: 0.2
 /* Film page: the Pheelm collections the film is part of, right under its actions. */
 .part-of { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-8) var(--space-12); margin-top: var(--space-24); }
 .part-of-label { color: var(--muted); }
+
+/* Settings ----------------------------------------------------------------------------------- */
+.account-panel.wide { max-width: none; }
+.settings-form { display: grid; gap: var(--space-20); }
+.setting-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-16); padding: var(--space-12) 0; border-bottom: 1px solid var(--line); }
+.follow-list { display: grid; gap: 0; }
+.follow-list li { display: flex; align-items: center; justify-content: space-between; gap: var(--space-16); padding: var(--space-12) 0; border-bottom: 1px solid var(--line); }
+.follow-who { display: flex; align-items: center; gap: var(--space-12); min-width: 0; text-decoration: none !important; }
+.follow-who > span { display: grid; min-width: 0; }
+.follow-portrait { width: 48px; height: 48px; flex-shrink: 0; border-radius: 50%; object-fit: cover; }
+.follow-name { font-weight: 700; color: var(--ink); }
+.follow-list .follow-note { display: none; }
+.danger-zone { max-width: 360px; }

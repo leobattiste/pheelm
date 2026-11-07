@@ -34,7 +34,15 @@ drop trigger if exists list_film_added_notify on public.list_films;
 create trigger list_film_added_notify after insert on public.list_films
   for each row execute function public.on_list_film_added();
 
--- 3. Who a member follows shows on their profile, unless the profile is private.
+-- 3. Who a member follows shows on their profile, unless the profile is private. Visitors can't
+--    read profiles, so the check goes through a function that can.
+create or replace function public.is_public_profile(uid uuid) returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.profiles where id = uid and not coalesce(is_private, false));
+$$;
+revoke execute on function public.is_public_profile(uuid) from public;
+grant execute on function public.is_public_profile(uuid) to anon, authenticated;
+
 drop policy if exists "public follows" on public.follows;
 create policy "public follows" on public.follows for select to anon, authenticated
-  using (exists (select 1 from public.profiles p where p.id = follows.user_id and not coalesce(p.is_private, false)));
+  using (public.is_public_profile(user_id));
