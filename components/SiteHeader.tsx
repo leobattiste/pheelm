@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { DONATE_URL, INSTAGRAM_URL, SITE_NAME, THREADS_URL, WORDMARK } from "@/lib/site";
-import NewsletterForm from "./NewsletterForm";
 import AccountMenu from "./AccountMenu";
 import FeedbackLink from "./FeedbackLink";
 import Icon, { type IconName } from "./Icon";
@@ -90,16 +89,10 @@ export default function SiteHeader() {
           </nav>
           {/* On pages with the tab bar there's no footer, so what it holds lives here. */}
           <div className="menu-site">
-            <section className="menu-newsletter" aria-labelledby="menu-news-h">
-              <h2 id="menu-news-h">Get the newsletter</h2>
-              <p>New films and collections, once a month at most.</p>
-              <NewsletterForm source="menu" id="menu-newsletter-email" />
-            </section>
             <nav className="menu-links" aria-label={SITE_NAME}>
               <Link href="/about">About</Link>
               <Link href="/partnerships">Partnerships</Link>
               <Link href="/contact">Contact</Link>
-              <Link href="/newsletter">Newsletter</Link>
               <Link href="/privacy">Privacy</Link>
               <Link href="/terms">Terms</Link>
               {INSTAGRAM_URL && <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">Instagram</a>}
