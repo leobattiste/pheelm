@@ -137,6 +137,7 @@ export default async function MemberCollectionPage({ params, searchParams }: Par
   return (
     <section className="page">
       {jsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />}
+      <Breadcrumbs parent="Collections" href="/collections" current={list.title} />
       <header className="page-head has-corner">
         <MoreMenu corner label="Collection actions">
           {canEdit && (
@@ -180,7 +181,6 @@ export default async function MemberCollectionPage({ params, searchParams }: Par
           {canFeature && <FeatureCollection listId={list.id} featured={featured} />}
           {!canEdit && list.is_public && <ReportCollection listId={list.id} />}
         </MoreMenu>
-        <Breadcrumbs parent="Collections" href="/collections" current={list.title} />
         <h1>{list.title}</h1>
         {list.description && <CollectionDescription title={list.title} text={list.description} />}
         {canEdit && (

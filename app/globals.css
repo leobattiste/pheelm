@@ -1905,7 +1905,16 @@ html[data-auth="in"] .intro-head + .section-head { margin-top: var(--space-16); 
 .film-actions .more-menu { display: flex; }
 .breadcrumbs { min-width: 0; max-width: 100%; }
 .breadcrumbs ol { overflow: hidden; }
-.profile > .breadcrumbs { margin: var(--space-16) 0 var(--space-12); }
 .feedback-about { display: flex; align-items: center; gap: var(--space-8); min-width: 0; padding: var(--space-4) var(--space-4) var(--space-4) var(--space-16); border: 1px solid var(--line); border-radius: var(--pill); }
 .feedback-about a { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); }
 .inbox-about { margin: 0; color: var(--muted); }
+
+/* Breadcrumbs are always the first thing on a page, the same distance under the header. */
+.breadcrumbs { --crumbs-top: var(--space-16); }
+:is(.page, .film-page) > .breadcrumbs { margin: var(--crumbs-top) 0 0; }
+@media (min-width: 900px) { .breadcrumbs { --crumbs-top: var(--space-24); } }
+.breadcrumbs + .page-head { padding-top: var(--space-24); }
+.breadcrumbs + .page-head.has-corner { --head-pad-top: var(--space-24); }
+.breadcrumbs + .person-head { margin-top: var(--space-16); }
+.film-page:has(> .breadcrumbs) { padding-top: 0; row-gap: var(--space-24); }
+.film-page > .breadcrumbs { grid-column: 1 / -1; }

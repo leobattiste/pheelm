@@ -159,6 +159,8 @@ export default async function FilmPage({ params }: Params) {
         {bg && <style>{pageColours(bg)}</style>}
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
 
+        <Breadcrumbs parent="Films" href="/films" current={film.title} />
+
         <div className="film-art">
           <Poster title={film.title} year={film.year} directors={directorNames} src={film.poster_url} sizes="(min-width: 800px) 46vw, 100vw" priority hero />
         </div>
@@ -167,7 +169,6 @@ export default async function FilmPage({ params }: Params) {
           {/* 1. Overview: what it is, and the three things you can do. */}
           <section className="film-overview" aria-labelledby="film-title">
             <header className="film-head">
-              <Breadcrumbs parent="Films" href="/films" current={film.title} />
               <h1 className="film-title" id="film-title">{film.title}</h1>
               <p className="film-byline">
                 <span className="byline-item">
