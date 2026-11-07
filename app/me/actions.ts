@@ -45,7 +45,7 @@ export async function updateCollection(form: FormData) {
     delete changes.comments_enabled;
     ({ error } = await db.from("lists").update(changes).eq("id", id));
   }
-  // Too long for the database (until collection-essays.sql has run, descriptions stop at 500).
+  // Too long for the database (10,000 characters, see collection-essays.sql).
   if (error?.code === "23514") redirect(`/c/${id}?error=description`);
   revalidatePath("/me");
   revalidatePath(`/c/${id}`);

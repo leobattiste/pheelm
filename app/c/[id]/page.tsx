@@ -185,7 +185,7 @@ export default async function MemberCollectionPage({ params, searchParams }: Par
           </ul>
         )}
         {sp.error === "description" && (
-          <p className="notice error" role="alert">That description is longer than collections can hold right now, so it wasn&rsquo;t saved. Shorten it to 500 characters, or try again soon.</p>
+          <p className="notice error" role="alert">That description is too long, so it wasn&rsquo;t saved. Keep it under 10,000 characters.</p>
         )}
 
         {invitedMe && (
