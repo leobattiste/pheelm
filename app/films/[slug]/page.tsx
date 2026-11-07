@@ -261,7 +261,7 @@ export default async function FilmPage({ params }: Params) {
           {/* 5. Where to watch. */}
           <section className="film-section" aria-labelledby="watch-h">
             <h2 id="watch-h">Where to watch</h2>
-            <WatchSection watch={film.watch} title={film.title} />
+            <WatchSection watch={film.watch} title={film.title} slug={film.slug} />
           </section>
 
         </div>

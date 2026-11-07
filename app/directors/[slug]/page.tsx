@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Portrait } from "@/components/DirectorCard";
 import FollowButton from "@/components/FollowButton";
 import Breadcrumbs from "@/components/Breadcrumbs";
+import FeedbackLink from "@/components/FeedbackLink";
 import MoreMenu from "@/components/MoreMenu";
 import ShareButton from "@/components/ShareButton";
 import { PersonLinks } from "@/components/PersonDetails";
@@ -108,6 +109,7 @@ export default async function DirectorPage({ params }: { params: Promise<{ slug:
         <MoreMenu corner label={`Actions for ${director.name}`}>
           <FollowButton personId={director.id} name={director.name} />
           <ShareButton item title={`${director.name} on Pheelm`} />
+          <FeedbackLink about={`/directors/${director.slug}`} label={director.name} />
         </MoreMenu>
         <Portrait director={director} />
         <div className="person-text">

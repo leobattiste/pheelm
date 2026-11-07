@@ -1,5 +1,4 @@
-import Link from "next/link";
-import Icon from "./Icon";
+import FeedbackLink from "./FeedbackLink";
 import MoreMenu from "./MoreMenu";
 import ShareButton from "./ShareButton";
 import WatchedButton from "./WatchedButton";
@@ -9,10 +8,7 @@ export default function FilmMenu({ filmId, slug, title }: { filmId: string; slug
   return (
     <MoreMenu label={`More for ${title}`}>
       <WatchedButton filmId={filmId} />
-      <Link className="button ghost" href={`/contact?topic=feedback&film=${encodeURIComponent(slug)}`}>
-        <Icon name="comment" />
-        Give feedback
-      </Link>
+      <FeedbackLink about={`/films/${slug}`} label={title} />
       <ShareButton item title={title} />
     </MoreMenu>
   );

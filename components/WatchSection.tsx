@@ -2,6 +2,7 @@ import Link from "next/link";
 import Icon from "./Icon";
 import type { WatchOption } from "@/lib/types";
 import { serviceName, watchLink } from "@/lib/watch";
+import { feedbackHref } from "@/lib/feedback";
 
 const KINDS: [WatchOption["kind"], string][] = [["stream", "Stream"], ["free", "Watch free"], ["rent", "Rent"], ["buy", "Buy"]];
 
@@ -11,7 +12,7 @@ const KINDS: [WatchOption["kind"], string][] = [["stream", "Stream"], ["free", "
  * film on that service. Services show their logo (from TMDB), or their first letter until the
  * admin has refreshed where to watch.
  */
-export default function WatchSection({ watch, title }: { watch: WatchOption[]; title: string }) {
+export default function WatchSection({ watch, title, slug }: { watch: WatchOption[]; title: string; slug: string }) {
   const regions = [...new Set(watch.map((w) => w.region ?? "US"))];
   const region = regions.includes("US") ? "US" : regions[0];
 
@@ -27,7 +28,7 @@ export default function WatchSection({ watch, title }: { watch: WatchOption[]; t
   if (!groups.length) {
     return (
       <p className="watch-empty">
-        Not streaming yet. <Link href="/submit">Tell us where it&rsquo;s showing</Link>.
+        Not streaming yet. <Link href={feedbackHref(`/films/${slug}#watch-h`, `Where to watch: ${title}`)}>Tell us where it&rsquo;s showing</Link>.
       </p>
     );
   }
@@ -56,7 +57,9 @@ export default function WatchSection({ watch, title }: { watch: WatchOption[]; t
           </div>
         ))}
       </dl>
-      <p className="watch-credit">Streaming information from JustWatch.</p>
+      <p className="watch-credit">
+        Streaming information from JustWatch. <Link href={feedbackHref(`/films/${slug}#watch-h`, `Where to watch: ${title}`)}>Something wrong?</Link>
+      </p>
     </div>
   );
 }

@@ -5,6 +5,7 @@ import AskToCollaborate from "@/components/AskToCollaborate";
 import CollectionDescription from "@/components/CollectionDescription";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import FeatureCollection from "@/components/FeatureCollection";
+import FeedbackLink from "@/components/FeedbackLink";
 import { viewerIsAdmin } from "@/lib/admin";
 import CollectionEditor from "@/components/CollectionEditor";
 import Comments from "@/components/Comments";
@@ -175,6 +176,7 @@ export default async function MemberCollectionPage({ params, searchParams }: Par
             </a>
           )}
           {list.is_public && <ShareButton item title={list.title} />}
+          {list.is_public && <FeedbackLink about={`/c/${list.id}`} label={`Collection: ${list.title}`} />}
           {canFeature && <FeatureCollection listId={list.id} featured={featured} />}
           {!canEdit && list.is_public && <ReportCollection listId={list.id} />}
         </MoreMenu>

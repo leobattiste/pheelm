@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { DONATE_URL, SITE_NAME, WORDMARK } from "@/lib/site";
 import AccountMenu from "./AccountMenu";
+import FeedbackLink from "./FeedbackLink";
 import Icon, { type IconName } from "./Icon";
 import SignInSheet from "./SignInSheet";
 import { openSearch } from "./Search";
@@ -83,7 +84,7 @@ export default function SiteHeader() {
               <Link href="/donate" aria-current={current("/donate")}><Icon name="heart" />Donate</Link>
             )}
             <Link href="/submit" aria-current={current("/submit")}><Icon name="plus" />Suggest a film</Link>
-            <Link href="/contact?topic=feedback"><Icon name="comment" />Give feedback</Link>
+            <FeedbackLink className="" onNavigate={() => menu.current?.close()}><Icon name="comment" />Give feedback</FeedbackLink>
           </nav>
           <div className="menu-foot">
             <div className="menu-setting">

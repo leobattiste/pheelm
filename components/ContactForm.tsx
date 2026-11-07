@@ -1,6 +1,8 @@
 "use client";
 
-import { useActionState } from "react";
+import Link from "next/link";
+import { useActionState, useState } from "react";
+import Icon from "./Icon";
 import { sendMessage, type FormState } from "@/app/platform-actions";
 
 const TOPICS: [string, string][] = [
@@ -13,7 +15,9 @@ const TOPICS: [string, string][] = [
 ];
 
 /** The contact form. On the partnerships page it asks for an organisation and starts on Partnership. */
-export default function ContactForm({ topic = "general", partnership = false, about }: { topic?: string; partnership?: boolean; about?: string }) {
+export default function ContactForm({ topic = "general", partnership = false, about }: { topic?: string; partnership?: boolean; about?: { page: string; title: string } }) {
+  const [on, setOn] = useState(true);
+  const ref = on ? about : undefined;
   const [state, action, pending] = useActionState<FormState, FormData>(sendMessage, null);
 
   if (state?.ok) {
@@ -22,6 +26,15 @@ export default function ContactForm({ topic = "general", partnership = false, ab
 
   return (
     <form action={action} className="form contact-form">
+      {ref && (
+        <div className="feedback-about">
+          <span className="muted">About</span>
+          <Link href={ref.page}>{ref.title}</Link>
+          <button type="button" className="icon-button" onClick={() => setOn(false)} aria-label="Not about this page"><Icon name="close" /></button>
+          <input type="hidden" name="page" value={ref.page} />
+          <input type="hidden" name="page_title" value={ref.title} />
+        </div>
+      )}
       <div className="form-row">
         <label className="field">Your name<input name="name" autoComplete="name" maxLength={200} /></label>
         <label className="field">Email<input name="email" type="email" autoComplete="email" required maxLength={254} /></label>
@@ -41,7 +54,7 @@ export default function ContactForm({ topic = "general", partnership = false, ab
       )}
       <label className="field">
         Message
-        <textarea name="body" required maxLength={5000} defaultValue={about ? `About ${about}:\n\n` : undefined} placeholder={partnership ? "Tell us about your organisation and what you have in mind." : ""} />
+        <textarea name="body" required maxLength={5000} placeholder={partnership ? "Tell us about your organisation and what you have in mind." : ""} />
       </label>
       <input name="website" tabIndex={-1} autoComplete="off" className="visually-hidden" aria-hidden="true" />
       {state && !state.ok && <p className="notice error" role="alert">{state.message}</p>}

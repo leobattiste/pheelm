@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { feedbackHref } from "@/lib/feedback";
 import { DONATE_URL } from "@/lib/site";
 
 export const metadata: Metadata = { title: "Donate", description: "Support Pheelm, an independent directory of films by Black directors." };
@@ -21,7 +22,7 @@ export default function DonatePage() {
       ) : (
         <p className="muted info-note">
           Donations open soon. In the meantime, you can help by <Link href="/submit">suggesting a film</Link> we&rsquo;re
-          missing or <Link href="/contact?topic=feedback">telling us what you think</Link>.
+          missing or <Link href={feedbackHref("/donate", "Donate")}>telling us what you think</Link>.
         </p>
       )}
     </article>

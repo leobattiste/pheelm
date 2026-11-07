@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/admin";
 import { setMessageHandled } from "../actions";
 
-const TOPICS: Record<string, string> = { general: "Question or idea", correction: "Correction", partnership: "Partnership", press: "Press", privacy: "Privacy" };
+const TOPICS: Record<string, string> = { feedback: "Feedback", general: "Question or idea", correction: "Correction", partnership: "Partnership", press: "Press", privacy: "Privacy" };
 
 /** Messages from the contact and partnership forms, and the newsletter list. */
 export default async function AdminInbox({ searchParams }: { searchParams: Promise<{ show?: string }> }) {
@@ -39,6 +39,7 @@ export default async function AdminInbox({ searchParams }: { searchParams: Promi
                     <span className="status-pill">{TOPICS[m.topic] ?? m.topic}</span>
                     <span className="muted">{new Date(m.created_at).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}</span>
                   </div>
+                  {m.page && <p className="inbox-about">About <Link href={m.page}>{m.page_title || m.page}</Link></p>}
                   <p className="inbox-body">{m.body}</p>
                   <div className="actions">
                     <a className="button small" href={`mailto:${m.email}?subject=${encodeURIComponent("Re: your message to Pheelm")}`}>Reply to {m.email}</a>

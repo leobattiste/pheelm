@@ -3,13 +3,17 @@ import Link from "next/link";
 import ContactForm from "@/components/ContactForm";
 import { CONTACT_EMAIL } from "@/lib/site";
 import { getFilm } from "@/lib/data";
+import { safeAbout } from "@/lib/feedback";
 
 export const metadata: Metadata = { title: "Contact", description: "Questions, corrections, press and privacy requests." };
 
-export default async function ContactPage({ searchParams }: { searchParams: Promise<{ topic?: string; film?: string }> }) {
-  const { topic, film: slug } = await searchParams;
-  // "Give feedback" on a film starts the message with which film it's about.
-  const film = slug ? await getFilm(slug) : null;
+export default async function ContactPage({ searchParams }: { searchParams: Promise<{ topic?: string; film?: string; about?: string; label?: string }> }) {
+  const sp = await searchParams;
+  const { topic } = sp;
+  // Feedback says what it's about: a page or part of one (?about=&label=), or a film (older ?film= links).
+  const film = !sp.about && sp.film ? await getFilm(sp.film) : null;
+  const aboutPath = safeAbout(sp.about) ?? (film ? `/films/${film.slug}` : null);
+  const about = aboutPath ? { page: aboutPath, title: (sp.label || film?.title || aboutPath).slice(0, 200) } : undefined;
   return (
     <article className="page narrow info-page">
       <header className="page-head">
@@ -22,7 +26,7 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
       <p className="muted info-note">
         To suggest a film, use <Link href="/submit">Suggest a film</Link>. For festivals, distributors and schools, see <Link href="/partnerships">Partnerships</Link>.
       </p>
-      <ContactForm topic={topic} about={film ? `${film.title} (${film.year}), pheelm.com/films/${film.slug}` : undefined} />
+      <ContactForm topic={topic} about={about} />
     </article>
   );
 }
