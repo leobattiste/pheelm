@@ -48,6 +48,8 @@ export default async function AccountPage() {
   const { data: notificationPrefs } = await db.from("notification_preferences").select("disabled_types").eq("user_id", user.id).maybeSingle();
   const disabledNotificationTypes = (notificationPrefs?.disabled_types ?? []) as string[];
 
+  const { data: subscribedToNewsletter } = await db.rpc("my_newsletter_subscription");
+
   const tabs = [
     {
       id: "profile",
@@ -100,7 +102,7 @@ export default async function AccountPage() {
           <section className="account-section" aria-labelledby="news-h">
             <h2 id="news-h">Newsletter</h2>
             <p className="muted">Receive occasional updates about films, collections and stories. Unsubscribe anytime.</p>
-            <NewsletterSubscribe email={user.email ?? ""} />
+            <NewsletterSubscribe email={user.email ?? ""} initialSubscribed={subscribedToNewsletter === true} />
           </section>
         </div>
       ),
