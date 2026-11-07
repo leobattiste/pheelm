@@ -15,8 +15,8 @@
   --line: #262626;
   --line-strong: #3d3d3d;
   --muted: #8c8c8c;
-  --text: #ededed;
-  --ink: #fafafa;
+  --text: #ffffff;
+  --ink: #ffffff;
   --on-ink: #0c0c0c;
   --scrim: rgb(0 0 0 / 0.6);
   --shadow: 0 24px 60px -24px rgb(0 0 0 / 0.8);
@@ -34,7 +34,7 @@
   --line: #e6e6e6;
   --line-strong: #cfcfcf;
   --muted: #696969;
-  --text: #1d1d1d;
+  --text: #0c0c0c;
   --ink: #0c0c0c;
   --on-ink: #ffffff;
   --scrim: rgb(0 0 0 / 0.35);
@@ -69,7 +69,7 @@
 
   /* One type scale for the whole site. Every size on the site is one of these. */
   --t-xs: 0.75rem;   /* 12px: badges, keyboard keys, tiny labels */
-  --t-sm: 0.875rem;  /* 14px: small text, meta, captions, buttons */
+  --t-sm: 1rem;      /* 16px: small text, meta, captions, buttons (same as paragraphs) */
   --t-md: 1rem;      /* 16px: paragraphs */
   --t-lg: 1.25rem;   /* 20px: intros, card titles, long reading */
   --t-xl: 1.5rem;    /* 24px: section titles */
@@ -898,7 +898,7 @@ main:has(.feature) { margin-top: calc(var(--header) * -1); }
 @keyframes pop { 50% { transform: scale(1.25); } }
 
 /* The editors' line on why the film matters: a size up from the synopsis, set just above it. */
-.film-note { margin-top: var(--space-40); max-width: 46ch; font-size: var(--t-lg); line-height: 1.4; text-wrap: pretty; }
+.film-note { margin-top: var(--space-40); max-width: 60ch; font-size: var(--t-md); line-height: var(--lh-body); text-wrap: pretty; }
 .film-note + .film-essay { margin-top: var(--space-20); }
 .film-essay { display: grid; gap: 1em; margin-top: var(--space-40); max-width: 62ch; font-size: var(--t-md); line-height: var(--lh-body); }
 
@@ -1301,8 +1301,7 @@ h1, h2, .empty-state p:first-of-type, .decades a,
 [data-grid="list"] .film-grid .film-card a:hover .poster { box-shadow: none; transform: none; }
 
 /* Names and card text --------------------------------------------------------------------------
-   Every name (people and films) and all the text on cards is 16px in the regular weight, so
-   cards and credits read as one calm list. Titles above them carry the weight. */
+   All the text on cards and credits is 16px. Names are bold, details regular. */
 .film-card-title, .film-card-meta, .film-card-col,
 .director-card-name, .director-card-meta, .collection-title, .collection-desc,
 .anniversary-title, .anniversary-meta, .spotlight-desc,
@@ -1313,6 +1312,11 @@ h1, h2, .empty-state p:first-of-type, .decades a,
   font-size: var(--t-md);
   font-weight: 400;
   letter-spacing: 0;
+}
+/* Names of films, people and collections are bold; the details next to them stay regular. */
+.film-card-title, .director-card-name, .collection-title, .anniversary-title,
+.cast-name, .filmography a, .hit-title, .save-name, .person-row-name, .account-who-name {
+  font-weight: 700;
 }
 
 /* People ------------------------------------------------------------------------------------
