@@ -5,6 +5,7 @@ import FilmCard from "@/components/FilmCard";
 import CommunityTile from "@/components/CommunityTile";
 import Icon, { type IconName } from "@/components/Icon";
 import FilmActionBar from "@/components/FilmActionBar";
+import FilmEditorial from "@/components/FilmEditorial";
 import PeopleGrid from "@/components/PeopleGrid";
 import Poster from "@/components/Poster";
 import Breadcrumbs from "@/components/Breadcrumbs";
@@ -212,6 +213,8 @@ export default async function FilmPage({ params }: Params) {
               </div>
             )}
           </section>
+
+          <FilmEditorial filmId={film.id} />
 
           {/* 2. About: small facts to scan. */}
           <section className="film-section" aria-labelledby="details-h">
