@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { adminClient, ownerClient } from "@/lib/admin";
+import { logAdminActivity } from "@/lib/admin-activity";
 import { slugify } from "@/lib/format";
 import { addFilmByTitle, fillPerson, importFilm, posterColour, type AddResult } from "@/lib/import";
 import { getWatch, tmdbEnabled } from "@/lib/tmdb";
@@ -140,6 +141,7 @@ export async function saveFilm(_prev: Result, f: FormData): Promise<Result> {
     await db.from("collection_films").delete().eq("film_id", id);
     if (chosen.length) await db.from("collection_films").insert(chosen.map((c) => ({ collection_id: c, film_id: id, sort: year })));
 
+    await logAdminActivity(db, "Saved film", "film", id, `${title} (${year}) · ${row.status}`);
     refresh();
     return { ok: true, message: row.status === "draft" ? "Saved as a draft." : "Saved and live." };
   } catch (e) {
@@ -165,12 +167,16 @@ export async function createFilm(f: FormData) {
       await importFilm(db, data.id);
     } catch {}
   }
+  await logAdminActivity(db, "Created film draft", "film", data.id, `${title} (${year})`);
   redirect(`/admin/films/${data.id}`);
 }
 
 export async function deleteFilm(f: FormData) {
   const db = await ownerClient();
-  await db.from("films").delete().eq("id", str(f, "id"));
+  const id = str(f, "id");
+  const { error } = await db.from("films").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+  await logAdminActivity(db, "Deleted film", "film", id);
   refresh();
   redirect("/admin/films");
 }
@@ -180,6 +186,7 @@ export async function importOne(id: string): Promise<Result> {
     if (!tmdbEnabled) return { ok: false, message: "Add TMDB_API_KEY in Vercel to switch on the import." };
     const db = await adminClient();
     const message = await importFilm(db, id);
+    await logAdminActivity(db, "Imported TMDB metadata", "film", id);
     refresh();
     return { ok: true, message };
   } catch (e) {
@@ -292,6 +299,7 @@ export async function savePerson(_prev: Result, f: FormData): Promise<Result> {
       ...(f.has("has_in_directory") ? { in_directory: f.get("in_directory") === "on" } : {}),
     }).eq("id", str(f, "id"));
     if (error) return { ok: false, message: error.code === "23505" ? "Someone else already uses that address or TMDB id." : error.message };
+    await logAdminActivity(db, "Saved person", "person", str(f, "id"), name);
     refresh();
     return { ok: true, message: "Saved." };
   } catch (e) {
@@ -315,9 +323,11 @@ export async function reviewSubmission(f: FormData) {
     form.set("director", s.director);
     // Creates a draft (and imports it from TMDB when switched on), then opens it in the editor.
     await db.from("submissions").update({ status: "approved", reviewed_at: new Date().toISOString() }).eq("id", id);
+    await logAdminActivity(db, "Approved submission", "submission", id, s.title);
     await createFilm(form);
   } else {
     await db.from("submissions").update({ status: decision === "reject" ? "rejected" : "pending", reviewed_at: new Date().toISOString() }).eq("id", id);
+    await logAdminActivity(db, decision === "reject" ? "Rejected submission" : "Reset submission", "submission", id, s.title);
     revalidatePath("/admin/submissions");
   }
 }
@@ -325,7 +335,9 @@ export async function reviewSubmission(f: FormData) {
 /** Marks a contact message as answered, or moves it back. */
 export async function setMessageHandled(f: FormData) {
   const db = await adminClient();
-  await db.from("messages").update({ handled: f.get("handled") === "true" }).eq("id", String(f.get("id")));
+  const id = String(f.get("id"));
+  await db.from("messages").update({ handled: f.get("handled") === "true" }).eq("id", id);
+  await logAdminActivity(db, f.get("handled") === "true" ? "Closed message" : "Reopened message", "message", id);
   revalidatePath("/admin/inbox");
 }
 
@@ -336,6 +348,7 @@ export async function setListFlag(f: FormData) {
   const field = raw === "staff_pick" || raw === "featured" ? raw : "hidden";
   const id = String(f.get("id"));
   await db.from("lists").update({ [field]: f.get("value") === "true" }).eq("id", id);
+  await logAdminActivity(db, "Updated collection", "collection", id, `${field}: ${f.get("value")}`);
   revalidatePath("/admin/community");
   revalidatePath("/collections");
   revalidatePath(`/c/${id}`);
@@ -347,14 +360,18 @@ export async function setListFlag(f: FormData) {
 /** Makes a member an admin, or takes it away. Only the owner can. */
 export async function setAdmin(f: FormData) {
   const db = await ownerClient();
-  await db.rpc("set_admin", { who: String(f.get("id")), make: f.get("make") === "true" });
+  const id = String(f.get("id"));
+  await db.rpc("set_admin", { who: id, make: f.get("make") === "true" });
+  await logAdminActivity(db, f.get("make") === "true" ? "Granted admin role" : "Revoked admin role", "member", id);
   revalidatePath("/admin/members");
 }
 
 /** Dismisses a report once it's been dealt with. */
 export async function resolveCommentReport(f: FormData) {
   const db = await adminClient();
-  await db.from("comment_reports").update({ resolved: true }).eq("id", String(f.get("id")));
+  const id = String(f.get("id"));
+  await db.from("comment_reports").update({ resolved: true }).eq("id", id);
+  await logAdminActivity(db, "Dismissed comment report", "comment", id);
   revalidatePath("/admin/community");
 }
 
@@ -364,11 +381,14 @@ export async function removeReportedComment(f: FormData) {
   const commentId = String(f.get("comment_id"));
   await db.rpc("remove_comment", { cid: commentId });
   await db.from("comment_reports").update({ resolved: true }).eq("comment_id", commentId);
+  await logAdminActivity(db, "Removed reported comment", "comment", commentId);
   revalidatePath("/admin/community");
 }
 
 export async function resolveReport(f: FormData) {
   const db = await adminClient();
-  await db.from("list_reports").update({ resolved: true }).eq("id", String(f.get("id")));
+  const id = String(f.get("id"));
+  await db.from("list_reports").update({ resolved: true }).eq("id", id);
+  await logAdminActivity(db, "Dismissed collection report", "collection", id);
   revalidatePath("/admin/community");
 }
