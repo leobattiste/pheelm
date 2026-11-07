@@ -9,9 +9,6 @@ import AccountMenu from "./AccountMenu";
 import FeedbackLink from "./FeedbackLink";
 import Icon, { type IconName } from "./Icon";
 import SignInSheet, { openSignIn } from "./SignInSheet";
-import { openSearch } from "./Search";
-import GridToggle from "./GridToggle";
-import ThemeToggle from "./ThemeToggle";
 
 const MAIN: { href: string; label: string; icon: IconName }[] = [
   { href: "/films", label: "Films", icon: "film" },
@@ -81,11 +78,6 @@ export default function SiteHeader() {
               <Link key={l.href} href={l.href} aria-current={current(l.href)}><Icon name={l.icon} />{l.label}</Link>
             ))}
           </nav>
-          <nav className="menu-more menu-find" aria-label="Find">
-            <button type="button" className="menu-more-button" onClick={() => { menu.current?.close(); openSearch(); }}><Icon name="search" />Search</button>
-            {/* A plain link, so each press picks again. */}
-            <a href="/random" rel="nofollow"><Icon name="shuffle" />Random film</a>
-          </nav>
           <AccountMenu onNavigate={() => menu.current?.close()} />
           <nav className="menu-more menu-support" aria-label="Support Pheelm">
             {DONATE_URL ? (
@@ -96,16 +88,6 @@ export default function SiteHeader() {
             <Link href="/submit" aria-current={current("/submit")}><Icon name="plus" />Suggest a film</Link>
             <FeedbackLink className="" onNavigate={() => menu.current?.close()}><Icon name="comment" />Give feedback</FeedbackLink>
           </nav>
-          <div className="menu-foot">
-            <div className="menu-setting">
-              <span>Grid</span>
-              <GridToggle />
-            </div>
-            <div className="menu-setting">
-              <span>Theme</span>
-              <ThemeToggle />
-            </div>
-          </div>
           {/* On pages with the tab bar there's no footer, so what it holds lives here. */}
           <div className="menu-site">
             <section className="menu-newsletter" aria-labelledby="menu-news-h">
