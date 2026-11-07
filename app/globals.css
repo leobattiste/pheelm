@@ -114,7 +114,7 @@ p a:hover, .prose a:hover, dd a:hover { text-decoration-color: currentColor; }
 :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: var(--r-sm); }
 h1, h2, h3, p, ul, ol, dl, dd, figure { margin: 0; }
 ul, ol { padding: 0; list-style: none; }
-h1, h2, h3 { color: var(--ink); font-weight: 600; line-height: var(--lh-tight); letter-spacing: -0.025em; text-wrap: balance; }
+h1, h2, h3 { color: var(--ink); font-weight: 600; line-height: var(--lh-tight); letter-spacing: -0.025em; text-wrap: balance; overflow-wrap: break-word; }
 h1 { font-size: var(--t-3xl); }
 h2 { font-size: var(--t-xl); }
 h3 { font-size: var(--t-md); letter-spacing: 0; line-height: var(--lh-snug); }
