@@ -1,17 +1,18 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { getServerClient } from "@/lib/supabase/server";
 
-export type NewsletterState = { ok: boolean; message: string } | null;
+export type NewsletterState = { ok: boolean; subscribed: boolean; message: string } | null;
 
-export async function subscribeSignedIn(_previous: NewsletterState, _form: FormData): Promise<NewsletterState> {
+export async function setNewsletterSubscription(_previous: NewsletterState, form: FormData): Promise<NewsletterState> {
   const db = await getServerClient();
-  if (!db) return { ok: false, message: "Newsletter sign-up is unavailable." };
+  if (!db) return { ok: false, subscribed: false, message: "Newsletter settings are unavailable." };
   const { data: { user } } = await db.auth.getUser();
-  const email = user?.email?.trim().toLowerCase();
-  if (!user || !email) return { ok: false, message: "Sign in with an email address to subscribe." };
-  const { error } = await db.from("subscribers").insert({ email, source: "settings" });
-  if (error?.code === "23505") return { ok: true, message: "You're already subscribed." };
-  if (error) return { ok: false, message: "Could not subscribe right now. Please try again." };
-  return { ok: true, message: "You're subscribed." };
+  if (!user?.email) return { ok: false, subscribed: false, message: "Sign in to manage your subscription." };
+  const subscribe = form.get("subscribe") === "true";
+  const { data, error } = await db.rpc("set_my_newsletter_subscription", { want_subscribed: subscribe });
+  if (error) return { ok: false, subscribed: !subscribe, message: "Could not update your subscription. Try again." };
+  revalidatePath("/account");
+  return { ok: true, subscribed: data === true, message: subscribe ? "You're subscribed." : "You've unsubscribed." };
 }
