@@ -187,7 +187,7 @@ export default async function FilmPage({ params }: Params) {
 
             <div className="film-actions">
               {embed ? (
-                <TrailerButton embed={embed} title={film.title} className="pill-button" label="Trailer" action="trailer" iconOnly />
+                <TrailerButton embed={embed} title={film.title} className="pill-button" label="Trailer" action="trailer" />
               ) : (
                 // No trailer on file yet: search YouTube for it instead.
                 <a
@@ -200,6 +200,7 @@ export default async function FilmPage({ params }: Params) {
                   rel="noopener noreferrer"
                 >
                   <Icon name="play" className="solid" />
+                  Trailer
                 </a>
               )}
               <WatchlistButton filmId={film.id} filmTitle={film.title} />
@@ -220,10 +221,10 @@ export default async function FilmPage({ params }: Params) {
           {/* 2. About: small facts to scan. */}
           <section className="film-section" aria-labelledby="details-h">
             <h2 id="details-h">About</h2>
-            <dl className="details">
+            <dl className="details film-about">
               {details.filter(([, v]) => v).map(([k, v]) => (
                 <div key={k}>
-                  <dt><Icon name={DETAIL_ICONS[k] ?? "film"} />{k}</dt>
+                  <dt title={k}><Icon name={DETAIL_ICONS[k] ?? "film"} /><span className="visually-hidden">{k}</span></dt>
                   <dd>{v}</dd>
                 </div>
               ))}
