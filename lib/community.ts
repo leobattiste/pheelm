@@ -52,7 +52,10 @@ export async function enrich(rows: Row[]): Promise<CommunityCollection[]> {
     description: r.description,
     staff_pick: !!r.staff_pick,
     created_at: r.created_at,
-    films: [...r.list_films].sort((a, b) => b.added_at.localeCompare(a.added_at)).map((x) => byId.get(x.film_id)).filter((f): f is Film => !!f),
+    // Staff collections in year order (their covers show where they begin); members' newest first.
+    films: [...r.list_films]
+      .sort((a, b) => r.staff_pick ? (byId.get(a.film_id)?.year ?? 0) - (byId.get(b.film_id)?.year ?? 0) : b.added_at.localeCompare(a.added_at))
+      .map((x) => byId.get(x.film_id)).filter((f): f is Film => !!f),
     saves: savesById.get(r.id) ?? 0,
     owner: ownerById.get(r.user_id) ?? null,
   }));

@@ -38,12 +38,13 @@ function Line({ n }: { n: Notification }) {
     case "comment": return <>{who} commented on {list} {quote}</>;
     case "reply": return <>{who} replied to your comment on {list} {quote}</>;
     case "mention": return <>{who} mentioned you on {list} {quote}</>;
+    case "collection_film": return <><strong>{n.film?.title ?? "A film"}</strong>{n.film?.year ? ` (${n.film.year})` : ""} was added to {list}</>;
     case "new_film": return <>New from <strong>{n.person?.name ?? "a director you follow"}</strong>: <strong>{n.film?.title ?? "a film"}</strong>{n.film?.year ? ` (${n.film.year})` : ""}</>;
   }
 }
 
 function href(n: Notification) {
-  if (n.type === "new_film") return n.film ? `/films/${n.film.slug}` : null;
+  if (n.type === "new_film" || n.type === "collection_film") return n.film ? `/films/${n.film.slug}` : null;
   if (!n.list || n.type === "removed") return null;
   if (n.comment) return `/c/${n.list.id}#comment-${n.comment.id}`;
   if (n.type === "request") return `/c/${n.list.id}?people`;
@@ -52,7 +53,7 @@ function href(n: Notification) {
 
 const KIND_ICONS: Record<Notification["type"], IconName> = {
   invite: "userPlus", request: "door", invite_accepted: "check", invite_declined: "x",
-  request_accepted: "check", request_declined: "x", removed: "x", comment: "comment", reply: "reply", mention: "at", new_film: "film",
+  request_accepted: "check", request_declined: "x", removed: "x", comment: "comment", reply: "reply", mention: "at", new_film: "film", collection_film: "stack",
 };
 
 function Item({ n }: { n: Notification }) {
@@ -60,7 +61,7 @@ function Item({ n }: { n: Notification }) {
   return (
     <li className={`notif${n.read_at ? "" : " is-unread"}`}>
       <span className="notif-avatar">
-        {n.type === "new_film" ? (
+        {n.type === "new_film" || n.type === "collection_film" ? (
           n.film?.poster_url
             // eslint-disable-next-line @next/next/no-img-element
             ? <img className="avatar notif-poster" src={n.film.poster_url} alt="" width={36} height={36} loading="lazy" />

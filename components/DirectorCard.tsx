@@ -41,7 +41,7 @@ export default function DirectorCard({ director }: { director: DirectorSummary }
           <Portrait director={director} />
           <span className="director-card-body">
             <span className="director-card-name">{director.name}</span>
-            <span className="director-card-meta">{[director.country && countryName(director.country), `${director.films} ${director.films === 1 ? "film" : "films"}`].filter(Boolean).join(" • ")}</span>
+            <span className="director-card-meta">{[director.country && countryName(director.country)].filter(Boolean).join(" • ")}</span>
           </span>
         </span>
       </Link>

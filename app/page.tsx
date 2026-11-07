@@ -58,7 +58,7 @@ export default async function Home() {
         <div className="statement-body">
           <h2 id="directors-title">Get to know the directors.</h2>
           <p>
-            {directors.length} directors from {facets.countries.length} countries, from Oscar Micheaux in the 1920s to
+            Directors from {facets.countries.length} countries, from Oscar Micheaux in the 1920s to
             the filmmakers winning at Cannes today. Follow the ones you love to hear when they have a new film.
           </p>
           <div className="actions">

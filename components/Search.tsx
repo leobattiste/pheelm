@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { initials, posterColours } from "@/lib/format";
 import Icon, { type IconName } from "@/components/Icon";
+import { matchScore, plain } from "@/lib/fuzzy";
 
 type FilmHit = { s: string; t: string; o: string | null; y: number; d: string[]; k?: string[]; p: string | null };
 type DirectorHit = { s: string; n: string; c: string | null; f: number; p: string | null };
@@ -29,7 +30,6 @@ const GROUP_LABELS: Record<Hit["kind"], string> = {
   collection: "Collections",
 };
 
-const plain = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 const RECENT_KEY = "recent-searches";
 
 let cached: Promise<Index> | null = null;
@@ -137,23 +137,29 @@ export default function Search() {
       ];
     }
     if (!index) return [];
-    const words = term.split(/\s+/);
-    const match = (text: string) => words.every((w) => text.includes(w));
+    // Exact matches first, then the ones found by forgiving a typo.
+    const ranked = <T,>(items: T[], text: (x: T) => string, tie: (a: T, b: T) => number = () => 0) =>
+      items
+        .map((item) => ({ item, score: matchScore(term, plain(text(item))) }))
+        .filter((x) => x.score > 0)
+        .sort((a, b) => b.score - a.score || tie(a.item, b.item))
+        .map((x) => x.item);
 
-    const directors = index.directors.filter((d) => match(plain(d.n))).slice(0, 4);
-    const people = (index.people ?? []).filter((p) => match(plain(p.n))).sort((a, b) => b.f - a.f).slice(0, 4);
-    const films: { item: FilmHit; via?: string }[] = [];
+    const directors = ranked(index.directors, (d) => d.n, (a, b) => b.f - a.f).slice(0, 4);
+    const people = ranked(index.people ?? [], (p) => p.n, (a, b) => b.f - a.f).slice(0, 4);
+    const films: { item: FilmHit; via?: string; score: number }[] = [];
     for (const f of index.films) {
-      if (match(plain(`${f.t} ${f.o ?? ""} ${f.d.join(" ")} ${f.y}`))) films.push({ item: f });
+      const score = matchScore(term, plain(`${f.t} ${f.o ?? ""} ${f.d.join(" ")} ${f.y}`));
+      if (score) films.push({ item: f, score });
       else {
         // Found through someone in the cast or crew: say who.
-        const who = (f.k ?? []).find((n) => match(plain(n)));
-        if (who) films.push({ item: f, via: who });
+        const who = (f.k ?? []).find((n) => matchScore(term, plain(n)) > 0);
+        if (who) films.push({ item: f, via: who, score: 0 });
       }
     }
-    films.sort((a, b) => Number(!!a.via) - Number(!!b.via) || Number(plain(b.item.t).startsWith(term)) - Number(plain(a.item.t).startsWith(term)));
-    const collections = (index.collections ?? []).filter((c) => match(plain(c.t))).slice(0, 3);
-    const matchedActions = actions.filter((a) => match(plain(`${a.label} ${a.words}`))).slice(0, 2);
+    films.sort((a, b) => b.score - a.score || Number(!!a.via) - Number(!!b.via) || Number(plain(b.item.t).startsWith(term)) - Number(plain(a.item.t).startsWith(term)));
+    const collections = ranked(index.collections ?? [], (c) => c.t).slice(0, 3);
+    const matchedActions = ranked(actions, (a) => `${a.label} ${a.words}`).slice(0, 2);
 
     return [
       ...directors.map((item) => ({ kind: "director" as const, item })),
@@ -304,7 +310,7 @@ function HitRow({ hit }: { hit: Hit }) {
           <HitIcon name="stack" />
           <span className="hit-text">
             <span className="hit-title">{hit.item.t}</span>
-            <span className="hit-meta">Collection</span>
+            <span className="hit-meta">Collection, {hit.item.n} {hit.item.n === 1 ? "film" : "films"}</span>
           </span>
         </>
       );
@@ -312,8 +318,8 @@ function HitRow({ hit }: { hit: Hit }) {
       const p = hit.item as DirectorHit | PersonHit;
       const meta =
         hit.kind === "director"
-          ? `Director${(p as DirectorHit).c ? `, ${(p as DirectorHit).c}` : ""}`
-          : (p as PersonHit).r;
+          ? `Director${(p as DirectorHit).c ? `, ${(p as DirectorHit).c}` : ""}, ${p.f} ${p.f === 1 ? "film" : "films"}`
+          : `${(p as PersonHit).r}, ${p.f} ${p.f === 1 ? "film" : "films"}`;
       return (
         <>
           {p.p ? (

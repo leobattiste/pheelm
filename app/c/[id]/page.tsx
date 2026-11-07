@@ -17,6 +17,7 @@ import { collectionExtras, MIN_FILMS, type Member } from "@/lib/community";
 import { getFilms, toCard } from "@/lib/data";
 import { getServerClient } from "@/lib/supabase/server";
 import { respondToInvite } from "../actions";
+import { SITE_URL } from "@/lib/supabase/config";
 
 export const dynamic = "force-dynamic";
 
@@ -46,7 +47,7 @@ async function load(id: string): Promise<ListRow | null> {
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const list = await load((await params).id);
   if (!list) return {};
-  return { title: list.title, description: list.description ?? `A collection of ${list.list_films.length} films on Pheelm.`, robots: list.is_public ? undefined : { index: false } };
+  return { title: list.title, description: list.description ?? "A collection of films on Pheelm.", robots: list.is_public ? undefined : { index: false } };
 }
 
 /** A member's @handle, linked to their profile unless it's private. */
@@ -84,7 +85,9 @@ export default async function MemberCollectionPage({ params }: Params) {
   const invitedMe = collab.mine?.status === "invited";
 
   const byId = new Map(films.map((f) => [f.id, f]));
-  const rows = [...list.list_films].sort((a, b) => b.added_at.localeCompare(a.added_at));
+  // Pheelm's collections read as a timeline, oldest film first; members' show the newest additions first.
+  const rows = [...list.list_films].sort((a, b) =>
+    list.staff_pick ? (byId.get(a.film_id)?.year ?? 0) - (byId.get(b.film_id)?.year ?? 0) : b.added_at.localeCompare(a.added_at));
   const items = rows.map((r) => byId.get(r.film_id)).filter((f) => f !== undefined);
   const count = items.length;
 
@@ -105,8 +108,25 @@ export default async function MemberCollectionPage({ params }: Params) {
     ? declinedUntil.toLocaleDateString("en-US", { month: "long", day: "numeric" })
     : null;
 
+  // For search engines: a public collection as an ordered list of films.
+  const jsonLd = list.is_public ? {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: list.title,
+    ...(list.description ? { description: list.description } : {}),
+    url: `${SITE_URL}/c/${list.id}`,
+    numberOfItems: items.length,
+    itemListElement: items.map((f, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      url: `${SITE_URL}/films/${f.slug}`,
+      item: { "@type": "Movie", name: f.title, dateCreated: String(f.year), url: `${SITE_URL}/films/${f.slug}`, ...(f.poster_url ? { image: f.poster_url } : {}) },
+    })),
+  } : null;
+
   return (
     <section className="page">
+      {jsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />}
       <header className="page-head has-corner">
         <MoreMenu corner label="Collection actions">
           {canEdit && (
@@ -157,8 +177,7 @@ export default async function MemberCollectionPage({ params }: Params) {
         <h1>{list.title}</h1>
         {list.description && <p className="lead">{list.description}</p>}
         <ul className="collection-meta">
-          <li><Icon name="film" />{count} {count === 1 ? "film" : "films"}</li>
-          {list.is_public && saves > 0 && <li><Icon name="bookmark" />Saved by {saves}</li>}
+          {list.is_public && saves > 0 && <li><Icon name="bookmark" />{saves} {saves === 1 ? "follower" : "followers"}</li>}
           {canEdit && <li><Icon name={list.is_public ? "globe" : "lock"} />{list.is_public ? "Public" : "Private"}</li>}
           {isCollaborator && <li><Icon name="users" />You&rsquo;re a collaborator</li>}
         </ul>

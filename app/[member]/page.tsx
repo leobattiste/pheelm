@@ -11,6 +11,9 @@ import { VERIFIED } from "@/lib/site";
 import { getCollaboratingOn, getMember } from "@/lib/community";
 import { countryName, initials } from "@/lib/format";
 import { getServerClient } from "@/lib/supabase/server";
+import DirectorCard from "@/components/DirectorCard";
+import Tabs from "@/components/Tabs";
+import { getDirectors, toDirectorSummary } from "@/lib/data";
 
 // Who's looking matters (your own page shows Edit and stays visible when private), so render per visit.
 export const dynamic = "force-dynamic";
@@ -59,7 +62,13 @@ export default async function MemberPage({ params }: Params) {
     );
   }
 
-  const collaborating = await getCollaboratingOn(member.id);
+  const [collaborating, followRows, directors] = await Promise.all([
+    getCollaboratingOn(member.id),
+    db ? db.from("follows").select("person_id, created_at").eq("user_id", member.id).order("created_at", { ascending: false }) : null,
+    getDirectors(),
+  ]);
+  const directorById = new Map(directors.map((d) => [d.id, d]));
+  const following = ((followRows?.data ?? []) as { person_id: string }[]).map((r) => directorById.get(r.person_id)).filter((d) => d !== undefined);
 
   const collectionsPanel = collections.length ? (
     <ul className="collection-list">{collections.map((c) => <CommunityTile key={c.id} c={c} showOwner={false} />)}</ul>
@@ -93,16 +102,43 @@ export default async function MemberPage({ params }: Params) {
           {own && member.is_private && <p className="person-sub">Private: only you can see this page.</p>}
         </div>
       </header>
-      <section className="film-section member-collections" aria-labelledby="member-collections-h">
-        <h2 id="member-collections-h">Watchlist</h2>
-        {collectionsPanel}
-      </section>
-      {collaborating.length > 0 && (
-        <section className="film-section member-collections" aria-labelledby="member-collab-h">
-          <h2 id="member-collab-h">Collaborating on</h2>
-          <ul className="collection-list">{collaborating.map((c) => <CommunityTile key={c.id} c={c} />)}</ul>
-        </section>
-      )}
+      <Tabs
+        tabs={[
+          {
+            id: "watchlist",
+            label: "Watchlist",
+            panel: (
+              <>
+                {collectionsPanel}
+                {collaborating.length > 0 && (
+                  <section className="film-section member-collections" aria-labelledby="member-collab-h">
+                    <h2 id="member-collab-h">Collaborating on</h2>
+                    <ul className="collection-list">{collaborating.map((c) => <CommunityTile key={c.id} c={c} />)}</ul>
+                  </section>
+                )}
+              </>
+            ),
+          },
+          {
+            id: "following",
+            label: "Following",
+            panel: following.length ? (
+              <ul className="director-grid">{following.map((d) => <DirectorCard key={d.id} director={toDirectorSummary(d)} />)}</ul>
+            ) : (
+              <div className="empty-state">
+                <Icon name="clapper" className="empty-icon" />
+                <p>Not following any directors yet.</p>
+                {own && (
+                  <>
+                    <p className="muted">Follow directors from their pages to hear when they have a new film.</p>
+                    <Link className="button ghost small" href="/directors">Browse directors</Link>
+                  </>
+                )}
+              </div>
+            ),
+          },
+        ]}
+      />
     </section>
   );
 }

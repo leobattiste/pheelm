@@ -11,7 +11,10 @@ type Status = "loading" | "signed-out" | "off" | "on" | "own" | "unavailable";
 const PLUS = <Icon name="plus" />;
 const CHECK = <Icon name="check" />;
 
-/** Saves someone's collection to your Watchlist page, with the public count of everyone who has. */
+/**
+ * Follows a collection (it shows on your Watchlist page, and you're notified when a film is added),
+ * with the public count of followers.
+ */
 export default function SaveCollectionButton({ listId, ownerId, initialSaves }: { listId: string; ownerId: string; initialSaves: number }) {
   const path = usePathname();
   const [status, setStatus] = useState<Status>("loading");
@@ -32,14 +35,14 @@ export default function SaveCollectionButton({ listId, ownerId, initialSaves }: 
     });
   }, [listId, ownerId]);
 
-  const count = <span className="save-count-label">{saves ? `Saved by ${saves}` : "No saves yet"}</span>;
+  const count = <span className="save-count-label">{saves ? `${saves} ${saves === 1 ? "follower" : "followers"}` : "No followers yet"}</span>;
 
   if (status === "own" || status === "unavailable") return <span className="save-collection">{count}</span>;
   if (status === "signed-out" || status === "loading") {
     return (
       <span className="save-collection">
         <Link className="button ghost small" href={`/login?next=${encodeURIComponent(path)}`} aria-busy={status === "loading"}
-        onClick={(e) => { if (status === "signed-out" && openSignIn()) e.preventDefault(); }}>{PLUS}Save</Link>
+        onClick={(e) => { if (status === "signed-out" && openSignIn()) e.preventDefault(); }}>{PLUS}Follow</Link>
         {count}
       </span>
     );
@@ -64,7 +67,7 @@ export default function SaveCollectionButton({ listId, ownerId, initialSaves }: 
     <span className="save-collection">
       <button type="button" className="button ghost small" aria-pressed={status === "on"} onClick={toggle}>
         {status === "on" ? CHECK : PLUS}
-        {status === "on" ? "Saved" : "Save"}
+        {status === "on" ? "Following" : "Follow"}
       </button>
       {count}
     </span>

@@ -1,8 +1,7 @@
 import { ImageResponse } from "next/og";
 import { getFilm } from "@/lib/data";
 import { filmColour, inkFor, posterColours } from "@/lib/format";
-import { ogFonts } from "@/lib/og";
-import { SITE_NAME } from "@/lib/site";
+import { OgWordmark, ogFonts } from "@/lib/og";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
@@ -31,7 +30,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
     (
       <div style={{ display: "flex", width: "100%", height: "100%", padding: 64, gap: 64, background: bg, color: ink, fontFamily: "Nacelle" }}>
         <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", flex: 1 }}>
-          <div style={{ display: "flex", fontSize: 32 }}>{SITE_NAME}</div>
+          <OgWordmark />
           <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
             <div style={{ display: "flex", fontSize: long ? 60 : 76, fontWeight: 700, lineHeight: 1.05, letterSpacing: -2 }}>{film.title}</div>
             <div style={{ display: "flex", fontSize: 32, opacity: 0.75 }}>{`${directors}, ${film.year}`}</div>

@@ -6,12 +6,11 @@ import Poster from "./Poster";
 
 const BADGE_ICONS: Record<string, IconName> = { Private: "lock", Public: "globe", Shared: "users" };
 
-/** A member's collection: three posters, title, who made it, how many films and saves. */
+/** A member's collection: three posters, title, who made it and how many follow it. */
 export default function CommunityTile({ c, showOwner = true, badge }: { c: CommunityCollection; showOwner?: boolean; badge?: string }) {
   const meta = [
     showOwner && c.owner ? `by @${c.owner.handle}` : null,
-    `${c.films.length} ${c.films.length === 1 ? "film" : "films"}`,
-    c.saves ? `Saved by ${c.saves}` : null,
+    c.saves ? `${c.saves} ${c.saves === 1 ? "follower" : "followers"}` : null,
   ].filter(Boolean).join(" • ");
   return (
     <li>

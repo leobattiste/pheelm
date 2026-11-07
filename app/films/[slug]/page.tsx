@@ -72,6 +72,7 @@ export default async function FilmPage({ params }: Params) {
   if (!film) notFound();
 
   const [all, allDirectors, community] = await Promise.all([getFilms(), getDirectors(), getCommunityCollections({ filmId: film.id })]);
+  const partOf = community.filter((c) => c.staff_pick);
   const anyDirector = new Set(allDirectors.map((d) => d.id));
   // Films that share a collection with this one.
   const companions = new Set(community.flatMap((c) => c.films.map((f) => f.id)));
@@ -172,7 +173,7 @@ export default async function FilmPage({ params }: Params) {
                   {film.directors.map((d, i) => (
                     <span key={d.id}>
                       {i > 0 && (i === film.directors.length - 1 ? " and " : ", ")}
-                      <Link href={`/directors/${d.slug}`}>{d.name}</Link>
+                      <Link href={d.in_directory === false ? `/people/${d.slug}` : `/directors/${d.slug}`}>{d.name}</Link>
                     </span>
                   ))}
                 </span>
@@ -200,6 +201,16 @@ export default async function FilmPage({ params }: Params) {
               <WatchlistButton filmId={film.id} filmTitle={film.title} />
               <ShareButton title={film.title} />
             </div>
+
+            {/* The movements and lists Pheelm put this film in. */}
+            {partOf.length > 0 && (
+              <nav className="part-of" aria-label="Part of these collections">
+                <span className="part-of-label">Part of</span>
+                <ul className="chip-list">
+                  {partOf.map((c) => <li key={c.id}><Link className="chip" href={`/c/${c.id}`}>{c.title}</Link></li>)}
+                </ul>
+              </nav>
+            )}
 
             {film.note && <p className="film-note">{film.note}</p>}
 

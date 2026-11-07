@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { countryName, decadeOf } from "@/lib/format";
 import type { FilmCard } from "@/lib/types";
 import { FilmGrid } from "./FilmCard";
+import { matchScore, plain } from "@/lib/fuzzy";
 
 type Facets = { countries: [string, number][]; decades: [string, number][]; languages: [string, number][]; genres: [string, number][] };
 type Sort = "shuffle" | "newest" | "oldest" | "title" | "awards";
@@ -16,7 +17,6 @@ type Filter = (typeof FILTERS)[number];
 
 const PAGE = 36;
 const SORTS: [Sort, string][] = [["shuffle", "Shuffled"], ["newest", "Newest"], ["oldest", "Oldest"], ["title", "A to Z"], ["awards", "Most awarded"]];
-const plain = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 const label = (k: Filter, v: string) => (k === "country" ? countryName(v) : v);
 
 /**
@@ -59,7 +59,7 @@ export default function FilmBrowser({ films, facets }: { films: FilmCard[]; face
         (!s.country || f.countries.includes(s.country)) &&
         (!s.language || f.languages.includes(s.language)) &&
         (!s.genre || f.genres.includes(s.genre)) &&
-        (!q || plain(`${f.title} ${f.also ?? ""} ${f.directors.join(" ")}`).includes(q)),
+        (!q || matchScore(q, plain(`${f.title} ${f.also ?? ""} ${f.directors.join(" ")}`)) > 0),
     );
   };
 
@@ -105,6 +105,7 @@ export default function FilmBrowser({ films, facets }: { films: FilmCard[]; face
       </div>
 
       <div className="result-bar" aria-live="polite">
+        {!!state.q?.trim() && <span className="result-count">{results.length} {results.length === 1 ? "result" : "results"}</span>}
         {active.length > 0 && (
           <ul className="chip-list">
             {active.map((k) => (
@@ -175,7 +176,7 @@ export default function FilmBrowser({ films, facets }: { films: FilmCard[]; face
         <div className="modal-foot">
           <button type="button" className="button ghost" onClick={() => commit({ q: state.q })} disabled={!active.length && !state.sort}>Reset</button>
           <button type="button" className="button" onClick={() => modal.current?.close()}>
-            Show {results.length} {results.length === 1 ? "film" : "films"}
+            Show films
           </button>
         </div>
       </dialog>

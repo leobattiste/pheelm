@@ -110,7 +110,6 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
               })}
             </span>
             <span className="collection-title">All saved films</span>
-            <span className="collection-desc">{all.length} {all.length === 1 ? "film" : "films"}</span>
           </Link>
         </li>
         {own.map((c) => <CommunityTile key={c.id} c={c} showOwner={false} badge={publicById.get(c.id) ? "Public" : "Private"} />)}
@@ -131,7 +130,7 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
 
       {savedCollections.length > 0 && (
         <section className="film-section" aria-labelledby="saved-h">
-          <h2 id="saved-h">Saved from the community</h2>
+          <h2 id="saved-h">Collections you follow</h2>
           <ul className="collection-list">{savedCollections.map((c) => <CommunityTile key={c.id} c={c} />)}</ul>
         </section>
       )}

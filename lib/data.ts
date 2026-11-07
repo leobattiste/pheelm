@@ -124,9 +124,11 @@ function buildCatalog(raw: Raw) {
 
   const filmById = new Map(films.map((f) => [f.id, f]));
 
-  // A director is anyone with a directing credit on a published film.
+  // A director is anyone with a directing credit on a published film, except co-directors kept
+  // out of the directory (they stay in the film's credits and have a cast-and-crew page).
   const directorFilms = new Map<string, Film[]>();
-  for (const f of films) for (const d of f.directors) directorFilms.set(d.id, [...(directorFilms.get(d.id) ?? []), f]);
+  for (const f of films)
+    for (const d of f.directors) if (d.in_directory !== false) directorFilms.set(d.id, [...(directorFilms.get(d.id) ?? []), f]);
   const directors: Director[] = [...directorFilms.entries()]
     .map(([id, list]) => ({ ...personById.get(id)!, films: list.sort((a, b) => b.year - a.year) }))
     .sort((a, b) => a.name.localeCompare(b.name, "en", { sensitivity: "base" }));

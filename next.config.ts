@@ -22,10 +22,11 @@ if (process.env.VERCEL && (!supabaseUrl || !supabaseKey)) {
 const nextConfig: NextConfig = {
   // Posters come from many places (TMDB, Supabase storage, links pasted in the admin).
   images: { unoptimized: true },
-  // The share images read Nacelle from assets/fonts at run time, so ship those files with them.
+  // The share images read Nacelle and Beth Ellen from assets/fonts at run time, so ship those files with them.
   outputFileTracingIncludes: {
     "/opengraph-image": ["./assets/fonts/**"],
     "/films/[slug]/opengraph-image": ["./assets/fonts/**"],
+    "/c/[id]/opengraph-image": ["./assets/fonts/**"],
   },
   staticPageGenerationTimeout: 180,
   poweredByHeader: false,

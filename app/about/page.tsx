@@ -20,7 +20,7 @@ export default async function AboutPage() {
 
       <div className="prose">
         <p>
-          {SITE_NAME} brings together {films.length} films by {directors.length} directors from {facets.countries.length} countries in one place:
+          {SITE_NAME} brings together films by Black directors from {facets.countries.length} countries in one place:
           features, documentaries, shorts and animation, each with its cast and crew, awards, trailer and where to watch it.
         </p>
 

@@ -166,7 +166,6 @@ export default function WatchlistButton({ filmId, filmTitle }: { filmId: string;
                   <button type="button" className="save-row" role="checkbox" aria-checked={l.has} onClick={() => toggleList(l)}>
                     <span className={`save-check${l.has ? " is-on" : ""}`} aria-hidden="true">{l.has && CHECK}</span>
                     <span className="save-name">{l.title}{l.shared && <span className="tile-icon" title="Shared"><Icon name="users" label="Shared" /></span>}</span>
-                    <span className="save-count">{l.count} {l.count === 1 ? "film" : "films"}</span>
                   </button>
                 </li>
               ))

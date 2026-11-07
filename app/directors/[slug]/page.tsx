@@ -9,6 +9,7 @@ import { FilmGrid } from "@/components/FilmCard";
 import Tabs from "@/components/Tabs";
 import { getDirector, getFilms, toCard } from "@/lib/data";
 import { countryName } from "@/lib/format";
+import { SITE_URL } from "@/lib/supabase/config";
 import { bornText, diedText, rolesOnFilm, rolesWithCommas, worksOf } from "@/lib/roles";
 
 export const revalidate = 300;
@@ -64,7 +65,7 @@ export default async function DirectorPage({ params }: { params: Promise<{ slug:
             <div><dt>Roles</dt><dd>{rolesWithCommas(works) || "Director"}</dd></div>
             {born && <div><dt>Born</dt><dd>{born}</dd></div>}
             {died && <div><dt>Died</dt><dd>{died}</dd></div>}
-            <div><dt>On Pheelm</dt><dd>{director.films.length} {director.films.length === 1 ? "film" : "films"} directed, {first === last ? first : `${first} to ${last}`}</dd></div>
+            <div><dt>Films on Pheelm</dt><dd>{first === last ? first : `${first} to ${last}`}</dd></div>
             {wins > 0 && <div><dt>Major prizes</dt><dd>{wins}</dd></div>}
             <PersonLinks info={{ name: director.name, imdb_id: director.imdb_id ?? null, instagram: director.instagram ?? null }} />
           </dl>
@@ -73,8 +74,29 @@ export default async function DirectorPage({ params }: { params: Promise<{ slug:
     },
   ];
 
+  // For search engines: the director as a Person, with the films they directed.
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: director.name,
+    url: `${SITE_URL}/directors/${director.slug}`,
+    jobTitle: "Film director",
+    ...(director.photo_url ? { image: director.photo_url } : {}),
+    ...(director.bio ? { description: director.bio.split(/\n{2,}/)[0] } : {}),
+    ...(director.born ? { birthDate: director.born } : {}),
+    ...(director.died ? { deathDate: director.died } : {}),
+    ...(director.birthplace ? { birthPlace: director.birthplace } : {}),
+    ...(director.country ? { nationality: { "@type": "Country", name: countryName(director.country) } } : {}),
+    sameAs: [
+      director.imdb_id && `https://www.imdb.com/name/${director.imdb_id}/`,
+      director.instagram && `https://www.instagram.com/${director.instagram}/`,
+    ].filter(Boolean),
+    subjectOf: director.films.map((f) => ({ "@type": "Movie", name: f.title, dateCreated: String(f.year), url: `${SITE_URL}/films/${f.slug}` })),
+  };
+
   return (
     <article className="page profile">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       <header className="person-head">
         <MoreMenu corner label={`Actions for ${director.name}`}>
           <FollowButton personId={director.id} name={director.name} />

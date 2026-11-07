@@ -43,6 +43,8 @@ export type PersonRow = {
   birth_year?: number | null;
   photo_url: string | null;
   tmdb_id: number | null;
+  /** False keeps a co-director in a film's credits but off the Directors page (supabase/collection-follows.sql). */
+  in_directory?: boolean;
   /** From TMDB (supabase/people-details.sql). */
   born?: string | null;
   died?: string | null;

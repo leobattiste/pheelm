@@ -3,7 +3,7 @@ import type { Member } from "./community";
 
 export type NotificationType =
   | "invite" | "request" | "invite_accepted" | "invite_declined"
-  | "request_accepted" | "request_declined" | "removed" | "comment" | "reply" | "mention" | "new_film";
+  | "request_accepted" | "request_declined" | "removed" | "comment" | "reply" | "mention" | "new_film" | "collection_film";
 
 export type Notification = {
   id: string;

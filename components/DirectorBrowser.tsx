@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { countryName } from "@/lib/format";
 import type { DirectorSummary } from "@/lib/types";
 import DirectorCard from "./DirectorCard";
+import { matchScore, plain } from "@/lib/fuzzy";
 
 type Sort = "az" | "films" | "earliest" | "latest";
 type State = { q?: string; country?: string; min?: string; sort?: Sort };
@@ -12,7 +13,6 @@ const KEYS = ["q", "country", "min", "sort"] as const;
 
 const SORTS: [Sort, string][] = [["films", "Most films"], ["az", "A to Z"], ["earliest", "Earliest"], ["latest", "Most recent"]];
 const MINS: [string, string][] = [["", "Any"], ["2", "2 or more"], ["3", "3 or more"]];
-const plain = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 const surname = (name: string) => plain(name.split(/\s+/).at(-1) ?? name);
 
 /** The Directors page: search, filters (country, number of films) and sort, shown as profile cards. */
@@ -43,7 +43,7 @@ export default function DirectorBrowser({ directors }: { directors: DirectorSumm
     const q = state.q ? plain(state.q.trim()) : "";
     const min = Number(state.min ?? 0);
     const list = directors.filter(
-      (d) => (!q || plain(d.name).includes(q)) && (!state.country || d.country === state.country) && d.films >= min,
+      (d) => (!q || matchScore(q, plain(d.name)) > 0) && (!state.country || d.country === state.country) && d.films >= min,
     );
     const by: Record<Sort, (a: DirectorSummary, b: DirectorSummary) => number> = {
       az: (a, b) => surname(a.name).localeCompare(surname(b.name)),
@@ -78,7 +78,7 @@ export default function DirectorBrowser({ directors }: { directors: DirectorSumm
       </div>
 
       <div className="result-bar" aria-live="polite">
-        {!state.q?.trim() && <span className="result-count">{results.length} {results.length === 1 ? "director" : "directors"}</span>}
+        {!!state.q?.trim() && <span className="result-count">{results.length} {results.length === 1 ? "director" : "directors"}</span>}
         {active.length > 0 && (
           <ul className="chip-list">
             {active.map((k) => (
@@ -139,7 +139,7 @@ export default function DirectorBrowser({ directors }: { directors: DirectorSumm
         <div className="modal-foot">
           <button type="button" className="button ghost" onClick={() => commit({ q: state.q })} disabled={!active.length && !state.sort}>Reset</button>
           <button type="button" className="button" onClick={() => modal.current?.close()}>
-            Show {results.length} {results.length === 1 ? "director" : "directors"}
+            Show directors
           </button>
         </div>
       </dialog>

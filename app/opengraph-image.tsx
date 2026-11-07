@@ -1,8 +1,8 @@
 import { ImageResponse } from "next/og";
 import { getFilms } from "@/lib/data";
 import { posterColours } from "@/lib/format";
-import { ogFonts } from "@/lib/og";
-import { SITE_NAME, SITE_TAGLINE } from "@/lib/site";
+import { OgWordmark, ogFonts } from "@/lib/og";
+import { SITE_TAGLINE } from "@/lib/site";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
@@ -17,7 +17,7 @@ export default async function Image() {
     (
       <div style={{ display: "flex", width: "100%", height: "100%", padding: 72, background: "#0b0b0b", color: "#fafafa", fontFamily: "Nacelle", justifyContent: "space-between" }}>
         <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", width: 560 }}>
-          <div style={{ display: "flex", fontSize: 40 }}>{SITE_NAME}</div>
+          <OgWordmark size={52} />
           <div style={{ display: "flex", fontSize: 60, fontWeight: 700, lineHeight: 1.05, letterSpacing: -1.5 }}>{SITE_TAGLINE}</div>
         </div>
         <div style={{ display: "flex", position: "relative", width: 420 }}>
