@@ -1880,8 +1880,11 @@ html[data-auth="in"] .intro-head {
 html[data-auth="in"] .intro-head + .section-head { margin-top: var(--space-16); }
 
 /* Collections: Create and Filters, a description that opens into an essay, "+2" curators. */
-.collections-toolbar { justify-content: flex-end; }
-.collections-toolbar .button:not(.filter-button) { margin-right: auto; }
+.feed-tabs { display: flex; gap: var(--space-8); margin-right: auto; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.feed-tabs::-webkit-scrollbar { display: none; }
+.feed-tabs .chip { flex-shrink: 0; }
+.create-button { flex-shrink: 0; }
+@media (max-width: 420px) { .create-button .filter-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } .create-button { width: var(--control); padding: 0; } }
 .choice-group { margin: 0 0 var(--space-24); padding: 0; border: 0; display: grid; gap: var(--space-12); }
 .choice-group legend { padding: 0; margin-bottom: var(--space-12); font-weight: 700; }
 .choice-group .hint { margin: 0; color: var(--muted); }
@@ -1893,3 +1896,4 @@ html[data-auth="in"] .intro-head + .section-head { margin-top: var(--space-16); 
 @media (min-width: 900px) { .essay-modal { width: min(720px, calc(100vw - 48px)); } }
 .curators-count { font-size: inherit; text-decoration: none; color: var(--ink); font-weight: 700; }
 .curators-count:hover { text-decoration: underline; }
+@media (max-width: 420px) { .collections-toolbar { gap: var(--space-6, 6px); } .feed-tabs { gap: 6px; } .feed-tabs .chip { padding-inline: 12px; } }

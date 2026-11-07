@@ -6,21 +6,25 @@ import { createCollection } from "@/app/me/actions";
 import Icon from "./Icon";
 import { openSignIn } from "./SignInSheet";
 
-export type Show = "all" | "staff" | "community" | "for-you" | "following";
-export const SHOWS: { value: Show; label: string; members?: boolean }[] = [
-  { value: "all", label: "All collections" },
+export type Feed = "all" | "for-you" | "following";
+export const FEEDS: { value: Feed; label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "for-you", label: "For you" },
+  { value: "following", label: "Following" },
+];
+export type Show = "all" | "staff" | "community";
+const SHOWS: { value: Show; label: string }[] = [
+  { value: "all", label: "Everyone" },
   { value: "staff", label: "Staff picks" },
   { value: "community", label: "Community" },
-  { value: "for-you", label: "For you", members: true },
-  { value: "following", label: "Following", members: true },
 ];
 const SORTS = [["popular", "Popular"], ["new", "Newest"]] as const;
 
 /**
- * The Collections page's bar: "Create" (for members) and a Filters sheet to sort, and to show
- * staff picks, the community's, ones picked for you or the ones you follow.
+ * The Collections page's bar: the feed (All, For you, Following), "Create" for members, and a
+ * Filters sheet to sort and to narrow to staff picks or the community's.
  */
-export default function CollectionsToolbar({ signedIn, show, sort }: { signedIn: boolean; show: Show; sort: "popular" | "new" }) {
+export default function CollectionsToolbar({ signedIn, feed, show, sort }: { signedIn: boolean; feed: Feed; show: Show; sort: "popular" | "new" }) {
   const router = useRouter();
   const path = usePathname();
   const params = useSearchParams();
@@ -29,8 +33,10 @@ export default function CollectionsToolbar({ signedIn, show, sort }: { signedIn:
   const [busy, setBusy] = useState(false);
   const active = (show !== "all" ? 1 : 0) + (sort !== "popular" ? 1 : 0);
 
-  const go = (next: { show?: Show; sort?: string }) => {
+  const go = (next: { feed?: Feed; show?: Show; sort?: string }) => {
     const p = new URLSearchParams(params.toString());
+    const f = next.feed ?? feed;
+    if (f === "all") p.delete("feed"); else p.set("feed", f);
     const s = next.show ?? show;
     const o = next.sort ?? sort;
     if (s === "all") p.delete("show"); else p.set("show", s);
@@ -41,10 +47,26 @@ export default function CollectionsToolbar({ signedIn, show, sort }: { signedIn:
 
   return (
     <div className="toolbar collections-toolbar">
+      <div className="feed-tabs" role="group" aria-label="Collections to show">
+        {FEEDS.map((o) => (
+          <button
+            key={o.value}
+            type="button"
+            className="chip"
+            aria-pressed={feed === o.value}
+            onClick={() => {
+              if (o.value !== "all" && !signedIn) { openSignIn("signup"); return; }
+              go({ feed: o.value });
+            }}
+          >
+            {o.label}
+          </button>
+        ))}
+      </div>
       {signedIn && (
-        <button type="button" className="button" aria-haspopup="dialog" onClick={() => create.current?.showModal()}>
+        <button type="button" className="button create-button" aria-haspopup="dialog" onClick={() => create.current?.showModal()}>
           <Icon name="plus" />
-          Create
+          <span className="filter-label">Create</span>
         </button>
       )}
       <button type="button" className="button ghost filter-button" aria-haspopup="dialog" onClick={() => filters.current?.showModal()}>
@@ -71,24 +93,14 @@ export default function CollectionsToolbar({ signedIn, show, sort }: { signedIn:
             </div>
           </fieldset>
           <fieldset className="choice-group">
-            <legend>Show</legend>
+            <legend>Curated by</legend>
             <div className="chip-row">
               {SHOWS.map((o) => (
-                <button
-                  key={o.value}
-                  type="button"
-                  className="chip"
-                  aria-pressed={show === o.value}
-                  onClick={() => {
-                    if (o.members && !signedIn) { filters.current?.close(); openSignIn(); return; }
-                    go({ show: o.value });
-                  }}
-                >
+                <button key={o.value} type="button" className="chip" aria-pressed={show === o.value} onClick={() => go({ show: o.value })}>
                   {o.label}
                 </button>
               ))}
             </div>
-            {!signedIn && <p className="hint">Sign in to see collections picked for you and the ones you follow.</p>}
           </fieldset>
         </div>
         <div className="modal-foot">
