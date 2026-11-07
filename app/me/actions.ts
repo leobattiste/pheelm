@@ -33,18 +33,20 @@ export async function updateCollection(form: FormData) {
   if (!id || !title) redirect(`/c/${id}`);
   const changes: Record<string, unknown> = {
     title,
-    description: clip(form.get("description"), 500) || null,
+    description: clip(form.get("description"), 10000) || null,
     updated_at: new Date().toISOString(),
   };
   // Only the owner's form has the Public switch; collaborators change the words only.
   if (form.has("has_public")) changes.is_public = form.get("is_public") === "on";
   if (form.has("has_comments")) changes.comments_enabled = form.get("comments_enabled") === "on";
-  const { error } = await db.from("lists").update(changes).eq("id", id);
+  let { error } = await db.from("lists").update(changes).eq("id", id);
   // Before collaboration.sql has run there's no comments switch; save the rest.
-  if (error && "comments_enabled" in changes) {
+  if (error && error.code !== "23514" && "comments_enabled" in changes) {
     delete changes.comments_enabled;
-    await db.from("lists").update(changes).eq("id", id);
+    ({ error } = await db.from("lists").update(changes).eq("id", id));
   }
+  // Too long for the database (until collection-essays.sql has run, descriptions stop at 500).
+  if (error?.code === "23514") redirect(`/c/${id}?error=description`);
   revalidatePath("/me");
   revalidatePath(`/c/${id}`);
   redirect(`/c/${id}`);

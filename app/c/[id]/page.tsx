@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import AskToCollaborate from "@/components/AskToCollaborate";
+import CollectionDescription from "@/components/CollectionDescription";
+import { CuratorsCount } from "@/components/PeopleSheet";
 import CollectionEditor from "@/components/CollectionEditor";
 import Comments from "@/components/Comments";
 import Icon from "@/components/Icon";
@@ -49,7 +51,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   if (!list) return {};
   return {
     title: list.title,
-    description: list.description ?? "A collection of films by Black directors on Pheelm.",
+    description: list.description ? (list.description.length > 160 ? `${list.description.slice(0, 157).trimEnd()}…` : list.description) : "A collection of films by Black directors on Pheelm.",
     alternates: { canonical: `/c/${list.id}` },
     robots: list.is_public ? undefined : { index: false },
   };
@@ -60,24 +62,20 @@ function Handle({ m }: { m: Member }) {
   return m.is_private ? <>@{m.handle}</> : <Link href={`/@${m.handle}`}>@{m.handle}</Link>;
 }
 
-/** "@a", "@a and @b", "@a, @b and @c". */
-function People({ list }: { list: Member[] }) {
-  return <>{list.map((m, i) => <span key={m.id}>{i > 0 && (i === list.length - 1 ? " and " : ", ")}<Handle m={m} /></span>)}</>;
-}
-
 /**
  * A collection. Everyone sees the films and the conversation. Its owner and collaborators manage
- * it here: Edit, People (invites, requests, leaving), and films show who added them. Other
- * members can ask to collaborate; an invited member accepts or declines here.
+ * it here: Edit, Curators (invites, requests, leaving), and films show who added them. Other
+ * members can ask to co-curate; an invited member accepts or declines here.
  */
-export default async function MemberCollectionPage({ params }: Params) {
+export default async function MemberCollectionPage({ params, searchParams }: Params & { searchParams: Promise<{ error?: string }> }) {
+  const sp = await searchParams;
   const list = await load((await params).id);
   if (!list) notFound();
   const db = await getServerClient();
   const viewer = (await db?.auth.getUser())?.data.user ?? null;
   const isOwner = viewer?.id === list.user_id;
 
-  const [films, { owner, saves }, collab, { available: commentsOn, comments }, viewerProfile] = await Promise.all([
+  const [films, { owner }, collab, { available: commentsOn, comments }, viewerProfile] = await Promise.all([
     getFilms(),
     collectionExtras(list.id, list.user_id),
     getCollaboration(db, list.id, viewer?.id ?? null),
@@ -153,7 +151,7 @@ export default async function MemberCollectionPage({ params }: Params) {
               max={MAX_COLLABORATORS}
             />
           )}
-          {!canEdit && list.is_public && <SaveCollectionButton listId={list.id} ownerId={list.user_id} initialSaves={saves} />}
+          {!canEdit && list.is_public && <SaveCollectionButton listId={list.id} ownerId={list.user_id} />}
           {collab.available && !canEdit && !invitedMe && list.is_public && (
             <AskToCollaborate
               listId={list.id}
@@ -175,21 +173,24 @@ export default async function MemberCollectionPage({ params }: Params) {
         </MoreMenu>
         <p className="crumbs">
           {canEdit && <><Link href="/me">Your Watchlist</Link>{" • "}</>}
-          {owner ? <>A collection by <Handle m={owner} /></> : "A collection on Pheelm"}
-          {collab.collaborators.length > 0 && <> with <People list={collab.collaborators} /></>}
-          
+          {owner ? <>Curated by <Handle m={owner} /></> : "A collection on Pheelm"}
+          {owner && collab.collaborators.length > 0 && <> <CuratorsCount n={collab.collaborators.length} /></>}
         </p>
         <h1>{list.title}</h1>
-        {list.description && <p className="lead">{list.description}</p>}
-        <ul className="collection-meta">
-          {list.is_public && saves > 0 && <li><Icon name="bookmark" />{saves} {saves === 1 ? "follower" : "followers"}</li>}
-          {canEdit && <li><Icon name={list.is_public ? "globe" : "lock"} />{list.is_public ? "Public" : "Private"}</li>}
-          {isCollaborator && <li><Icon name="users" />You&rsquo;re a collaborator</li>}
-        </ul>
+        {list.description && <CollectionDescription title={list.title} text={list.description} />}
+        {canEdit && (
+          <ul className="collection-meta">
+            <li><Icon name={list.is_public ? "globe" : "lock"} />{list.is_public ? "Public" : "Private"}</li>
+            {isCollaborator && <li><Icon name="users" />You&rsquo;re a co-curator</li>}
+          </ul>
+        )}
+        {sp.error === "description" && (
+          <p className="notice error" role="alert">That description is longer than collections can hold right now, so it wasn&rsquo;t saved. Shorten it to 500 characters, or try again soon.</p>
+        )}
 
         {invitedMe && (
           <div className="invite-banner" role="region" aria-label="Invitation">
-            <p>{owner ? <><Handle m={owner} /> invited</> : "You've been invited"} you to collaborate on this collection. You&rsquo;d add films and edit it together.</p>
+            <p>{owner ? <><Handle m={owner} /> invited</> : "You've been invited"} you to co-curate this collection. You&rsquo;d add films and edit it together.</p>
             <div className="actions">
               <form action={respondToInvite}>
                 <input type="hidden" name="list_id" value={list.id} />

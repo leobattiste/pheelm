@@ -40,7 +40,8 @@ export default function CollectionEditor({ list, isOwner, collaborators = 0 }: P
             </label>
             <label className="field">
               Description
-              <textarea name="description" defaultValue={list.description ?? ""} maxLength={500} rows={3} placeholder="What ties these films together?" />
+              <textarea name="description" defaultValue={list.description ?? ""} maxLength={10000} rows={6} placeholder="What ties these films together? Write a line or a whole essay." />
+              <span className="hint">The first three lines show on the page; the rest opens with Read more. Leave a blank line between paragraphs.</span>
             </label>
             {isOwner ? (
               <>
@@ -48,7 +49,7 @@ export default function CollectionEditor({ list, isOwner, collaborators = 0 }: P
                 <label className="switch-row">
                   <span>
                     <span className="switch-label">Public</span>
-                    <span className="hint">Anyone with the link can see it, and it can appear in the community. Private collections are only visible to you{collaborators ? " and your collaborators" : ""}.</span>
+                    <span className="hint">Anyone with the link can see it, and it can appear in the community. Private collections are only visible to you{collaborators ? " and your co-curators" : ""}.</span>
                   </span>
                   <input type="checkbox" role="switch" className="switch" name="is_public" defaultChecked={list.is_public} />
                 </label>
@@ -63,7 +64,7 @@ export default function CollectionEditor({ list, isOwner, collaborators = 0 }: P
                 <div className="danger-zone">
                   {confirming ? (
                     <>
-                      <p>Delete &ldquo;{list.title}&rdquo;{collaborators ? ` for you and ${collaborators} ${collaborators === 1 ? "collaborator" : "collaborators"}` : ""}? Its comments go too. The films stay in everyone&rsquo;s saved films.</p>
+                      <p>Delete &ldquo;{list.title}&rdquo;{collaborators ? ` for you and ${collaborators} ${collaborators === 1 ? "co-curator" : "co-curators"}` : ""}? Its comments go too. The films stay in everyone&rsquo;s saved films.</p>
                       <div className="actions">
                         <button className="button danger small" type="submit" formAction={deleteCollection} formNoValidate>Delete collection</button>
                         <button className="button ghost small" type="button" onClick={() => setConfirming(false)}>Keep it</button>

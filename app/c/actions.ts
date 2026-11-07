@@ -47,7 +47,7 @@ export async function requestCollaboration(_prev: CollabState, form: FormData): 
   const { error } = await db.rpc("request_collaboration", { lid: listId, message: clip(form.get("note"), 280) || null });
   if (error) return { ok: false, message: collabMessage(error) };
   refresh(listId);
-  return { ok: true, message: "Request sent. You'll get a notification when the owner answers." };
+  return { ok: true, message: "Request sent. You'll get a notification when the curator answers." };
 }
 
 /** Accept or decline an invite (from the collection page or the notifications page). */

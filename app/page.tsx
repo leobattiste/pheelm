@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import CommunityTile from "@/components/CommunityTile";
 import DirectorCard from "@/components/DirectorCard";
+import EarlyAccessButton from "@/components/EarlyAccessButton";
 import FilmCard from "@/components/FilmCard";
 import Row from "@/components/Row";
 import { getCommunityCollections } from "@/lib/community";
@@ -23,7 +23,8 @@ function rotate<T>(items: T[], week: number, step: number): T[] {
 
 /**
  * The home page tells what Pheelm is in three parts (films, directors, community), each a short
- * statement on black followed by a row that shows it.
+ * statement followed by a row that shows it. The one button, in the hero, invites people to sign up
+ * for early access.
  */
 export default async function Home() {
   const [films, directors, collections] = await Promise.all([
@@ -61,7 +62,7 @@ export default async function Home() {
           <h1 id="home-title">Discover films by Black directors.</h1>
           <p>Pheelm is a platform to discover and learn more about films directed by Black filmmakers around the world.</p>
           <div className="actions">
-            <Link className="button" href="/films">Browse films</Link>
+            <EarlyAccessButton />
           </div>
         </div>
       </section>
@@ -75,9 +76,6 @@ export default async function Home() {
         <div className="statement-body">
           <h2 id="directors-title">Learn about the people behind your favorite films.</h2>
           <p>Explore directors from around the world and discover the films they&rsquo;ve made.</p>
-          <div className="actions">
-            <Link className="button" href="/directors">Browse directors</Link>
-          </div>
         </div>
       </section>
 
@@ -92,9 +90,6 @@ export default async function Home() {
             Discover community-curated collections, share your favorites, and connect with people who share your love of
             cinema.
           </p>
-          <div className="actions">
-            <Link className="button" href="/collections">Explore collections</Link>
-          </div>
         </div>
       </section>
 
@@ -104,15 +99,6 @@ export default async function Home() {
         </Row>
       )}
 
-      <section className="statement is-cta" aria-labelledby="join-title">
-        <div className="statement-body">
-          <h2 id="join-title">Start your Watchlist.</h2>
-          <p>Create a free account to save films, follow directors and make your own collections.</p>
-          <div className="actions">
-            <Link className="button" href="/login">Join Pheelm</Link>
-          </div>
-        </div>
-      </section>
     </>
   );
 }

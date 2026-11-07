@@ -92,7 +92,7 @@ function InviteField({ listId, exclude, full }: { listId: string; exclude: strin
     requestAnimationFrame(() => form.current?.requestSubmit());
   };
 
-  if (full) return <p className="people-note">This collection has the most collaborators it can have.</p>;
+  if (full) return <p className="people-note">This collection has the most co-curators it can have.</p>;
 
   return (
     <form ref={form} action={action} className="invite-form" autoComplete="off">
@@ -141,13 +141,30 @@ function InviteField({ listId, exclude, full }: { listId: string; exclude: strin
   );
 }
 
+/** "+2" after "Curated by @ada": the co-curators, opening the Curators sheet. */
+export function CuratorsCount({ n }: { n: number }) {
+  return (
+    <button type="button" className="link-button curators-count" aria-haspopup="dialog" aria-label={`and ${n} ${n === 1 ? "co-curator" : "co-curators"}`}
+      onClick={() => window.dispatchEvent(new Event("open-curators"))}>
+      +{n}
+    </button>
+  );
+}
+
 /**
- * The "People" button on a collection and the sheet it opens: the owner and collaborators, and
- * for the owner, requests to answer, invites waiting, and inviting someone new.
+ * The "Curators" button on a collection and the sheet it opens: the curator and co-curators, and
+ * for the curator, requests to answer, invites waiting, and inviting someone new.
  */
 export default function PeopleSheet({ listId, owner, collaborators, invited, requests, isOwner, isCollaborator, max }: Props) {
   const modal = useRef<HTMLDialogElement>(null);
   const [leaving, setLeaving] = useState(false);
+
+  // "+2" next to the curator's name opens it too.
+  useEffect(() => {
+    const open = () => modal.current?.showModal();
+    window.addEventListener("open-curators", open);
+    return () => window.removeEventListener("open-curators", open);
+  }, []);
 
   // Reopen after an action (the page comes back with ?people).
   useEffect(() => {
@@ -165,13 +182,13 @@ export default function PeopleSheet({ listId, owner, collaborators, invited, req
     <>
       <button type="button" className="button ghost people-button" aria-haspopup="dialog" onClick={() => modal.current?.showModal()}>
         <Icon name="users" />
-        People
+        Curators
         {pending > 0 && <span className="badge" aria-label={`${pending} waiting`}>{pending}</span>}
       </button>
       <dialog ref={modal} className="modal" aria-labelledby={`people-${listId}`} onClick={(e) => { if (e.target === modal.current) modal.current?.close(); }}>
         <div className="modal-head">
           <span className="sheet-handle" aria-hidden="true" />
-          <h2 id={`people-${listId}`}>People</h2>
+          <h2 id={`people-${listId}`}>Curators</h2>
           <button type="button" className="icon-button" onClick={() => modal.current?.close()} aria-label="Close">
             <Icon name="close" />
           </button>
@@ -179,7 +196,7 @@ export default function PeopleSheet({ listId, owner, collaborators, invited, req
         <div className="modal-body people-body">
           {isOwner && requests.length > 0 && (
             <section className="people-group" aria-labelledby={`req-${listId}`}>
-              <h3 id={`req-${listId}`}>Asking to collaborate</h3>
+              <h3 id={`req-${listId}`}>Asking to co-curate</h3>
               <ul>
                 {requests.map((p) => (
                   <li key={p.id} className="person-row is-request">
@@ -199,24 +216,24 @@ export default function PeopleSheet({ listId, owner, collaborators, invited, req
           )}
 
           <section className="people-group" aria-labelledby={`crew-${listId}`}>
-            <h3 id={`crew-${listId}`}>Collaborators{collaborators.length ? ` (${collaborators.length})` : ""}</h3>
+            <h3 id={`crew-${listId}`}>Curators</h3>
             <ul>
               {owner && (
                 <li className="person-row">
                   <Avatar m={owner} />
                   <Who m={owner} />
-                  <span className="person-role">Owner</span>
+                  <span className="person-role">Curator</span>
                 </li>
               )}
               {collaborators.map((p) => (
                 <li key={p.id} className="person-row">
                   <Avatar m={p} />
                   <Who m={p} />
-                  {isOwner ? <Act action={removeCollaborator} listId={listId} userId={p.id} label="Remove" /> : <span className="person-role">Collaborator</span>}
+                  {isOwner ? <Act action={removeCollaborator} listId={listId} userId={p.id} label="Remove" /> : <span className="person-role">Co-curator</span>}
                 </li>
               ))}
             </ul>
-            {!collaborators.length && <p className="people-note">{isOwner ? "No one yet. Invite people to add films and edit this collection with you." : "Just the owner for now."}</p>}
+            {!collaborators.length && <p className="people-note">{isOwner ? "Just you for now. Invite co-curators to add films and edit this collection with you." : "Just the curator for now."}</p>}
           </section>
 
           {isOwner && invited.length > 0 && (
@@ -238,7 +255,7 @@ export default function PeopleSheet({ listId, owner, collaborators, invited, req
             <section className="people-group" aria-labelledby={`add-${listId}`}>
               <h3 id={`add-${listId}`}>Invite <span className="people-count">{total} of {max}</span></h3>
               <InviteField listId={listId} exclude={[...(owner ? [owner.id] : []), ...collaborators.map((p) => p.id), ...invited.map((p) => p.id)]} full={total >= max} />
-              <p className="people-note">Collaborators add and remove films and edit the name and description. Only you choose who joins, make it public or private, and delete it.</p>
+              <p className="people-note">Co-curators add and remove films and edit the name and description. Only you choose who joins, make it public or private, and delete it.</p>
             </section>
           )}
 

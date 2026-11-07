@@ -2,22 +2,67 @@ import Icon from "@/components/Icon";
 import { PAGE_COPY } from "@/lib/site";
 import type { Metadata } from "next";
 import Link from "next/link";
+import CollectionsToolbar, { type Show } from "@/components/CollectionsToolbar";
 import CommunityTile from "@/components/CommunityTile";
-import { getCommunityCollections, MIN_FILMS, type Sort } from "@/lib/community";
+import { getCommunityCollections, type CommunityCollection, type Sort } from "@/lib/community";
 import { getFilm } from "@/lib/data";
+import { getServerClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Collections", description: PAGE_COPY.collections, alternates: { canonical: "/collections" } };
 
+const SHOW_VALUES: Show[] = ["all", "staff", "community", "for-you", "following"];
+
+/** Collections that share films with what you've saved or with directors you follow, most in common first. */
+function forYou(list: CommunityCollection[], viewerId: string, saved: Set<string>, directors: Set<string>) {
+  const score = (c: CommunityCollection) => c.films.reduce((n, f) => n + (saved.has(f.id) ? 2 : 0) + (f.directors.some((d) => directors.has(d.id)) ? 1 : 0), 0);
+  return list
+    .filter((c) => c.owner?.id !== viewerId)
+    .map((c) => ({ c, s: score(c) }))
+    .filter((x) => x.s > 0)
+    .sort((a, b) => b.s - a.s)
+    .map((x) => x.c);
+}
+
 /**
- * Every public collection, Pheelm's and members' alike, by popularity (staff picks first) or
- * newest. With ?film=, only those that include that film.
+ * Every public collection, staff picks and the community's. Filters sort them (popular or newest)
+ * and narrow them to staff picks, the community's, ones picked for you, or the ones you follow.
+ * With ?film=, only those that include that film.
  */
-export default async function CollectionsPage({ searchParams }: { searchParams: Promise<{ sort?: string; film?: string }> }) {
+export default async function CollectionsPage({ searchParams }: { searchParams: Promise<{ sort?: string; film?: string; show?: string }> }) {
   const sp = await searchParams;
   const sort: Sort = sp.sort === "new" ? "new" : "popular";
+  const db = await getServerClient();
+  const viewer = db ? (await db.auth.getUser()).data.user : null;
+  let show: Show = SHOW_VALUES.includes(sp.show as Show) ? (sp.show as Show) : "all";
+  if (!viewer && (show === "for-you" || show === "following")) show = "all";
+
   const film = sp.film ? await getFilm(sp.film) : null;
-  const list = await getCommunityCollections({ sort, filmId: film?.id });
-  const href = (s: Sort) => `/collections?sort=${s}${film ? `&film=${film.slug}` : ""}`;
+  let list = await getCommunityCollections({ sort, filmId: film?.id });
+
+  if (show === "staff") list = list.filter((c) => c.staff_pick);
+  if (show === "community") list = list.filter((c) => !c.staff_pick);
+  if (db && viewer && show === "following") {
+    const { data } = await db.from("list_saves").select("list_id").eq("user_id", viewer.id);
+    const ids = new Set(((data ?? []) as { list_id: string }[]).map((r) => r.list_id));
+    list = list.filter((c) => ids.has(c.id));
+  }
+  if (db && viewer && show === "for-you") {
+    const [saved, follows] = await Promise.all([
+      db.from("watchlist").select("film_id").eq("user_id", viewer.id),
+      db.from("follows").select("person_id").eq("user_id", viewer.id),
+    ]);
+    list = forYou(
+      list,
+      viewer.id,
+      new Set(((saved.data ?? []) as { film_id: string }[]).map((r) => r.film_id)),
+      new Set(((follows.data ?? []) as { person_id: string }[]).map((r) => r.person_id)),
+    );
+  }
+
+  const empty = {
+    following: { title: "You don't follow any collections yet.", body: "Press Follow on a collection to keep it here and hear when films are added." },
+    "for-you": { title: "Nothing picked for you yet.", body: "Save films to your Watchlist and follow directors, and collections that share them will show here." },
+  } as Record<Show, { title: string; body: string } | undefined>;
 
   return (
     <section className="page">
@@ -28,21 +73,16 @@ export default async function CollectionsPage({ searchParams }: { searchParams: 
         </p>
       </header>
 
-      <div className="section-head">
-        <p className="label">Make your own from your <Link href="/me">Watchlist</Link>.</p>
-        <div className="segmented-links" role="group" aria-label="Sort">
-          <Link className="chip" aria-pressed={sort === "popular"} href={href("popular")}>Popular</Link>
-          <Link className="chip" aria-pressed={sort === "new"} href={href("new")}>New</Link>
-        </div>
-      </div>
+      <CollectionsToolbar signedIn={!!viewer} show={show} sort={sort} />
 
       {list.length ? (
         <ul className="collection-list">{list.map((c) => <CommunityTile key={c.id} c={c} />)}</ul>
       ) : (
         <div className="empty-state">
           <Icon name="stack" className="empty-icon" />
-          <p>No collections {film ? "with this film " : ""}yet.</p>
-          <p className="muted">Make one from your Watchlist: give it a title, add at least {MIN_FILMS} films and set it to public.</p>
+          <p>{empty[show]?.title ?? `No collections ${film ? "with this film " : ""}yet.`}</p>
+          <p className="muted">{empty[show]?.body ?? "Check back soon, or start one of your own."}</p>
+          {show !== "all" && <Link className="button ghost small" href={film ? `/collections?film=${film.slug}` : "/collections"}>See all collections</Link>}
         </div>
       )}
     </section>

@@ -28,12 +28,12 @@ function Line({ n }: { n: Notification }) {
   const list = n.list ? <strong>{n.list.title}</strong> : "a collection";
   const quote = n.comment ? <span className="notif-quote">&ldquo;{n.comment.body.length > 140 ? `${n.comment.body.slice(0, 140)}…` : n.comment.body}&rdquo;</span> : null;
   switch (n.type) {
-    case "invite": return <>{who} invited you to collaborate on {list}</>;
-    case "request": return <>{who} asked to collaborate on {list}</>;
+    case "invite": return <>{who} invited you to co-curate {list}</>;
+    case "request": return <>{who} asked to co-curate {list}</>;
     case "invite_accepted": return <>{who} accepted your invite to {list}</>;
     case "invite_declined": return <>{who} declined your invite to {list}</>;
-    case "request_accepted": return <>{who} added you as a collaborator on {list}</>;
-    case "request_declined": return <>{who} declined your request to collaborate on {list}</>;
+    case "request_accepted": return <>{who} added you as a co-curator on {list}</>;
+    case "request_declined": return <>{who} declined your request to co-curate {list}</>;
     case "removed": return <>{who} removed you from {list}</>;
     case "comment": return <>{who} commented on {list} {quote}</>;
     case "reply": return <>{who} replied to your comment on {list} {quote}</>;

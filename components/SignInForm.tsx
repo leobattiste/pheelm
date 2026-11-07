@@ -8,6 +8,9 @@ import { supabaseEnabled } from "@/lib/supabase/config";
 
 const googleEnabled = process.env.NEXT_PUBLIC_ENABLE_GOOGLE === "true";
 
+/** "signup" is the early-access invitation on the home page; the form works the same either way. */
+export type SignInMode = "signin" | "signup";
+
 export function safeNext(value: string | null) {
   return value && value.startsWith("/") && !value.startsWith("//") && !value.includes("\\") ? value : "/me";
 }
@@ -31,7 +34,8 @@ function explain(message: string) {
  * Sign in with an emailed link or six-digit code (or Google, when switched on). Used by the
  * sign-in sheet in the header and by the /login page.
  */
-export default function SignInForm({ next, initialError = "", onDone, titleId }: { next: string; initialError?: string; onDone?: () => void; titleId?: string }) {
+export default function SignInForm({ next, initialError = "", onDone, titleId, mode = "signin" }: { next: string; initialError?: string; onDone?: () => void; titleId?: string; mode?: SignInMode }) {
+  const signup = mode === "signup";
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -72,8 +76,9 @@ export default function SignInForm({ next, initialError = "", onDone, titleId }:
       });
       if (otpError) throw otpError;
       if (!data.session) throw new Error("Your session could not be created. Request a new code.");
-      if (onDone) onDone();
-      else router.replace(next);
+      onDone?.();
+      // From the sheet you stay where you were, except on the home page, which leads to Films.
+      if (!onDone || next !== window.location.pathname) router.replace(next);
       router.refresh();
     } catch (cause) {
       setStatus("sent");
@@ -96,12 +101,12 @@ export default function SignInForm({ next, initialError = "", onDone, titleId }:
   }
 
   if (!supabaseEnabled) {
-    return <div className="signin"><h2 id={titleId}>Sign in</h2><p className="lead">Sign-in isn&rsquo;t available yet. Check back soon.</p></div>;
+    return <div className="signin"><h2 id={titleId}>{signup ? "Sign up to get early access" : "Sign in"}</h2><p className="lead">Sign-in isn&rsquo;t available yet. Check back soon.</p></div>;
   }
 
   return (
     <div className="signin">
-      <h2 id={titleId}>Sign in</h2>
+      <h2 id={titleId}>{signup ? "Sign up to get early access" : "Sign in"}</h2>
       {status === "sent" || status === "verifying" ? (
         <>
           <p className="lead">We sent an email to <strong>{email}</strong>. Open its link or enter the six-digit code below.</p>
@@ -113,7 +118,7 @@ export default function SignInForm({ next, initialError = "", onDone, titleId }:
                 className="code-input" autoFocus />
             </label>
             <button className="button" type="submit" disabled={status === "verifying" || code.length !== 6}>
-              {status === "verifying" ? "Signing in…" : "Sign in"}
+              {status === "verifying" ? "Signing in…" : signup ? "Continue" : "Sign in"}
             </button>
           </form>
           <p className="label">No email? Check spam, or{" "}
@@ -124,13 +129,17 @@ export default function SignInForm({ next, initialError = "", onDone, titleId }:
         </>
       ) : (
         <>
-          <p className="lead">{PAGE_COPY.signIn} We&rsquo;ll email you a link, so there&rsquo;s no password.</p>
+          <p className="lead">
+            {signup
+              ? <>It&rsquo;s free. Pheelm just launched: sign up and you&rsquo;re in. We&rsquo;ll email you a link, so there&rsquo;s no password.</>
+              : <>{PAGE_COPY.signIn} We&rsquo;ll email you a link, so there&rsquo;s no password.</>}
+          </p>
           <form onSubmit={sendLink} className="form">
             <label className="field">Email
               <input type="email" required autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} />
             </label>
             <button className="button" type="submit" disabled={status === "sending"}>
-              {status === "sending" ? "Sending…" : "Email me a sign-in link"}
+              {status === "sending" ? "Sending…" : signup ? "Get early access" : "Email me a sign-in link"}
             </button>
           </form>
           {googleEnabled && <button className="button ghost" type="button" onClick={google}>Continue with Google</button>}

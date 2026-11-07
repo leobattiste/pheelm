@@ -59,12 +59,12 @@ export default function AskToCollaborate({ listId, ownerHandle, signedIn, hasPro
     <>
       <button type="button" className="button ghost" aria-haspopup="dialog" onClick={open}>
         <Icon name="userPlus" />
-        Ask to collaborate
+        Ask to co-curate
       </button>
       <dialog ref={modal} className="modal" aria-labelledby={`ask-${listId}`} onClick={(e) => { if (e.target === modal.current) modal.current?.close(); }}>
         <div className="modal-head">
           <span className="sheet-handle" aria-hidden="true" />
-          <h2 id={`ask-${listId}`}>Ask to collaborate</h2>
+          <h2 id={`ask-${listId}`}>Ask to co-curate</h2>
           <button type="button" className="icon-button" onClick={() => modal.current?.close()} aria-label="Close">
             <Icon name="close" />
           </button>
@@ -74,7 +74,7 @@ export default function AskToCollaborate({ listId, ownerHandle, signedIn, hasPro
             <input type="hidden" name="list_id" value={listId} />
             <div className="modal-body">
               <p className="muted">
-                Collaborators add films and edit this collection with {ownerHandle ? `@${ownerHandle}` : "its owner"}. They&rsquo;ll get your request and can approve it.
+                Co-curators add films and edit this collection with {ownerHandle ? `@${ownerHandle}` : "its curator"}. They&rsquo;ll get your request and can approve it.
               </p>
               <label className="field">
                 Note <span className="hint">optional</span>
@@ -90,7 +90,7 @@ export default function AskToCollaborate({ listId, ownerHandle, signedIn, hasPro
           </form>
         ) : (
           <div className="modal-body">
-            <p>Collaborators are shown by name and @handle, so you&rsquo;ll need a profile first.</p>
+            <p>Curators are shown by name and @handle, so you&rsquo;ll need a profile first.</p>
             <div className="actions"><Link className="button" href="/profile">Create your profile</Link></div>
           </div>
         )}

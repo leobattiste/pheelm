@@ -55,6 +55,8 @@ export async function getCollaboration(db: SupabaseClient | null, listId: string
 /** Postgres error text from the membership functions, made safe to show. */
 export function collabMessage(e: { message?: string } | null): string {
   const m = e?.message ?? "";
-  if (/function .* does not exist|schema cache|relation .* does not exist/i.test(m)) return "Collaboration isn't switched on yet.";
-  return m && m.length < 140 && !/violates|syntax|permission denied/i.test(m) ? m : "That didn't go through. Try again.";
+  if (/function .* does not exist|schema cache|relation .* does not exist/i.test(m)) return "Co-curating isn't switched on yet.";
+  // The database says "collaborate"; on Pheelm they're co-curators.
+  const text = m.replace(/already collaborate on/, "already co-curate").replace(/collaborators/, "co-curators");
+  return text && text.length < 140 && !/violates|syntax|permission denied/i.test(text) ? text : "That didn't go through. Try again.";
 }

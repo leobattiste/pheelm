@@ -276,7 +276,7 @@ export default function Comments({ listId, ownerId, collaboratorIds = [], pinned
           <header className="comment-head">
             {a && !a.is_private ? <Link href={`/@${a.handle}`} className="comment-name">{name}</Link> : <span className="comment-name">{name}</span>}
             {c.user_id === ownerId && <span className="comment-badge">Owner</span>}
-            {c.user_id !== ownerId && crew.has(c.user_id) && <span className="comment-badge">Collaborator</span>}
+            {c.user_id !== ownerId && crew.has(c.user_id) && <span className="comment-badge">Co-curator</span>}
             {isPinned && <span className="comment-pinned">{PIN}Pinned</span>}
             <time className="comment-time" dateTime={c.created_at} title={new Date(c.created_at).toLocaleString()}>{pending ? "Posting…" : ago(c.created_at, now)}</time>
             {c.edited_at && <span className="comment-time">• edited</span>}

@@ -112,7 +112,7 @@ export default async function MemberPage({ params }: Params) {
                 {collectionsPanel}
                 {collaborating.length > 0 && (
                   <section className="film-section member-collections" aria-labelledby="member-collab-h">
-                    <h2 id="member-collab-h">Collaborating on</h2>
+                    <h2 id="member-collab-h">Co-curating</h2>
                     <ul className="collection-list">{collaborating.map((c) => <CommunityTile key={c.id} c={c} />)}</ul>
                   </section>
                 )}

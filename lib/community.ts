@@ -23,8 +23,11 @@ export type CommunityCollection = {
   staff_pick: boolean;
   created_at: string;
   films: Film[];
+  /** Used to rank "Popular"; never shown. */
   saves: number;
   owner: Member | null;
+  /** How many co-curators work on it with the owner. */
+  curators: number;
 };
 
 // Read as a visitor (no cookies), so these pages can be cached like the rest of the catalog.
@@ -38,11 +41,14 @@ export async function enrich(rows: Row[]): Promise<CommunityCollection[]> {
   if (!db || !rows.length) return [];
   const ids = rows.map((r) => r.id);
   const owners = [...new Set(rows.map((r) => r.user_id))];
-  const [films, people, counts] = await Promise.all([
+  const [films, people, counts, crew] = await Promise.all([
     getFilms(),
     members((cols) => db.from("member_profiles").select(cols).in("id", owners)),
     db.from("list_save_counts").select("list_id, saves").in("list_id", ids),
+    db.from("list_members").select("list_id").eq("status", "active").in("list_id", ids),
   ]);
+  const crewById = new Map<string, number>();
+  for (const r of (crew.data ?? []) as { list_id: string }[]) crewById.set(r.list_id, (crewById.get(r.list_id) ?? 0) + 1);
   const byId = new Map(films.map((f) => [f.id, f]));
   const ownerById = new Map(((people ?? []) as unknown as Member[]).map((p) => [p.id, p]));
   const savesById = new Map(((counts.data ?? []) as { list_id: string; saves: number }[]).map((c) => [c.list_id, c.saves]));
@@ -58,6 +64,7 @@ export async function enrich(rows: Row[]): Promise<CommunityCollection[]> {
       .map((x) => byId.get(x.film_id)).filter((f): f is Film => !!f),
     saves: savesById.get(r.id) ?? 0,
     owner: ownerById.get(r.user_id) ?? null,
+    curators: crewById.get(r.id) ?? 0,
   }));
 }
 

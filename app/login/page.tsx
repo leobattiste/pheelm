@@ -10,11 +10,13 @@ export default function LoginPage() {
   const router = useRouter();
   const [next, setNext] = useState("/me");
   const [error, setError] = useState<string | null>(null);
+  const [signup, setSignup] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const destination = safeNext(params.get("next"));
     setNext(destination);
+    setSignup(params.get("mode") === "signup");
     const authError = params.get("error");
     setError(authError ? LINK_ERRORS[authError] ?? LINK_ERRORS.link : "");
     getBrowserClient()?.auth.getUser().then(({ data }) => {
@@ -24,7 +26,7 @@ export default function LoginPage() {
 
   return (
     <section className="panel signin-page">
-      {error !== null && <SignInForm next={next} initialError={error} />}
+      {error !== null && <SignInForm next={next} initialError={error} mode={signup ? "signup" : "signin"} />}
     </section>
   );
 }

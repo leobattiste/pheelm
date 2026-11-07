@@ -1878,3 +1878,18 @@ html[data-auth="in"] .intro-head {
   position: absolute; padding: 0; margin: 0; border: 0; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
 }
 html[data-auth="in"] .intro-head + .section-head { margin-top: var(--space-16); }
+
+/* Collections: Create and Filters, a description that opens into an essay, "+2" curators. */
+.collections-toolbar { justify-content: flex-end; }
+.collections-toolbar .button:not(.filter-button) { margin-right: auto; }
+.choice-group { margin: 0 0 var(--space-24); padding: 0; border: 0; display: grid; gap: var(--space-12); }
+.choice-group legend { padding: 0; margin-bottom: var(--space-12); font-weight: 700; }
+.choice-group .hint { margin: 0; color: var(--muted); }
+.chip-row { display: flex; flex-wrap: wrap; gap: var(--space-8); }
+.collection-about { display: grid; justify-items: start; gap: var(--space-12); }
+.clamp-3 { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden; }
+.essay-modal .essay { display: grid; gap: var(--space-16); }
+.essay-modal .essay p { margin: 0; font-size: var(--t-md); line-height: 1.65; overflow-wrap: break-word; }
+@media (min-width: 900px) { .essay-modal { width: min(720px, calc(100vw - 48px)); } }
+.curators-count { font-size: inherit; text-decoration: none; color: var(--ink); font-weight: 700; }
+.curators-count:hover { text-decoration: underline; }

@@ -6,12 +6,9 @@ import Poster from "./Poster";
 
 const BADGE_ICONS: Record<string, IconName> = { Private: "lock", Public: "globe", Shared: "users" };
 
-/** A member's collection: three posters, title, who made it and how many follow it. */
+/** A collection: three posters, its title, and who curates it ("Curated by @ada +2"). */
 export default function CommunityTile({ c, showOwner = true, badge }: { c: CommunityCollection; showOwner?: boolean; badge?: string }) {
-  const meta = [
-    showOwner && c.owner ? `by @${c.owner.handle}` : null,
-    c.saves ? `${c.saves} ${c.saves === 1 ? "follower" : "followers"}` : null,
-  ].filter(Boolean).join(" • ");
+  const meta = showOwner && c.owner ? `Curated by @${c.owner.handle}${c.curators ? ` +${c.curators}` : ""}` : null;
   return (
     <li>
       <Link href={`/c/${c.id}`} className="collection-tile" style={tintStyle(c.films.slice(0, 3).find((f) => f.color)?.color)}>
@@ -33,7 +30,7 @@ export default function CommunityTile({ c, showOwner = true, badge }: { c: Commu
             </span>
           )}
         </span>
-        <span className="collection-desc">{meta}</span>
+        {meta && <span className="collection-desc">{meta}</span>}
       </Link>
     </li>
   );
