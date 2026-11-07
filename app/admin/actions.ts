@@ -360,7 +360,8 @@ export async function reviewSubmission(f: FormData) {
 export async function setMessageHandled(f: FormData) {
   const db = await adminClient();
   const id = String(f.get("id"));
-  await db.from("messages").update({ handled: f.get("handled") === "true" }).eq("id", id);
+  const { error } = await db.from("messages").update({ handled: f.get("handled") === "true" }).eq("id", id);
+  if (error) throw new Error(error.message);
   await logAdminActivity(db, f.get("handled") === "true" ? "Closed message" : "Reopened message", "message", id);
   revalidatePath("/admin/inbox");
 }
@@ -371,7 +372,8 @@ export async function setListFlag(f: FormData) {
   const raw = String(f.get("field"));
   const field = raw === "staff_pick" || raw === "featured" ? raw : "hidden";
   const id = String(f.get("id"));
-  await db.from("lists").update({ [field]: f.get("value") === "true" }).eq("id", id);
+  const { error } = await db.from("lists").update({ [field]: f.get("value") === "true" }).eq("id", id);
+  if (error) throw new Error(error.message);
   await logAdminActivity(db, "Updated collection", "collection", id, `${field}: ${f.get("value")}`);
   revalidatePath("/admin/community");
   revalidatePath("/collections");
@@ -385,7 +387,8 @@ export async function setListFlag(f: FormData) {
 export async function setAdmin(f: FormData) {
   const db = await ownerClient();
   const id = String(f.get("id"));
-  await db.rpc("set_admin", { who: id, make: f.get("make") === "true" });
+  const { error } = await db.rpc("set_admin", { who: id, make: f.get("make") === "true" });
+  if (error) throw new Error(error.message);
   await logAdminActivity(db, f.get("make") === "true" ? "Granted admin role" : "Revoked admin role", "member", id);
   revalidatePath("/admin/members");
 }
@@ -394,7 +397,8 @@ export async function setAdmin(f: FormData) {
 export async function resolveCommentReport(f: FormData) {
   const db = await adminClient();
   const id = String(f.get("id"));
-  await db.from("comment_reports").update({ resolved: true }).eq("id", id);
+  const { error } = await db.from("comment_reports").update({ resolved: true }).eq("id", id);
+  if (error) throw new Error(error.message);
   await logAdminActivity(db, "Dismissed comment report", "comment", id);
   revalidatePath("/admin/community");
 }
@@ -403,8 +407,10 @@ export async function resolveCommentReport(f: FormData) {
 export async function removeReportedComment(f: FormData) {
   const db = await adminClient();
   const commentId = String(f.get("comment_id"));
-  await db.rpc("remove_comment", { cid: commentId });
-  await db.from("comment_reports").update({ resolved: true }).eq("comment_id", commentId);
+  const { error: removalError } = await db.rpc("remove_comment", { cid: commentId });
+  if (removalError) throw new Error(removalError.message);
+  const { error: reportError } = await db.from("comment_reports").update({ resolved: true }).eq("comment_id", commentId);
+  if (reportError) throw new Error(reportError.message);
   await logAdminActivity(db, "Removed reported comment", "comment", commentId);
   revalidatePath("/admin/community");
 }
@@ -412,7 +418,8 @@ export async function removeReportedComment(f: FormData) {
 export async function resolveReport(f: FormData) {
   const db = await adminClient();
   const id = String(f.get("id"));
-  await db.from("list_reports").update({ resolved: true }).eq("id", id);
+  const { error } = await db.from("list_reports").update({ resolved: true }).eq("id", id);
+  if (error) throw new Error(error.message);
   await logAdminActivity(db, "Dismissed collection report", "collection", id);
   revalidatePath("/admin/community");
 }
