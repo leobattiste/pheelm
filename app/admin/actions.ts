@@ -313,6 +313,8 @@ export async function reviewSubmission(f: FormData) {
   const db = await adminClient();
   const id = str(f, "id");
   const decision = str(f, "decision");
+  const reviewNote = nullable(f, "review_note", 1500);
+  const { data: { user: reviewer } } = await db.auth.getUser();
   const { data: s } = await db.from("submissions").select("*").eq("id", id).single();
   if (!s) throw new Error("Submission not found.");
 
@@ -322,11 +324,11 @@ export async function reviewSubmission(f: FormData) {
     form.set("year", String(s.year ?? new Date().getFullYear()));
     form.set("director", s.director);
     // Creates a draft (and imports it from TMDB when switched on), then opens it in the editor.
-    await db.from("submissions").update({ status: "approved", reviewed_at: new Date().toISOString() }).eq("id", id);
+    await db.from("submissions").update({ status: "approved", reviewed_at: new Date().toISOString(), review_note: reviewNote, reviewed_by: reviewer?.id ?? null }).eq("id", id);
     await logAdminActivity(db, "Approved submission", "submission", id, s.title);
     await createFilm(form);
   } else {
-    await db.from("submissions").update({ status: decision === "reject" ? "rejected" : "pending", reviewed_at: new Date().toISOString() }).eq("id", id);
+    await db.from("submissions").update({ status: decision === "reject" ? "rejected" : "pending", reviewed_at: new Date().toISOString(), review_note: reviewNote, reviewed_by: reviewer?.id ?? null }).eq("id", id);
     await logAdminActivity(db, decision === "reject" ? "Rejected submission" : "Reset submission", "submission", id, s.title);
     revalidatePath("/admin/submissions");
   }
