@@ -4,10 +4,18 @@ import { MIN_FILMS } from "@/lib/community";
 import { removeReportedComment, resolveCommentReport, resolveReport, setListFlag } from "../actions";
 
 /** Public member collections: staff picks, hiding, and reports from visitors. */
-export default async function AdminCommunity() {
+export default async function AdminCommunity({ searchParams }: { searchParams: Promise<{ q?: string; filter?: string; page?: string }> }) {
   const { db } = await requireAdmin();
+  const sp = await searchParams;
+  const page = Math.max(1, Math.min(5000, Number.parseInt(sp.page ?? "1", 10) || 1));
+  const q = (sp.q ?? "").trim().slice(0, 100);
+  const filter = ["hidden", "featured", "staff_pick"].includes(sp.filter ?? "") ? sp.filter! : "all";
+  let listQuery = db.from("lists").select("id, title, user_id, hidden, staff_pick, featured, created_at, list_films(count)", { count: "exact" })
+    .eq("is_public", true).order("created_at", { ascending: false }).range((page - 1) * 40, page * 40 - 1);
+  if (q) listQuery = listQuery.ilike("title", `%${q}%`);
+  if (filter !== "all") listQuery = listQuery.eq(filter, true);
   const [lists, reports] = await Promise.all([
-    db.from("lists").select("id, title, user_id, hidden, staff_pick, featured, created_at, list_films(count)").eq("is_public", true).order("created_at", { ascending: false }).limit(300),
+    listQuery,
     db.from("list_reports").select("id, list_id, reason, created_at, lists(title)").eq("resolved", false).order("created_at", { ascending: false }),
   ]);
   if (lists.error || reports.error) {
@@ -99,6 +107,15 @@ export default async function AdminCommunity() {
         Public collections appear in the community once they have a title, at least {MIN_FILMS} films and their maker has a public name.
         Staff picks and featured collections show under Featured. Hidden collections disappear for everyone but their maker.
       </p>
+      <form role="search" className="admin-filters">
+        <label className="field">Search<input name="q" className="search-input" defaultValue={q} placeholder="Collection title" /></label>
+        <label className="field">Filter<select name="filter" defaultValue={filter}>
+          <option value="all">All collections</option><option value="hidden">Hidden</option><option value="featured">Featured</option><option value="staff_pick">Staff picks</option>
+        </select></label>
+        <button className="button ghost small">Filter</button>
+        <Link className="button ghost small" href="/admin/community">Reset</Link>
+      </form>
+      <p className="muted">{lists.count ?? 0} matching public collections.</p>
       <div className="table-wrap">
         <table className="admin-table">
           <thead><tr><th>Collection</th><th>By</th><th>Films</th><th>Saves</th><th /></tr></thead>
@@ -128,6 +145,11 @@ export default async function AdminCommunity() {
             })}
           </tbody>
         </table>
+      </div>
+      <div className="actions admin-pagination">
+        {page > 1 && <Link className="button ghost small" href={`/admin/community?${new URLSearchParams({ q, filter, page: String(page - 1) })}`}>Previous</Link>}
+        <span className="muted">Page {page} of {Math.max(1, Math.ceil((lists.count ?? 0) / 40))}</span>
+        {page * 40 < (lists.count ?? 0) && <Link className="button ghost small" href={`/admin/community?${new URLSearchParams({ q, filter, page: String(page + 1) })}`}>Next</Link>}
       </div>
     </>
   );
