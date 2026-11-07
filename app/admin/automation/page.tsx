@@ -8,8 +8,8 @@ import WatchRefresh from "../WatchRefresh";
 export default async function AutomationPage() {
   const { db } = await requireAdmin("/admin/automation");
   const [{ data: posters, count: missingPosters }, { data: synopses, count: missingSynopses }, { count: peopleWaiting }] = await Promise.all([
-    db.from("films").select("id,title", { count: "exact" }).is("poster_url", null).order("year").limit(200),
-    db.from("films").select("id,title", { count: "exact" }).is("synopsis", null).not("tmdb_id", "is", null).order("year").limit(200),
+    db.from("films").select("id,title", { count: "exact" }).or("poster_url.is.null,poster_url.eq.").order("year").limit(200),
+    db.from("films").select("id,title", { count: "exact" }).or("synopsis.is.null,synopsis.eq.").not("tmdb_id", "is", null).order("year").limit(200),
     db.from("people").select("id", { count: "exact", head: true }).not("tmdb_id", "is", null).is("details_at", null),
   ]);
   return (
