@@ -327,6 +327,9 @@ svg { flex-shrink: 0; }
 /* The name is set like paragraph text: 16px, regular weight. */
 .wordmark { color: var(--ink); font-size: var(--t-md); font-weight: 400; letter-spacing: 0; line-height: 1; }
 .header-tools { display: flex; align-items: center; gap: var(--space-4); margin-left: auto; }
+/* The shuffle button sits right before search, like a second search. */
+.random-trigger { color: inherit; }
+@media (min-width: 900px) { .random-trigger { margin-right: var(--space-4); } }
 .search-trigger-label, .search-trigger kbd { display: none; }
 .burger { display: grid; gap: var(--space-4); width: 18px; }
 .burger span { display: block; height: 1.6px; border-radius: 2px; background: currentColor; }
@@ -1842,5 +1845,3 @@ a.person-row-name:hover { text-decoration: underline; text-underline-offset: 0.2
 /* Menu and Settings: the Grid and Theme switches are the same width, their options sharing it equally. */
 :is(.menu-setting, .setting-row) :is(.segmented, .theme-toggle) { width: 156px; }
 :is(.menu-setting, .setting-row) :is(.segmented, .theme-toggle) button { flex: 1; width: auto; min-width: 0; padding: 0; }
-/* Films page: the random-film button before the search bar, the same size as the filter button on phones. */
-.random-button { flex-shrink: 0; width: var(--control); padding: 0; }

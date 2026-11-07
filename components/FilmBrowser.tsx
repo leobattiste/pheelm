@@ -1,7 +1,6 @@
 "use client";
 
 import Icon from "./Icon";
-import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { countryName, decadeOf } from "@/lib/format";
 import type { FilmCard } from "@/lib/types";
@@ -31,7 +30,6 @@ export default function FilmBrowser({ films, facets }: { films: FilmCard[]; face
   const [rank, setRank] = useState<Map<string, number> | null>(null);
   useEffect(() => { setRank(new Map(films.map((f) => [f.id, Math.random()]))); }, [films]);
   const modal = useRef<HTMLDialogElement>(null);
-  const router = useRouter();
 
   useEffect(() => {
     const p = new URLSearchParams(window.location.search);
@@ -90,18 +88,10 @@ export default function FilmBrowser({ films, facets }: { films: FilmCard[]; face
     { key: "language", title: "Language", options: facets.languages.map(([l]) => l).sort() },
     { key: "genre", title: "Genre", options: facets.genres.map(([g]) => g).sort() },
   ];
-  // A film at random, from whatever the search and filters leave.
-  const surprise = () => {
-    const pool = results.length ? results : films;
-    if (pool.length) router.push(`/films/${pool[Math.floor(Math.random() * pool.length)].slug}`);
-  };
 
   return (
     <div className="browser">
       <div className="toolbar">
-        <button type="button" className="button ghost icon-only random-button" onClick={surprise} aria-label="Random film" title="Random film">
-          <Icon name="dice" />
-        </button>
         <label className="search-bar">
           <Icon name="search" />
           <span className="visually-hidden">Search films or directors</span>

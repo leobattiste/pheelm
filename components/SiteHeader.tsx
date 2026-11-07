@@ -40,6 +40,10 @@ export default function SiteHeader() {
     <header className="site-header">
       <Link href="/" className="wordmark wordmark-type" aria-label={`${SITE_NAME}, home`}>{WORDMARK}</Link>
       <div className="header-tools">
+        {/* A film at random. A plain link, so each press picks again. */}
+        <a href="/random" className="icon-button random-trigger" aria-label="Random film" title="Random film" rel="nofollow">
+          <Icon name="shuffle" />
+        </a>
         <button type="button" className="icon-button search-trigger" onClick={openSearch} aria-label="Search">
           <Icon name="search" />
           <span className="search-trigger-label">Search</span>
