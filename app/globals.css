@@ -1949,7 +1949,7 @@ html[data-auth="in"][data-chrome="app"] .tab-bar {
   padding: 0; border: 0; background: none; color: var(--muted); font: inherit; text-decoration: none;
   cursor: pointer; -webkit-tap-highlight-color: transparent; transition: color 0.2s, transform 0.15s var(--ease);
 }
-.tab .icon { width: 26px; height: 26px; stroke-width: 1.5; }
+.tab .icon { width: 23px; height: 23px; stroke-width: 1.5; }
 .tab:hover { color: var(--ink); }
 .tab[aria-current="page"] { color: var(--ink); }
 .tab[aria-current="page"]::after { content: ""; position: absolute; bottom: 8px; width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
