@@ -35,8 +35,8 @@ export default async function QualityPage({ searchParams }: { searchParams: Prom
   ]);
   const issueCounts = new Map(ISSUES.slice(0, 5).map(([key], i) => [key, issueQueries[i].count ?? 0]));
   const [{ count: noBio }, { count: noPhoto }] = await Promise.all([
-    db.from("admin_people_quality").select("id", { count: "exact", head: true }).gt("directed", 0).is("bio", null),
-    db.from("admin_people_quality").select("id", { count: "exact", head: true }).gt("directed", 0).is("photo_url", null),
+    db.from("admin_people_quality").select("id", { count: "exact", head: true }).gt("directed", 0).or("bio.is.null,bio.eq."),
+    db.from("admin_people_quality").select("id", { count: "exact", head: true }).gt("directed", 0).or("photo_url.is.null,photo_url.eq."),
   ]);
   const last = Math.ceil((count ?? 0) / PER_PAGE);
   const href = (p: number) => `/admin/quality?issue=${issue}&page=${p}`;
