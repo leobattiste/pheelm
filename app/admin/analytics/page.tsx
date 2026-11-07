@@ -17,12 +17,11 @@ export default async function AnalyticsPage(){
     }
     return out;
   }
-  const [films,members,lists,saves,topSaves,watched]=await Promise.all([
-    ...metricTables.map(([table])=>recent(table)),
+  const [rows,topSaves,watched]=await Promise.all([
+    Promise.all(metricTables.map(([table])=>recent(table))),
     db.from("list_save_counts").select("list_id,saves").order("saves",{ascending:false}).limit(6),
     db.from("watched").select("film_id",{count:"exact",head:true}),
   ]);
-  const rows=[films,members,lists,saves];
   const months=Array.from({length:6},(_,i)=>new Date(Date.UTC(begin.getUTCFullYear(),begin.getUTCMonth()+i,1)));
   const timeline=months.map(month=>{
     const key=month.toISOString().slice(0,7);
