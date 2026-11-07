@@ -1871,3 +1871,10 @@ body:has(.film-bar[data-show="true"]) .install-banner { bottom: calc(84px + env(
   body { overscroll-behavior-y: none; -webkit-tap-highlight-color: transparent; }
   img { -webkit-touch-callout: none; }
 }
+
+/* Signed in: the Films, Directors and Collections pages start with their content; the titles stay
+   for screen readers. */
+html[data-auth="in"] .intro-head {
+  position: absolute; padding: 0; margin: 0; border: 0; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+html[data-auth="in"] .intro-head + .section-head { margin-top: var(--space-16); }

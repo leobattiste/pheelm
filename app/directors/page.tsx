@@ -15,7 +15,7 @@ export default async function DirectorsPage() {
 
   return (
     <section className="page">
-      <header className="page-head">
+      <header className="page-head intro-head">
         <h1>Directors</h1>
         <p className="lead">{PAGE_COPY.directors}</p>
       </header>

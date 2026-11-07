@@ -14,7 +14,7 @@ export default async function FilmsPage() {
   const [films, facets] = await Promise.all([getFilms(), getFacets()]);
   return (
     <section className="page">
-      <header className="page-head">
+      <header className="page-head intro-head">
         <h1>Films</h1>
         <p className="lead">{PAGE_COPY.films}</p>
       </header>

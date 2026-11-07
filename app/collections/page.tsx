@@ -21,7 +21,7 @@ export default async function CollectionsPage({ searchParams }: { searchParams: 
 
   return (
     <section className="page">
-      <header className="page-head">
+      <header className="page-head intro-head">
         <h1>Collections</h1>
         <p className="lead">
           {film ? <>Collections with <Link href={`/films/${film.slug}`}>{film.title}</Link>. <Link href="/collections">See all</Link></> : PAGE_COPY.collections}
