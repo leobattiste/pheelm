@@ -6,7 +6,7 @@ import CommunityTile from "@/components/CommunityTile";
 import { getCommunityCollections, MIN_FILMS, type Sort } from "@/lib/community";
 import { getFilm } from "@/lib/data";
 
-export const metadata: Metadata = { title: "Collections", description: PAGE_COPY.collections };
+export const metadata: Metadata = { title: "Collections", description: PAGE_COPY.collections, alternates: { canonical: "/collections" } };
 
 /**
  * Every public collection, Pheelm's and members' alike, by popularity (staff picks first) or

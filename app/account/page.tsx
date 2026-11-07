@@ -2,28 +2,21 @@ import { PAGE_COPY } from "@/lib/site";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import CommunityTile from "@/components/CommunityTile";
-import { Portrait } from "@/components/DirectorCard";
-import FollowButton from "@/components/FollowButton";
 import GridToggle from "@/components/GridToggle";
 import NewsletterForm from "@/components/NewsletterForm";
 import Tabs from "@/components/Tabs";
 import ThemeToggle from "@/components/ThemeToggle";
-import { enrich, type Row as CommunityRow } from "@/lib/community";
-import { getDirectors } from "@/lib/data";
-import { countryName } from "@/lib/format";
 import { getServerClient } from "@/lib/supabase/server";
 import { DeleteAccount, SignOutEverywhere } from "./AccountActions";
 import EmailForm from "./EmailForm";
 import ProfileForm from "./ProfileForm";
-import { Submissions } from "./sections";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Settings", description: PAGE_COPY.account, robots: { index: false } };
 
 /**
  * Settings, in tabs: your profile, your account (sign-in email, newsletter, signing out),
- * appearance, who you follow, the films you've suggested, and your data (download or delete).
+ * appearance, and your data (download or delete).
  */
 export default async function AccountPage() {
   const db = await getServerClient();
@@ -38,18 +31,8 @@ export default async function AccountPage() {
   const { data: { user } } = await db.auth.getUser();
   if (!user) redirect("/login?next=/account");
 
-  const [{ data: profile }, { data: submissions }, follows, saves, directors] = await Promise.all([
-    db.from("profiles").select("*").eq("id", user.id).maybeSingle(),
-    db.from("submissions").select("id, title, director, year, status, created_at").eq("user_id", user.id).order("created_at", { ascending: false }),
-    db.from("follows").select("person_id, created_at").eq("user_id", user.id).order("created_at", { ascending: false }),
-    db.from("list_saves").select("created_at, lists(id, title, description, staff_pick, created_at, user_id, list_films(film_id, added_at))").eq("user_id", user.id).order("created_at", { ascending: false }),
-    getDirectors(),
-  ]);
+  const { data: profile } = await db.from("profiles").select("*").eq("id", user.id).maybeSingle();
   const p = (profile ?? {}) as { handle?: string | null; display_name?: string | null; is_admin?: boolean; is_private?: boolean; country?: string | null };
-
-  const directorById = new Map(directors.map((d) => [d.id, d]));
-  const followed = ((follows.data ?? []) as { person_id: string }[]).map((r) => directorById.get(r.person_id)).filter((d) => d !== undefined);
-  const followedCollections = await enrich(((saves.data ?? []) as unknown as { lists: CommunityRow | null }[]).map((r) => r.lists).filter((l): l is CommunityRow => !!l));
 
   const tabs = [
     {
@@ -115,48 +98,6 @@ export default async function AccountPage() {
           </section>
         </div>
       ),
-    },
-    {
-      id: "following",
-      label: "Following",
-      panel: (
-        <div className="account-panel wide">
-          <section className="account-section" aria-labelledby="follow-dir-h">
-            <h2 id="follow-dir-h">Directors</h2>
-            {followed.length ? (
-              <ul className="follow-list">
-                {followed.map((d) => (
-                  <li key={d.id}>
-                    <Link href={`/directors/${d.slug}`} className="follow-who">
-                      <Portrait director={d} className="follow-portrait" />
-                      <span>
-                        <span className="follow-name">{d.name}</span>
-                        {d.country && <span className="muted">{countryName(d.country)}</span>}
-                      </span>
-                    </Link>
-                    <FollowButton personId={d.id} name={d.name} />
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="muted">You don&rsquo;t follow any directors yet. Follow them from their pages to hear when they have a new film. <Link href="/directors">Browse directors</Link></p>
-            )}
-          </section>
-          <section className="account-section" aria-labelledby="follow-col-h">
-            <h2 id="follow-col-h">Collections</h2>
-            {followedCollections.length ? (
-              <ul className="collection-list">{followedCollections.map((c) => <CommunityTile key={c.id} c={c} />)}</ul>
-            ) : (
-              <p className="muted">You don&rsquo;t follow any collections yet. <Link href="/collections">Explore collections</Link></p>
-            )}
-          </section>
-        </div>
-      ),
-    },
-    {
-      id: "submissions",
-      label: "Submissions",
-      panel: <Submissions rows={submissions ?? []} />,
     },
     {
       id: "data",

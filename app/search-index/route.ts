@@ -35,6 +35,9 @@ export async function GET() {
       // Names of the cast and crew, so a film turns up when you search for someone in it.
       k: f.credits.filter((c) => c.role !== "director").slice(0, 16).map((c) => c.person.name),
       p: f.poster_url,
+      // Countries and genres, so a search like "nigerian comedies" can filter.
+      c: f.countries,
+      g: f.genres,
     })),
     directors: directors.map((d) => ({
       s: d.slug,

@@ -14,7 +14,7 @@ export async function generateStaticParams() {
 
 /**
  * The preview shown when a film is shared: set like the film page, on the film's own colour,
- * in Nacelle, with the poster on the right.
+ * in Inter, with the poster on the right.
  */
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
   const [film, fonts] = await Promise.all([getFilm((await params).slug), ogFonts()]);
@@ -28,7 +28,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
 
   return new ImageResponse(
     (
-      <div style={{ display: "flex", width: "100%", height: "100%", padding: 64, gap: 64, background: bg, color: ink, fontFamily: "Nacelle" }}>
+      <div style={{ display: "flex", width: "100%", height: "100%", padding: 64, gap: 64, background: bg, color: ink, fontFamily: "Inter" }}>
         <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", flex: 1 }}>
           <OgWordmark />
           <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>

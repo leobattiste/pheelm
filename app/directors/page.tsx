@@ -7,6 +7,7 @@ export const revalidate = 300;
 export const metadata: Metadata = {
   title: "Directors",
   description: PAGE_COPY.directors,
+  alternates: { canonical: "/directors" },
 };
 
 export default async function DirectorsPage() {

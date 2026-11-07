@@ -1,6 +1,7 @@
 "use client";
 
-import Icon from "./Icon";
+import Icon, { type IconName } from "./Icon";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { countryName, decadeOf } from "@/lib/format";
 import type { FilmCard } from "@/lib/types";
@@ -30,6 +31,7 @@ export default function FilmBrowser({ films, facets }: { films: FilmCard[]; face
   const [rank, setRank] = useState<Map<string, number> | null>(null);
   useEffect(() => { setRank(new Map(films.map((f) => [f.id, Math.random()]))); }, [films]);
   const modal = useRef<HTMLDialogElement>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const p = new URLSearchParams(window.location.search);
@@ -82,16 +84,24 @@ export default function FilmBrowser({ films, facets }: { films: FilmCard[]; face
   // Counts in the modal reflect the other filters already chosen.
   const countFor = (k: Filter, v: string) => filter({ ...state, [k]: v }).length;
 
-  const groups: { key: Filter; title: string; options: string[] }[] = [
-    { key: "decade", title: "Decade", options: facets.decades.map(([d]) => d) },
-    { key: "country", title: "Country", options: facets.countries.map(([c]) => c).sort((a, b) => countryName(a).localeCompare(countryName(b))) },
-    { key: "language", title: "Language", options: facets.languages.map(([l]) => l).sort() },
-    { key: "genre", title: "Genre", options: facets.genres.map(([g]) => g).sort() },
+  const groups: { key: Filter; title: string; icon: IconName; options: string[] }[] = [
+    { key: "decade", title: "Decade", icon: "calendar", options: facets.decades.map(([d]) => d) },
+    { key: "country", title: "Country", icon: "globe", options: facets.countries.map(([c]) => c).sort((a, b) => countryName(a).localeCompare(countryName(b))) },
+    { key: "language", title: "Language", icon: "language", options: facets.languages.map(([l]) => l).sort() },
+    { key: "genre", title: "Genre", icon: "tag", options: facets.genres.map(([g]) => g).sort() },
   ];
+  // A film at random, from whatever the search and filters leave.
+  const surprise = () => {
+    const pool = results.length ? results : films;
+    if (pool.length) router.push(`/films/${pool[Math.floor(Math.random() * pool.length)].slug}`);
+  };
 
   return (
     <div className="browser">
       <div className="toolbar">
+        <button type="button" className="button ghost icon-only random-button" onClick={surprise} aria-label="Random film" title="Random film">
+          <Icon name="dice" />
+        </button>
         <label className="search-bar">
           <Icon name="search" />
           <span className="visually-hidden">Search films or directors</span>
@@ -153,21 +163,21 @@ export default function FilmBrowser({ films, facets }: { films: FilmCard[]; face
         </div>
         <div className="modal-body">
           <label className="field filter-field">
-            Sort by
+            <span className="filter-title"><Icon name="sort" />Sort by</span>
             <select value={state.sort ?? "shuffle"} onChange={(e) => set("sort", e.target.value === "shuffle" ? "" : e.target.value)}>
               {SORTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
             </select>
           </label>
           {groups.map((g) => (
             <label key={g.key} className="field filter-field">
-              {g.title}
+              <span className="filter-title"><Icon name={g.icon} />{g.title}</span>
               <select value={state[g.key] ?? ""} onChange={(e) => set(g.key, e.target.value)}>
                 <option value="">Any</option>
                 {g.options.map((v) => {
                   const n = countFor(g.key, v);
                   const on = state[g.key] === v;
                   if (!n && !on) return null;
-                  return <option key={v} value={v}>{label(g.key, v)} ({n})</option>;
+                  return <option key={v} value={v}>{label(g.key, v)}</option>;
                 })}
               </select>
             </label>

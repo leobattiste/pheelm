@@ -42,7 +42,7 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
   // Old links: a collection now opens on its own page; following is gone; submissions moved.
   if (sp.c && /^[0-9a-f-]{36}$/i.test(sp.c)) redirect(`/c/${sp.c}`);
   if (sp.c === "following" || sp.c === "saved") redirect("/me");
-  if (sp.c === "submissions") redirect("/account#submissions");
+  if (sp.c === "submissions") redirect("/submit");
 
   const [{ data: saved }, listsResult, savedResult, films, sharedResult, followsResult, directors] = await Promise.all([
     db.from("watchlist").select("film_id, added_at").eq("user_id", user.id).order("added_at", { ascending: false }),

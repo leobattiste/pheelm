@@ -17,7 +17,7 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
         </p>
       </header>
       <p className="muted info-note">
-        To suggest a film, use <Link href="/submit">Submit a film</Link>. For festivals, distributors and schools, see <Link href="/partnerships">Partnerships</Link>.
+        To suggest a film, use <Link href="/submit">Suggest a film</Link>. For festivals, distributors and schools, see <Link href="/partnerships">Partnerships</Link>.
       </p>
       <ContactForm topic={topic} />
     </article>

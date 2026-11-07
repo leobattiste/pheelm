@@ -23,7 +23,12 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const d = await getDirector((await params).slug);
   if (!d) return {};
-  return { title: d.name, description: d.bio?.split(/\n{2,}/)[0] ?? `Films directed by ${d.name}.` };
+  return {
+    title: `${d.name}, director`,
+    description: d.bio?.split(/\n{2,}/)[0] ?? `Films directed by ${d.name}, with where to watch them, on Pheelm.`,
+    alternates: { canonical: `/directors/${d.slug}` },
+    openGraph: { type: "profile", ...(d.photo_url ? { images: [{ url: d.photo_url }] } : {}) },
+  };
 }
 
 /**

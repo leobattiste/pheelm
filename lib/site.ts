@@ -4,7 +4,7 @@ export const SITE_NAME = "Pheelm";
 export const WORDMARK = "pheelm";
 export const SITE_TAGLINE = "Discover films by Black directors around the world.";
 export const SITE_DESCRIPTION =
-  "A platform to explore films, discover the people behind them, and learn more about their work.";
+  "Discover films by Black directors around the world: features, documentaries and shorts from Africa, the Americas, Europe and the Caribbean, with the people behind them and where to watch.";
 
 /** Each page's one-line description: shown under its title and used for search and sharing. */
 export const PAGE_COPY = {
@@ -14,6 +14,7 @@ export const PAGE_COPY = {
   collections: "Explore curated selections of films based on themes, genres, and more.",
   about: "Learn more about Pheelm and why we created the platform.",
   submit: "Help grow the platform by suggesting films we're missing.",
+  submitOwn: "Made a film? Tell us about it. We review every film before it goes on Pheelm, and write to you when it does.",
   signIn: "Sign in or create an account to save films and make collections.",
   account: "Manage your account and your film submissions.",
   watchlist: "Save films you want to watch later.",

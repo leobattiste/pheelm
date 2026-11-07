@@ -47,7 +47,12 @@ async function load(id: string): Promise<ListRow | null> {
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const list = await load((await params).id);
   if (!list) return {};
-  return { title: list.title, description: list.description ?? "A collection of films on Pheelm.", robots: list.is_public ? undefined : { index: false } };
+  return {
+    title: list.title,
+    description: list.description ?? "A collection of films by Black directors on Pheelm.",
+    alternates: { canonical: `/c/${list.id}` },
+    robots: list.is_public ? undefined : { index: false },
+  };
 }
 
 /** A member's @handle, linked to their profile unless it's private. */

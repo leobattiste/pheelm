@@ -4,7 +4,7 @@
  * thing saying what something is.
  */
 import {
-  Add01Icon, ArrowLeft01Icon, ArrowRight01Icon, ArrowTurnBackwardIcon, ArrowUp02Icon, AtIcon, Award01Icon,
+  Add01Icon, ArrowUpDownIcon, DiceFaces03Icon, Tag01Icon, ArrowLeft01Icon, ArrowRight01Icon, ArrowTurnBackwardIcon, ArrowUp02Icon, AtIcon, Award01Icon,
   Bookmark02Icon, Calendar03Icon, Cancel01Icon, ClapperboardIcon, Clock01Icon, Comment01Icon, Door01Icon,
   FavouriteIcon, FilterHorizontalIcon, Film02Icon, Flag02Icon, Globe02Icon, InstagramIcon, Layers01Icon,
   LinkSquare02Icon, Login03Icon, Logout03Icon, Mail01Icon, Moon02Icon, MoreHorizontalIcon, Notification03Icon,
@@ -60,6 +60,9 @@ const ICONS = {
   flag: Flag02Icon,
   shuffle: ShuffleIcon,
   moon: Moon02Icon,
+  sort: ArrowUpDownIcon,
+  dice: DiceFaces03Icon,
+  tag: Tag01Icon,
 } as const;
 
 export type IconName = keyof typeof ICONS;

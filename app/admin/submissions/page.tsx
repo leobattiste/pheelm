@@ -23,11 +23,24 @@ export default async function AdminSubmissions({ searchParams }: { searchParams:
             <tbody>
               {data.map((s) => (
                 <tr key={s.id}>
-                  <td><strong>{s.title}</strong></td>
+                  <td>
+                    <strong>{s.title}</strong>
+                    {s.kind === "own" && <span className="status-pill approved" style={{ marginLeft: 8 }}>Own film</span>}
+                    {s.details && (
+                      <details>
+                        <summary>Details</summary>
+                        <dl className="details">
+                          {Object.entries(s.details as Record<string, unknown>).filter(([, v]) => v).map(([k, v]) => (
+                            <div key={k}><dt>{k.replace(/_/g, " ")}</dt><dd style={{ whiteSpace: "pre-wrap" }}>{String(v)}</dd></div>
+                          ))}
+                        </dl>
+                      </details>
+                    )}
+                  </td>
                   <td>{s.director}</td>
                   <td>{s.year ?? ""}</td>
                   <td>{s.link && <a href={s.link} target="_blank" rel="noopener noreferrer">Open</a>}</td>
-                  <td style={{ maxWidth: 320 }}>{s.note}</td>
+                  <td style={{ maxWidth: 320, whiteSpace: "pre-wrap" }}>{s.kind === "own" ? null : s.note}</td>
                   <td>{new Date(s.created_at).toLocaleDateString("en-GB")}</td>
                   <td>
                     {status === "pending" && (

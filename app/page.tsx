@@ -6,10 +6,11 @@ import FilmCard from "@/components/FilmCard";
 import Row from "@/components/Row";
 import { getCommunityCollections } from "@/lib/community";
 import { getDirectors, getFacets, getFilms, toCard, toDirectorSummary } from "@/lib/data";
-import { PAGE_COPY } from "@/lib/site";
+import { PAGE_COPY, SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
+import { SITE_URL } from "@/lib/supabase/config";
 
 export const revalidate = 300;
-export const metadata: Metadata = { description: PAGE_COPY.home };
+export const metadata: Metadata = { description: PAGE_COPY.home, alternates: { canonical: "/" } };
 
 const WEEK = 7 * 24 * 60 * 60 * 1000;
 
@@ -36,8 +37,24 @@ export default async function Home() {
   const toKnow = rotate([...directors].sort((a, b) => b.films.length - a.films.length).slice(0, 80), week, 5).slice(0, 12);
   const shelf = collections.filter((c) => c.films.length >= 3).slice(0, 12);
 
+  // For search engines: the site, with a search box that opens the Films page's search.
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        name: SITE_NAME,
+        url: SITE_URL,
+        description: SITE_DESCRIPTION,
+        potentialAction: { "@type": "SearchAction", target: `${SITE_URL}/films?q={search_term_string}`, "query-input": "required name=search_term_string" },
+      },
+      { "@type": "Organization", name: SITE_NAME, url: SITE_URL, logo: `${SITE_URL}/apple-icon` },
+    ],
+  };
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       <div className="home-lead">
       <section className="statement is-hero" aria-labelledby="home-title">
         <div className="statement-body">

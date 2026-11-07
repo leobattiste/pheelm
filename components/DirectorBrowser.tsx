@@ -117,19 +117,19 @@ export default function DirectorBrowser({ directors }: { directors: DirectorSumm
         </div>
         <div className="modal-body">
           <label className="field filter-field">
-            Sort by
+            <span className="filter-title"><Icon name="sort" />Sort by</span>
             <select value={state.sort ?? "films"} onChange={(e) => set("sort", e.target.value === "films" ? "" : e.target.value)}>
               {SORTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
             </select>
           </label>
           <label className="field filter-field">
-            Films in the directory
+            <span className="filter-title"><Icon name="film" />Films in the directory</span>
             <select value={state.min ?? ""} onChange={(e) => set("min", e.target.value)}>
               {MINS.map(([v, l]) => <option key={l} value={v}>{l}</option>)}
             </select>
           </label>
           <label className="field filter-field">
-            Country
+            <span className="filter-title"><Icon name="globe" />Country</span>
             <select value={state.country ?? ""} onChange={(e) => set("country", e.target.value)}>
               <option value="">Any</option>
               {countries.map((c) => <option key={c} value={c}>{countryName(c)} ({directors.filter((d) => d.country === c).length})</option>)}

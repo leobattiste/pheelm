@@ -15,16 +15,20 @@ import { SITE_URL } from "@/lib/supabase/config";
 import { themeScript } from "@/lib/theme";
 import "./globals.css";
 
-// One typeface, Nacelle by Dotcolon (SIL Open Font License), served from the site itself.
-const nacelle = localFont({
-  src: [
-    { path: "./fonts/Nacelle-Regular.woff2", weight: "400", style: "normal" },
-    { path: "./fonts/Nacelle-Italic.woff2", weight: "400", style: "italic" },
-    { path: "./fonts/Nacelle-SemiBold.woff2", weight: "600", style: "normal" },
-    { path: "./fonts/Nacelle-Bold.woff2", weight: "700", style: "normal" },
-  ],
-  variable: "--font-nacelle",
+// One typeface, Inter by Rasmus Andersson (SIL Open Font License), variable weight, served from
+// the site itself. The extended set covers letters like ẹ, ọ and ū in Yoruba and other titles.
+const inter = localFont({
+  src: "./fonts/Inter-Latin.woff2",
+  weight: "100 900",
+  variable: "--font-inter",
   display: "swap",
+});
+const interExt = localFont({
+  src: "./fonts/Inter-LatinExt.woff2",
+  weight: "100 900",
+  variable: "--font-inter-ext",
+  display: "swap",
+  preload: false,
 });
 
 // The wordmark only: Beth Ellen by Rob Jelinski (SIL Open Font License).
@@ -39,8 +43,12 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: { default: `${SITE_NAME}: ${SITE_TAGLINE.replace(/\.$/, "")}`, template: `%s | ${SITE_NAME}` },
   description: SITE_DESCRIPTION,
-  openGraph: { siteName: SITE_NAME, type: "website" },
+  applicationName: SITE_NAME,
+  keywords: ["Black directors", "Black cinema", "African cinema", "Black filmmakers", "films by Black directors", "Nollywood", "FESPACO", "where to watch", "film directory"],
+  category: "entertainment",
+  openGraph: { siteName: SITE_NAME, type: "website", locale: "en_US" },
   twitter: { card: "summary_large_image" },
+  robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 } },
 };
 
 export const viewport: Viewport = {
@@ -53,7 +61,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-theme="dark" data-grid="large" className={`${nacelle.variable} ${bethEllen.variable}`} suppressHydrationWarning>
+    <html lang="en" data-theme="dark" data-grid="large" className={`${inter.variable} ${interExt.variable} ${bethEllen.variable}`} suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://image.tmdb.org" />
       </head>
@@ -106,7 +114,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/about">About</Link>
               <Link href="/partnerships">Partnerships</Link>
               <Link href="/contact">Contact</Link>
-              <Link href="/submit">Submit a film</Link>
+              <Link href="/submit">Suggest a film</Link>
             </nav>
             <nav aria-labelledby="footer-you">
               <h2 id="footer-you">You</h2>

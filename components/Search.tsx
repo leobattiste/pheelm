@@ -5,8 +5,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { initials, posterColours } from "@/lib/format";
 import Icon, { type IconName } from "@/components/Icon";
 import { matchScore, plain } from "@/lib/fuzzy";
+import { countryName } from "@/lib/format";
+import { describe, hasFilters, parseQuery } from "@/lib/query";
 
-type FilmHit = { s: string; t: string; o: string | null; y: number; d: string[]; k?: string[]; p: string | null };
+type FilmHit = { s: string; t: string; o: string | null; y: number; d: string[]; k?: string[]; p: string | null; c?: string[]; g?: string[] };
 type DirectorHit = { s: string; n: string; c: string | null; f: number; p: string | null };
 type PersonHit = { s: string; n: string; r: string; f: number; p: string | null };
 type CollectionHit = { s: string; t: string; n: number };
@@ -19,9 +21,11 @@ type Hit =
   | { kind: "person"; item: PersonHit }
   | { kind: "collection"; item: CollectionHit }
   | { kind: "action"; item: Action }
+  | { kind: "browse"; item: { id: string; label: string; hint: string; href: string } }
   | { kind: "recent"; item: string };
 
 const GROUP_LABELS: Record<Hit["kind"], string> = {
+  browse: "Browse",
   recent: "Recent searches",
   action: "Quick actions",
   director: "Directors",
@@ -123,7 +127,7 @@ export default function Search() {
           close();
         },
       },
-      { id: "submit", label: "Submit a film", hint: "Suggest something we're missing", icon: "plus", words: "submit suggest add missing", run: () => navigate("/submit") },
+      { id: "submit", label: "Suggest a film", hint: "Tell us what we're missing", icon: "plus", words: "submit suggest add missing", run: () => navigate("/submit") },
     ];
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [index]);
@@ -161,7 +165,48 @@ export default function Search() {
     const collections = ranked(index.collections ?? [], (c) => c.t).slice(0, 3);
     const matchedActions = ranked(actions, (a) => `${a.label} ${a.words}`).slice(0, 2);
 
+    // Read the search as filters too: "nigerian comedies from the 90s", "senegal documentaries",
+    // "films by women". Offer the matching slice of the Films page, and fill the films with it.
+    const parsed = parseQuery(q);
+    const browse: Hit[] = [];
+    if (hasFilters(parsed) || (parsed.people && parsed.country)) {
+      const decade = parsed.decade ?? (parsed.year ? `${Math.floor(parsed.year / 10) * 10}s` : null);
+      const params = new URLSearchParams();
+      if (parsed.country) params.set("country", parsed.country);
+      if (parsed.genre) params.set("genre", parsed.genre);
+      if (decade) params.set("decade", decade);
+      if (parsed.rest) params.set("q", parsed.rest);
+      if (parsed.people && parsed.country) {
+        // "Senegalese directors": the best-known directors from there.
+        const from = countryName(parsed.country);
+        const extra = index.directors.filter((d) => d.c === from && !directors.includes(d)).sort((a, b) => b.f - a.f);
+        directors.push(...extra.slice(0, Math.max(0, 6 - directors.length)));
+        browse.push({ kind: "browse", item: { id: "directors", label: `Directors from ${countryName(parsed.country)}`, hint: "On the Directors page", href: `/directors?country=${parsed.country}` } });
+      }
+      if (parsed.women) {
+        const women = (index.collections ?? []).find((c) => c.t === "Women Behind the Camera");
+        if (women) browse.push({ kind: "browse", item: { id: "women", label: "Films by women directors", hint: "Women Behind the Camera", href: `/c/${women.s}` } });
+      }
+      if (parsed.country || parsed.genre || decade) {
+        browse.push({ kind: "browse", item: { id: "films", label: describe({ ...parsed, women: false }, countryName), hint: "See them all on the Films page", href: `/films?${params}` } });
+      }
+      // Films that fit the filters, after any that matched by name.
+      const seen = new Set(films.map((f) => f.item.s));
+      const fit = index.films
+        .filter((f) =>
+          !seen.has(f.s) &&
+          (!parsed.country || (f.c ?? []).includes(parsed.country)) &&
+          (!parsed.genre || (f.g ?? []).includes(parsed.genre)) &&
+          (!decade || `${Math.floor(f.y / 10) * 10}s` === decade) &&
+          (!parsed.year || f.y === parsed.year) &&
+          (!parsed.rest || matchScore(plain(parsed.rest), plain(`${f.t} ${f.o ?? ""} ${f.d.join(" ")}`)) > 0),
+        )
+        .sort((a, b) => Number(!!b.p) - Number(!!a.p) || b.y - a.y);
+      if (parsed.country || parsed.genre || decade || parsed.year) films.push(...fit.slice(0, 8).map((item) => ({ item, score: 0 })));
+    }
+
     return [
+      ...browse,
       ...directors.map((item) => ({ kind: "director" as const, item })),
       ...films.slice(0, 8).map(({ item, via }) => ({ kind: "film" as const, item, via })),
       ...people.map((item) => ({ kind: "person" as const, item })),
@@ -192,7 +237,8 @@ export default function Search() {
     }
     remember();
     const href =
-      hit.kind === "film" ? `/films/${hit.item.s}`
+      hit.kind === "browse" ? hit.item.href
+      : hit.kind === "film" ? `/films/${hit.item.s}`
       : hit.kind === "director" ? `/directors/${hit.item.s}`
       : hit.kind === "person" ? `/people/${hit.item.s}`
       : `/c/${hit.item.s}`;
@@ -214,7 +260,7 @@ export default function Search() {
             type="search"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search films, directors and cast"
+            placeholder="Try a title, a name, or “Nigerian comedies”"
             aria-label="Search films, directors, cast and crew"
             aria-controls="search-results"
             aria-activedescendant={hits[active] ? `hit-${active}` : undefined}
@@ -246,7 +292,7 @@ export default function Search() {
             ))}
           </ul>
         ) : (
-          <p className="search-note">Nothing matches &ldquo;{q}&rdquo;. Try a surname, or <a href="/submit">suggest the film</a>.</p>
+          <p className="search-note">Nothing matches &ldquo;{q}&rdquo;. Try a title, a surname, or something like &ldquo;Senegal 1970s&rdquo; or &ldquo;Nigerian comedies&rdquo;. Or <a href="/submit">suggest the film</a>.</p>
         )}
 
         <div className="search-foot" aria-hidden="true">
@@ -274,6 +320,16 @@ function HitRow({ hit }: { hit: Hit }) {
         <>
           <HitIcon name="clock" />
           <span className="hit-text"><span className="hit-title">{hit.item}</span></span>
+        </>
+      );
+    case "browse":
+      return (
+        <>
+          <HitIcon name={hit.item.id === "directors" ? "clapper" : hit.item.id === "women" ? "stack" : "filter"} />
+          <span className="hit-text">
+            <span className="hit-title">{hit.item.label}</span>
+            <span className="hit-meta">{hit.item.hint}</span>
+          </span>
         </>
       );
     case "action":

@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { FilmGrid } from "@/components/FilmCard";
+import FilmCard from "@/components/FilmCard";
 import CommunityTile from "@/components/CommunityTile";
 import Icon, { type IconName } from "@/components/Icon";
 import FilmActionBar from "@/components/FilmActionBar";
@@ -17,6 +17,7 @@ import { personInfo, roleLabel, sentence } from "@/lib/roles";
 import { countryName, inkFor, listJoin, runtimeLabel, trailerEmbed } from "@/lib/format";
 import { SITE_URL } from "@/lib/supabase/config";
 import type { Award, Credit, Role } from "@/lib/types";
+import Row from "@/components/Row";
 
 export const revalidate = 300;
 export const dynamicParams = true;
@@ -72,28 +73,26 @@ export default async function FilmPage({ params }: Params) {
   if (!film) notFound();
 
   const [all, allDirectors, community] = await Promise.all([getFilms(), getDirectors(), getCommunityCollections({ filmId: film.id })]);
-  const partOf = community.filter((c) => c.staff_pick);
   const anyDirector = new Set(allDirectors.map((d) => d.id));
   // Films that share a collection with this one.
   const companions = new Set(community.flatMap((c) => c.films.map((f) => f.id)));
   const directorIds = new Set(film.directors.map((d) => d.id));
   const moreByDirector = all.filter((f) => f.id !== film.id && f.directors.some((d) => directorIds.has(d.id)));
-  // More like this: films that share the most with this one. Being in a collection together counts most,
-  // then each shared genre and country, then the same decade; closer years break ties.
+  // More like this: films in the same genre. The more genres they share the better, then being in a
+  // collection together, the same country and the same decade; closer years break ties.
   const decade = Math.floor(film.year / 10);
   const related = all
-    .filter((f) => f.id !== film.id && !moreByDirector.includes(f))
+    .filter((f) => f.id !== film.id && !moreByDirector.includes(f) && f.genres.some((g) => film.genres.includes(g)))
     .map((f) => ({
       f,
       score:
-        (companions.has(f.id) ? 3 : 0) +
-        f.genres.filter((g) => film.genres.includes(g)).length +
+        f.genres.filter((g) => film.genres.includes(g)).length * 2 +
+        (companions.has(f.id) ? 2 : 0) +
         f.countries.filter((c) => film.countries.includes(c)).length +
         (Math.floor(f.year / 10) === decade ? 1 : 0),
     }))
-    .filter((r) => r.score > 1)
     .sort((a, b) => b.score - a.score || Math.abs(a.f.year - film.year) - Math.abs(b.f.year - film.year))
-    .slice(0, 12)
+    .slice(0, 16)
     .map((r) => r.f);
 
   const bg = validColour(film.color);
@@ -202,16 +201,6 @@ export default async function FilmPage({ params }: Params) {
               <ShareButton title={film.title} />
             </div>
 
-            {/* The movements and lists Pheelm put this film in. */}
-            {partOf.length > 0 && (
-              <nav className="part-of" aria-label="Part of these collections">
-                <span className="part-of-label">Part of</span>
-                <ul className="chip-list">
-                  {partOf.map((c) => <li key={c.id}><Link className="chip" href={`/c/${c.id}`}>{c.title}</Link></li>)}
-                </ul>
-              </nav>
-            )}
-
             {film.note && <p className="film-note">{film.note}</p>}
 
             {film.synopsis && (
@@ -291,20 +280,14 @@ export default async function FilmPage({ params }: Params) {
         </section>
       )}
       {moreByDirector.length > 0 && (
-        <section className="related" aria-labelledby="more-h">
-          <div className="section-head">
-            <h2 id="more-h">More from {listJoin(directorNames)}</h2>
-          </div>
-          <FilmGrid films={moreByDirector.map(toCard)} />
-        </section>
+        <Row title={`More from ${listJoin(directorNames)}`}>
+          {moreByDirector.map((f) => <FilmCard key={f.id} film={toCard(f)} />)}
+        </Row>
       )}
       {related.length > 0 && (
-        <section className="related" aria-labelledby="related-h">
-          <div className="section-head">
-            <h2 id="related-h">More like this</h2>
-          </div>
-          <FilmGrid films={related.map(toCard)} />
-        </section>
+        <Row title="More like this">
+          {related.map((f) => <FilmCard key={f.id} film={toCard(f)} />)}
+        </Row>
       )}
 
       <FilmActionBar title={film.title} />

@@ -7,6 +7,7 @@ export const revalidate = 300;
 export const metadata: Metadata = {
   title: "Films",
   description: PAGE_COPY.films,
+  alternates: { canonical: "/films" },
 };
 
 export default async function FilmsPage() {

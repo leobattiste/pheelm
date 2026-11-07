@@ -10,7 +10,7 @@ export default function SubmitForm() {
     return (
       <div className="form">
         <p className="notice ok" role="status">{state.message}</p>
-        <a className="button ghost" href="/submit">Submit another</a>
+        <a className="button ghost" href="/submit">Suggest another</a>
       </div>
     );
   }
@@ -41,7 +41,7 @@ export default function SubmitForm() {
       </label>
       {state.message && <p className="notice error" role="alert">{state.message}</p>}
       <button className="button" type="submit" disabled={pending}>
-        {pending ? "Sending…" : "Submit film"}
+        {pending ? "Sending…" : "Suggest film"}
       </button>
     </form>
   );
