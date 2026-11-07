@@ -23,14 +23,12 @@ export default async function ProfilePage({ searchParams }: Props) {
   if (p.handle) redirect(`/@${p.handle}${sp.edit !== undefined ? "?edit" : ""}`);
 
   return (
-    <section className="page account-page">
+    <section className="page create-profile-page">
       <header className="page-head">
-        <h1>Your profile</h1>
-        <p className="label">Choose a handle to get your own page, with the collections you make public.</p>
+        <h1>Create your profile</h1>
+        <p className="lead">Choose a name and a handle to get your own page, with the collections you make public.</p>
       </header>
-      <div className="account-panel">
-        <PublicName handle={null} displayName={p.display_name ?? null} />
-      </div>
+      <PublicName handle={null} displayName={p.display_name ?? null} />
     </section>
   );
 }

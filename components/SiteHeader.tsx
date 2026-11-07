@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { DONATE_URL, SITE_NAME, WORDMARK } from "@/lib/site";
+import { DONATE_URL, INSTAGRAM_URL, SITE_NAME, THREADS_URL, WORDMARK } from "@/lib/site";
+import NewsletterForm from "./NewsletterForm";
 import AccountMenu from "./AccountMenu";
 import FeedbackLink from "./FeedbackLink";
 import Icon, { type IconName } from "./Icon";
@@ -49,20 +50,11 @@ export default function SiteHeader() {
       <Link href="/" className="wordmark wordmark-type" aria-label={`${SITE_NAME}, home`}>{WORDMARK}</Link>
       {/* Visitors (early access): just Sign in. Which set shows is decided before paint (data-auth). */}
       <div className="header-tools visitor-only">
-        <button type="button" className="button ghost" onClick={(e) => { if (!openSignIn("signin")) location.href = "/login"; (e.currentTarget as HTMLButtonElement).blur(); }}>
+        <button type="button" className="header-signin" onClick={(e) => { if (!openSignIn("signin")) location.href = "/login"; (e.currentTarget as HTMLButtonElement).blur(); }}>
           Sign in
         </button>
       </div>
       <div className="header-tools member-only">
-        {/* A film at random. A plain link, so each press picks again. */}
-        <a href="/random" className="icon-button random-trigger" aria-label="Random film" title="Random film" rel="nofollow">
-          <Icon name="shuffle" />
-        </a>
-        <button type="button" className="icon-button search-trigger" onClick={openSearch} aria-label="Search">
-          <Icon name="search" />
-          <span className="search-trigger-label">Search</span>
-          <kbd>⌘K</kbd>
-        </button>
         <button type="button" className="icon-button menu-button" aria-expanded={open} aria-controls="menu" aria-label={open ? "Close menu" : "Open menu"} onClick={toggle}>
           <span className="burger" aria-hidden="true"><span /><span /></span>
         </button>
@@ -89,6 +81,11 @@ export default function SiteHeader() {
               <Link key={l.href} href={l.href} aria-current={current(l.href)}><Icon name={l.icon} />{l.label}</Link>
             ))}
           </nav>
+          <nav className="menu-more menu-find" aria-label="Find">
+            <button type="button" className="menu-more-button" onClick={() => { menu.current?.close(); openSearch(); }}><Icon name="search" />Search</button>
+            {/* A plain link, so each press picks again. */}
+            <a href="/random" rel="nofollow"><Icon name="shuffle" />Random film</a>
+          </nav>
           <AccountMenu onNavigate={() => menu.current?.close()} />
           <nav className="menu-more menu-support" aria-label="Support Pheelm">
             {DONATE_URL ? (
@@ -108,6 +105,27 @@ export default function SiteHeader() {
               <span>Theme</span>
               <ThemeToggle />
             </div>
+          </div>
+          {/* On pages with the tab bar there's no footer, so what it holds lives here. */}
+          <div className="menu-site">
+            <section className="menu-newsletter" aria-labelledby="menu-news-h">
+              <h2 id="menu-news-h">Get the newsletter</h2>
+              <p>New films and collections, once a month at most.</p>
+              <NewsletterForm source="menu" id="menu-newsletter-email" />
+            </section>
+            <nav className="menu-links" aria-label={SITE_NAME}>
+              <Link href="/about">About</Link>
+              <Link href="/partnerships">Partnerships</Link>
+              <Link href="/contact">Contact</Link>
+              <Link href="/newsletter">Newsletter</Link>
+              <Link href="/privacy">Privacy</Link>
+              <Link href="/terms">Terms</Link>
+              {INSTAGRAM_URL && <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">Instagram</a>}
+              {THREADS_URL && <a href={THREADS_URL} target="_blank" rel="noopener noreferrer">Threads</a>}
+            </nav>
+            <p className="menu-legal">
+              &copy; {new Date().getFullYear()} {SITE_NAME}. Posters and stills belong to their filmmakers and distributors. {SITE_NAME} uses the TMDB API but is not endorsed or certified by TMDB.
+            </p>
           </div>
         </div>
       </dialog>

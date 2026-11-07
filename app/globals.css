@@ -1422,7 +1422,7 @@ h1, h2, .empty-state p:first-of-type, .decades a,
 .menu-account { min-height: 120px; }
 .menu-account .account-who { padding: var(--space-4) 0 var(--space-8); }
 .menu-more a, .menu-more-button { display: flex; align-items: center; gap: var(--space-8); }
-.menu-account a, .menu-account .menu-more-button, .menu-support a { font-size: var(--t-md); }
+.menu-account a, .menu-account .menu-more-button, .menu-support a, .menu-find a, .menu-find .menu-more-button { font-size: var(--t-md); }
 .menu-more-button { width: 100%; padding: var(--space-8) 0; border: 0; background: none; color: var(--text); font: inherit; font-size: var(--t-lg); text-align: left; cursor: pointer; transition: transform 0.2s var(--ease), color 0.2s; }
 .menu-more a[aria-current="page"] { color: var(--muted); }
 .menu-note { color: var(--muted); font-size: var(--t-sm); }
@@ -1923,38 +1923,61 @@ html[data-auth="in"] .intro-head + .section-head { margin-top: var(--space-16); 
 html:not([data-auth="in"]) .member-only { display: none !important; }
 html[data-auth="in"] .visitor-only { display: none !important; }
 
-/* Members' tab bar on phones: Films, Collections, Directors, Profile and ⋯ (the rest of the menu). */
+/* Members in the app: no header or footer, a floating pill of icons instead (any screen size).
+   The header stays only to hold the menu and sign-in sheets, which open from the pill's ⋯. */
 .tab-bar { display: none; }
-@media (max-width: 899px) {
-  html[data-auth="in"] { --tab-bar: calc(60px + env(safe-area-inset-bottom)); }
-  .tab-bar {
-    position: fixed; inset: auto 0 0 0; z-index: 35;
-    display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
-    height: var(--tab-bar); padding: 0 var(--space-4) env(safe-area-inset-bottom);
-    border-top: 1px solid var(--line);
-    background: color-mix(in srgb, var(--bg) 92%, transparent);
-    backdrop-filter: blur(18px) saturate(1.4); -webkit-backdrop-filter: blur(18px) saturate(1.4);
-  }
-  .tab {
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 0;
-    padding: 0; border: 0; background: none; color: var(--muted); font: inherit; font-size: 12px; line-height: 1;
-    text-decoration: none; cursor: pointer; -webkit-tap-highlight-color: transparent;
-  }
-  .tab span:not(.tab-icon):not(.tab-dot) { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .tab .icon { width: 24px; height: 24px; stroke-width: 1.5; }
-  .tab[aria-current="page"] { color: var(--ink); }
-  .tab:active { transform: scale(0.94); }
-  .tab-icon { position: relative; display: grid; }
-  .tab-dot { position: absolute; top: -2px; right: -4px; width: 8px; height: 8px; border-radius: 50%; background: var(--error); box-shadow: 0 0 0 2px var(--bg); }
-  /* Room for the bar: the page ends above it, and the film bar and install banner sit on it. */
-  html[data-auth="in"] body { padding-bottom: var(--tab-bar); }
-  html[data-auth="in"] .film-bar { bottom: var(--tab-bar); padding-bottom: var(--space-12); }
-  html[data-auth="in"] .install-banner { bottom: calc(var(--tab-bar) + var(--space-12)); }
-  html[data-auth="in"] body:has(.film-bar[data-show="true"]) .install-banner { bottom: calc(var(--tab-bar) + 84px); }
-  /* The header keeps Random and Search; the menu opens from ⋯, without the sections already in the bar. */
-  html[data-auth="in"] .site-header .menu-button { display: none; }
-  html[data-auth="in"] .menu-sheet .menu-main { display: none; }
+html[data-auth="in"][data-chrome="app"] {
+  --tab-gap: calc(var(--space-12) + env(safe-area-inset-bottom));
+  --tab-h: 60px;
+  --tab-bar: calc(var(--tab-h) + var(--tab-gap) + var(--space-12));
 }
+html[data-auth="in"][data-chrome="app"] .site-header { display: contents; }
+html[data-auth="in"][data-chrome="app"] .site-header > :not(dialog) { display: none !important; }
+html[data-auth="in"][data-chrome="app"] .site-footer { display: none; }
+html[data-auth="in"][data-chrome="app"] body { padding-bottom: var(--tab-bar); }
+html[data-auth="in"][data-chrome="app"] .tab-bar {
+  position: fixed; z-index: 35; left: 50%; bottom: var(--tab-gap); transform: translateX(-50%);
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
+  width: min(400px, calc(100% - 2 * var(--gutter))); height: var(--tab-h); padding: 0 var(--space-8);
+  border: 1px solid var(--line); border-radius: var(--pill);
+  background: color-mix(in srgb, var(--surface, var(--bg)) 78%, transparent);
+  backdrop-filter: blur(24px) saturate(1.6); -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  box-shadow: 0 12px 40px -12px rgb(0 0 0 / 0.45), 0 2px 8px rgb(0 0 0 / 0.12);
+}
+.tab {
+  position: relative; display: grid; place-items: center; min-width: 0; height: 100%;
+  padding: 0; border: 0; background: none; color: var(--muted); font: inherit; text-decoration: none;
+  cursor: pointer; -webkit-tap-highlight-color: transparent; transition: color 0.2s, transform 0.15s var(--ease);
+}
+.tab .icon { width: 26px; height: 26px; stroke-width: 1.5; }
+.tab:hover { color: var(--ink); }
+.tab[aria-current="page"] { color: var(--ink); }
+.tab[aria-current="page"]::after { content: ""; position: absolute; bottom: 8px; width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+.tab:active { transform: scale(0.9); }
+.tab:focus-visible { outline: none; box-shadow: inset var(--control-ring); border-radius: var(--pill); }
+.tab-icon { position: relative; display: grid; }
+.tab-dot { position: absolute; top: -1px; right: -3px; width: 9px; height: 9px; border-radius: 50%; background: var(--error); box-shadow: 0 0 0 2px var(--bg); }
+/* What sits at the bottom moves up above the pill. */
+html[data-auth="in"][data-chrome="app"] .film-bar { bottom: var(--tab-bar); border: 1px solid var(--line); border-radius: var(--pill); left: var(--gutter); right: var(--gutter); padding: var(--space-8); }
+html[data-auth="in"][data-chrome="app"] .install-banner { bottom: calc(var(--tab-bar) + var(--space-4)); }
+html[data-auth="in"][data-chrome="app"] body:has(.film-bar[data-show="true"]) .install-banner { bottom: calc(var(--tab-bar) + 72px); }
+/* With no header above, pages start a little lower, clear of the phone's status bar. */
+html[data-auth="in"][data-chrome="app"] main { padding-top: env(safe-area-inset-top); }
+/* The menu from ⋯: no section links (they're in the pill); the footer's links and newsletter are. */
+html[data-auth="in"][data-chrome="app"] .menu-sheet .menu-main { display: none; }
+.menu-site { display: none; }
+html[data-chrome="app"] .menu-site { display: grid; gap: var(--space-20); padding: var(--space-20) 0 0; border-top: 1px solid var(--line); }
+html:not([data-chrome="app"]) .menu-find { display: none; }
+.menu-newsletter { display: grid; gap: var(--space-8); }
+.menu-newsletter h2 { font-size: var(--t-md); }
+.menu-newsletter p { color: var(--muted); }
+.menu-links { display: flex; flex-wrap: wrap; gap: var(--space-8) var(--space-20); }
+.menu-links a { color: var(--text); }
+.menu-legal { color: var(--muted); font-size: var(--t-sm); }
+/* Visitors' Sign in: just the words. */
+.header-signin { padding: var(--space-8) 0; border: 0; background: none; color: var(--ink); font: inherit; font-size: var(--t-md); cursor: pointer; }
+.header-signin:hover { color: var(--muted); }
+.header-signin:focus-visible { outline: none; box-shadow: var(--control-ring); border-radius: var(--r-sm); }
 
 /* Welcome, after signing up: three short steps. */
 .welcome { max-width: 920px; }
@@ -2000,3 +2023,22 @@ html[data-auth="in"] .visitor-only { display: none !important; }
 .quick-save:focus-visible { outline: none; box-shadow: var(--control-ring); }
 [data-grid="list"] .quick-save, [data-grid="small"] .quick-save { display: none; }
 @media (hover: hover) { .film-card .quick-save:not([aria-pressed="true"]) { opacity: 0; } .film-card:hover .quick-save, .quick-save:focus-visible { opacity: 1; } }
+/* From the pill on wider screens, the menu floats just above it, centred. */
+@media (min-width: 900px) {
+  html[data-auth="in"][data-chrome="app"] .menu-sheet {
+    inset: auto auto calc(var(--tab-bar) + var(--space-8)) 50%;
+    max-height: calc(100dvh - var(--tab-bar) - 32px);
+    transform: translateX(-50%);
+    transform-origin: bottom center;
+  }
+  html[data-auth="in"][data-chrome="app"] .menu-sheet[open] { animation: menu-rise 0.22s var(--ease); }
+}
+@keyframes menu-rise { from { opacity: 0; transform: translateX(-50%) translateY(8px) scale(0.97); } }
+
+/* Create your profile: a preview of how you'll appear, then the two fields. */
+.create-profile { display: grid; gap: var(--space-24); max-width: 520px; }
+.create-profile-preview { display: flex; align-items: center; gap: var(--space-16); padding: var(--space-20); border: 1px solid var(--line); border-radius: var(--r); }
+.create-profile-preview .portrait { width: 64px; height: 64px; border-radius: 50%; font-size: var(--t-lg); }
+.create-profile-who { display: grid; gap: 2px; min-width: 0; }
+.create-profile-who strong { font-size: var(--t-xl); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.create-profile-who span { color: var(--muted); overflow: hidden; text-overflow: ellipsis; }

@@ -4,16 +4,20 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import Icon, { type IconName } from "./Icon";
+import { chromeFor } from "@/lib/chrome";
 
 type Me = { handle: string | null; unread: number };
 
 /**
- * Members' tab bar on phones: Films, Collections, Directors, your profile, and ⋯ for everything
- * else in the menu (notifications, Watchlist, settings, support, grid and theme).
+ * Members' tab bar, a floating pill of icons: Films, Collections, Directors, your profile, and ⋯
+ * for everything else (search, notifications, Watchlist, settings, support, and what the footer holds).
  */
 export default function TabBar() {
   const path = usePathname();
   const [me, setMe] = useState<Me | null>(null);
+
+  // Which kind of page this is (set before paint on the first load, then on every navigation).
+  useEffect(() => { document.documentElement.dataset.chrome = chromeFor(path); }, [path]);
 
   useEffect(() => {
     const seen = (window as { __pheelmMe?: Me }).__pheelmMe;
@@ -28,24 +32,23 @@ export default function TabBar() {
   const tabs: { href: string; label: string; icon: IconName; on: boolean }[] = [
     { href: "/films", label: "Films", icon: "film", on: at("/films") },
     { href: "/collections", label: "Collections", icon: "stack", on: at("/collections") || path.startsWith("/c/") },
-    { href: "/directors", label: "Directors", icon: "users", on: at("/directors") || path.startsWith("/people/") },
+    { href: "/directors", label: "Directors", icon: "users2", on: at("/directors") || path.startsWith("/people/") },
     { href: profile, label: "Profile", icon: "userCircle", on: at(profile) || path === "/profile" },
   ];
 
   return (
     <nav className="tab-bar member-only" aria-label="Sections">
       {tabs.map((t) => (
-        <Link key={t.label} href={t.href} className="tab" aria-current={t.on ? "page" : undefined}>
+        <Link key={t.label} href={t.href} className="tab" aria-current={t.on ? "page" : undefined} aria-label={t.label} title={t.label}>
           <Icon name={t.icon} />
-          <span>{t.label}</span>
         </Link>
       ))}
-      <button type="button" className="tab" aria-haspopup="dialog" onClick={() => window.dispatchEvent(new Event("pheelm:menu"))}>
+      <button type="button" className="tab" aria-haspopup="dialog" aria-label={me?.unread ? `More, ${me.unread} new notifications` : "More"} title="More"
+        onClick={() => window.dispatchEvent(new Event("pheelm:menu"))}>
         <span className="tab-icon">
           <Icon name="moreCircle" />
-          {!!me?.unread && <span className="tab-dot" aria-label={`${me.unread} new notifications`} />}
+          {!!me?.unread && <span className="tab-dot" aria-hidden="true" />}
         </span>
-        <span>More</span>
       </button>
     </nav>
   );

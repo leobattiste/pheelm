@@ -147,7 +147,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="footer-tools">
               <ThemeToggle />
               <BackToTop />
-        <InstallBanner />
             </div>
             <p>
               &copy; {new Date().getFullYear()} {SITE_NAME}. Posters and stills belong to their filmmakers and distributors.
@@ -157,6 +156,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
         </footer>
         <TabBar />
+        <InstallBanner />
         <WelcomeNudge />
         <Search />
         <TransitionWatcher />
