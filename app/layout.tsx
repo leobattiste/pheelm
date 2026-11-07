@@ -14,6 +14,7 @@ import { WORDMARK, INSTAGRAM_URL, SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE, THR
 import { SITE_URL } from "@/lib/supabase/config";
 import { themeScript } from "@/lib/theme";
 import "./globals.css";
+import InstallBanner from "@/components/InstallBanner";
 
 // The typeface is Switzer, loaded from Fontshare in the head. Inter (SIL Open Font License), served
 // from the site itself, backs it up: for letters Switzer doesn't have, like ẹ and ọ in Yoruba
@@ -50,6 +51,9 @@ export const metadata: Metadata = {
   category: "entertainment",
   openGraph: { siteName: SITE_NAME, type: "website", locale: "en_US" },
   twitter: { card: "summary_large_image" },
+  // Added to a home screen, Pheelm opens full screen like an app (see app/manifest.ts).
+  appleWebApp: { capable: true, title: "Pheelm", statusBarStyle: "black" },
+  formatDetection: { telephone: false },
   robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 } },
 };
 
@@ -141,6 +145,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="footer-tools">
               <ThemeToggle />
               <BackToTop />
+        <InstallBanner />
             </div>
             <p>
               &copy; {new Date().getFullYear()} {SITE_NAME}. Posters and stills belong to their filmmakers and distributors.
