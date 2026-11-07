@@ -1844,6 +1844,3 @@ a.person-row-name:hover { text-decoration: underline; text-underline-offset: 0.2
 :is(.menu-setting, .setting-row) :is(.segmented, .theme-toggle) button { flex: 1; width: auto; min-width: 0; padding: 0; }
 /* Films page: the random-film button before the search bar, the same size as the filter button on phones. */
 .random-button { flex-shrink: 0; width: var(--control); padding: 0; }
-/* Filter titles carry an icon. */
-.filter-title { display: inline-flex; align-items: center; gap: var(--space-8); }
-.filter-title .icon { width: 18px; height: 18px; color: var(--muted); }

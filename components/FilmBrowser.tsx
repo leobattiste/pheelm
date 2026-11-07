@@ -1,6 +1,6 @@
 "use client";
 
-import Icon, { type IconName } from "./Icon";
+import Icon from "./Icon";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { countryName, decadeOf } from "@/lib/format";
@@ -84,11 +84,11 @@ export default function FilmBrowser({ films, facets }: { films: FilmCard[]; face
   // Counts in the modal reflect the other filters already chosen.
   const countFor = (k: Filter, v: string) => filter({ ...state, [k]: v }).length;
 
-  const groups: { key: Filter; title: string; icon: IconName; options: string[] }[] = [
-    { key: "decade", title: "Decade", icon: "calendar", options: facets.decades.map(([d]) => d) },
-    { key: "country", title: "Country", icon: "globe", options: facets.countries.map(([c]) => c).sort((a, b) => countryName(a).localeCompare(countryName(b))) },
-    { key: "language", title: "Language", icon: "language", options: facets.languages.map(([l]) => l).sort() },
-    { key: "genre", title: "Genre", icon: "tag", options: facets.genres.map(([g]) => g).sort() },
+  const groups: { key: Filter; title: string; options: string[] }[] = [
+    { key: "decade", title: "Decade", options: facets.decades.map(([d]) => d) },
+    { key: "country", title: "Country", options: facets.countries.map(([c]) => c).sort((a, b) => countryName(a).localeCompare(countryName(b))) },
+    { key: "language", title: "Language", options: facets.languages.map(([l]) => l).sort() },
+    { key: "genre", title: "Genre", options: facets.genres.map(([g]) => g).sort() },
   ];
   // A film at random, from whatever the search and filters leave.
   const surprise = () => {
@@ -163,14 +163,14 @@ export default function FilmBrowser({ films, facets }: { films: FilmCard[]; face
         </div>
         <div className="modal-body">
           <label className="field filter-field">
-            <span className="filter-title"><Icon name="sort" />Sort by</span>
+            Sort by
             <select value={state.sort ?? "shuffle"} onChange={(e) => set("sort", e.target.value === "shuffle" ? "" : e.target.value)}>
               {SORTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
             </select>
           </label>
           {groups.map((g) => (
             <label key={g.key} className="field filter-field">
-              <span className="filter-title"><Icon name={g.icon} />{g.title}</span>
+              {g.title}
               <select value={state[g.key] ?? ""} onChange={(e) => set(g.key, e.target.value)}>
                 <option value="">Any</option>
                 {g.options.map((v) => {
