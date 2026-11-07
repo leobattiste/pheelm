@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useActionState, useState } from "react";
 import Poster from "@/components/Poster";
 import type { Award, FilmRow, WatchOption } from "@/lib/types";
@@ -133,6 +134,7 @@ export default function FilmEditor({ film, creditText, collections, chosen, tmdb
         <label className="check"><input type="checkbox" name="featured" defaultChecked={film.featured} /> Feature on the home page</label>
         <label className="field">Address<input name="slug" defaultValue={film.slug} /></label>
         <label className="field">TMDB id<input name="tmdb_id" inputMode="numeric" defaultValue={film.tmdb_id ?? ""} /></label>
+        <Link className="button ghost" href={`/admin/editorial/${film.id}`}>Edit film essay</Link>
         <button className="button" type="submit" disabled={pending}>{pending ? "Saving…" : "Save"}</button>
         {state.message && <p className={`notice ${state.ok ? "ok" : "error"}`} role="status">{state.message}</p>}
         <button className="button ghost" type="button" onClick={runImport} disabled={!tmdbEnabled || importing}
