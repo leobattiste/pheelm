@@ -187,18 +187,19 @@ export default async function FilmPage({ params }: Params) {
 
             <div className="film-actions">
               {embed ? (
-                <TrailerButton embed={embed} title={film.title} className="pill-button" label="Trailer" action="trailer" />
+                <TrailerButton embed={embed} title={film.title} className="pill-button" label="Trailer" action="trailer" iconOnly />
               ) : (
                 // No trailer on file yet: search YouTube for it instead.
                 <a
                   className="pill-button"
                   data-action="trailer"
+                  aria-label="Find trailer on YouTube"
+                  title="Find trailer on YouTube"
                   href={`https://www.youtube.com/results?search_query=${encodeURIComponent(`${film.title} ${film.year} trailer`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
                   <Icon name="play" className="solid" />
-                  Trailer
                 </a>
               )}
               <WatchlistButton filmId={film.id} filmTitle={film.title} />

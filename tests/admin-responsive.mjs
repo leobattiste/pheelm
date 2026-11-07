@@ -27,7 +27,7 @@ const records = {
   member_profiles: [{ id: 'member', handle: 'curator' }], list_save_counts: [{ list_id: 'collection', saves: 7 }],
   list_reports: [], comment_reports: [],
 };
-const db = { rpc: async () => ({ data: members, error: null }), from: (table) => {
+const db = { auth: { getUser: async () => ({ data: { user: { id: "member", email: "member@example.com" } } }) }, rpc: async () => ({ data: members, error: null }), from: (table) => {
   const query = new Proxy({}, { get: (_, key) => key === 'then'
     ? (fn) => Promise.resolve({ count: 128, data: records[table] ?? [] }).then(fn)
     : () => query });
@@ -40,7 +40,10 @@ function load(file) {
   const module = { exports: {} };
   const localRequire = (id) => {
     if (id === 'next/link') return { __esModule: true, default: ({ children, ...props }) => React.createElement('a', props, children) };
-    if (id === 'next/navigation') return { usePathname: () => pathname };
+    if (id === 'next/navigation') return { usePathname: () => pathname, redirect: () => { throw Error('Unexpected redirect'); } };
+    if (id === '@/lib/supabase/server') return { getServerClient: async () => db };
+    if (['./NewsletterSubscribe', './EmailForm', './PrivacyForm', './ProfileForm', './NotificationPreferences'].includes(id)) return { __esModule: true, default: () => null };
+    if (id === './AccountActions') return { DeleteAccount: () => null, SignOutEverywhere: () => null };
     if (id === '@/lib/admin') return { requireAdmin: async () => ({ db, owner: isOwner, user: { id: "fixture-admin", email: "admin@example.com" } }) };
     if (id === '@/lib/tmdb') return { tmdbEnabled: false };
     if (id === '@/lib/data') return { getDirectors: async () => people, toDirectorSummary: p => ({ ...p, films: 3, first: 2016, last: 2026, previews: films.map(f => ({ ...f, color: null, directors: ['A filmmaker'] })) }), getFilms: async () => films, toCard: f => ({ ...f, directors: ['A filmmaker'], countries: [], languages: [], genres: [], runtime: null, wins: 0 }) };
@@ -61,6 +64,7 @@ function load(file) {
   cache.set(file, module.exports);
   return module.exports;
 }
+const Settings = load(resolve(root, 'app/account/page.tsx')).default;
 const Layout = load(resolve(root, 'app/admin/layout.tsx')).default;
 const Home = load(resolve(root, 'app/admin/page.tsx')).default;
 const Films = load(resolve(root, 'app/admin/films/page.tsx')).default;
@@ -95,6 +99,10 @@ try {
         if (screen === 'films') await page.locator('.admin-toolbox').evaluate(el => { el.open = true; });
         await page.evaluate(() => document.fonts.ready);
         const prefix = `${theme}/${width}/${grid}/${screen}`;
+        const wrongIcons = await page.locator('svg').evaluateAll(icons => icons.filter(icon => {
+          const style = getComputedStyle(icon); return style.width !== '23px' || style.height !== '23px';
+        }).map(icon => icon.outerHTML.slice(0, 100)));
+        assert.deepEqual(wrongIcons, [], `${prefix}: all admin icons are 23px`);
         assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${prefix}: page overflows`);
         assert.equal(await page.locator('.admin-main-tabs [aria-current="page"]').count(), 1, `${prefix}: active main tab`);
         assert.equal(await page.locator('.admin-main-tabs a .icon').count(), 8, `${prefix}: tab icons`);
@@ -135,6 +143,13 @@ try {
       }
     }
   }
+  // The actual Settings page supplies an icon for every tab, including its hidden panels.
+  await page.setViewportSize({ width: 390, height: 900 });
+  const settings = renderToStaticMarkup(await Settings());
+  await page.setContent(`<!doctype html><html><head><style>${css}</style></head><body>${settings}</body></html>`);
+  assert.equal(await page.locator('[role="tab"] .icon').count(), 6, 'all six Settings tabs have icons');
+  assert.deepEqual(await page.locator('svg').evaluateAll(icons => icons.filter(icon => getComputedStyle(icon).width !== '23px' || getComputedStyle(icon).height !== '23px').map(icon => icon.outerHTML.slice(0,100))), [], 'Settings icons are 23px');
+  assert.equal(await page.locator('[role="tab"][aria-selected="true"]').textContent(), 'Profile', 'Settings selected tab keeps its label');
   // Member contact data and role changes remain restricted to the owner.
   isOwner = false;
   pathname = '/admin/members';

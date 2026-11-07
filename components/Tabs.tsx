@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Icon, { type IconName } from "./Icon";
 
 /**
  * Tabs for a profile: a row of pills, one panel showing at a time. The open tab is kept in the
  * address (#about), so a link or the back button returns to it. Arrow keys move between tabs.
  */
-export default function Tabs({ tabs }: { tabs: { id: string; label: string; panel: React.ReactNode }[] }) {
+export default function Tabs({ tabs }: { tabs: { id: string; label: string; icon?: IconName; panel: React.ReactNode }[] }) {
   const [active, setActive] = useState(tabs[0]?.id);
   const list = useRef<HTMLDivElement>(null);
 
@@ -50,6 +51,7 @@ export default function Tabs({ tabs }: { tabs: { id: string; label: string; pane
             tabIndex={t.id === active ? 0 : -1}
             onClick={() => choose(t.id)}
           >
+            {t.icon && <Icon name={t.icon} />}
             {t.label}
           </button>
         ))}

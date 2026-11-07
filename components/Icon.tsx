@@ -85,7 +85,7 @@ export function IconShapes({ name }: { name: IconName }) {
   );
 }
 
-export default function Icon({ name, size, label, className }: { name: IconName; size?: number; label?: string; className?: string }) {
+export default function Icon({ name, size = 23, label, className }: { name: IconName; size?: number; label?: string; className?: string }) {
   return (
     <svg
       className={`icon${className ? ` ${className}` : ""}`}

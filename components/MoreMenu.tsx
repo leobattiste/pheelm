@@ -39,6 +39,7 @@ export default function MoreMenu({ label = "More actions", children, corner = fa
         type="button"
         className="round-button more-button"
         aria-label={label}
+        title={label}
         aria-expanded={open}
         aria-controls={id}
         onClick={() => setOpen((o) => !o)}

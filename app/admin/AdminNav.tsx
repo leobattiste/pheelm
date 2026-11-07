@@ -62,7 +62,7 @@ export default function AdminNav() {
           const active = activeGroup?.href === group.href;
           return (
             <Link key={group.href} href={group.href} className="chip" aria-current={active ? "page" : undefined}>
-              <Icon name={group.icon} size={18} />
+              <Icon name={group.icon} />
               <span>{group.label}</span>
             </Link>
           );
@@ -74,7 +74,7 @@ export default function AdminNav() {
             const active = matches(path, child.href);
             return (
               <Link key={child.href} href={child.href} aria-current={active ? "page" : undefined}>
-                <Icon name={child.icon} size={16} />
+                <Icon name={child.icon} />
                 <span>{child.label}</span>
               </Link>
             );

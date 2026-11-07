@@ -35,19 +35,17 @@ export default function FilmActionBar({ title }: { title: string }) {
 
   return (
     <div className="film-bar" data-show={show} aria-hidden={!show} inert={!show}>
-      <button type="button" className="pill-button" onClick={() => press("trailer")}>
+      <button type="button" className="pill-button" onClick={() => press("trailer")} aria-label="Trailer" title="Trailer">
         <Icon name="play" className="solid" />
-        Trailer
       </button>
-      <button type="button" className="pill-button" aria-pressed={saved} onClick={() => press("watchlist")}>
+      <button type="button" className="pill-button" aria-pressed={saved} onClick={() => press("watchlist")} aria-label={saved ? "Change collections" : "Add to watchlist"} title={saved ? "Change collections" : "Add to watchlist"}>
         {saved ? (
           <Icon name="check" />
         ) : (
           <Icon name="plus" />
         )}
-        {saved ? "Saved" : "Watchlist"}
       </button>
-      <button type="button" className="round-button" onClick={() => press("share")} aria-label={`Share ${title}`}>
+      <button type="button" className="round-button" onClick={() => press("share")} aria-label={`Share ${title}`} title="Share">
         <Icon name="share" />
       </button>
     </div>

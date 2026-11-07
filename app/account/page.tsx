@@ -4,6 +4,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import GridToggle from "@/components/GridToggle";
 import NewsletterSubscribe from "./NewsletterSubscribe";
+import type { IconName } from "@/components/Icon";
 import Tabs from "@/components/Tabs";
 import ThemeToggle from "@/components/ThemeToggle";
 import { getServerClient } from "@/lib/supabase/server";
@@ -54,6 +55,7 @@ export default async function AccountPage() {
     {
       id: "profile",
       label: "Profile",
+      icon: "user" as IconName,
       panel: (
         <div className="account-panel">
           <section className="account-section" aria-labelledby="profile-h">
@@ -71,6 +73,7 @@ export default async function AccountPage() {
     {
       id: "account",
       label: "Account",
+      icon: "gear" as IconName,
       panel: (
         <div className="account-panel">
           <section className="account-section" aria-labelledby="signin-h">
@@ -92,6 +95,7 @@ export default async function AccountPage() {
     {
       id: "notifications",
       label: "Notifications",
+      icon: "bell" as IconName,
       panel: (
         <div className="account-panel">
           <section className="account-section" aria-labelledby="notification-settings-h">
@@ -110,6 +114,7 @@ export default async function AccountPage() {
     {
       id: "privacy",
       label: "Privacy",
+      icon: "lock" as IconName,
       panel: (
         <div className="account-panel">
           <section className="account-section" aria-labelledby="visibility-h">
@@ -145,6 +150,7 @@ export default async function AccountPage() {
     {
       id: "appearance",
       label: "Appearance",
+      icon: "moon" as IconName,
       panel: (
         <div className="account-panel">
           <section className="account-section settings-rows" aria-labelledby="appearance-h">
@@ -159,6 +165,7 @@ export default async function AccountPage() {
     {
       id: "data",
       label: "Your data",
+      icon: "stack" as IconName,
       panel: (
         <div className="account-panel">
           <section className="account-section" aria-labelledby="download-h">
