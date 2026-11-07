@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { subscribe, type FormState } from "@/app/platform-actions";
+import Turnstile from "./Turnstile";
 
 /** Email sign-up for the newsletter, used in the footer and on the newsletter page. */
 export default function NewsletterForm({ source = "footer", id = "newsletter-email" }: { source?: string; id?: string }) {
@@ -16,6 +17,7 @@ export default function NewsletterForm({ source = "footer", id = "newsletter-ema
       {/* Left empty by people; bots fill it in. */}
       <input name="website" tabIndex={-1} autoComplete="off" className="visually-hidden" aria-hidden="true" />
       <input type="hidden" name="source" value={source} />
+      <Turnstile />
       <p className={`form-note${state && !state.ok ? " is-error" : ""}`} role="status">{state?.message ?? ""}</p>
     </form>
   );

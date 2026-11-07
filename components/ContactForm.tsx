@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import Icon from "./Icon";
+import Turnstile from "./Turnstile";
 import { sendMessage, type FormState } from "@/app/platform-actions";
 
 const TOPICS: [string, string][] = [
@@ -57,6 +58,7 @@ export default function ContactForm({ topic = "general", partnership = false, ab
         <textarea name="body" required maxLength={5000} placeholder={partnership ? "Tell us about your organisation and what you have in mind." : ""} />
       </label>
       <input name="website" tabIndex={-1} autoComplete="off" className="visually-hidden" aria-hidden="true" />
+      <Turnstile />
       {state && !state.ok && <p className="notice error" role="alert">{state.message}</p>}
       <div className="actions">
         <button className="button" type="submit" disabled={pending}>{pending ? "Sending…" : "Send message"}</button>

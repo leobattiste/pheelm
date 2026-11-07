@@ -10,6 +10,7 @@ import {
   LinkSquare02Icon, Login03Icon, Logout03Icon, Mail01Icon, Moon02Icon, MoreHorizontalIcon, Notification03Icon,
   PencilEdit02Icon, PinIcon, PlayIcon, Search01Icon, Settings02Icon, Share08Icon, ShuffleIcon, SparklesIcon,
   SquareLock02Icon, ThreadsIcon, Tick02Icon, TranslateIcon, UserAdd01Icon, UserGroupIcon, UserIcon, ViewIcon,
+  UserCircleIcon, MoreHorizontalCircle01Icon,
 } from "@hugeicons/core-free-icons";
 
 type IconData = readonly (readonly [string, Record<string, string | number>])[];
@@ -63,6 +64,8 @@ const ICONS = {
   sort: ArrowUpDownIcon,
   dice: DiceFaces03Icon,
   tag: Tag01Icon,
+  userCircle: UserCircleIcon,
+  moreCircle: MoreHorizontalCircle01Icon,
 } as const;
 
 export type IconName = keyof typeof ICONS;

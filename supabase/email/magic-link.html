@@ -1,0 +1,34 @@
+<!--
+  Pheelm's sign-in and sign-up email. In Supabase: Authentication → Emails → Templates.
+  Paste this into both "Magic Link" and "Confirm signup". Subject: "Your Pheelm sign-in link"
+  ({{ .Token }} is the six-digit code; {{ .ConfirmationURL }} the one-tap link; {{ .SiteURL }} your site.)
+-->
+<!doctype html>
+<html lang="en">
+  <body style="margin:0;padding:0;background:#f4f4f4;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#0c0c0c;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f4;padding:32px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#ffffff;border-radius:16px;padding:40px 32px;">
+            <tr>
+              <td>
+                <img src="{{ .SiteURL }}/icons/icon-192.png" width="48" height="48" alt="Pheelm" style="display:block;border-radius:12px;margin-bottom:28px;" />
+                <h1 style="margin:0 0 12px;font-size:24px;line-height:1.25;font-weight:700;">Your way in to Pheelm</h1>
+                <p style="margin:0 0 28px;font-size:16px;line-height:1.5;color:#555;">
+                  Tap the button to sign in. It works once, for the next hour.
+                </p>
+                <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:14px 24px;border-radius:999px;background:#0c0c0c;color:#ffffff;font-size:16px;text-decoration:none;">Sign in to Pheelm</a>
+                <p style="margin:32px 0 8px;font-size:14px;color:#555;">Or enter this code:</p>
+                <p style="margin:0 0 32px;font-size:28px;letter-spacing:6px;font-weight:700;">{{ .Token }}</p>
+                <p style="margin:0;font-size:13px;line-height:1.5;color:#888;">
+                  If you didn't ask for this, you can ignore it; nobody can sign in without this email.
+                  <br />Pheelm: discover films by Black directors.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

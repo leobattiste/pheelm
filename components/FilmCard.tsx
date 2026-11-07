@@ -2,6 +2,7 @@ import { countryName, runtimeLabel, tintStyle } from "@/lib/format";
 import type { FilmCard as Card } from "@/lib/types";
 import Poster from "./Poster";
 import FilmLink from "./Transitions";
+import QuickSave from "./QuickSave";
 
 /**
  * A film in a grid. The same markup serves all three views: large and small posters, and the
@@ -23,6 +24,7 @@ export default function FilmCard({ film, priority, sizes, note, extra, posterOnl
         <span className="film-card-col film-card-country">{film.countries.map(countryName).join(", ")}</span>
         <span className="film-card-col film-card-runtime">{runtimeLabel(film.runtime) ?? "–"}</span>
       </FilmLink>
+      {!posterOnly && <QuickSave filmId={film.id} title={film.title} />}
     </li>
   );
 }

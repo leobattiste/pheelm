@@ -92,22 +92,38 @@ const order: Record<Sort, (a: CommunityCollection, b: CommunityCollection) => nu
 };
 
 /**
+ * Every qualifying collection, read once and shared for half a minute by every page this server
+ * renders (they're public, and the same for everyone), instead of on every visit.
+ */
+const FRESH_FOR = 30_000;
+let shared: { at: number; data: Promise<CommunityCollection[]> } | null = null;
+function qualifying() {
+  if (shared && Date.now() - shared.at < FRESH_FOR) return shared.data;
+  const data = (async () => {
+    const db = anon();
+    if (!db) return [];
+    const { data, error } = await lists((cols) => db
+      .from("lists")
+      .select(cols)
+      .eq("is_public", true)
+      .order("created_at", { ascending: false })
+      .limit(1000));
+    if (error) throw error;
+    // Staff picks always show; other collections need a member name and at least five films.
+    return (await enrich(data as unknown as Row[])).filter((c) => c.owner && (c.staff_pick || c.films.length >= MIN_FILMS));
+  })();
+  shared = { at: Date.now(), data };
+  // A failed read isn't kept, so the next visit tries again.
+  return data.catch(() => { if (shared?.data === data) shared = null; return [] as CommunityCollection[]; });
+}
+
+/**
  * Every public collection that qualifies for the Collections page: a title, a member name, and at
  * least five films (staff picks always qualify). Staff picks lead the popular order. Optionally
  * only those that include one film.
  */
 export async function getCommunityCollections({ sort = "popular", filmId, limit }: { sort?: Sort; filmId?: string; limit?: number } = {}) {
-  const db = anon();
-  if (!db) return [];
-  const { data, error } = await lists((cols) => db
-    .from("lists")
-    .select(cols)
-    .eq("is_public", true)
-    .order("created_at", { ascending: false })
-    .limit(1000));
-  if (error) return [];
-  // Staff picks always show; other collections need a member name and at least five films.
-  let all = (await enrich(data as unknown as Row[])).filter((c) => c.owner && (c.staff_pick || c.films.length >= MIN_FILMS));
+  let all = [...(await qualifying())];
   if (filmId) all = all.filter((c) => c.films.some((f) => f.id === filmId));
   all.sort(order[sort]);
   return limit ? all.slice(0, limit) : all;

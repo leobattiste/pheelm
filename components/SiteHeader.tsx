@@ -29,6 +29,13 @@ export default function SiteHeader() {
     menu.current?.close();
   }, [pathname]);
 
+  // The ⋯ tab on phones opens this same menu.
+  useEffect(() => {
+    const open = () => { if (!menu.current?.open) { menu.current?.showModal(); setOpen(true); } };
+    window.addEventListener("pheelm:menu", open);
+    return () => window.removeEventListener("pheelm:menu", open);
+  }, []);
+
   const toggle = () => {
     if (menu.current?.open) menu.current.close();
     else {

@@ -1,7 +1,8 @@
 "use client";
 
 import Icon from "./Icon";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { countryName, decadeOf } from "@/lib/format";
 import type { FilmCard } from "@/lib/types";
 import { FilmGrid } from "./FilmCard";
@@ -23,7 +24,7 @@ const label = (k: Filter, v: string) => (k === "country" ? countryName(v) : v);
  * The Films page: a search bar and a Filters button that opens a modal (a bottom sheet on
  * phones). Every choice is kept in the address, so a filtered view can be shared.
  */
-export default function FilmBrowser({ films, facets }: { films: FilmCard[]; facets: Facets }) {
+function Browser({ films, facets, params }: { films: FilmCard[]; facets: Facets; params?: string }) {
   const [state, setState] = useState<State>({});
   const [shown, setShown] = useState(PAGE);
   // A new random order on every visit, so the same films don't always lead the page.
@@ -31,15 +32,18 @@ export default function FilmBrowser({ films, facets }: { films: FilmCard[]; face
   useEffect(() => { setRank(new Map(films.map((f) => [f.id, Math.random()]))); }, [films]);
   const modal = useRef<HTMLDialogElement>(null);
 
+  // Read the filters from the address, and again whenever it changes (a genre or country link
+  // pressed while already on Films, or Back and Forward).
   useEffect(() => {
-    const p = new URLSearchParams(window.location.search);
+    const p = new URLSearchParams(params ?? window.location.search);
     const s: State = {};
     for (const k of KEYS) {
       const v = p.get(k);
       if (v) s[k] = v;
     }
-    setState(s);
-  }, []);
+    setState((old) => (KEYS.every((k) => old[k] === s[k]) ? old : s));
+    setShown(PAGE);
+  }, [params]);
 
   const commit = (next: State) => {
     setState(next);
@@ -181,5 +185,19 @@ export default function FilmBrowser({ films, facets }: { films: FilmCard[]; face
         </div>
       </dialog>
     </div>
+  );
+}
+
+/** Follows the address as it changes. */
+function LiveBrowser(props: { films: FilmCard[]; facets: Facets }) {
+  const params = useSearchParams().toString();
+  return <Browser {...props} params={params} />;
+}
+
+export default function FilmBrowser(props: { films: FilmCard[]; facets: Facets }) {
+  return (
+    <Suspense fallback={<Browser {...props} />}>
+      <LiveBrowser {...props} />
+    </Suspense>
   );
 }

@@ -1,6 +1,7 @@
 "use server";
 
 import { getServerClient } from "@/lib/supabase/server";
+import { passesTurnstile } from "@/lib/turnstile";
 
 export type FormState = { ok: boolean; message: string } | null;
 
@@ -12,6 +13,7 @@ export async function subscribe(_prev: FormState, f: FormData): Promise<FormStat
   if (f.get("website")) return { ok: true, message: "Thanks. You're on the list." }; // a bot filled the hidden field
   const email = String(f.get("email") ?? "").trim().toLowerCase();
   if (!EMAIL.test(email)) return { ok: false, message: "Enter an email address, like you@example.com." };
+  if (!(await passesTurnstile(f))) return { ok: false, message: "We couldn't check you're not a bot. Try again in a moment." };
   const db = await getServerClient();
   if (!db) return { ok: false, message: "The newsletter isn't open yet. Check back soon." };
   const { error } = await db.from("subscribers").insert({ email, source: String(f.get("source") ?? "site").slice(0, 40) });
@@ -29,6 +31,7 @@ export async function sendMessage(_prev: FormState, f: FormData): Promise<FormSt
   if (!EMAIL.test(email)) return { ok: false, message: "Enter your email address so we can reply." };
   if (!body) return { ok: false, message: "Write a message first." };
   if (body.length > 5000) return { ok: false, message: "That's a long one. Keep it under 5,000 characters." };
+  if (!(await passesTurnstile(f))) return { ok: false, message: "We couldn't check you're not a bot. Try again in a moment." };
   const db = await getServerClient();
   if (!db) return { ok: false, message: "Messages can't be sent from here yet. Check back soon." };
   // What the message is about: the page (or part of one) it was sent from.

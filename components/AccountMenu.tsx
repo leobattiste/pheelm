@@ -30,7 +30,12 @@ export default function AccountMenu({ onNavigate }: { onNavigate: () => void }) 
         db.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", user.id).is("read_at", null),
       ]);
       const profile = (p ?? {}) as { handle?: string | null; display_name?: string | null; is_private?: boolean };
-      if (active) setMe({ email: user.email ?? "", handle: profile.handle ?? null, name: profile.display_name ?? null, isPrivate: "is_private" in profile ? !!profile.is_private : null, unread: unread.error ? 0 : unread.count ?? 0 });
+      const next = { email: user.email ?? "", handle: profile.handle ?? null, name: profile.display_name ?? null, isPrivate: "is_private" in profile ? !!profile.is_private : null, unread: unread.error ? 0 : unread.count ?? 0 };
+      if (!active) return;
+      setMe(next);
+      // The tab bar on phones shows your profile and the unread count too.
+      (window as { __pheelmMe?: unknown }).__pheelmMe = { handle: next.handle, unread: next.unread };
+      window.dispatchEvent(new CustomEvent("pheelm:me", { detail: { handle: next.handle, unread: next.unread } }));
     };
     void load().catch(() => active && setMe(null));
     // Don't query inside the auth callback itself: it can deadlock the client mid-change.

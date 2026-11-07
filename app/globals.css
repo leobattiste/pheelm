@@ -1922,3 +1922,81 @@ html[data-auth="in"] .intro-head + .section-head { margin-top: var(--space-16); 
 /* Early access: visitors see only Sign in and the open pages; members get the full site. */
 html:not([data-auth="in"]) .member-only { display: none !important; }
 html[data-auth="in"] .visitor-only { display: none !important; }
+
+/* Members' tab bar on phones: Films, Collections, Directors, Profile and ⋯ (the rest of the menu). */
+.tab-bar { display: none; }
+@media (max-width: 899px) {
+  html[data-auth="in"] { --tab-bar: calc(60px + env(safe-area-inset-bottom)); }
+  .tab-bar {
+    position: fixed; inset: auto 0 0 0; z-index: 35;
+    display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
+    height: var(--tab-bar); padding: 0 var(--space-4) env(safe-area-inset-bottom);
+    border-top: 1px solid var(--line);
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    backdrop-filter: blur(18px) saturate(1.4); -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  }
+  .tab {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 0;
+    padding: 0; border: 0; background: none; color: var(--muted); font: inherit; font-size: 12px; line-height: 1;
+    text-decoration: none; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  }
+  .tab span:not(.tab-icon):not(.tab-dot) { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tab .icon { width: 24px; height: 24px; stroke-width: 1.5; }
+  .tab[aria-current="page"] { color: var(--ink); }
+  .tab:active { transform: scale(0.94); }
+  .tab-icon { position: relative; display: grid; }
+  .tab-dot { position: absolute; top: -2px; right: -4px; width: 8px; height: 8px; border-radius: 50%; background: var(--error); box-shadow: 0 0 0 2px var(--bg); }
+  /* Room for the bar: the page ends above it, and the film bar and install banner sit on it. */
+  html[data-auth="in"] body { padding-bottom: var(--tab-bar); }
+  html[data-auth="in"] .film-bar { bottom: var(--tab-bar); padding-bottom: var(--space-12); }
+  html[data-auth="in"] .install-banner { bottom: calc(var(--tab-bar) + var(--space-12)); }
+  html[data-auth="in"] body:has(.film-bar[data-show="true"]) .install-banner { bottom: calc(var(--tab-bar) + 84px); }
+  /* The header keeps Random and Search; the menu opens from ⋯, without the sections already in the bar. */
+  html[data-auth="in"] .site-header .menu-button { display: none; }
+  html[data-auth="in"] .menu-sheet .menu-main { display: none; }
+}
+
+/* Welcome, after signing up: three short steps. */
+.welcome { max-width: 920px; }
+.welcome-steps { display: flex; gap: var(--space-8); margin: var(--space-24) 0 0; padding: 0; list-style: none; color: var(--muted); font-size: var(--t-sm); counter-reset: step; }
+.welcome-steps li { counter-increment: step; }
+.welcome-steps li::before { content: counter(step) ". "; }
+.welcome-steps li + li::before { content: "/ " counter(step) ". "; }
+.welcome-steps li[aria-current] { color: var(--ink); }
+.welcome-form { max-width: 520px; }
+.welcome-people { display: grid; grid-template-columns: 1fr; gap: var(--space-8); margin: 0; padding: 0; list-style: none; }
+@media (min-width: 640px) { .welcome-people { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 900px) { .welcome-people { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.welcome-person { display: flex; align-items: center; gap: var(--space-12); width: 100%; padding: var(--space-12); border: 1px solid var(--line); border-radius: var(--r); background: none; color: var(--ink); font: inherit; text-align: left; cursor: pointer; transition: var(--control-motion); }
+.welcome-person:hover { background: var(--control-hover); }
+.welcome-person[aria-pressed="true"] { border-color: var(--ink); }
+.welcome-face { display: grid; place-items: center; flex: none; width: 56px; height: 56px; border-radius: 50%; object-fit: cover; background: var(--raised); color: var(--muted); font-weight: 600; }
+.welcome-who { display: grid; flex: 1; min-width: 0; gap: 2px; }
+.welcome-who strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.welcome-who span { color: var(--muted); font-size: var(--t-sm); }
+.welcome-check { display: grid; place-items: center; flex: none; width: var(--control); height: var(--control); border: 1px solid var(--control-border-strong); border-radius: 50%; color: var(--ink); }
+.welcome-check .icon { width: 20px; height: 20px; }
+[aria-pressed="true"] > .welcome-check { border-color: var(--ink); background: var(--ink); color: var(--on-ink); }
+.welcome-films { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-12); margin: 0; padding: 0; list-style: none; }
+@media (min-width: 900px) { .welcome-films { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-16); } }
+.welcome-film { position: relative; display: block; width: 100%; padding: 0; border: 0; background: none; cursor: pointer; }
+.welcome-film .poster { transition: opacity 0.2s, transform 0.2s var(--ease); }
+.welcome-film[aria-pressed="true"] .poster { outline: 2px solid var(--ink); outline-offset: 2px; }
+.welcome-film .welcome-check { position: absolute; right: var(--space-8); bottom: var(--space-8); width: 36px; height: 36px; background: color-mix(in srgb, var(--bg) 70%, transparent); backdrop-filter: blur(8px); }
+.welcome-foot { position: sticky; bottom: calc(var(--tab-bar, 0px) + var(--space-16)); margin-top: var(--space-32); }
+
+/* Save from a card: a round + in the poster's corner (members only; not in the list view). */
+.film-card { position: relative; }
+.quick-save {
+  position: absolute; z-index: 2; top: var(--space-8); right: var(--space-8);
+  display: grid; place-items: center; width: 36px; height: 36px; padding: 0;
+  border: 0; border-radius: 50%; background: color-mix(in srgb, var(--bg) 72%, transparent); color: var(--ink);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); cursor: pointer;
+  transition: var(--control-motion);
+}
+.quick-save .icon { width: 18px; height: 18px; }
+.quick-save[aria-pressed="true"] { background: var(--ink); color: var(--on-ink); }
+.quick-save:active { transform: scale(0.92); }
+.quick-save:focus-visible { outline: none; box-shadow: var(--control-ring); }
+[data-grid="list"] .quick-save, [data-grid="small"] .quick-save { display: none; }
+@media (hover: hover) { .film-card .quick-save:not([aria-pressed="true"]) { opacity: 0; } .film-card:hover .quick-save, .quick-save:focus-visible { opacity: 1; } }
