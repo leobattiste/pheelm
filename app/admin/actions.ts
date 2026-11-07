@@ -313,25 +313,47 @@ export async function reviewSubmission(f: FormData) {
   const db = await adminClient();
   const id = str(f, "id");
   const decision = str(f, "decision");
+  if (decision !== "approve" && decision !== "reject") throw new Error("Choose approve or reject.");
   const reviewNote = nullable(f, "review_note", 1500);
   const { data: { user: reviewer } } = await db.auth.getUser();
-  const { data: s } = await db.from("submissions").select("*").eq("id", id).single();
-  if (!s) throw new Error("Submission not found.");
+  const { data: s, error: loadError } = await db.from("submissions").select("*").eq("id", id).single();
+  if (loadError || !s || s.status !== "pending") throw new Error("This submission is no longer pending.");
 
   if (decision === "approve") {
-    const form = new FormData();
-    form.set("title", s.title);
-    form.set("year", String(s.year ?? new Date().getFullYear()));
-    form.set("director", s.director);
-    // Creates a draft (and imports it from TMDB when switched on), then opens it in the editor.
-    await db.from("submissions").update({ status: "approved", reviewed_at: new Date().toISOString(), review_note: reviewNote, reviewed_by: reviewer?.id ?? null }).eq("id", id);
+    // Create the draft first: a failed film creation must not silently approve a submission.
+    const year = s.year ?? new Date().getFullYear();
+    let slug = slugify(s.title);
+    if ((await db.from("films").select("id").eq("slug", slug).maybeSingle()).data) slug = `${slug}-${year}`;
+    if ((await db.from("films").select("id").eq("slug", slug).maybeSingle()).data) slug = `${slug}-${crypto.randomUUID().slice(0, 8)}`;
+    const { data: film, error: filmError } = await db.from("films").insert({
+      title: s.title, slug, year, status: "draft",
+    }).select("id").single();
+    if (filmError || !film) throw new Error(filmError?.message ?? "Could not create draft.");
+    if (s.director?.trim()) {
+      const person = await personId(db, s.director.trim());
+      const { error: creditError } = await db.from("credits").insert({ film_id: film.id, person_id: person, role: "director", sort: 0 });
+      if (creditError) throw new Error(creditError.message);
+    }
+    if (tmdbEnabled && s.director?.trim()) {
+      try { await importFilm(db, film.id); } catch (error) { console.error("Submitted film metadata import:", error); }
+    }
+    const { error: updateError } = await db.from("submissions").update({
+      status: "approved", reviewed_at: new Date().toISOString(),
+      review_note: reviewNote, reviewed_by: reviewer?.id ?? null,
+    }).eq("id", id);
+    if (updateError) throw new Error(updateError.message);
     await logAdminActivity(db, "Approved submission", "submission", id, s.title);
-    await createFilm(form);
-  } else {
-    await db.from("submissions").update({ status: decision === "reject" ? "rejected" : "pending", reviewed_at: new Date().toISOString(), review_note: reviewNote, reviewed_by: reviewer?.id ?? null }).eq("id", id);
-    await logAdminActivity(db, decision === "reject" ? "Rejected submission" : "Reset submission", "submission", id, s.title);
-    revalidatePath("/admin/submissions");
+    refresh();
+    redirect(`/admin/films/${film.id}`);
   }
+
+  const { error: updateError } = await db.from("submissions").update({
+    status: "rejected", reviewed_at: new Date().toISOString(),
+    review_note: reviewNote, reviewed_by: reviewer?.id ?? null,
+  }).eq("id", id);
+  if (updateError) throw new Error(updateError.message);
+  await logAdminActivity(db, "Rejected submission", "submission", id, s.title);
+  revalidatePath("/admin/submissions");
 }
 
 /** Marks a contact message as answered, or moves it back. */
