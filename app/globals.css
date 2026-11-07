@@ -475,7 +475,8 @@ body:has(.has-still) .search-trigger { background: rgb(255 255 255 / 0.1); borde
 
 main { width: 100%; }
 .page { padding: 0 var(--gutter); }
-.page.narrow { max-width: 760px; margin: 0 auto; }
+/* Narrow pages: the title and intro run the full width like every page; the body below keeps a reading column. */
+.page.narrow > :not(.page-head) { max-width: 760px; }
 .page-head { display: grid; gap: var(--space-12); padding: clamp(var(--space-32), 6vw, var(--space-64)) 0 clamp(var(--space-24), 3vw, var(--space-40)); }
 .page-head h1 { font-size: var(--t-3xl); }
 .crumbs { display: flex; flex-wrap: wrap; gap: var(--space-8); font-size: var(--t-sm); color: var(--muted); }
@@ -1614,7 +1615,7 @@ a.person-row-name:hover { text-decoration: underline; text-underline-offset: 0.2
 .button.is-static:hover { background: transparent; }
 
 /* Notifications */
-.notifications-page { max-width: 760px; }
+.notifications-page > :not(.page-head) { max-width: 760px; }
 .notif-group { margin-top: var(--space-32); }
 .notif-group h2 { margin-bottom: var(--space-8); color: var(--muted); font-size: var(--t-sm); font-weight: 400; letter-spacing: 0; }
 .notif-list { display: grid; }
@@ -1802,3 +1803,7 @@ a.person-row-name:hover { text-decoration: underline; text-underline-offset: 0.2
   .row.is-interactive .film-card .poster { transform: none !important; }
   .row.is-interactive .film-card .poster img { width: 100%; margin-left: 0; transform: none; }
 }
+
+/* Every button and control is set in the regular weight. */
+.button, .icon-button, .chip, .segmented button, .theme-toggle button, .row-arrow, .round-button,
+.pill-button, .search-trigger, .menu-more-button, .link-button, .profile-tabs .chip { font-weight: 400; }
