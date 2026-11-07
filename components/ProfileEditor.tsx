@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useRef } from "react";
 import { updatePublicName, type NameState } from "@/app/me/actions";
 import { COUNTRY_OPTIONS } from "@/lib/countries";
+import Icon from "@/components/Icon";
 
 type Props = { handle: string; displayName: string | null; isPrivate: boolean; country: string | null };
 
@@ -35,7 +36,7 @@ export default function ProfileEditor({ handle, displayName, isPrivate, country 
   return (
     <>
       <button type="button" className="button ghost" aria-haspopup="dialog" onClick={() => modal.current?.showModal()}>
-        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 4.5l2 2L8 14l-3 1 1-3z" /></svg>
+        <Icon name="pencil" />
         Edit profile
       </button>
       <dialog ref={modal} className="modal" aria-labelledby="edit-profile-title" onClick={(e) => { if (e.target === modal.current) modal.current?.close(); }}>
@@ -43,7 +44,7 @@ export default function ProfileEditor({ handle, displayName, isPrivate, country 
           <span className="sheet-handle" aria-hidden="true" />
           <h2 id="edit-profile-title">Edit profile</h2>
           <button type="button" className="icon-button" onClick={() => modal.current?.close()} aria-label="Close">
-            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" /></svg>
+            <Icon name="close" />
           </button>
         </div>
         <form action={action} className="form profile-form">

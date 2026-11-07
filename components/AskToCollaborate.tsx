@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { removeCollaborator, requestCollaboration, type CollabState } from "@/app/c/actions";
 import { openSignIn } from "./SignInSheet";
+import Icon from "@/components/Icon";
 
 type Props = {
   listId: string;
@@ -37,7 +38,7 @@ export default function AskToCollaborate({ listId, ownerHandle, signedIn, hasPro
         <input type="hidden" name="list_id" value={listId} />
         <input type="hidden" name="back" value={`/c/${listId}`} />
         <span className="button ghost is-static" aria-live="polite">
-          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m4.5 10.5 3.5 3.5 7.5-8" /></svg>
+          <Icon name="check" />
           Requested
         </span>
         <button type="submit" className="link-button">Withdraw</button>
@@ -57,7 +58,7 @@ export default function AskToCollaborate({ listId, ownerHandle, signedIn, hasPro
   return (
     <>
       <button type="button" className="button ghost" aria-haspopup="dialog" onClick={open}>
-        <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8" cy="7" r="2.8" /><path d="M3 16c.7-2.6 2.6-4 5-4s4.3 1.4 5 4M15 7v5M12.5 9.5h5" /></svg>
+        <Icon name="userPlus" />
         Ask to collaborate
       </button>
       <dialog ref={modal} className="modal" aria-labelledby={`ask-${listId}`} onClick={(e) => { if (e.target === modal.current) modal.current?.close(); }}>
@@ -65,7 +66,7 @@ export default function AskToCollaborate({ listId, ownerHandle, signedIn, hasPro
           <span className="sheet-handle" aria-hidden="true" />
           <h2 id={`ask-${listId}`}>Ask to collaborate</h2>
           <button type="button" className="icon-button" onClick={() => modal.current?.close()} aria-label="Close">
-            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" /></svg>
+            <Icon name="close" />
           </button>
         </div>
         {hasProfile ? (

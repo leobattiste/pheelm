@@ -11,8 +11,8 @@ type Status = "loading" | "signed-out" | "off" | "on";
 type List = { id: string; title: string; count: number; has: boolean; shared?: boolean };
 
 // A plus (cross) before the film is saved, a checkmark once it is.
-const PLUS = <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4.5v11M4.5 10h11" /></svg>;
-const CHECK = <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m4.5 10.5 3.5 3.5 7.5-8" /></svg>;
+const PLUS = <Icon name="plus" />;
+const CHECK = <Icon name="check" />;
 
 /**
  * Saves the film to the visitor's watchlist ("All"), then opens a sheet to sort it into their
@@ -143,7 +143,7 @@ export default function WatchlistButton({ filmId, filmTitle }: { filmId: string;
           <span className="sheet-handle" aria-hidden="true" />
           <h2 id="save-title">Saved to All</h2>
           <button type="button" className="icon-button" onClick={() => sheet.current?.close()} aria-label="Close">
-            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" /></svg>
+            <Icon name="close" />
           </button>
         </div>
         <div className="modal-body">

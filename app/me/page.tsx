@@ -118,7 +118,7 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
         <li>
           <form action={createCollection} className="collection-tile new-collection-card">
             <span className="new-collection-plus" aria-hidden="true">
-              <svg viewBox="0 0 20 20"><path d="M10 4.5v11M4.5 10h11" /></svg>
+              <Icon name="plus" />
             </span>
             <label className="collection-title" htmlFor="new-collection">New collection</label>
             <span className="new-collection-row">

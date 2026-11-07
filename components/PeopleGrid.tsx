@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import { initials } from "@/lib/format";
 import type { PersonInfo } from "@/lib/roles";
 import PersonDetails from "./PersonDetails";
+import Icon from "@/components/Icon";
 
 export type PersonEntry = { info: PersonInfo; role: string };
 
@@ -62,7 +63,7 @@ export default function PeopleGrid({ people }: { people: PersonEntry[] }) {
           <span className="sheet-handle" aria-hidden="true" />
           <span />
           <button type="button" className="icon-button" onClick={() => sheet.current?.close()} aria-label="Close">
-            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" /></svg>
+            <Icon name="close" />
           </button>
         </div>
         <div className="modal-body">{open && <PersonDetails info={open} />}</div>

@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 import SignInForm from "./SignInForm";
+import Icon from "@/components/Icon";
 
 /**
  * Opens the sign-in sheet from anywhere ("Sign in" in the menu, or "Follow", "Save" and
@@ -35,7 +36,7 @@ export default function SignInSheet() {
         <span className="sheet-handle" aria-hidden="true" />
         <span />
         <button type="button" className="icon-button" onClick={() => sheet.current?.close()} aria-label="Close">
-          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" /></svg>
+          <Icon name="close" />
         </button>
       </div>
       <div className="modal-body">

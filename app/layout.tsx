@@ -79,14 +79,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   {INSTAGRAM_URL && (
                     <li>
                       <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="icon-button" aria-label="Pheelm on Instagram">
-                        <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="3" width="14" height="14" rx="4" /><circle cx="10" cy="10" r="3.2" /><circle cx="14.2" cy="5.8" r="0.6" /></svg>
+                        <Icon name="instagram" />
                       </a>
                     </li>
                   )}
                   {THREADS_URL && (
                     <li>
                       <a href={THREADS_URL} target="_blank" rel="noopener noreferrer" className="icon-button" aria-label="Pheelm on Threads">
-                        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.6 9.3c-.4-2.3-2-3.3-3.8-3.3-2.2 0-3.6 1.6-3.6 4 0 2.6 1.5 4.1 3.8 4.1 1.9 0 3.2-1.1 3.2-2.6 0-1.6-1.4-2.4-3.2-2.4-1.3 0-2.2.6-2.2 1.5 0 .8.7 1.3 1.6 1.3 1.6 0 2.4-1.3 2.4-3.6 0-3.6-1.9-5.3-4.9-5.3C5.4 3 3 5.5 3 10s2.4 7 6 7c2.6 0 4.6-1.2 5.6-3.2" /></svg>
+                        <Icon name="threads" />
                       </a>
                     </li>
                   )}

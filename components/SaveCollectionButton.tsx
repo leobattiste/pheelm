@@ -5,10 +5,11 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
 import { openSignIn } from "./SignInSheet";
+import Icon from "@/components/Icon";
 
 type Status = "loading" | "signed-out" | "off" | "on" | "own" | "unavailable";
-const PLUS = <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4.5v11M4.5 10h11" /></svg>;
-const CHECK = <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m4.5 10.5 3.5 3.5 7.5-8" /></svg>;
+const PLUS = <Icon name="plus" />;
+const CHECK = <Icon name="check" />;
 
 /** Saves someone's collection to your Watchlist page, with the public count of everyone who has. */
 export default function SaveCollectionButton({ listId, ownerId, initialSaves }: { listId: string; ownerId: string; initialSaves: number }) {

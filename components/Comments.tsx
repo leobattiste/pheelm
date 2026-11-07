@@ -6,6 +6,7 @@ import type { CommentAuthor, CommentItem } from "@/lib/comments";
 import { initials } from "@/lib/format";
 import { getBrowserClient } from "@/lib/supabase/client";
 import { openSignIn } from "./SignInSheet";
+import Icon from "@/components/Icon";
 
 type Viewer = { id: string; handle: string | null; name: string | null; isPrivate?: boolean } | null;
 type Props = {
@@ -22,7 +23,7 @@ type Sort = "top" | "new";
 const MAX = 1000;
 const REPLIES_SHOWN = 2;
 const SELECT = "id, parent_id, user_id, body, created_at, edited_at";
-const PIN = <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7.5 3.5h5l-.8 4.3 2.8 2.7H5.5l2.8-2.7zM10 10.5V17" /></svg>;
+const PIN = <Icon name="pin" />;
 
 /** "now", "5m", "3h", "2d", then a date. */
 function ago(iso: string, now: number) {
@@ -292,7 +293,7 @@ export default function Comments({ listId, ownerId, collaboratorIds = [], pinned
             <div className="comment-actions">
               <button type="button" className={`comment-act like${c.liked ? " on" : ""}`} aria-pressed={c.liked} onClick={() => like(c)}
                 aria-label={`${c.liked ? "Unlike" : "Like"} (${c.likes} ${c.likes === 1 ? "like" : "likes"})`}>
-                <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 16.5s-6-3.6-6-8.1A3.4 3.4 0 0 1 10 6.3a3.4 3.4 0 0 1 6 2.1c0 4.5-6 8.1-6 8.1z" /></svg>
+                <Icon name="heart" />
                 {c.likes > 0 && <span>{c.likes}</span>}
               </button>
               {!reply && enabled && (

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef } from "react";
+import Icon from "@/components/Icon";
 
 /**
  * A short, curated row that scrolls sideways, with arrow buttons on desktop.
@@ -102,7 +103,6 @@ export default function Row({ title, href, linkLabel, intro, bare, interactive, 
         const y = (e.clientY - r.top) / r.height;
         card.classList.add("is-active");
         card.style.setProperty("--rx", `${((x - 0.5) * 16).toFixed(2)}deg`);
-        card.style.setProperty("--ry", `${((0.5 - y) * 12).toFixed(2)}deg`);
         card.style.setProperty("--gx", `${(x * 100).toFixed(1)}%`);
         card.style.setProperty("--gy", `${(y * 100).toFixed(1)}%`);
       });
@@ -166,10 +166,10 @@ export default function Row({ title, href, linkLabel, intro, bare, interactive, 
         <div className="row-tools">
           {href && !bare && <Link href={href}>{linkLabel ?? "See all"}</Link>}
           <button type="button" className="row-arrow" onClick={() => page(-1)} aria-label={`Scroll ${title} back`}>
-            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12.5 4.5 7 10l5.5 5.5" /></svg>
+            <Icon name="arrowLeft" />
           </button>
           <button type="button" className="row-arrow" onClick={() => page(1)} aria-label={`Scroll ${title} forward`}>
-            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7.5 4.5 13 10l-5.5 5.5" /></svg>
+            <Icon name="arrowRight" />
           </button>
         </div>
       </div>

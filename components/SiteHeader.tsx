@@ -41,7 +41,7 @@ export default function SiteHeader() {
       <Link href="/" className="wordmark wordmark-type" aria-label={`${SITE_NAME}, home`}>{WORDMARK}</Link>
       <div className="header-tools">
         <button type="button" className="icon-button search-trigger" onClick={openSearch} aria-label="Search">
-          <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="5.5" /><path d="m13 13 4 4" /></svg>
+          <Icon name="search" />
           <span className="search-trigger-label">Search</span>
           <kbd>⌘K</kbd>
         </button>
@@ -63,7 +63,7 @@ export default function SiteHeader() {
           <div className="menu-top">
             <Link href="/" className="wordmark wordmark-type" aria-label={`${SITE_NAME}, home`}>{WORDMARK}</Link>
             <button type="button" className="icon-button" onClick={() => menu.current?.close()} aria-label="Close menu">
-              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" /></svg>
+              <Icon name="close" />
             </button>
           </div>
           <nav className="menu-main" aria-label="Sections">

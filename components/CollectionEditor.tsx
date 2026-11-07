@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { deleteCollection, updateCollection } from "@/app/me/actions";
+import Icon from "@/components/Icon";
 
 type Props = {
   list: { id: string; title: string; description: string | null; is_public: boolean; comments_enabled?: boolean };
@@ -19,7 +20,7 @@ export default function CollectionEditor({ list, isOwner, collaborators = 0 }: P
   return (
     <>
       <button type="button" className="button ghost" aria-haspopup="dialog" onClick={() => modal.current?.showModal()}>
-        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 4.5l2 2L8 14l-3 1 1-3z" /></svg>
+        <Icon name="pencil" />
         Edit
       </button>
       <dialog ref={modal} className="modal" aria-labelledby={`edit-${list.id}`} onClick={(e) => { if (e.target === modal.current) close(); }} onClose={() => setConfirming(false)}>
@@ -27,7 +28,7 @@ export default function CollectionEditor({ list, isOwner, collaborators = 0 }: P
           <span className="sheet-handle" aria-hidden="true" />
           <h2 id={`edit-${list.id}`}>Edit collection</h2>
           <button type="button" className="icon-button" onClick={close} aria-label="Close">
-            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" /></svg>
+            <Icon name="close" />
           </button>
         </div>
         <form action={updateCollection} className="form profile-form">

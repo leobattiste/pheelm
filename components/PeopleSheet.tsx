@@ -173,7 +173,7 @@ export default function PeopleSheet({ listId, owner, collaborators, invited, req
           <span className="sheet-handle" aria-hidden="true" />
           <h2 id={`people-${listId}`}>People</h2>
           <button type="button" className="icon-button" onClick={() => modal.current?.close()} aria-label="Close">
-            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" /></svg>
+            <Icon name="close" />
           </button>
         </div>
         <div className="modal-body people-body">

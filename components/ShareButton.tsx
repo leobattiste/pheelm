@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Icon from "@/components/Icon";
 
 /** Opens the phone's share sheet, or copies the link where there isn't one. */
 export default function ShareButton({ title, item = false }: { title: string; item?: boolean }) {
@@ -27,9 +28,9 @@ export default function ShareButton({ title, item = false }: { title: string; it
     return (
       <button type="button" className="button ghost" data-action="share" onClick={share}>
         {copied ? (
-          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 10.5 3.2 3.2L15 7" /></svg>
+          <Icon name="check" />
         ) : (
-          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10M6 7l4-4 4 4M4 12v4h12v-4" /></svg>
+          <Icon name="share" />
         )}
         <span aria-live="polite">{copied ? "Link copied" : "Share"}</span>
       </button>
@@ -39,9 +40,9 @@ export default function ShareButton({ title, item = false }: { title: string; it
   return (
     <button type="button" className="round-button" data-action="share" onClick={share} aria-label={copied ? "Link copied" : `Share ${title}`} title={copied ? "Link copied" : "Share"}>
       {copied ? (
-        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 10.5 3.2 3.2L15 7" /></svg>
+        <Icon name="check" />
       ) : (
-        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10M6 7l4-4 4 4M4 12v4h12v-4" /></svg>
+        <Icon name="share" />
       )}
       <span className="visually-hidden" aria-live="polite">{copied ? "Link copied" : ""}</span>
     </button>

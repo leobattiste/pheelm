@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import Icon from "@/components/Icon";
 
 /** Plays the trailer in a full-screen player that closes with Escape or a click outside. */
 export default function TrailerButton({ embed, title, className = "button play", label = "Play trailer", action }: { embed: string; title: string; className?: string; label?: string; action?: string }) {
@@ -18,7 +19,7 @@ export default function TrailerButton({ embed, title, className = "button play",
   return (
     <>
       <button type="button" className={className} onClick={open} data-action={action}>
-        <svg className="solid" viewBox="0 0 20 20" aria-hidden="true"><path d="M6 4.5v11l9-5.5z" /></svg>
+        <Icon name="play" className="solid" />
         {label}
       </button>
       <dialog

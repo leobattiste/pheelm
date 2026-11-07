@@ -193,7 +193,7 @@ export default async function FilmPage({ params }: Params) {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <svg className="solid" viewBox="0 0 20 20" aria-hidden="true"><path d="M6 4.5v11l9-5.5z" /></svg>
+                  <Icon name="play" className="solid" />
                   Trailer
                 </a>
               )}

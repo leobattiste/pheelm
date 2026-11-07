@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import Icon from "@/components/Icon";
 
 /**
  * A "⋯" button that opens a small menu of actions. The actions stay mounted while the menu is
@@ -42,7 +43,7 @@ export default function MoreMenu({ label = "More actions", children, corner = fa
         aria-controls={id}
         onClick={() => setOpen((o) => !o)}
       >
-        <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="4.5" cy="10" r="1.4" /><circle cx="10" cy="10" r="1.4" /><circle cx="15.5" cy="10" r="1.4" /></svg>
+        <Icon name="more" />
       </button>
       <div
         id={id}

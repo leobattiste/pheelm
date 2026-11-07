@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { initials, posterColours } from "@/lib/format";
+import Icon, { type IconName } from "@/components/Icon";
 
 type FilmHit = { s: string; t: string; o: string | null; y: number; d: string[]; k?: string[]; p: string | null };
 type DirectorHit = { s: string; n: string; c: string | null; f: number; p: string | null };
@@ -10,7 +11,7 @@ type PersonHit = { s: string; n: string; r: string; f: number; p: string | null 
 type CollectionHit = { s: string; t: string; n: number };
 type Index = { films: FilmHit[]; directors: DirectorHit[]; people?: PersonHit[]; collections?: CollectionHit[] };
 
-type Action = { id: string; label: string; hint: string; icon: string; words: string; run: () => void };
+type Action = { id: string; label: string; hint: string; icon: IconName; words: string; run: () => void };
 type Hit =
   | { kind: "film"; item: FilmHit; via?: string }
   | { kind: "director"; item: DirectorHit }
@@ -98,19 +99,19 @@ export default function Search() {
     const isDark = () => document.documentElement.dataset.theme !== "light";
     return [
       {
-        id: "random", label: "Random film", hint: "Surprise me", icon: "M3 7h3.5c2.5 0 3.7 1.2 5 3.5l1 1.8c1.3 2.3 2.5 3.7 5 3.7H21M3 17h3.5c1.5 0 2.5-.5 3.4-1.4M14.1 8.4c.9-.9 1.9-1.4 3.4-1.4H21M18 4l3 3-3 3M18 14l3 3-3 3",
+        id: "random", label: "Random film", hint: "Surprise me", icon: "shuffle",
         words: "random shuffle surprise lucky",
         run: () => {
           const films = index?.films ?? [];
           if (films.length) navigate(`/films/${films[Math.floor(Math.random() * films.length)].s}`);
         },
       },
-      { id: "watchlist", label: "Go to my watchlist", hint: "All and your collections", icon: "M6 3.5h8v13l-4-3-4 3z", words: "watchlist saved my films account collections", run: () => navigate("/me") },
-      { id: "films", label: "Browse all films", hint: "Filter by decade, country, genre", icon: "M3.5 5h13v10h-13zM3.5 8.5h13M7 5v3.5M13 5v3.5", words: "films browse all filter", run: () => navigate("/films") },
-      { id: "directors", label: "Browse directors", hint: "By country and era, or on a map", icon: "M10 9.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM4 17c.6-3.2 3-5 6-5s5.4 1.8 6 5", words: "directors map country", run: () => navigate("/directors") },
-      { id: "collections", label: "Browse collections", hint: "Movements, themes and more", icon: "M4 5.5h9v11H4zM7 3.5h9v11", words: "collections movements themes", run: () => navigate("/collections") },
+      { id: "watchlist", label: "Go to my watchlist", hint: "All and your collections", icon: "bookmark", words: "watchlist saved my films account collections", run: () => navigate("/me") },
+      { id: "films", label: "Browse all films", hint: "Filter by decade, country, genre", icon: "film", words: "films browse all filter", run: () => navigate("/films") },
+      { id: "directors", label: "Browse directors", hint: "By country and era, or on a map", icon: "clapper", words: "directors map country", run: () => navigate("/directors") },
+      { id: "collections", label: "Browse collections", hint: "Movements, themes and more", icon: "stack", words: "collections movements themes", run: () => navigate("/collections") },
       {
-        id: "theme", label: "Switch light or dark mode", hint: "Theme", icon: "M10 3a7 7 0 1 0 7 7 5.5 5.5 0 0 1-7-7z",
+        id: "theme", label: "Switch light or dark mode", hint: "Theme", icon: "moon",
         words: "theme dark light mode appearance",
         run: () => {
           const next = isDark() ? "light" : "dark";
@@ -122,7 +123,7 @@ export default function Search() {
           close();
         },
       },
-      { id: "submit", label: "Submit a film", hint: "Suggest something we're missing", icon: "M10 4v12M4 10h12", words: "submit suggest add missing", run: () => navigate("/submit") },
+      { id: "submit", label: "Submit a film", hint: "Suggest something we're missing", icon: "plus", words: "submit suggest add missing", run: () => navigate("/submit") },
     ];
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [index]);
@@ -201,7 +202,7 @@ export default function Search() {
     <dialog ref={dialog} className="search-dialog" aria-label="Search" onClick={(e) => { if (e.target === dialog.current) close(); }}>
       <div className="search-panel">
         <div className="search-field">
-          <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="5.5" /><path d="m13 13 4 4" /></svg>
+          <Icon name="search" />
           <input
             ref={input}
             type="search"
@@ -252,10 +253,10 @@ export default function Search() {
   );
 }
 
-function Icon({ d }: { d: string }) {
+function HitIcon({ name }: { name: IconName }) {
   return (
     <span className="hit-portrait" aria-hidden="true">
-      <svg viewBox="0 0 24 24"><path d={d} /></svg>
+      <Icon name={name} />
     </span>
   );
 }
@@ -265,14 +266,14 @@ function HitRow({ hit }: { hit: Hit }) {
     case "recent":
       return (
         <>
-          <Icon d="M12 7v5l3 2M21 12a9 9 0 1 1-3-6.7M21 4v4h-4" />
+          <HitIcon name="clock" />
           <span className="hit-text"><span className="hit-title">{hit.item}</span></span>
         </>
       );
     case "action":
       return (
         <>
-          <Icon d={hit.item.icon} />
+          <HitIcon name={hit.item.icon} />
           <span className="hit-text">
             <span className="hit-title">{hit.item.label}</span>
             <span className="hit-meta">{hit.item.hint}</span>
@@ -300,10 +301,10 @@ function HitRow({ hit }: { hit: Hit }) {
     case "collection":
       return (
         <>
-          <Icon d="M4 5.5h9v11H4zM7 3.5h9v11" />
+          <HitIcon name="stack" />
           <span className="hit-text">
             <span className="hit-title">{hit.item.t}</span>
-            <span className="hit-meta">Collection, {hit.item.n} films</span>
+            <span className="hit-meta">Collection</span>
           </span>
         </>
       );
@@ -311,8 +312,8 @@ function HitRow({ hit }: { hit: Hit }) {
       const p = hit.item as DirectorHit | PersonHit;
       const meta =
         hit.kind === "director"
-          ? `Director${(p as DirectorHit).c ? `, ${(p as DirectorHit).c}` : ""}, ${p.f} ${p.f === 1 ? "film" : "films"}`
-          : `${(p as PersonHit).r}, ${p.f} ${p.f === 1 ? "film" : "films"}`;
+          ? `Director${(p as DirectorHit).c ? `, ${(p as DirectorHit).c}` : ""}`
+          : (p as PersonHit).r;
       return (
         <>
           {p.p ? (

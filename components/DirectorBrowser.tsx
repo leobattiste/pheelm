@@ -66,26 +66,26 @@ export default function DirectorBrowser({ directors }: { directors: DirectorSumm
     <div className="browser">
       <div className="toolbar">
         <label className="search-bar">
-          <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="5.5" /><path d="m13 13 4 4" /></svg>
+          <Icon name="search" />
           <span className="visually-hidden">Search directors</span>
           <input type="search" placeholder="Search directors" value={state.q ?? ""} onChange={(e) => set("q", e.target.value)} />
         </label>
         <button type="button" className="button ghost filter-button" aria-haspopup="dialog" onClick={() => modal.current?.showModal()}>
-          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6h14M6 10h8M8.5 14h3" /></svg>
+          <Icon name="filter" />
           <span className="filter-label">Filters</span>
           {active.length > 0 && <span className="badge">{active.length}</span>}
         </button>
       </div>
 
       <div className="result-bar" aria-live="polite">
-        <span className="result-count">{results.length} {results.length === 1 ? "director" : "directors"}</span>
+        {!state.q?.trim() && <span className="result-count">{results.length} {results.length === 1 ? "director" : "directors"}</span>}
         {active.length > 0 && (
           <ul className="chip-list">
             {active.map((k) => (
               <li key={k}>
                 <button type="button" className="chip" onClick={() => set(k, "")} aria-label={`Remove ${label(k, state[k]!)}`}>
                   {label(k, state[k]!)}
-                  <svg className="x" viewBox="0 0 20 20" aria-hidden="true"><path d="m6 6 8 8M14 6l-8 8" /></svg>
+                  <Icon name="close" className="x" />
                 </button>
               </li>
             ))}
@@ -112,7 +112,7 @@ export default function DirectorBrowser({ directors }: { directors: DirectorSumm
           <span className="sheet-handle" aria-hidden="true" />
           <h2 id="dfilters-title">Filters</h2>
           <button type="button" className="icon-button" onClick={() => modal.current?.close()} aria-label="Close filters">
-            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" /></svg>
+            <Icon name="close" />
           </button>
         </div>
         <div className="modal-body">

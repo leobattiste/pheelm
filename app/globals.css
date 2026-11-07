@@ -586,6 +586,8 @@ main { width: 100%; }
   scrollbar-width: none;
 }
 .row-track::-webkit-scrollbar { display: none; }
+/* Rows scroll sideways only; they never move up and down. */
+.row-track { overflow-y: hidden; overscroll-behavior-x: contain; }
 .row-track > li { scroll-snap-align: start; }
 @media (min-width: 640px) { .row-track { grid-auto-columns: 27%; } }
 @media (min-width: 900px) { .row-track { grid-auto-columns: 188px; gap: var(--space-20); } }
@@ -1788,7 +1790,7 @@ a.person-row-name:hover { text-decoration: underline; text-underline-offset: 0.2
   transition: transform 0.6s var(--ease), box-shadow 0.6s var(--ease), filter 0.4s var(--ease);
 }
 .row.is-interactive .film-card a:hover .poster { transform: perspective(1100px) rotateY(var(--rx, 0deg)) rotateX(var(--ry, 0deg)) scale(var(--lift, 1)); }
-.row.is-interactive .film-card.is-active .poster { --lift: 1.02; transition-duration: 0.15s, 0.4s, 0.4s; box-shadow: var(--shadow); }
+.row.is-interactive .film-card.is-active .poster { transition-duration: 0.15s, 0.4s, 0.4s; box-shadow: var(--shadow); }
 .row.is-interactive .film-card .poster::after {
   content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none; opacity: 0;
   background: radial-gradient(circle at var(--gx, 50%) var(--gy, 50%), rgb(255 255 255 / 0.22), transparent 55%);
@@ -1807,3 +1809,7 @@ a.person-row-name:hover { text-decoration: underline; text-underline-offset: 0.2
 /* Every button and control is set in the regular weight. */
 .button, .icon-button, .chip, .segmented button, .theme-toggle button, .row-arrow, .round-button,
 .pill-button, .search-trigger, .menu-more-button, .link-button, .profile-tabs .chip { font-weight: 400; }
+
+/* Films page: the shuffled grid fades in once its order is set, so it doesn't jump. */
+.shuffle-wait { opacity: 0; }
+.shuffle-ready { opacity: 1; transition: opacity 0.25s var(--ease); }

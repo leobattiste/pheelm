@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
+import Icon from "@/components/Icon";
 
 const REASONS = ["Spam or advertising", "Offensive or hateful", "Not about films by Black directors", "Something else"];
 
@@ -24,7 +25,7 @@ export default function ReportCollection({ listId }: { listId: string }) {
   return (
     <>
       <button type="button" className="button ghost" onClick={() => sheet.current?.showModal()}>
-        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 17V3.5M5 4h9.5l-2 3.5 2 3.5H5" /></svg>
+        <Icon name="flag" />
         Report
       </button>
       <dialog ref={sheet} className="modal" aria-labelledby="report-title" onClick={(e) => { if (e.target === sheet.current) sheet.current?.close(); }}>
@@ -32,7 +33,7 @@ export default function ReportCollection({ listId }: { listId: string }) {
           <span className="sheet-handle" aria-hidden="true" />
           <h2 id="report-title">Report this collection</h2>
           <button type="button" className="icon-button" onClick={() => sheet.current?.close()} aria-label="Close">
-            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" /></svg>
+            <Icon name="close" />
           </button>
         </div>
         <div className="modal-body">
