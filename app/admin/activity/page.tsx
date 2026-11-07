@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Icon from "@/components/Icon";
 import { requireAdmin } from "@/lib/admin";
 
 const PAGE_SIZE=50;
@@ -17,20 +18,18 @@ export default async function ActivityPage({searchParams}:{searchParams:Promise<
   const href=(p:number)=>`/admin/activity?type=${type}&page=${p}`;
   return (
     <>
-      <div className="admin-head"><div><h1>Activity log</h1><p className="muted">A read-only record of changes made through admin actions.</p></div><Link className="button ghost small" href="/admin">Overview</Link></div>
+      <div className="admin-head"><div><h2 className="admin-section-heading">Activity log</h2><p className="muted">A read-only record of changes made through admin actions.</p></div><Link className="button ghost small" href="/admin">Overview</Link></div>
       <div className="actions">
         {["all","film","person","member","collection","comment","submission","message"].map(t=><Link className="button ghost small" key={t} aria-pressed={type===t} href={`/admin/activity?type=${t}`}>{t==="all"?"All":t[0].toUpperCase()+t.slice(1)}</Link>)}
       </div>
       {error?<p className="notice error">Unable to load the admin activity log.</p>:(
-        <div className="table-wrap"><table className="admin-table">
-          <thead><tr><th>When</th><th>Action</th><th>Target</th><th>Admin</th><th>Details</th></tr></thead>
-          <tbody>{(data??[]).map(a=><tr key={a.id}>
-            <td>{new Date(a.created_at).toLocaleString("en-GB",{dateStyle:"medium",timeStyle:"short"})}</td>
-            <td><strong>{a.action}</strong></td>
-            <td>{a.target_type}</td><td>{a.actor_id?(names.get(a.actor_id)?`@${names.get(a.actor_id)}`:"Admin"):"Deleted account"}</td>
-            <td className="muted">{a.details??"—"}</td>
-          </tr>)}</tbody>
-        </table></div>
+        <ul className="notif-list admin-activity-list">
+          {(data ?? []).map(a => <li key={a.id} className="notif"><Icon name="clock" /><div className="notif-main">
+            <p className="notif-text"><strong>{a.action}</strong> · {a.target_type}</p>
+            <p className="notif-note">{a.details ?? "No additional details"}</p>
+            <p className="notif-time">{a.actor_id ? (names.get(a.actor_id) ? `@${names.get(a.actor_id)}` : "Admin") : "Deleted account"} · {new Date(a.created_at).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}</p>
+          </div></li>)}
+        </ul>
       )}
       {!data?.length&&!error&&<p className="empty">No activity recorded yet. New changes will appear here.</p>}
       <div className="actions admin-pagination">{page>1&&<Link className="button ghost small" href={href(page-1)}>Previous</Link>}<span className="muted">Page {page} of {Math.max(1,Math.ceil((count??0)/PAGE_SIZE))}</span>{page*PAGE_SIZE<(count??0)&&<Link className="button ghost small" href={href(page+1)}>Next</Link>}</div>

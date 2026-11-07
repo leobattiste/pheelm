@@ -8,7 +8,8 @@
     "start": "next start",
     "seed": "node scripts/build-seed.mjs",
     "typecheck": "tsc --noEmit",
-    "test:smoke": "node tests/smoke.mjs"
+    "test:smoke": "node tests/smoke.mjs",
+    "test:admin": "node tests/admin-responsive.mjs"
   },
   "dependencies": {
     "@hugeicons/core-free-icons": "^4.4.0",

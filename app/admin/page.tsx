@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Icon from "@/components/Icon";
 import { requireAdmin } from "@/lib/admin";
 import { tmdbEnabled } from "@/lib/tmdb";
 
@@ -37,7 +38,7 @@ export default async function AdminHome() {
   ];
   return (
     <>
-      <div className="admin-head"><div><h1>Overview</h1><p className="muted">Your catalog, community and editorial work at a glance.</p></div><div className="actions">
+      <div className="admin-head"><div><h2 className="admin-section-heading">Overview</h2><p className="muted">Your catalog, community and editorial work at a glance.</p></div><div className="actions">
         <Link className="button ghost small" href="/admin/films">Manage films</Link><Link className="button ghost small" href="/admin/automation">Run automation</Link>
       </div></div>
       <div className="stats">
@@ -47,26 +48,26 @@ export default async function AdminHome() {
         <Link className="stat" href="/admin/community"><strong>{openReports+commentReports}</strong><span>Open reports</span></Link>
       </div>
       <div className="admin-overview-grid">
-        <section className="fieldset">
-          <h2>Needs attention</h2>
+        <section className="account-section">
+          <h2 className="admin-card-title"><Icon name="flag" />Needs attention</h2>
           {tasks.map(t=><Link className="admin-attention-row" href={t.href} key={t.name}><span>{t.name}</span><strong>{t.count}</strong></Link>)}
         </section>
-        <section className="fieldset">
-          <h2>Recently updated films</h2>
+        <section className="account-section">
+          <h2 className="admin-card-title"><Icon name="film" />Recently updated films</h2>
           {recent.data?.length?recent.data.map(f=><Link className="admin-attention-row" href={`/admin/films/${f.id}`} key={f.id}>
             <span>{f.title} <span className="muted">({f.year})</span></span><span className="status-pill">{f.status}</span>
           </Link>):<p className="muted">No films yet.</p>}
         </section>
-        <section className="fieldset">
-          <h2>Recent admin activity</h2>
+        <section className="account-section">
+          <h2 className="admin-card-title"><Icon name="clock" />Recent admin activity</h2>
           {activity.data?.length?activity.data.map(a=><div className="admin-attention-row" key={a.id}>
             <span>{a.action}<span className="muted"> · {a.target_type}</span></span>
             <span className="muted">{new Date(a.created_at).toLocaleDateString("en-GB")}</span>
           </div>):<p className="muted">Activity will appear as changes are made.</p>}
           <Link href="/admin/activity">View activity log</Link>
         </section>
-        <section className="fieldset">
-          <h2>Tools</h2>
+        <section className="account-section">
+          <h2 className="admin-card-title"><Icon name="gear" />Tools</h2>
           <p className="muted">TMDB enrichment is {tmdbEnabled?"configured":"not configured"}. Automated imports are reviewed through the film editors.</p>
           <div className="actions"><Link className="button ghost small" href="/admin/quality">Content quality</Link><Link className="button ghost small" href="/admin/editorial">Editorial</Link><Link className="button ghost small" href="/admin/analytics">Analytics</Link></div>
         </section>

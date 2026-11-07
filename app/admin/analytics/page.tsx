@@ -33,12 +33,12 @@ export default async function AnalyticsPage(){
   const labels=new Map((topLists??[]).map(l=>[l.id,l.title]));
   return (
     <>
-      <div className="admin-head"><div><h1>Analytics</h1><p className="muted">Platform activity from first-party records. No visitor tracking is added.</p></div><Link className="button ghost small" href="/admin/activity">Admin activity</Link></div>
+      <div className="admin-head"><div><h2 className="admin-section-heading">Analytics</h2><p className="muted">Platform activity from first-party records. No visitor tracking is added.</p></div><Link className="button ghost small" href="/admin/activity">Admin activity</Link></div>
       <div className="stats">
         {metricTables.map(([,label],i)=><div className="stat" key={label}><strong>{rows[i].length}</strong><span>{label} in the last six months</span></div>)}
         <div className="stat"><strong>{watched.count??0}</strong><span>Films marked watched · all time</span></div>
       </div>
-      <section className="fieldset">
+      <section className="account-section">
         <h2>Six-month activity</h2>
         <p className="muted">New records per month, not page views or unique visitors.</p>
         <div className="admin-chart" role="img" aria-label="Monthly record creation for films, members, collections and collection saves">
@@ -49,7 +49,7 @@ export default async function AnalyticsPage(){
         </div>
         <div className="admin-chart-legend">{metricTables.map(([,label],i)=><span key={label}><i className={`admin-chart-key admin-chart-bar-${i}`}/>{label}</span>)}</div>
       </section>
-      <section className="fieldset">
+      <section className="account-section">
         <h2>Most-saved community collections</h2>
         {(topSaves.data??[]).length?(topSaves.data??[]).map(s=><div className="admin-attention-row" key={s.list_id}>
           <Link href={`/c/${s.list_id}`}>{labels.get(s.list_id)??"Collection"}</Link><span className="muted">{s.saves} saves</span>

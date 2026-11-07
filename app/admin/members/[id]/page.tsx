@@ -19,7 +19,7 @@ export default async function MemberDetail({params}:{params:Promise<{id:string}>
   return (
     <>
       <div className="admin-head">
-        <div><p className="muted"><Link href="/admin/members">Members</Link></p><h1>{person.display_name||person.handle||"Member"}</h1>
+        <div><p className="muted"><Link href="/admin/members">Members</Link></p><h2 className="admin-section-heading">{person.display_name||person.handle||"Member"}</h2>
         {person.handle&&<p className="muted">@{person.handle}</p>}</div>
         <div className="actions">{person.handle&&<Link className="button ghost small" href={`/@${person.handle}`}>View profile</Link>}
           {owner&&!person.is_owner&&<form action={setAdmin}><input type="hidden" name="id" value={id}/><input type="hidden" name="make" value={person.is_admin?"false":"true"}/>

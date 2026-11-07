@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AdminBrowserToolbar from "../AdminBrowserToolbar";
 import { requireAdmin } from "@/lib/admin";
 import { createFilm } from "../actions";
 import BulkAdd from "./BulkAdd";
@@ -33,12 +34,30 @@ export default async function AdminFilms({ searchParams }: { searchParams: Promi
   const waiting=(queue as {t:string;y:number;d:string[];n?:string}[]).filter(item=>!(have.get(plain(item.t))??[]).some(y=>Math.abs(y-item.y)<=1));
   const href=(p:number)=>`/admin/films?${new URLSearchParams({q,status:sp.status??"",type:sp.type??"",missing:sp.missing??"",page:String(p)}).toString()}`;
   return (
-    <>
-      <div className="admin-head"><div><h1>Films</h1><p className="muted">Manage the catalog, publication status and credits.</p></div>
+    <section className="admin-films">
+      <div className="admin-head"><div><h2 className="admin-section-heading">Films</h2><p className="muted">Manage the catalog, publication status and credits.</p></div>
         <div className="actions"><Link className="button ghost small" href="/admin/quality">Content quality</Link><Link className="button ghost small" href="/admin/automation">Automation</Link></div>
       </div>
       {!!sp.updated&&<p className="notice ok">{sp.updated} films updated.</p>}
       {sp.error==="selection"&&<p className="notice error">Select at least one film first.</p>}
+
+      <AdminBrowserToolbar action="/admin/films" query={q} placeholder="Search films" filters={[
+        { name: "status", label: "Publication status", value: sp.status ?? "", options: [{ value: "", label: "All films" }, { value: "published", label: "Published" }, { value: "draft", label: "Drafts" }] },
+        { name: "type", label: "Film type", value: sp.type ?? "", options: [{ value: "", label: "All types" }, { value: "feature", label: "Feature" }, { value: "documentary", label: "Documentary" }, { value: "short", label: "Short" }, { value: "animation", label: "Animation" }] },
+        { name: "missing", label: "Incomplete records", value: sp.missing ?? "", options: [{ value: "", label: "Any" }, { value: "poster", label: "Missing poster" }, { value: "synopsis", label: "Missing synopsis" }] },
+      ]} />
+      <p className="muted">{count??0} matching films.</p>
+      {error ? <p className="notice error">Could not load films. Try again.</p> : (
+        <form action={bulkFilmChange}>
+          <BulkControls films={(films??[]) as unknown as AdminFilmRow[]} />
+        </form>
+      )}
+      {!films?.length&&!error&&<p className="empty">No films match your filters.</p>}
+      <div className="actions admin-pagination">
+        {page>1&&<Link className="button ghost small" href={href(page-1)}>Previous</Link>}
+        <span className="muted">Page {page} of {Math.max(1,Math.ceil((count??0)/PAGE_SIZE))}</span>
+        {page*PAGE_SIZE<(count??0)&&<Link className="button ghost small" href={href(page+1)}>Next</Link>}
+      </div>
       <details className="admin-toolbox"><summary className="button ghost small">Add or import films</summary>
         <div className="admin-toolbox-body">
           <form action={createFilm} className="fieldset form">
@@ -53,26 +72,6 @@ export default async function AdminFilms({ searchParams }: { searchParams: Promi
           <BulkAdd collections={collections??[]} />
         </div>
       </details>
-      <form className="admin-filters" role="search">
-        <label className="field">Search<input name="q" className="search-input" defaultValue={q} placeholder="Film title" /></label>
-        <label className="field">Status<select name="status" defaultValue={sp.status??""}><option value="">All</option><option value="published">Published</option><option value="draft">Drafts</option></select></label>
-        <label className="field">Type<select name="type" defaultValue={sp.type??""}><option value="">All</option><option value="feature">Feature</option><option value="documentary">Documentary</option><option value="short">Short</option><option value="animation">Animation</option></select></label>
-        <label className="field">Missing<select name="missing" defaultValue={sp.missing??""}><option value="">Any</option><option value="poster">Poster</option><option value="synopsis">Synopsis</option></select></label>
-        <button className="button ghost small">Filter</button>
-        <Link className="button ghost small" href="/admin/films">Reset</Link>
-      </form>
-      <p className="muted">{count??0} matching films.</p>
-      {error ? <p className="notice error">Could not load films. Try again.</p> : (
-        <form action={bulkFilmChange}>
-          <BulkControls films={(films??[]) as unknown as AdminFilmRow[]} />
-        </form>
-      )}
-      {!films?.length&&!error&&<p className="empty">No films match your filters.</p>}
-      <div className="actions admin-pagination">
-        {page>1&&<Link className="button ghost small" href={href(page-1)}>Previous</Link>}
-        <span className="muted">Page {page} of {Math.max(1,Math.ceil((count??0)/PAGE_SIZE))}</span>
-        {page*PAGE_SIZE<(count??0)&&<Link className="button ghost small" href={href(page+1)}>Next</Link>}
-      </div>
-    </>
+    </section>
   );
 }

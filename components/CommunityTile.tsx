@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import type { CommunityCollection } from "@/lib/community";
 import { tintStyle } from "@/lib/format";
@@ -7,11 +8,11 @@ import Poster from "./Poster";
 const BADGE_ICONS: Record<string, IconName> = { Private: "lock", Public: "globe", Shared: "users" };
 
 /** A collection: three posters, its title, then its curator and how many films ("@ada • 12 films"). */
-export default function CommunityTile({ c, showOwner = true, badge }: { c: CommunityCollection; showOwner?: boolean; badge?: string }) {
-  const count = `${c.films.length} ${c.films.length === 1 ? "film" : "films"}`;
+export default function CommunityTile({ c, showOwner = true, badge, filmCount, footer }: { c: CommunityCollection; showOwner?: boolean; badge?: string; filmCount?: number; footer?: ReactNode }) {
+  const count = `${filmCount ?? c.films.length} ${(filmCount ?? c.films.length) === 1 ? "film" : "films"}`;
   const meta = showOwner && c.owner ? `@${c.owner.handle} • ${count}` : count;
   return (
-    <li>
+    <li className={footer ? "admin-managed-card" : undefined}>
       <Link href={`/c/${c.id}`} className="collection-tile" style={tintStyle(c.films.slice(0, 3).find((f) => f.color)?.color)}>
         <span className="collection-fan" aria-hidden="true">
           {[0, 1, 2].map((i) => {
@@ -33,6 +34,7 @@ export default function CommunityTile({ c, showOwner = true, badge }: { c: Commu
         </span>
         <span className="collection-desc">{meta}</span>
       </Link>
+      {footer}
     </li>
   );
 }

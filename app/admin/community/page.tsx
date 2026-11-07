@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin";
-import { MIN_FILMS } from "@/lib/community";
+import CommunityTile from "@/components/CommunityTile";
+import AdminBrowserToolbar from "../AdminBrowserToolbar";
+import { getCommunityCollections, MIN_FILMS } from "@/lib/community";
 import { removeReportedComment, resolveCommentReport, resolveReport, setListFlag } from "../actions";
 
 /** Public member collections: staff picks, hiding, and reports from visitors. */
@@ -14,19 +16,21 @@ export default async function AdminCommunity({ searchParams }: { searchParams: P
     .eq("is_public", true).order("created_at", { ascending: false }).range((page - 1) * 40, page * 40 - 1);
   if (q) listQuery = listQuery.ilike("title", `%${q}%`);
   if (filter !== "all") listQuery = listQuery.eq(filter, true);
-  const [lists, reports] = await Promise.all([
+  const [lists, reports, publicCollections] = await Promise.all([
     listQuery,
     db.from("list_reports").select("id, list_id, reason, created_at, lists(title)").eq("resolved", false).order("created_at", { ascending: false }),
+    getCommunityCollections(),
   ]);
   if (lists.error || reports.error) {
     return (
       <>
-        <div className="admin-head"><h1>Community</h1></div>
+        <div className="admin-head"><h2 className="admin-section-heading">Community</h2></div>
         <p className="notice">To manage community collections, run <code>supabase/community.sql</code> in Supabase.</p>
       </>
     );
   }
   const rows = lists.data ?? [];
+  const tiles = new Map(publicCollections.map(c => [c.id, c]));
   const owners = [...new Set(rows.map((r) => r.user_id))];
   const [{ data: people }, { data: counts }] = await Promise.all([
     db.from("member_profiles").select("id, handle").in("id", owners.length ? owners : ["00000000-0000-0000-0000-000000000000"]),
@@ -53,9 +57,9 @@ export default async function AdminCommunity({ searchParams }: { searchParams: P
 
   return (
     <>
-      <div className="admin-head"><h1>Community</h1></div>
+      <div className="admin-head"><h2 className="admin-section-heading">Community</h2></div>
 
-      <section className="fieldset">
+      <section className="account-section">
         <h2>Reports to review</h2>
         {reports.data?.length ? (
           <ul className="inbox">
@@ -79,7 +83,7 @@ export default async function AdminCommunity({ searchParams }: { searchParams: P
       </section>
 
       {!commentReports.error && (
-        <section className="fieldset">
+        <section className="account-section">
           <h2>Reported comments</h2>
           {reportedComments.length ? (
             <ul className="inbox">
@@ -107,45 +111,23 @@ export default async function AdminCommunity({ searchParams }: { searchParams: P
         Public collections appear in the community once they have a title, at least {MIN_FILMS} films and their maker has a public name.
         Staff picks and featured collections show under Featured. Hidden collections disappear for everyone but their maker.
       </p>
-      <form role="search" className="admin-filters">
-        <label className="field">Search<input name="q" className="search-input" defaultValue={q} placeholder="Collection title" /></label>
-        <label className="field">Filter<select name="filter" defaultValue={filter}>
-          <option value="all">All collections</option><option value="hidden">Hidden</option><option value="featured">Featured</option><option value="staff_pick">Staff picks</option>
-        </select></label>
-        <button className="button ghost small">Filter</button>
-        <Link className="button ghost small" href="/admin/community">Reset</Link>
-      </form>
+      <AdminBrowserToolbar action="/admin/community" query={q} placeholder="Search collections" filters={[
+        { name: "filter", label: "Collections", value: filter, options: [{ value: "all", label: "All collections" }, { value: "hidden", label: "Hidden" }, { value: "featured", label: "Featured" }, { value: "staff_pick", label: "Staff picks" }] },
+      ]} />
       <p className="muted">{lists.count ?? 0} matching public collections.</p>
-      <div className="table-wrap">
-        <table className="admin-table">
-          <thead><tr><th>Collection</th><th>By</th><th>Films</th><th>Saves</th><th /></tr></thead>
-          <tbody>
-            {rows.map((r) => {
-              const films = (r.list_films as unknown as { count: number }[])[0]?.count ?? 0;
-              return (
-                <tr key={r.id} className={r.hidden ? "is-hidden" : undefined}>
-                  <td>
-                    <Link href={`/c/${r.id}`}>{r.title}</Link>
-                    {r.staff_pick && <span className="staff-pick">Staff pick</span>}
-                    {!r.staff_pick && r.featured && <span className="staff-pick">Featured</span>}
-                    {r.hidden && <span className="status-pill">Hidden</span>}
-                  </td>
-                  <td>{handle.get(r.user_id) ? `@${handle.get(r.user_id)}` : <span className="muted">No public name</span>}</td>
-                  <td>{films}</td>
-                  <td>{saves.get(r.id) ?? 0}</td>
-                  <td>
-                    <div className="actions">
-                      {flag(r.id, "staff_pick", !r.staff_pick, r.staff_pick ? "Remove staff pick" : "Staff pick")}
-                      {!r.staff_pick && flag(r.id, "featured", !r.featured, r.featured ? "Unfeature" : "Feature")}
-                      {flag(r.id, "hidden", !r.hidden, r.hidden ? "Show" : "Hide")}
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+      <ul className="collection-list">
+        {rows.map(r => <CommunityTile key={r.id} c={tiles.get(r.id) ?? {
+          id: r.id, title: r.title, description: null, films: [], staff_pick: r.staff_pick, featured: r.featured,
+          created_at: r.created_at, updated_at: r.created_at, saves: saves.get(r.id) ?? 0, curators: 0,
+          owner: handle.get(r.user_id) ? { id: r.user_id, handle: handle.get(r.user_id)!, display_name: null } : null,
+        }} filmCount={(r.list_films as unknown as { count: number }[])[0]?.count ?? 0}
+          badge={r.hidden ? "Hidden" : r.staff_pick ? "Staff pick" : r.featured ? "Featured" : undefined}
+          footer={<div className="admin-card-controls"><span className="muted">{saves.get(r.id) ?? 0} saves</span><div className="actions">
+            {flag(r.id, "staff_pick", !r.staff_pick, r.staff_pick ? "Remove staff pick" : "Staff pick")}
+            {!r.staff_pick && flag(r.id, "featured", !r.featured, r.featured ? "Unfeature" : "Feature")}
+            {flag(r.id, "hidden", !r.hidden, r.hidden ? "Show" : "Hide")}
+          </div></div>} />)}
+      </ul>
       <div className="actions admin-pagination">
         {page > 1 && <Link className="button ghost small" href={`/admin/community?${new URLSearchParams({ q, filter, page: String(page - 1) })}`}>Previous</Link>}
         <span className="muted">Page {page} of {Math.max(1, Math.ceil((lists.count ?? 0) / 40))}</span>

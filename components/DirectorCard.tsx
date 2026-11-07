@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { countryName, initials, tintStyle } from "@/lib/format";
 import type { DirectorSummary } from "@/lib/types";
@@ -22,13 +23,13 @@ export function Portrait({ director, className = "" }: { director: PortraitPerso
  * A director's card, built like a collection card: three of their films side by side (with empty
  * slots when they have fewer), then a small square portrait, their name, country and film count.
  */
-export default function DirectorCard({ director }: { director: DirectorSummary }) {
+export default function DirectorCard({ director, href, meta, footer, showPreviews = true }: { director: DirectorSummary; href?: string; meta?: string; footer?: ReactNode; showPreviews?: boolean }) {
   // Best-known film first; empty slots fill the row when there are fewer than three.
   const slots = [0, 1, 2].map((i) => director.previews[i]);
   return (
-    <li className="director-card">
-      <Link href={`/directors/${director.slug}`} className="collection-tile" style={tintStyle(director.previews.find((f) => f.color)?.color)}>
-        <span className="collection-fan" aria-hidden="true">
+    <li className={`director-card${footer ? " admin-managed-card" : ""}`}>
+      <Link href={href ?? `/directors/${director.slug}`} className="collection-tile" style={tintStyle(director.previews.find((f) => f.color)?.color)}>
+        {showPreviews && <span className="collection-fan" aria-hidden="true">
           {slots.map((f, i) =>
             f ? (
               <Poster key={f.slug} title={f.title} year={f.year} directors={f.directors} src={f.poster_url} sizes="140px" />
@@ -36,15 +37,16 @@ export default function DirectorCard({ director }: { director: DirectorSummary }
               <span key={`empty-${i}`} className="poster poster-empty" />
             ),
           )}
-        </span>
+        </span>}
         <span className="director-card-head">
           <Portrait director={director} />
           <span className="director-card-body">
             <span className="director-card-name">{director.name}</span>
-            <span className="director-card-meta">{[director.country && countryName(director.country)].filter(Boolean).join(" • ")}</span>
+            <span className="director-card-meta">{meta ?? [director.country && countryName(director.country)].filter(Boolean).join(" • ")}</span>
           </span>
         </span>
       </Link>
+      {footer}
     </li>
   );
 }

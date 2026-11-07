@@ -1,4 +1,7 @@
 import Link from "next/link";
+import DirectorCard from "@/components/DirectorCard";
+import { getDirectors, toDirectorSummary } from "@/lib/data";
+import AdminBrowserToolbar from "../AdminBrowserToolbar";
 import { requireAdmin } from "@/lib/admin";
 import { countryName } from "@/lib/format";
 
@@ -15,30 +18,33 @@ export default async function AdminPeople({searchParams}:{searchParams:Promise<{
   if(q) query=query.ilike("name",`%${q}%`);
   if(sp.missing==="bio") query=query.or("bio.is.null,bio.eq.");
   if(sp.missing==="photo") query=query.or("photo_url.is.null,photo_url.eq.");
-  const {data:people,count,error}=await query;
+  const [{data:people,count,error}, directors] = await Promise.all([query, getDirectors().catch(() => [])]);
+  const summaries = new Map(directors.map(d => [d.id, toDirectorSummary(d)]));
   const href=(p:number)=>`/admin/people?${new URLSearchParams({q,all:sp.all??"",missing:sp.missing??"",page:String(p)}).toString()}`;
   return (
     <>
-      <div className="admin-head"><div><h1>{sp.all?"Directors & people":"Directors"}</h1><p className="muted">Edit biographical details, portraits and filmography connections.</p></div><Link className="button ghost small" href="/admin/quality">Content quality</Link></div>
-      <form className="admin-filters" role="search">
-        <label className="field">Search<input name="q" className="search-input" defaultValue={q} placeholder="Search people"/></label>
-        {sp.all&&<input name="all" type="hidden" value="1"/>}
-        <label className="field">Incomplete<select name="missing" defaultValue={sp.missing??""}><option value="">All records</option><option value="bio">Missing biography</option><option value="photo">Missing portrait</option></select></label>
-        <button className="button ghost small">Filter</button><Link className="button ghost small" href="/admin/people">Reset</Link>
-      </form>
+      <div className="admin-head"><div><h2 className="admin-section-heading">{sp.all?"Directors & people":"Directors"}</h2><p className="muted">Edit biographical details, portraits and filmography connections.</p></div><Link className="button ghost small" href="/admin/quality">Content quality</Link></div>
+      <AdminBrowserToolbar action="/admin/people" query={q} placeholder="Search directors and people" filters={[
+        { name: "all", label: "Show", value: sp.all ?? "", options: [{ value: "", label: "Directors" }, { value: "1", label: "Everyone" }] },
+        { name: "missing", label: "Incomplete records", value: sp.missing ?? "", options: [{ value: "", label: "All records" }, { value: "bio", label: "Missing biography" }, { value: "photo", label: "Missing portrait" }] },
+      ]} />
       <div className="actions">
         <Link aria-pressed={!sp.all} className="button ghost small" href="/admin/people">Directors</Link>
         <Link aria-pressed={!!sp.all} className="button ghost small" href="/admin/people?all=1">Everyone</Link>
       </div>
       <p className="muted">{count??0} matching people.</p>
       {error?<p className="notice error">Could not load people. Check the admin database upgrade.</p>:(
-        <div className="table-wrap"><table className="admin-table">
-          <thead><tr><th>Name</th><th>Country</th><th>Films directed</th><th>Credits</th><th>Biography</th><th>Portrait</th></tr></thead>
-          <tbody>{(people??[]).map(p=><tr key={p.id}>
-            <td><Link href={`/admin/people/${p.id}`}>{p.name}</Link></td><td>{p.country?countryName(p.country):"—"}</td>
-            <td>{p.directed}</td><td>{p.credits}</td><td>{p.bio?"✓":"Missing"}</td><td>{p.photo_url?"✓":"Missing"}</td>
-          </tr>)}</tbody>
-        </table></div>
+        <ul className="director-grid">
+          {(people ?? []).map(p => <DirectorCard key={p.id} href={`/admin/people/${p.id}`} director={{
+            id: p.id, slug: p.slug, name: p.name, country: p.country, photo_url: p.photo_url,
+            films: p.directed, first: 0, last: 0, previews: summaries.get(p.id)?.previews ?? [],
+          }} meta={`${p.country ? countryName(p.country) + " • " : ""}${p.directed} films directed`} footer={
+            <div className="admin-card-controls"><span>{p.credits} credits</span><div className="admin-tags">
+              {!p.bio && <span className="status-pill">Missing biography</span>}
+              {!p.photo_url && <span className="status-pill">Missing portrait</span>}
+            </div><Link href={`/admin/people/${p.id}`} className="link-button">Edit person</Link></div>
+          } />)}
+        </ul>
       )}
       {!people?.length&&!error&&<p className="empty">No matching people.</p>}
       <div className="actions admin-pagination">{page>1&&<Link className="button ghost small" href={href(page-1)}>Previous</Link>}<span className="muted">Page {page} of {Math.max(1,Math.ceil((count??0)/SIZE))}</span>{page*SIZE<(count??0)&&<Link className="button ghost small" href={href(page+1)}>Next</Link>}</div>

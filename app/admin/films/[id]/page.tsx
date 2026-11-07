@@ -22,7 +22,7 @@ export default async function EditFilm({ params }: { params: Promise<{ id: strin
   return (
     <>
       <div className="admin-head">
-        <h1>{film.title}</h1>
+        <h2 className="admin-section-heading">{film.title}</h2>
         <div className="actions">
           {film.status === "published" && <Link className="button ghost small" href={`/films/${film.slug}`}>View on site</Link>}
           <Link className="button ghost small" href="/admin/films">All films</Link>
