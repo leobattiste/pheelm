@@ -5,7 +5,7 @@ import DirectorCard from "@/components/DirectorCard";
 import FilmCard from "@/components/FilmCard";
 import Row from "@/components/Row";
 import { getCommunityCollections } from "@/lib/community";
-import { getDirectors, getFacets, getFilms, toCard, toDirectorSummary } from "@/lib/data";
+import { getDirectors, getFilms, toCard, toDirectorSummary } from "@/lib/data";
 import { PAGE_COPY, SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
 import { SITE_URL } from "@/lib/supabase/config";
 
@@ -26,8 +26,8 @@ function rotate<T>(items: T[], week: number, step: number): T[] {
  * statement on black followed by a row that shows it.
  */
 export default async function Home() {
-  const [films, directors, collections, facets] = await Promise.all([
-    getFilms(), getDirectors(), getCommunityCollections(), getFacets(),
+  const [films, directors, collections] = await Promise.all([
+    getFilms(), getDirectors(), getCommunityCollections(),
   ]);
   const week = Math.floor(Date.now() / WEEK);
 
@@ -73,11 +73,8 @@ export default async function Home() {
 
       <section className="statement" aria-labelledby="directors-title">
         <div className="statement-body">
-          <h2 id="directors-title">Get to know the directors.</h2>
-          <p>
-            Directors from {facets.countries.length} countries, from Oscar Micheaux in the 1920s to
-            the filmmakers winning at Cannes today. Follow the ones you love to hear when they have a new film.
-          </p>
+          <h2 id="directors-title">Learn about the people behind your favorite films.</h2>
+          <p>Explore directors from around the world and discover the films they&rsquo;ve made.</p>
           <div className="actions">
             <Link className="button" href="/directors">Browse directors</Link>
           </div>
@@ -90,10 +87,10 @@ export default async function Home() {
 
       <section className="statement" aria-labelledby="community-title">
         <div className="statement-body">
-          <h2 id="community-title">Made with the community.</h2>
+          <h2 id="community-title">Connect with other film enthusiasts.</h2>
           <p>
-            Save films to your Watchlist, follow directors and make collections to share. Members&rsquo; collections
-            sit alongside ours, from film movements to personal favorites.
+            Discover community-curated collections, share your favorites, and connect with people who share your love of
+            cinema.
           </p>
           <div className="actions">
             <Link className="button" href="/collections">Explore collections</Link>

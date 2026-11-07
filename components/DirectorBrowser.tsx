@@ -9,6 +9,8 @@ import { matchScore, plain } from "@/lib/fuzzy";
 
 type Sort = "az" | "films" | "earliest" | "latest";
 type State = { q?: string; country?: string; min?: string; sort?: Sort };
+// Directors show 24 at a time, with Load more for the next 24.
+const PAGE = 24;
 const KEYS = ["q", "country", "min", "sort"] as const;
 
 const SORTS: [Sort, string][] = [["films", "Most films"], ["az", "A to Z"], ["earliest", "Earliest"], ["latest", "Most recent"]];
@@ -18,6 +20,7 @@ const surname = (name: string) => plain(name.split(/\s+/).at(-1) ?? name);
 /** The Directors page: search, filters (country, number of films) and sort, shown as profile cards. */
 export default function DirectorBrowser({ directors }: { directors: DirectorSummary[] }) {
   const [state, setState] = useState<State>({});
+  const [shown, setShown] = useState(PAGE);
   const modal = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -32,6 +35,7 @@ export default function DirectorBrowser({ directors }: { directors: DirectorSumm
 
   const commit = (next: State) => {
     setState(next);
+    setShown(PAGE);
     const p = new URLSearchParams();
     for (const k of KEYS) if (next[k]) p.set(k, next[k]!);
     const qs = p.toString();
@@ -96,9 +100,16 @@ export default function DirectorBrowser({ directors }: { directors: DirectorSumm
 
 
       {results.length ? (
-        <ul className="director-grid">
-          {results.map((d) => <DirectorCard key={d.id} director={d} />)}
-        </ul>
+        <>
+          <ul className="director-grid">
+            {results.slice(0, shown).map((d) => <DirectorCard key={d.id} director={d} />)}
+          </ul>
+          {shown < results.length && (
+            <button type="button" className="button ghost more" onClick={() => setShown(shown + PAGE)}>
+              Load more
+            </button>
+          )}
+        </>
       ) : (
         <div className="empty-state">
           <Icon name="search" className="empty-icon" />

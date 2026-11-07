@@ -16,7 +16,7 @@ type State = Partial<Record<Key, string>>;
 const FILTERS = ["decade", "country", "language", "genre"] as const;
 type Filter = (typeof FILTERS)[number];
 
-const PAGE = 36;
+const PAGE = 24;
 const SORTS: [Sort, string][] = [["shuffle", "Shuffled"], ["newest", "Newest"], ["oldest", "Oldest"], ["title", "A to Z"], ["awards", "Most awarded"]];
 const label = (k: Filter, v: string) => (k === "country" ? countryName(v) : v);
 
@@ -138,7 +138,7 @@ export default function FilmBrowser({ films, facets }: { films: FilmCard[]; face
           <div className={waiting ? "shuffle-wait" : "shuffle-ready"}><FilmGrid films={results.slice(0, shown)} priority={6} /></div>
           {shown < results.length && (
             <button type="button" className="button ghost more" onClick={() => setShown(shown + PAGE)}>
-              Show more
+              Load more
             </button>
           )}
         </>
