@@ -113,7 +113,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </section>
           </div>
           <div className="footer-links">
-            <nav aria-labelledby="footer-explore">
+            <nav className="member-only" aria-labelledby="footer-explore">
               <h2 id="footer-explore">Explore</h2>
               <Link href="/films">Films</Link>
               <Link href="/collections">Collections</Link>
@@ -124,13 +124,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/about">About</Link>
               <Link href="/partnerships">Partnerships</Link>
               <Link href="/contact">Contact</Link>
-              <Link href="/submit">Suggest a film</Link>
+              <Link className="member-only" href="/submit">Suggest a film</Link>
             </nav>
             <nav aria-labelledby="footer-you">
               <h2 id="footer-you">You</h2>
-              <Link href="/me">Watchlist</Link>
-              <Link href="/profile">Profile</Link>
-              <Link href="/account">Settings</Link>
+              <Link className="member-only" href="/me">Watchlist</Link>
+              <Link className="member-only" href="/profile">Profile</Link>
+              <Link className="member-only" href="/account">Settings</Link>
               <Link href="/newsletter">Newsletter</Link>
               {INSTAGRAM_URL && <a className="footer-social-link" href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer"><Icon name="instagram" />Instagram</a>}
               {THREADS_URL && <a className="footer-social-link" href={THREADS_URL} target="_blank" rel="noopener noreferrer"><Icon name="threads" />Threads</a>}

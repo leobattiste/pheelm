@@ -7,7 +7,7 @@ import { DONATE_URL, SITE_NAME, WORDMARK } from "@/lib/site";
 import AccountMenu from "./AccountMenu";
 import FeedbackLink from "./FeedbackLink";
 import Icon, { type IconName } from "./Icon";
-import SignInSheet from "./SignInSheet";
+import SignInSheet, { openSignIn } from "./SignInSheet";
 import { openSearch } from "./Search";
 import GridToggle from "./GridToggle";
 import ThemeToggle from "./ThemeToggle";
@@ -40,7 +40,13 @@ export default function SiteHeader() {
   return (
     <header className="site-header">
       <Link href="/" className="wordmark wordmark-type" aria-label={`${SITE_NAME}, home`}>{WORDMARK}</Link>
-      <div className="header-tools">
+      {/* Visitors (early access): just Sign in. Which set shows is decided before paint (data-auth). */}
+      <div className="header-tools visitor-only">
+        <button type="button" className="button ghost" onClick={(e) => { if (!openSignIn("signin")) location.href = "/login"; (e.currentTarget as HTMLButtonElement).blur(); }}>
+          Sign in
+        </button>
+      </div>
+      <div className="header-tools member-only">
         {/* A film at random. A plain link, so each press picks again. */}
         <a href="/random" className="icon-button random-trigger" aria-label="Random film" title="Random film" rel="nofollow">
           <Icon name="shuffle" />

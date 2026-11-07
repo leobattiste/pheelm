@@ -2,15 +2,32 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseEnabled } from "@/lib/supabase/config";
 
+/**
+ * Early access: without an account, only the home page and a few pages about Pheelm are open.
+ * Everything else sends visitors home, where the sign-up sheet opens and brings them back after.
+ */
+const OPEN = /^\/(login|auth|privacy|terms|contact|about|partnerships|donate|newsletter|offline)(\/|$)/;
+// Share images stay open, so links to films and collections still preview in messages and posts.
+const SHARE_IMAGE = /\/(opengraph-image|twitter-image)(-\w+)?$/;
+// Session work only where it's needed: account pages and authenticated endpoints.
+const SESSION = /^\/(me|account|c|submit|admin|auth|api|notifications|profile)(\/|$)/;
+
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
   if (!supabaseEnabled) return response;
 
-  // Home is for visitors: signed-in members start on Films. Only a request carrying a session
-  // cookie is checked, so visitors' home page stays as fast as before.
-  const home = request.nextUrl.pathname === "/";
+  const path = request.nextUrl.pathname;
+  const home = path === "/";
   const hasSession = request.cookies.getAll().some((c) => /^sb-.*-auth-token(\.0)?$/.test(c.name));
-  if (home && !hasSession) return response;
+
+  if (!hasSession) {
+    if (home || OPEN.test(path) || SHARE_IMAGE.test(path)) return response;
+    const to = request.nextUrl.clone();
+    to.pathname = "/";
+    to.search = `?join=1&next=${encodeURIComponent(path + request.nextUrl.search)}`;
+    return NextResponse.redirect(to);
+  }
+  if (!home && !SESSION.test(path)) return response;
 
   const supabase = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     cookies: {
@@ -31,9 +48,11 @@ export async function proxy(request: NextRequest) {
   });
 
   const { data: { user } } = await supabase.auth.getUser();
+  // Home is for visitors: members start on Films.
   if (home && user) {
     const to = request.nextUrl.clone();
     to.pathname = "/films";
+    to.search = "";
     const redirect = NextResponse.redirect(to);
     response.cookies.getAll().forEach((c) => redirect.cookies.set(c));
     return redirect;
@@ -41,7 +60,7 @@ export async function proxy(request: NextRequest) {
   return response;
 }
 
-// Only account pages and authenticated endpoints refresh sessions, plus home (members go to Films).
+// Every page; not Next's own files, icons, images, the service worker or the site files.
 export const config = {
-  matcher: ["/", "/me/:path*", "/account/:path*", "/c/:path*", "/submit/:path*", "/admin/:path*", "/auth/:path*", "/api/:path*"],
+  matcher: ["/((?!_next|icons/|icon|apple-icon|manifest|robots.txt|sitemap.xml|sw.js|[^?]*\\.(?:png|jpe?g|webp|avif|gif|svg|ico|woff2?|txt|xml|json|js|css|webmanifest)).*)"],
 };

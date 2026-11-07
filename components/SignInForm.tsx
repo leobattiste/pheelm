@@ -76,6 +76,8 @@ export default function SignInForm({ next, initialError = "", onDone, titleId, m
       });
       if (otpError) throw otpError;
       if (!data.session) throw new Error("Your session could not be created. Request a new code.");
+      // Members' header and pages show from here on (set before paint on later visits).
+      document.documentElement.dataset.auth = "in";
       onDone?.();
       // From the sheet you stay where you were, except on the home page, which leads to Films.
       if (!onDone || next !== window.location.pathname) router.replace(next);

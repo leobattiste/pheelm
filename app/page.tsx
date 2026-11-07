@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import CommunityTile from "@/components/CommunityTile";
 import DirectorCard from "@/components/DirectorCard";
-import EarlyAccessButton from "@/components/EarlyAccessButton";
+import EarlyAccessButton, { EarlyAccessGate } from "@/components/EarlyAccessButton";
 import FilmCard from "@/components/FilmCard";
 import Row from "@/components/Row";
 import { getCommunityCollections } from "@/lib/community";
@@ -23,8 +23,8 @@ function rotate<T>(items: T[], week: number, step: number): T[] {
 
 /**
  * The home page tells what Pheelm is in three parts (films, directors, community), each a short
- * statement followed by a row that shows it. The one button, in the hero, invites people to sign up
- * for early access.
+ * statement followed by a row that shows it, then a closing call to sign up. While Pheelm is in
+ * early access, every film, director and collection on it opens the sign-up sheet.
  */
 export default async function Home() {
   const [films, directors, collections] = await Promise.all([
@@ -56,6 +56,7 @@ export default async function Home() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
+      <EarlyAccessGate>
       <div className="home-lead">
       <section className="statement is-hero" aria-labelledby="home-title">
         <div className="statement-body">
@@ -98,6 +99,17 @@ export default async function Home() {
           {shelf.map((c) => <CommunityTile key={c.id} c={c} showOwner={!c.staff_pick} />)}
         </Row>
       )}
+      </EarlyAccessGate>
+
+      <section className="statement is-cta" aria-labelledby="join-title">
+        <div className="statement-body">
+          <h2 id="join-title">Get early access, it&rsquo;s free.</h2>
+          <p>Sign up to get early access to start exploring, create watchlists, follow directors, and more.</p>
+          <div className="actions">
+            <EarlyAccessButton>Sign up for free</EarlyAccessButton>
+          </div>
+        </div>
+      </section>
 
     </>
   );
