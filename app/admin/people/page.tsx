@@ -2,45 +2,46 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/admin";
 import { countryName } from "@/lib/format";
 
-export default async function AdminPeople({ searchParams }: { searchParams: Promise<{ q?: string; all?: string }> }) {
-  const { db } = await requireAdmin();
-  const sp = await searchParams;
-  let query = db.from("people").select("id, slug, name, country, bio, photo_url, credits(role)").order("name").limit(3000);
-  if (sp.q) query = query.ilike("name", `%${sp.q}%`);
-  const { data } = await query;
-  const people = (data ?? [])
-    .map((p: any) => ({ ...p, directed: (p.credits ?? []).filter((c: any) => c.role === "director").length, total: (p.credits ?? []).length }))
-    .filter((p) => sp.all || sp.q || p.directed > 0);
-
+const SIZE=50;
+export default async function AdminPeople({searchParams}:{searchParams:Promise<{q?:string;all?:string;missing?:string;page?:string}>}){
+  const {db}=await requireAdmin("/admin/people");
+  const sp=await searchParams;
+  const page=Math.max(1,Math.min(10000,Number.parseInt(sp.page??"1",10)||1));
+  const q=(sp.q??"").trim().slice(0,100);
+  let query=db.from("admin_people_quality")
+    .select("id,slug,name,country,bio,photo_url,credits,directed",{count:"exact"})
+    .order("name").range((page-1)*SIZE,page*SIZE-1);
+  if(!sp.all) query=query.gt("directed",0);
+  if(q) query=query.ilike("name",`%${q}%`);
+  if(sp.missing==="bio") query=query.or("bio.is.null,bio.eq.");
+  if(sp.missing==="photo") query=query.or("photo_url.is.null,photo_url.eq.");
+  const {data:people,count,error}=await query;
+  const href=(p:number)=>`/admin/people?${new URLSearchParams({q,all:sp.all??"",missing:sp.missing??"",page:String(p)}).toString()}`;
   return (
     <>
-      <div className="admin-head">
-        <h1>{sp.all ? "Everyone" : "Directors"}</h1>
-      </div>
-      <p className="muted">People are added from each film&rsquo;s cast &amp; crew box. Edit bios, countries and portraits here.</p>
-      <form className="actions" role="search">
-        <input className="search-input" name="q" defaultValue={sp.q} placeholder="Search names" aria-label="Search names" />
-        <button className="button ghost small" type="submit">Search</button>
-        <Link className="button ghost small" href="/admin/people">Directors</Link>
-        <Link className="button ghost small" href="/admin/people?all=1">Everyone</Link>
+      <div className="admin-head"><div><h1>{sp.all?"Directors & people":"Directors"}</h1><p className="muted">Edit biographical details, portraits and filmography connections.</p></div><Link className="button ghost small" href="/admin/quality">Content quality</Link></div>
+      <form className="admin-filters" role="search">
+        <label className="field">Search<input name="q" className="search-input" defaultValue={q} placeholder="Search people"/></label>
+        {sp.all&&<input name="all" type="hidden" value="1"/>}
+        <label className="field">Incomplete<select name="missing" defaultValue={sp.missing??""}><option value="">All records</option><option value="bio">Missing biography</option><option value="photo">Missing portrait</option></select></label>
+        <button className="button ghost small">Filter</button><Link className="button ghost small" href="/admin/people">Reset</Link>
       </form>
-      <div className="table-wrap">
-        <table className="admin-table">
-          <thead><tr><th>Name</th><th>Country</th><th>Films directed</th><th>Credits</th><th>Bio</th><th>Portrait</th></tr></thead>
-          <tbody>
-            {people.map((p) => (
-              <tr key={p.id}>
-                <td><Link href={`/admin/people/${p.id}`}>{p.name}</Link></td>
-                <td>{p.country ? countryName(p.country) : ""}</td>
-                <td>{p.directed || ""}</td>
-                <td>{p.total}</td>
-                <td>{p.bio ? "✓" : ""}</td>
-                <td>{p.photo_url ? "✓" : ""}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="actions">
+        <Link aria-pressed={!sp.all} className="button ghost small" href="/admin/people">Directors</Link>
+        <Link aria-pressed={!!sp.all} className="button ghost small" href="/admin/people?all=1">Everyone</Link>
       </div>
+      <p className="muted">{count??0} matching people.</p>
+      {error?<p className="notice error">Could not load people. Check the admin database upgrade.</p>:(
+        <div className="table-wrap"><table className="admin-table">
+          <thead><tr><th>Name</th><th>Country</th><th>Films directed</th><th>Credits</th><th>Biography</th><th>Portrait</th></tr></thead>
+          <tbody>{(people??[]).map(p=><tr key={p.id}>
+            <td><Link href={`/admin/people/${p.id}`}>{p.name}</Link></td><td>{p.country?countryName(p.country):"—"}</td>
+            <td>{p.directed}</td><td>{p.credits}</td><td>{p.bio?"✓":"Missing"}</td><td>{p.photo_url?"✓":"Missing"}</td>
+          </tr>)}</tbody>
+        </table></div>
+      )}
+      {!people?.length&&!error&&<p className="empty">No matching people.</p>}
+      <div className="actions admin-pagination">{page>1&&<Link className="button ghost small" href={href(page-1)}>Previous</Link>}<span className="muted">Page {page} of {Math.max(1,Math.ceil((count??0)/SIZE))}</span>{page*SIZE<(count??0)&&<Link className="button ghost small" href={href(page+1)}>Next</Link>}</div>
     </>
   );
 }
