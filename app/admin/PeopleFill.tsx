@@ -16,11 +16,14 @@ export default function PeopleFill({ waiting }: { waiting: number | null }) {
   const run = async () => {
     setRunning(true);
     setMessage("");
+    let last = left;
     for (;;) {
       const r = await fillPeople();
       setLeft(r.remaining);
       if (!r.ok) { setMessage(r.message); break; }
       if (r.remaining === 0) { setMessage("Everyone is filled in."); break; }
+      if (last !== null && r.remaining >= last) { setMessage("Some people could not be completed automatically. Review their profiles and retry later."); break; }
+      last = r.remaining;
     }
     setRunning(false);
   };
