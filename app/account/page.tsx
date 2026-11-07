@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import GridToggle from "@/components/GridToggle";
-import NewsletterForm from "@/components/NewsletterForm";
+import NewsletterSubscribe from "./NewsletterSubscribe";
 import Tabs from "@/components/Tabs";
 import ThemeToggle from "@/components/ThemeToggle";
 import { getServerClient } from "@/lib/supabase/server";
@@ -100,7 +100,7 @@ export default async function AccountPage() {
           <section className="account-section" aria-labelledby="news-h">
             <h2 id="news-h">Newsletter</h2>
             <p className="muted">Receive occasional updates about films, collections and stories. Unsubscribe anytime.</p>
-            <NewsletterForm source="settings" id="settings-newsletter" />
+            <NewsletterSubscribe email={user.email ?? ""} />
           </section>
         </div>
       ),
