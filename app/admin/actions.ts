@@ -289,6 +289,7 @@ export async function savePerson(_prev: Result, f: FormData): Promise<Result> {
       bio: nullable(f, "bio", 5000),
       photo_url: photo,
       tmdb_id: int(f, "tmdb_id"),
+      ...(f.has("has_in_directory") ? { in_directory: f.get("in_directory") === "on" } : {}),
     }).eq("id", str(f, "id"));
     if (error) return { ok: false, message: error.code === "23505" ? "Someone else already uses that address or TMDB id." : error.message };
     refresh();
