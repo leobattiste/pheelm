@@ -28,7 +28,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
 
   return new ImageResponse(
     (
-      <div style={{ display: "flex", width: "100%", height: "100%", padding: 64, gap: 64, background: bg, color: ink, fontFamily: "Inter" }}>
+      <div style={{ display: "flex", width: "100%", height: "100%", padding: 64, gap: 64, background: bg, color: ink, fontFamily: "Switzer, Inter" }}>
         <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", flex: 1 }}>
           <OgWordmark />
           <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>

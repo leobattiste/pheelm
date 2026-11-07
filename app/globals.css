@@ -46,7 +46,7 @@
 }
 
 :root {
-  --font: var(--font-inter), var(--font-inter-ext), "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font: "Switzer", var(--font-inter), var(--font-inter-ext), "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   /* Three corner sizes: 4px for tiny thumbnails and keys, 10px for every card, poster, image
      and panel, and pills for anything you press or type into. */
   --r-sm: 4px;

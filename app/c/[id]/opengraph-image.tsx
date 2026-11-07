@@ -54,7 +54,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
 
   return new ImageResponse(
     (
-      <div style={{ display: "flex", width: "100%", height: "100%", padding: 64, background: bg, color: ink, fontFamily: "Inter", justifyContent: "space-between" }}>
+      <div style={{ display: "flex", width: "100%", height: "100%", padding: 64, background: bg, color: ink, fontFamily: "Switzer, Inter", justifyContent: "space-between" }}>
         <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", width: 560 }}>
           <OgWordmark />
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>

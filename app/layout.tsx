@@ -15,13 +15,15 @@ import { SITE_URL } from "@/lib/supabase/config";
 import { themeScript } from "@/lib/theme";
 import "./globals.css";
 
-// One typeface, Inter by Rasmus Andersson (SIL Open Font License), variable weight, served from
-// the site itself. The extended set covers letters like ẹ, ọ and ū in Yoruba and other titles.
+// The typeface is Switzer, loaded from Fontshare in the head. Inter (SIL Open Font License), served
+// from the site itself, backs it up: for letters Switzer doesn't have, like ẹ and ọ in Yoruba
+// titles, and while Switzer loads.
 const inter = localFont({
   src: "./fonts/Inter-Latin.woff2",
   weight: "100 900",
   variable: "--font-inter",
   display: "swap",
+  preload: false,
 });
 const interExt = localFont({
   src: "./fonts/Inter-LatinExt.woff2",
@@ -63,6 +65,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" data-theme="dark" data-grid="large" className={`${inter.variable} ${interExt.variable} ${bethEllen.variable}`} suppressHydrationWarning>
       <head>
+        {/* Switzer, by the Indian Type Foundry, from Fontshare (ITF Free Font License). */}
+        <link rel="preconnect" href="https://api.fontshare.com" crossOrigin="" />
+        <link rel="preconnect" href="https://cdn.fontshare.com" crossOrigin="" />
+        <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=switzer@300,400,500,600,700,800&display=swap" />
         <link rel="preconnect" href="https://image.tmdb.org" />
       </head>
       <body>
