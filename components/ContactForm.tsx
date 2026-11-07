@@ -13,7 +13,7 @@ const TOPICS: [string, string][] = [
 ];
 
 /** The contact form. On the partnerships page it asks for an organisation and starts on Partnership. */
-export default function ContactForm({ topic = "general", partnership = false }: { topic?: string; partnership?: boolean }) {
+export default function ContactForm({ topic = "general", partnership = false, about }: { topic?: string; partnership?: boolean; about?: string }) {
   const [state, action, pending] = useActionState<FormState, FormData>(sendMessage, null);
 
   if (state?.ok) {
@@ -41,7 +41,7 @@ export default function ContactForm({ topic = "general", partnership = false }: 
       )}
       <label className="field">
         Message
-        <textarea name="body" required maxLength={5000} placeholder={partnership ? "Tell us about your organisation and what you have in mind." : ""} />
+        <textarea name="body" required maxLength={5000} defaultValue={about ? `About ${about}:\n\n` : undefined} placeholder={partnership ? "Tell us about your organisation and what you have in mind." : ""} />
       </label>
       <input name="website" tabIndex={-1} autoComplete="off" className="visually-hidden" aria-hidden="true" />
       {state && !state.ok && <p className="notice error" role="alert">{state.message}</p>}

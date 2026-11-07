@@ -7,7 +7,7 @@ import { COUNTRY_OPTIONS } from "@/lib/countries";
 
 type Props = { handle: string | null; displayName: string | null; isPrivate: boolean; country: string | null };
 
-/** Settings → Profile: name, handle, country and whether the profile is private, saved together. */
+/** Settings → Profile: name, handle and country, saved together (privacy has its own tab). */
 export default function ProfileForm({ handle, displayName, isPrivate, country }: Props) {
   const router = useRouter();
   const [state, action, pending] = useActionState<NameState, FormData>(updatePublicName, null);
@@ -36,14 +36,6 @@ export default function ProfileForm({ handle, displayName, isPrivate, country }:
           <option value="">Not shown</option>
           {COUNTRY_OPTIONS.map(([code, name]) => <option key={code} value={code}>{name}</option>)}
         </select>
-      </label>
-      <input type="hidden" name="has_private" value="1" />
-      <label className="switch-row">
-        <span>
-          <span className="switch-label">Private profile</span>
-          <span className="hint">Only you can see your profile and who you follow. Collections you make public stay in the community.</span>
-        </span>
-        <input type="checkbox" role="switch" className="switch" name="is_private" defaultChecked={isPrivate} />
       </label>
       {state && <p className={`notice ${state.ok ? "ok" : "error"}`} role="status">{state.message}</p>}
       <div className="actions">

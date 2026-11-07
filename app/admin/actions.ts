@@ -3,7 +3,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { adminClient } from "@/lib/admin";
+import { adminClient, ownerClient } from "@/lib/admin";
 import { slugify } from "@/lib/format";
 import { addFilmByTitle, fillPerson, importFilm, posterColour, type AddResult } from "@/lib/import";
 import { getWatch, tmdbEnabled } from "@/lib/tmdb";
@@ -169,7 +169,7 @@ export async function createFilm(f: FormData) {
 }
 
 export async function deleteFilm(f: FormData) {
-  const db = await adminClient();
+  const db = await ownerClient();
   await db.from("films").delete().eq("id", str(f, "id"));
   refresh();
   redirect("/admin/films");
@@ -329,14 +329,26 @@ export async function setMessageHandled(f: FormData) {
   revalidatePath("/admin/inbox");
 }
 
-/** Staff-picks or hides a member's collection (or undoes it). */
+/** Staff-picks, features or hides a member's collection (or undoes it). */
 export async function setListFlag(f: FormData) {
   const db = await adminClient();
-  const field = f.get("field") === "staff_pick" ? "staff_pick" : "hidden";
-  await db.from("lists").update({ [field]: f.get("value") === "true" }).eq("id", String(f.get("id")));
+  const raw = String(f.get("field"));
+  const field = raw === "staff_pick" || raw === "featured" ? raw : "hidden";
+  const id = String(f.get("id"));
+  await db.from("lists").update({ [field]: f.get("value") === "true" }).eq("id", id);
   revalidatePath("/admin/community");
   revalidatePath("/collections");
-  revalidatePath("/collections/community");
+  revalidatePath(`/c/${id}`);
+  revalidatePath("/");
+  const back = String(f.get("back") ?? "");
+  if (back.startsWith("/") && !back.startsWith("//")) redirect(back);
+}
+
+/** Makes a member an admin, or takes it away. Only the owner can. */
+export async function setAdmin(f: FormData) {
+  const db = await ownerClient();
+  await db.rpc("set_admin", { who: String(f.get("id")), make: f.get("make") === "true" });
+  revalidatePath("/admin/members");
 }
 
 /** Dismisses a report once it's been dealt with. */

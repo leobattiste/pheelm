@@ -7,7 +7,8 @@ import Icon, { type IconName } from "@/components/Icon";
 import FilmActionBar from "@/components/FilmActionBar";
 import PeopleGrid from "@/components/PeopleGrid";
 import Poster from "@/components/Poster";
-import ShareButton from "@/components/ShareButton";
+import Breadcrumbs from "@/components/Breadcrumbs";
+import FilmMenu from "@/components/FilmMenu";
 import TrailerButton from "@/components/TrailerButton";
 import WatchSection from "@/components/WatchSection";
 import WatchlistButton from "@/components/WatchlistButton";
@@ -166,6 +167,7 @@ export default async function FilmPage({ params }: Params) {
           {/* 1. Overview: what it is, and the three things you can do. */}
           <section className="film-overview" aria-labelledby="film-title">
             <header className="film-head">
+              <Breadcrumbs parent="Films" href="/films" current={film.title} />
               <h1 className="film-title" id="film-title">{film.title}</h1>
               <p className="film-byline">
                 <span className="byline-item">
@@ -198,7 +200,7 @@ export default async function FilmPage({ params }: Params) {
                 </a>
               )}
               <WatchlistButton filmId={film.id} filmTitle={film.title} />
-              <ShareButton title={film.title} />
+              <FilmMenu filmId={film.id} slug={film.slug} title={film.title} />
             </div>
 
             {film.note && <p className="film-note">{film.note}</p>}

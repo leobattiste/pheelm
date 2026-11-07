@@ -39,11 +39,21 @@ function Line({ n }: { n: Notification }) {
     case "reply": return <>{who} replied to your comment on {list} {quote}</>;
     case "mention": return <>{who} mentioned you on {list} {quote}</>;
     case "collection_film": return <><strong>{n.film?.title ?? "A film"}</strong>{n.film?.year ? ` (${n.film.year})` : ""} was added to {list}</>;
+    case "report": return <>{n.actor ? who : <strong>A visitor</strong>} reported {list}</>;
+    case "comment_report": return <>{who} reported a comment on {list} {quote}</>;
+    case "submission": return <>{who} suggested <strong>{n.detail ?? "a film"}</strong></>;
+    case "message": return <>New message: {n.detail}</>;
+    case "new_member": return <>{n.actor ? who : <strong>{n.detail || "Someone"}</strong>} joined Pheelm</>;
+    case "featured": return <>{list} is now featured on Collections</>;
     case "new_film": return <>New from <strong>{n.person?.name ?? "a director you follow"}</strong>: <strong>{n.film?.title ?? "a film"}</strong>{n.film?.year ? ` (${n.film.year})` : ""}</>;
   }
 }
 
 function href(n: Notification) {
+  if (n.type === "report" || n.type === "comment_report") return "/admin/community";
+  if (n.type === "submission") return "/admin/submissions";
+  if (n.type === "message") return "/admin/inbox";
+  if (n.type === "new_member") return n.actor ? `/@${n.actor.handle}` : "/admin/members";
   if (n.type === "new_film" || n.type === "collection_film") return n.film ? `/films/${n.film.slug}` : null;
   if (!n.list || n.type === "removed") return null;
   if (n.comment) return `/c/${n.list.id}#comment-${n.comment.id}`;
@@ -54,6 +64,7 @@ function href(n: Notification) {
 const KIND_ICONS: Record<Notification["type"], IconName> = {
   invite: "userPlus", request: "door", invite_accepted: "check", invite_declined: "x",
   request_accepted: "check", request_declined: "x", removed: "x", comment: "comment", reply: "reply", mention: "at", new_film: "film", collection_film: "stack",
+  report: "flag", comment_report: "flag", submission: "film", message: "mail", new_member: "userPlus", featured: "sparkle",
 };
 
 function Item({ n }: { n: Notification }) {
@@ -74,6 +85,7 @@ function Item({ n }: { n: Notification }) {
           {link ? <Link href={link} className="notif-link"><Line n={n} /></Link> : <Line n={n} />}
         </p>
         {n.note && <p className="notif-note">&ldquo;{n.note}&rdquo;</p>}
+        {(n.type === "report" || n.type === "comment_report") && n.detail && <p className="notif-note">&ldquo;{n.detail}&rdquo;</p>}
         <p className="notif-time"><time dateTime={n.created_at}>{when(n.created_at)}</time></p>
         {n.open && n.list && (
           <div className="notif-actions">

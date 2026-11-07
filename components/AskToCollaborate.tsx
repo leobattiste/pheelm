@@ -18,7 +18,7 @@ type Props = {
 };
 
 /**
- * "Ask to collaborate" on someone's public collection: a short optional note to the owner, then
+ * "Request to co-curate" on someone's public collection: a short optional note to the owner, then
  * "Requested" until they answer. Visitors are asked to sign in, members without a handle to
  * create their profile first.
  */
@@ -59,12 +59,12 @@ export default function AskToCollaborate({ listId, ownerHandle, signedIn, hasPro
     <>
       <button type="button" className="button ghost" aria-haspopup="dialog" onClick={open}>
         <Icon name="userPlus" />
-        Ask to co-curate
+        Request to co-curate
       </button>
       <dialog ref={modal} className="modal" aria-labelledby={`ask-${listId}`} onClick={(e) => { if (e.target === modal.current) modal.current?.close(); }}>
         <div className="modal-head">
           <span className="sheet-handle" aria-hidden="true" />
-          <h2 id={`ask-${listId}`}>Ask to co-curate</h2>
+          <h2 id={`ask-${listId}`}>Request to co-curate</h2>
           <button type="button" className="icon-button" onClick={() => modal.current?.close()} aria-label="Close">
             <Icon name="close" />
           </button>

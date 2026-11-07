@@ -17,7 +17,7 @@ type Props = {
 const awardLine = (a: Award) => `${a.award} | ${a.category} | ${a.result} | ${a.year}`;
 const watchLine = (w: WatchOption) => `${w.provider} | ${w.url} | ${w.kind}${w.region ? ` | ${w.region}` : ""}`;
 
-export default function FilmEditor({ film, creditText, collections, chosen, tmdbEnabled }: Props) {
+export default function FilmEditor({ film, creditText, collections, chosen, tmdbEnabled, canDelete = false }: Props & { canDelete?: boolean }) {
   const router = useRouter();
   const [state, action, pending] = useActionState<Result, FormData>(saveFilm, { ok: false, message: "" });
   const [importing, setImporting] = useState(false);
@@ -141,10 +141,12 @@ export default function FilmEditor({ film, creditText, collections, chosen, tmdb
         </button>
         {!tmdbEnabled && <p className="muted" style={{ fontSize: 13 }}>TMDB import switches on when TMDB_API_KEY is set.</p>}
         {importMsg && <p className={`notice ${importMsg.ok ? "ok" : "error"}`}>{importMsg.message}</p>}
-        <button className="button danger small" type="submit" formAction={deleteFilm} formNoValidate
-          onClick={(e) => { if (!confirm(`Delete ${film.title}? This can't be undone.`)) e.preventDefault(); }}>
-          Delete film
-        </button>
+        {canDelete && (
+          <button className="button danger small" type="submit" formAction={deleteFilm} formNoValidate
+            onClick={(e) => { if (!confirm(`Delete ${film.title}? This can't be undone.`)) e.preventDefault(); }}>
+            Delete film
+          </button>
+        )}
       </aside>
     </form>
   );

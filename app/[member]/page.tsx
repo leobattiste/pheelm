@@ -11,9 +11,11 @@ import { VERIFIED } from "@/lib/site";
 import { getCollaboratingOn, getMember } from "@/lib/community";
 import { countryName, initials } from "@/lib/format";
 import { getServerClient } from "@/lib/supabase/server";
+import BlockButton from "@/components/BlockButton";
 import DirectorCard from "@/components/DirectorCard";
+import { FilmGrid } from "@/components/FilmCard";
 import Tabs from "@/components/Tabs";
-import { getDirectors, toDirectorSummary } from "@/lib/data";
+import { getDirectors, getFilms, toCard, toDirectorSummary } from "@/lib/data";
 
 // Who's looking matters (your own page shows Edit and stays visible when private), so render per visit.
 export const dynamic = "force-dynamic";
@@ -35,7 +37,10 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   return { title: `${name} (@${found.member.handle})`, description: `Collections of films by Black directors, made by ${name} on Pheelm.` };
 }
 
-/** A member's profile: their name, then their Watchlist (the collections they've made public). */
+/**
+ * A member's profile: their name, then tabs for their public collections (Watchlist), the films
+ * they've watched and the directors they follow. Watched and Following can each be hidden in Settings.
+ */
 export default async function MemberPage({ params }: Params) {
   const handle = handleOf((await params).member);
   if (!handle) notFound();
@@ -62,11 +67,19 @@ export default async function MemberPage({ params }: Params) {
     );
   }
 
-  const [collaborating, followRows, directors] = await Promise.all([
+  const [collaborating, followRows, directors, watchedRows, films, showsWatched, showsFollowing, blockRow] = await Promise.all([
     getCollaboratingOn(member.id),
     db ? db.from("follows").select("person_id, created_at").eq("user_id", member.id).order("created_at", { ascending: false }) : null,
     getDirectors(),
+    db ? db.from("watched").select("film_id, watched_at").eq("user_id", member.id).order("watched_at", { ascending: false }) : null,
+    getFilms(),
+    own || !db ? true : db.rpc("shows_watched", { uid: member.id }).then((r) => (r.error ? false : !!r.data)),
+    own || !db ? true : db.rpc("shows_following", { uid: member.id }).then((r) => (r.error ? true : !!r.data)),
+    viewer && !own && db ? db.from("blocks").select("blocked_id").eq("blocker_id", viewer.id).eq("blocked_id", member.id).maybeSingle() : null,
   ]);
+  const filmById = new Map(films.map((f) => [f.id, f]));
+  const watched = ((watchedRows?.data ?? []) as { film_id: string }[]).map((r) => filmById.get(r.film_id)).filter((f) => f !== undefined);
+  const watchedOn = !watchedRows?.error;
   const directorById = new Map(directors.map((d) => [d.id, d]));
   const following = ((followRows?.data ?? []) as { person_id: string }[]).map((r) => directorById.get(r.person_id)).filter((d) => d !== undefined);
 
@@ -92,6 +105,7 @@ export default async function MemberPage({ params }: Params) {
           <MoreMenu corner label="Profile actions">
             {own && <ProfileEditor handle={member.handle} displayName={member.display_name} isPrivate={!!member.is_private} country={member.country ?? null} />}
             {!member.is_private && <ShareButton item title={`${name} on Pheelm`} />}
+            {viewer && !own && <BlockButton memberId={member.id} handle={member.handle} blocked={!!blockRow?.data} />}
           </MoreMenu>
         )}
         <span className="portrait portrait-initials" aria-hidden="true">{initials(name.replace(/^@/, ""))}</span>
@@ -119,7 +133,20 @@ export default async function MemberPage({ params }: Params) {
               </>
             ),
           },
-          {
+          ...(watchedOn && showsWatched ? [{
+            id: "watched",
+            label: "Watched",
+            panel: watched.length ? (
+              <FilmGrid films={watched.map(toCard)} />
+            ) : (
+              <div className="empty-state">
+                <Icon name="eye" className="empty-icon" />
+                <p>No watched films yet.</p>
+                {own && <p className="muted">On any film, open the &#8943; menu and press <strong>Add to Watched</strong>.</p>}
+              </div>
+            ),
+          }] : []),
+          ...(showsFollowing ? [{
             id: "following",
             label: "Following",
             panel: following.length ? (
@@ -136,7 +163,7 @@ export default async function MemberPage({ params }: Params) {
                 )}
               </div>
             ),
-          },
+          }] : []),
         ]}
       />
     </section>

@@ -6,7 +6,7 @@ const TOPICS: Record<string, string> = { general: "Question or idea", correction
 
 /** Messages from the contact and partnership forms, and the newsletter list. */
 export default async function AdminInbox({ searchParams }: { searchParams: Promise<{ show?: string }> }) {
-  const { db } = await requireAdmin();
+  const { db, owner } = await requireAdmin();
   const show = (await searchParams).show === "done" ? "done" : "open";
   const [{ data: messages, error }, { count: subscribers }] = await Promise.all([
     db.from("messages").select("*").eq("handled", show === "done").order("created_at", { ascending: false }).limit(200),
@@ -23,7 +23,7 @@ export default async function AdminInbox({ searchParams }: { searchParams: Promi
           <section className="fieldset">
             <h2>Newsletter</h2>
             <p>{subscribers ?? 0} {subscribers === 1 ? "person has" : "people have"} signed up.</p>
-            {!!subscribers && <div className="actions"><a className="button ghost small" href="/admin/subscribers.csv" download>Download the list (CSV)</a></div>}
+            {!!subscribers && owner && <div className="actions"><a className="button ghost small" href="/admin/subscribers.csv" download>Download the list (CSV)</a></div>}
           </section>
           <div className="actions">
             <Link className="button ghost small" aria-pressed={show === "open"} href="/admin/inbox">To answer</Link>

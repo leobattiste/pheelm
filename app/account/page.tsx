@@ -9,14 +9,16 @@ import ThemeToggle from "@/components/ThemeToggle";
 import { getServerClient } from "@/lib/supabase/server";
 import { DeleteAccount, SignOutEverywhere } from "./AccountActions";
 import EmailForm from "./EmailForm";
+import PrivacyForm from "./PrivacyForm";
 import ProfileForm from "./ProfileForm";
+import { unblock } from "./actions";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Settings", description: PAGE_COPY.account, robots: { index: false } };
 
 /**
- * Settings, in tabs: your profile, your account (sign-in email, newsletter, signing out),
- * appearance, and your data (download or delete).
+ * Settings, in tabs: your profile, your account (sign-in email, newsletter, signing out), privacy
+ * (a private profile, hiding Watched or Following, blocked people), appearance, and your data.
  */
 export default async function AccountPage() {
   const db = await getServerClient();
@@ -32,7 +34,15 @@ export default async function AccountPage() {
   if (!user) redirect("/login?next=/account");
 
   const { data: profile } = await db.from("profiles").select("*").eq("id", user.id).maybeSingle();
-  const p = (profile ?? {}) as { handle?: string | null; display_name?: string | null; is_admin?: boolean; is_private?: boolean; country?: string | null };
+  const p = (profile ?? {}) as {
+    handle?: string | null; display_name?: string | null; is_admin?: boolean; is_private?: boolean; country?: string | null;
+    hide_watched?: boolean; hide_following?: boolean;
+  };
+  const blockRows = await db.from("blocks").select("blocked_id, created_at").eq("blocker_id", user.id).order("created_at", { ascending: false });
+  const blockedIds = ((blockRows.data ?? []) as { blocked_id: string }[]).map((b) => b.blocked_id);
+  const blockedPeople = blockedIds.length
+    ? (((await db.from("member_profiles").select("id, handle, display_name").in("id", blockedIds)).data ?? []) as { id: string; handle: string; display_name: string | null }[])
+    : [];
 
   const tabs = [
     {
@@ -86,6 +96,41 @@ export default async function AccountPage() {
       ),
     },
     {
+      id: "privacy",
+      label: "Privacy",
+      panel: (
+        <div className="account-panel">
+          <section className="account-section" aria-labelledby="visibility-h">
+            <h2 id="visibility-h">Your profile</h2>
+            <p className="muted">Choose what others see on your profile.</p>
+            <PrivacyForm isPrivate={!!p.is_private} hideWatched={!!p.hide_watched} hideFollowing={!!p.hide_following} />
+          </section>
+          <section className="account-section" aria-labelledby="blocked-h">
+            <h2 id="blocked-h">Blocked</h2>
+            <p className="muted">People you block can&rsquo;t comment on your collections, co-curate with you or notify you, and you don&rsquo;t see their comments. Block someone from the &#8943; menu on their profile.</p>
+            {blockRows.error ? null : blockedPeople.length ? (
+              <ul className="blocked-list">
+                {blockedPeople.map((b) => (
+                  <li key={b.id} className="person-row">
+                    <span className="person-row-who">
+                      <span className="person-row-name">{b.display_name || `@${b.handle}`}</span>
+                      <span className="person-row-handle">@{b.handle}</span>
+                    </span>
+                    <form action={unblock}>
+                      <input type="hidden" name="id" value={b.id} />
+                      <button type="submit" className="button ghost small">Unblock</button>
+                    </form>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="muted">You haven&rsquo;t blocked anyone.</p>
+            )}
+          </section>
+        </div>
+      ),
+    },
+    {
       id: "appearance",
       label: "Appearance",
       panel: (
@@ -110,7 +155,7 @@ export default async function AccountPage() {
             <div className="actions"><a className="button ghost" href="/account/export" download>Download</a></div>
           </section>
           <section className="account-section" aria-labelledby="privacy-h">
-            <h2 id="privacy-h">Privacy</h2>
+            <h2 id="privacy-h">Privacy policy</h2>
             <p className="muted">See the <Link href="/privacy">privacy policy</Link> for what&rsquo;s kept and why, or <Link href="/contact?topic=privacy">contact us</Link> with a question.</p>
           </section>
           <section className="account-section" aria-labelledby="delete-h">

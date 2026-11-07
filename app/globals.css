@@ -1883,8 +1883,6 @@ html[data-auth="in"] .intro-head + .section-head { margin-top: var(--space-16); 
 .feed-tabs { display: flex; gap: var(--space-8); margin-right: auto; min-width: 0; overflow-x: auto; scrollbar-width: none; }
 .feed-tabs::-webkit-scrollbar { display: none; }
 .feed-tabs .chip { flex-shrink: 0; }
-.create-button { flex-shrink: 0; }
-@media (max-width: 420px) { .create-button .filter-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } .create-button { width: var(--control); padding: 0; } }
 .choice-group { margin: 0 0 var(--space-24); padding: 0; border: 0; display: grid; gap: var(--space-12); }
 .choice-group legend { padding: 0; margin-bottom: var(--space-12); font-weight: 700; }
 .choice-group .hint { margin: 0; color: var(--muted); }
@@ -1894,6 +1892,17 @@ html[data-auth="in"] .intro-head + .section-head { margin-top: var(--space-16); 
 .essay-modal .essay { display: grid; gap: var(--space-16); }
 .essay-modal .essay p { margin: 0; font-size: var(--t-md); line-height: 1.65; overflow-wrap: break-word; }
 @media (min-width: 900px) { .essay-modal { width: min(720px, calc(100vw - 48px)); } }
-.curators-count { font-size: inherit; text-decoration: none; color: var(--ink); font-weight: 700; }
-.curators-count:hover { text-decoration: underline; }
 @media (max-width: 420px) { .collections-toolbar { gap: var(--space-6, 6px); } .feed-tabs { gap: 6px; } .feed-tabs .chip { padding-inline: 12px; } }
+.breadcrumbs ol { display: flex; min-width: 0; margin: 0; padding: 0; list-style: none; }
+.breadcrumbs li { min-width: 0; white-space: nowrap; }
+.breadcrumbs li + li::before { content: "/"; margin: 0 var(--space-8); color: var(--muted); opacity: 0.6; }
+.breadcrumbs li[aria-current] { overflow: hidden; text-overflow: ellipsis; color: var(--ink); }
+.breadcrumbs a { color: var(--muted); text-decoration: none; }
+.breadcrumbs a:hover { color: var(--ink); }
+.blocked-list { margin: 0; padding: 0; list-style: none; }
+.blocked-list .person-row-who { flex: 1; }
+.film-actions .more-panel { left: auto; right: 0; }
+.film-actions .more-menu { display: flex; }
+.breadcrumbs { min-width: 0; max-width: 100%; }
+.breadcrumbs ol { overflow: hidden; }
+.profile > .breadcrumbs { margin: var(--space-16) 0 var(--space-12); }

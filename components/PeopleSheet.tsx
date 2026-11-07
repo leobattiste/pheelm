@@ -141,16 +141,6 @@ function InviteField({ listId, exclude, full }: { listId: string; exclude: strin
   );
 }
 
-/** "+2" after "Curated by @ada": the co-curators, opening the Curators sheet. */
-export function CuratorsCount({ n }: { n: number }) {
-  return (
-    <button type="button" className="link-button curators-count" aria-haspopup="dialog" aria-label={`and ${n} ${n === 1 ? "co-curator" : "co-curators"}`}
-      onClick={() => window.dispatchEvent(new Event("open-curators"))}>
-      +{n}
-    </button>
-  );
-}
-
 /**
  * The "Curators" button on a collection and the sheet it opens: the curator and co-curators, and
  * for the curator, requests to answer, invites waiting, and inviting someone new.
@@ -158,13 +148,6 @@ export function CuratorsCount({ n }: { n: number }) {
 export default function PeopleSheet({ listId, owner, collaborators, invited, requests, isOwner, isCollaborator, max }: Props) {
   const modal = useRef<HTMLDialogElement>(null);
   const [leaving, setLeaving] = useState(false);
-
-  // "+2" next to the curator's name opens it too.
-  useEffect(() => {
-    const open = () => modal.current?.showModal();
-    window.addEventListener("open-curators", open);
-    return () => window.removeEventListener("open-curators", open);
-  }, []);
 
   // Reopen after an action (the page comes back with ?people).
   useEffect(() => {
@@ -182,13 +165,13 @@ export default function PeopleSheet({ listId, owner, collaborators, invited, req
     <>
       <button type="button" className="button ghost people-button" aria-haspopup="dialog" onClick={() => modal.current?.showModal()}>
         <Icon name="users" />
-        Curators
+        {collaborators.length ? "Curators" : "Curator"}
         {pending > 0 && <span className="badge" aria-label={`${pending} waiting`}>{pending}</span>}
       </button>
       <dialog ref={modal} className="modal" aria-labelledby={`people-${listId}`} onClick={(e) => { if (e.target === modal.current) modal.current?.close(); }}>
         <div className="modal-head">
           <span className="sheet-handle" aria-hidden="true" />
-          <h2 id={`people-${listId}`}>Curators</h2>
+          <h2 id={`people-${listId}`}>{collaborators.length ? "Curators" : "Curator"}</h2>
           <button type="button" className="icon-button" onClick={() => modal.current?.close()} aria-label="Close">
             <Icon name="close" />
           </button>

@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getServerClient } from "@/lib/supabase/server";
 
@@ -19,4 +20,33 @@ export async function deleteAccount(_prev: DeleteState, f: FormData): Promise<De
   if (error) return { ok: false, message: "Your account couldn't be deleted from here. Contact us and we'll do it for you." };
   await db.auth.signOut();
   redirect("/?deleted=1");
+}
+
+export type PrivacyState = { ok: boolean; message: string } | null;
+
+/** Settings → Privacy: a private profile, and hiding Watched or Following on a public one. */
+export async function updatePrivacy(_prev: PrivacyState, f: FormData): Promise<PrivacyState> {
+  const db = await getServerClient();
+  if (!db) return { ok: false, message: "Accounts aren't connected." };
+  const { data: { user } } = await db.auth.getUser();
+  if (!user) redirect("/login?next=/account");
+  const changes = {
+    is_private: f.get("is_private") === "on",
+    hide_watched: f.get("hide_watched") === "on",
+    hide_following: f.get("hide_following") === "on",
+  };
+  const { error } = await db.from("profiles").update(changes).eq("id", user.id);
+  if (error) return { ok: false, message: "That didn't save. Try again." };
+  revalidatePath("/account");
+  return { ok: true, message: "Saved." };
+}
+
+/** Unblocks someone from Settings → Privacy. */
+export async function unblock(f: FormData) {
+  const db = await getServerClient();
+  if (!db) return;
+  const { data: { user } } = await db.auth.getUser();
+  if (!user) redirect("/login?next=/account");
+  await db.from("blocks").delete().eq("blocker_id", user.id).eq("blocked_id", String(f.get("id")));
+  revalidatePath("/account");
 }

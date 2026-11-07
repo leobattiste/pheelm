@@ -3,7 +3,9 @@ import type { Member } from "./community";
 
 export type NotificationType =
   | "invite" | "request" | "invite_accepted" | "invite_declined"
-  | "request_accepted" | "request_declined" | "removed" | "comment" | "reply" | "mention" | "new_film" | "collection_film";
+  | "request_accepted" | "request_declined" | "removed" | "comment" | "reply" | "mention" | "new_film" | "collection_film"
+  // For admins: things to review, and new members (owner only). For curators: their collection was featured.
+  | "report" | "comment_report" | "submission" | "message" | "new_member" | "featured";
 
 export type Notification = {
   id: string;
@@ -19,9 +21,11 @@ export type Notification = {
   /** For invites and requests: whether it can still be answered, and the requester's note. */
   open: boolean;
   note: string | null;
+  /** For admin notifications: a short summary (the report's reason, the film suggested, the message). */
+  detail: string | null;
 };
 
-type Row = { id: string; type: NotificationType; created_at: string; read_at: string | null; actor_id: string | null; list_id: string | null; comment_id: string | null; user_id: string; film_id?: string | null; person_id?: string | null };
+type Row = { id: string; type: NotificationType; created_at: string; read_at: string | null; actor_id: string | null; list_id: string | null; comment_id: string | null; user_id: string; film_id?: string | null; person_id?: string | null; detail?: string | null };
 
 /**
  * The signed-in member's latest notifications, with who did it, which collection, the comment it's
@@ -29,7 +33,9 @@ type Row = { id: string; type: NotificationType; created_at: string; read_at: st
  */
 export async function getNotifications(db: SupabaseClient, userId: string, limit = 60): Promise<{ available: boolean; items: Notification[] }> {
   const query = (cols: string) => db.from("notifications").select(cols).eq("user_id", userId).order("created_at", { ascending: false }).limit(limit);
-  let { data, error } = await query("id, type, created_at, read_at, actor_id, list_id, comment_id, user_id, film_id, person_id");
+  let { data, error } = await query("id, type, created_at, read_at, actor_id, list_id, comment_id, user_id, film_id, person_id, detail");
+  // Before admins-watched-blocks.sql has run there's no detail.
+  if (error) ({ data, error } = await query("id, type, created_at, read_at, actor_id, list_id, comment_id, user_id, film_id, person_id"));
   // Before follow-notifications.sql has run there are no film columns.
   if (error) ({ data, error } = await query("id, type, created_at, read_at, actor_id, list_id, comment_id, user_id"));
   if (error) return { available: false, items: [] };
@@ -74,6 +80,7 @@ export async function getNotifications(db: SupabaseClient, userId: string, limit
         person: (r.person_id && personBy.get(r.person_id)) || null,
         open: r.type === "invite" ? m?.status === "invited" : r.type === "request" ? m?.status === "requested" : false,
         note: r.type === "request" ? m?.note ?? null : null,
+        detail: r.detail ?? null,
       };
     }),
   };

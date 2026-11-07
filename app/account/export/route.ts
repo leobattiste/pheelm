@@ -13,7 +13,7 @@ export async function GET() {
   const { data: { user } } = await db.auth.getUser();
   if (!user) return NextResponse.json({ error: "Sign in first." }, { status: 401 });
 
-  const [profile, watchlist, lists, follows, saves, comments, submissions] = await Promise.all([
+  const [profile, watchlist, lists, follows, saves, comments, submissions, watched, blocks] = await Promise.all([
     db.from("profiles").select("*").eq("id", user.id).maybeSingle(),
     db.from("watchlist").select("added_at, films(title, year, slug)").eq("user_id", user.id).order("added_at"),
     db.from("lists").select("title, description, is_public, created_at, list_films(added_at, films(title, year, slug))").eq("user_id", user.id),
@@ -21,6 +21,8 @@ export async function GET() {
     db.from("list_saves").select("created_at, lists(title, id)").eq("user_id", user.id),
     db.from("list_comments").select("body, created_at, list_id").eq("user_id", user.id),
     db.from("submissions").select("title, director, year, status, created_at").eq("user_id", user.id),
+    db.from("watched").select("watched_at, films(title, year, slug)").eq("user_id", user.id).order("watched_at"),
+    db.from("blocks").select("created_at, blocked_id").eq("blocker_id", user.id),
   ]);
 
   const body = {
@@ -28,11 +30,13 @@ export async function GET() {
     email: user.email,
     profile: profile.data,
     watchlist: watchlist.data ?? [],
+    watched: watched.data ?? [],
     collections: lists.data ?? [],
     following_directors: follows.data ?? [],
     following_collections: saves.data ?? [],
     comments: comments.data ?? [],
     submissions: submissions.data ?? [],
+    blocked: blocks.data ?? [],
   };
   return new NextResponse(JSON.stringify(body, null, 2), {
     headers: {

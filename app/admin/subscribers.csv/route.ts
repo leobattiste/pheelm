@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { adminClient } from "@/lib/admin";
+import { ownerClient } from "@/lib/admin";
 
-/** The newsletter list as a CSV file, for importing into an email service. Admins only. */
+/** The newsletter list as a CSV file, for importing into an email service. Only the owner. */
 export async function GET() {
   let db;
   try {
-    db = await adminClient();
+    db = await ownerClient();
   } catch {
     return new NextResponse("Not allowed", { status: 403 });
   }

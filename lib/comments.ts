@@ -29,7 +29,16 @@ export async function getComments(db: SupabaseClient | null, listId: string, vie
   // Before collaboration.sql has run there's no removed_at.
   if (error) ({ data, error } = await read("id, parent_id, user_id, body, created_at, edited_at, comment_likes(user_id)"));
   if (error) return { available: false, comments: [] };
-  const rows = (data ?? []) as unknown as Row[];
+  let rows = (data ?? []) as unknown as Row[];
+  // Comments from people the viewer blocked, and replies to them, aren't shown to the viewer.
+  if (viewerId) {
+    const { data: blocks } = await db.from("blocks").select("blocked_id").eq("blocker_id", viewerId);
+    const blocked = new Set(((blocks ?? []) as { blocked_id: string }[]).map((b) => b.blocked_id));
+    if (blocked.size) {
+      const gone = new Set(rows.filter((r) => blocked.has(r.user_id)).map((r) => r.id));
+      rows = rows.filter((r) => !gone.has(r.id) && !(r.parent_id && gone.has(r.parent_id)));
+    }
+  }
   const ids = [...new Set(rows.map((r) => r.user_id))];
   const authors = new Map<string, CommentAuthor>();
   if (ids.length) {

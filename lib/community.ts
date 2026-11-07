@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { getFilms } from "./data";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseEnabled } from "./supabase/config";
 import type { Film } from "./types";
+import type { Sort } from "./collection-sorts";
 
 /** A collection to list in the community: needs a title, this many films and a member name. */
 export const MIN_FILMS = 5;
@@ -21,7 +22,11 @@ export type CommunityCollection = {
   title: string;
   description: string | null;
   staff_pick: boolean;
+  /** Featured by an admin (staff picks are featured too). */
+  featured: boolean;
   created_at: string;
+  /** The last change: an edit, or the newest film added. */
+  updated_at: string;
   films: Film[];
   /** Used to rank "Popular"; never shown. */
   saves: number;
@@ -33,7 +38,15 @@ export type CommunityCollection = {
 // Read as a visitor (no cookies), so these pages can be cached like the rest of the catalog.
 const anon = () => (supabaseEnabled ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: false } }) : null);
 
-export type Row = { id: string; title: string; description: string | null; staff_pick?: boolean; created_at: string; user_id: string; list_films: { film_id: string; added_at: string }[] };
+export type Row = { id: string; title: string; description: string | null; staff_pick?: boolean; featured?: boolean; created_at: string; updated_at?: string | null; user_id: string; list_films: { film_id: string; added_at: string }[] };
+
+const ROW_COLS = "id, title, description, staff_pick, featured, created_at, updated_at, user_id, list_films(film_id, added_at)";
+const ROW_COLS_BASIC = "id, title, description, staff_pick, created_at, updated_at, user_id, list_films(film_id, added_at)";
+/** Runs a lists query, without the featured column until admins-watched-blocks.sql has run. */
+async function lists(run: (cols: string) => PromiseLike<{ data: unknown; error: unknown }>) {
+  const first = await run(ROW_COLS);
+  return first.error ? run(ROW_COLS_BASIC) : first;
+}
 
 /** Joins rows with their films (newest first), owners and save counts. */
 export async function enrich(rows: Row[]): Promise<CommunityCollection[]> {
@@ -57,7 +70,9 @@ export async function enrich(rows: Row[]): Promise<CommunityCollection[]> {
     title: r.title,
     description: r.description,
     staff_pick: !!r.staff_pick,
+    featured: !!r.staff_pick || !!r.featured,
     created_at: r.created_at,
+    updated_at: [r.updated_at ?? r.created_at, ...r.list_films.map((x) => x.added_at)].sort().at(-1)!,
     // Staff collections in year order (their covers show where they begin); members' newest first.
     films: [...r.list_films]
       .sort((a, b) => r.staff_pick ? (byId.get(a.film_id)?.year ?? 0) - (byId.get(b.film_id)?.year ?? 0) : b.added_at.localeCompare(a.added_at))
@@ -68,10 +83,12 @@ export async function enrich(rows: Row[]): Promise<CommunityCollection[]> {
   }));
 }
 
-export type Sort = "popular" | "new";
+export { SORTS, type Sort } from "./collection-sorts";
 const order: Record<Sort, (a: CommunityCollection, b: CommunityCollection) => number> = {
   popular: (a, b) => Number(b.staff_pick) - Number(a.staff_pick) || b.saves - a.saves || b.created_at.localeCompare(a.created_at),
   new: (a, b) => b.created_at.localeCompare(a.created_at),
+  updated: (a, b) => b.updated_at.localeCompare(a.updated_at),
+  films: (a, b) => b.films.length - a.films.length || b.saves - a.saves,
 };
 
 /**
@@ -82,15 +99,15 @@ const order: Record<Sort, (a: CommunityCollection, b: CommunityCollection) => nu
 export async function getCommunityCollections({ sort = "popular", filmId, limit }: { sort?: Sort; filmId?: string; limit?: number } = {}) {
   const db = anon();
   if (!db) return [];
-  const { data, error } = await db
+  const { data, error } = await lists((cols) => db
     .from("lists")
-    .select("id, title, description, staff_pick, created_at, user_id, list_films(film_id, added_at)")
+    .select(cols)
     .eq("is_public", true)
     .order("created_at", { ascending: false })
-    .limit(1000);
+    .limit(1000));
   if (error) return [];
   // Staff picks always show; other collections need a member name and at least five films.
-  let all = (await enrich(data as Row[])).filter((c) => c.owner && (c.staff_pick || c.films.length >= MIN_FILMS));
+  let all = (await enrich(data as unknown as Row[])).filter((c) => c.owner && (c.staff_pick || c.films.length >= MIN_FILMS));
   if (filmId) all = all.filter((c) => c.films.some((f) => f.id === filmId));
   all.sort(order[sort]);
   return limit ? all.slice(0, limit) : all;
@@ -102,13 +119,13 @@ export async function getMember(handle: string) {
   if (!db) return null;
   const member = (await members((cols) => db.from("member_profiles").select(cols).eq("handle", handle.toLowerCase()).maybeSingle())) as Member | null;
   if (!member) return null;
-  const { data } = await db
+  const { data } = await lists((cols) => db
     .from("lists")
-    .select("id, title, description, staff_pick, created_at, user_id, list_films(film_id, added_at)")
+    .select(cols)
     .eq("is_public", true)
     .eq("user_id", member.id)
-    .order("created_at", { ascending: false });
-  const collections = (await enrich((data ?? []) as Row[])).sort(order.popular);
+    .order("created_at", { ascending: false }));
+  const collections = (await enrich((data ?? []) as unknown as Row[])).sort(order.popular);
   return { member, collections };
 }
 
@@ -129,12 +146,12 @@ export async function getCollaboratingOn(memberId: string): Promise<CommunityCol
   if (!db) return [];
   const { data: rows, error } = await db.from("list_members").select("list_id").eq("user_id", memberId).eq("status", "active");
   if (error || !rows?.length) return [];
-  const { data } = await db
+  const { data } = await lists((cols) => db
     .from("lists")
-    .select("id, title, description, staff_pick, created_at, user_id, list_films(film_id, added_at)")
+    .select(cols)
     .eq("is_public", true)
-    .in("id", (rows as { list_id: string }[]).map((r) => r.list_id));
-  return (await enrich((data ?? []) as Row[])).sort(order.popular);
+    .in("id", (rows as { list_id: string }[]).map((r) => r.list_id)));
+  return (await enrich((data ?? []) as unknown as Row[])).sort(order.popular);
 }
 
 /** The collection that used to live at /collections/<slug>, before Pheelm's own moved into @leo's. */

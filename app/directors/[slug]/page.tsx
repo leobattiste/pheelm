@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Portrait } from "@/components/DirectorCard";
 import FollowButton from "@/components/FollowButton";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import MoreMenu from "@/components/MoreMenu";
 import ShareButton from "@/components/ShareButton";
 import { PersonLinks } from "@/components/PersonDetails";
@@ -102,6 +103,7 @@ export default async function DirectorPage({ params }: { params: Promise<{ slug:
   return (
     <article className="page profile">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
+      <Breadcrumbs parent="Directors" href="/directors" current={director.name} />
       <header className="person-head">
         <MoreMenu corner label={`Actions for ${director.name}`}>
           <FollowButton personId={director.id} name={director.name} />

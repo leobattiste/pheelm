@@ -3,7 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import AskToCollaborate from "@/components/AskToCollaborate";
 import CollectionDescription from "@/components/CollectionDescription";
-import { CuratorsCount } from "@/components/PeopleSheet";
+import Breadcrumbs from "@/components/Breadcrumbs";
+import FeatureCollection from "@/components/FeatureCollection";
+import { viewerIsAdmin } from "@/lib/admin";
 import CollectionEditor from "@/components/CollectionEditor";
 import Comments from "@/components/Comments";
 import Icon from "@/components/Icon";
@@ -75,13 +77,17 @@ export default async function MemberCollectionPage({ params, searchParams }: Par
   const viewer = (await db?.auth.getUser())?.data.user ?? null;
   const isOwner = viewer?.id === list.user_id;
 
-  const [films, { owner }, collab, { available: commentsOn, comments }, viewerProfile] = await Promise.all([
+  const [films, { owner }, collab, { available: commentsOn, comments }, viewerProfile, isAdmin] = await Promise.all([
     getFilms(),
     collectionExtras(list.id, list.user_id),
     getCollaboration(db, list.id, viewer?.id ?? null),
     list.is_public ? getComments(db, list.id, viewer?.id ?? null) : Promise.resolve({ available: false, comments: [] }),
     viewer && db ? db.from("profiles").select("*").eq("id", viewer.id).maybeSingle() : Promise.resolve({ data: null }),
+    viewerIsAdmin(db, viewer?.id),
   ]);
+  // Admins feature community collections from the menu (staff picks are featured already).
+  const canFeature = isAdmin && list.is_public && !list.staff_pick;
+  const featured = canFeature && db ? !!((await db.from("lists").select("featured").eq("id", list.id).maybeSingle()).data as { featured?: boolean } | null)?.featured : false;
   const vp = (viewerProfile.data ?? null) as { handle?: string | null; display_name?: string | null; is_private?: boolean } | null;
   const isCollaborator = collab.mine?.status === "active";
   const canEdit = isOwner || isCollaborator;
@@ -139,18 +145,6 @@ export default async function MemberCollectionPage({ params, searchParams }: Par
               collaborators={collab.collaborators.length}
             />
           )}
-          {collab.available && (canEdit || collab.collaborators.length > 0) && (
-            <PeopleSheet
-              listId={list.id}
-              owner={owner}
-              collaborators={collab.collaborators}
-              invited={collab.invited}
-              requests={collab.requests}
-              isOwner={isOwner}
-              isCollaborator={isCollaborator}
-              max={MAX_COLLABORATORS}
-            />
-          )}
           {!canEdit && list.is_public && <SaveCollectionButton listId={list.id} ownerId={list.user_id} />}
           {collab.available && !canEdit && !invitedMe && list.is_public && (
             <AskToCollaborate
@@ -162,6 +156,18 @@ export default async function MemberCollectionPage({ params, searchParams }: Par
               againOn={againOn}
             />
           )}
+          {collab.available && (
+            <PeopleSheet
+              listId={list.id}
+              owner={owner}
+              collaborators={collab.collaborators}
+              invited={collab.invited}
+              requests={collab.requests}
+              isOwner={isOwner}
+              isCollaborator={isCollaborator}
+              max={MAX_COLLABORATORS}
+            />
+          )}
           {commentsOn && (
             <a className="button ghost" href="#comments">
               <Icon name="comment" />
@@ -169,13 +175,10 @@ export default async function MemberCollectionPage({ params, searchParams }: Par
             </a>
           )}
           {list.is_public && <ShareButton item title={list.title} />}
+          {canFeature && <FeatureCollection listId={list.id} featured={featured} />}
           {!canEdit && list.is_public && <ReportCollection listId={list.id} />}
         </MoreMenu>
-        <p className="crumbs">
-          {canEdit && <><Link href="/me">Your Watchlist</Link>{" • "}</>}
-          {owner ? <>Curated by <Handle m={owner} /></> : "A collection on Pheelm"}
-          {owner && collab.collaborators.length > 0 && <> <CuratorsCount n={collab.collaborators.length} /></>}
-        </p>
+        <Breadcrumbs parent="Collections" href="/collections" current={list.title} />
         <h1>{list.title}</h1>
         {list.description && <CollectionDescription title={list.title} text={list.description} />}
         {canEdit && (
