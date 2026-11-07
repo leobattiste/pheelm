@@ -11,13 +11,14 @@ import { DeleteAccount, SignOutEverywhere } from "./AccountActions";
 import EmailForm from "./EmailForm";
 import PrivacyForm from "./PrivacyForm";
 import ProfileForm from "./ProfileForm";
+import NotificationPreferences from "./NotificationPreferences";
 import { unblock } from "./actions";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Settings", description: PAGE_COPY.account, robots: { index: false } };
 
 /**
- * Settings, in tabs: your profile, your account (sign-in email, newsletter, signing out), privacy
+ * Settings, in tabs: your profile, your account (sign-in email and signing out), notifications, privacy
  * (a private profile, hiding Watched or Following, blocked people), appearance, and your data.
  */
 export default async function AccountPage() {
@@ -43,6 +44,9 @@ export default async function AccountPage() {
   const blockedPeople = blockedIds.length
     ? (((await db.from("member_profiles").select("id, handle, display_name").in("id", blockedIds)).data ?? []) as { id: string; handle: string; display_name: string | null }[])
     : [];
+
+  const { data: notificationPrefs } = await db.from("notification_preferences").select("disabled_types").eq("user_id", user.id).maybeSingle();
+  const disabledNotificationTypes = (notificationPrefs?.disabled_types ?? []) as string[];
 
   const tabs = [
     {
@@ -72,18 +76,6 @@ export default async function AccountPage() {
             <p className="muted">You sign in with a link or code sent to this address. No password needed.</p>
             <EmailForm email={user.email ?? ""} />
           </section>
-          <section className="account-section" aria-labelledby="news-h">
-            <h2 id="news-h">Newsletter</h2>
-            <p className="muted">New films, collections and stories from Pheelm, now and then. Unsubscribe from any email.</p>
-            <NewsletterForm source="settings" id="settings-newsletter" />
-          </section>
-          <section className="account-section" aria-labelledby="notif-h">
-            <h2 id="notif-h">Notifications</h2>
-            <p className="muted">
-              You&rsquo;re notified when a director you follow has a new film, when a film is added to a collection you follow,
-              and about invites, comments and mentions. <Link href="/notifications">See your notifications</Link>
-            </p>
-          </section>
           <section className="account-section" aria-labelledby="signout-h">
             <h2 id="signout-h">Sign out</h2>
             <p className="muted">Sign out here, or everywhere you&rsquo;re signed in, if you used a shared or lost device.</p>
@@ -91,6 +83,24 @@ export default async function AccountPage() {
               <form action="/auth/signout" method="post"><button className="button ghost" type="submit">Sign out</button></form>
               <SignOutEverywhere />
             </div>
+          </section>
+        </div>
+      ),
+    },
+    {
+      id: "notifications",
+      label: "Notifications",
+      panel: (
+        <div className="account-panel">
+          <section className="account-section" aria-labelledby="notification-settings-h">
+            <h2 id="notification-settings-h">Notification preferences</h2>
+            <NotificationPreferences userId={user.id} initialDisabled={disabledNotificationTypes} isAdmin={!!p.is_admin} />
+            <p className="muted"><Link href="/notifications">View your notifications</Link></p>
+          </section>
+          <section className="account-section" aria-labelledby="news-h">
+            <h2 id="news-h">Newsletter</h2>
+            <p className="muted">Receive occasional updates about films, collections and stories. Unsubscribe anytime.</p>
+            <NewsletterForm source="settings" id="settings-newsletter" />
           </section>
         </div>
       ),
