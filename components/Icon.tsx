@@ -5,7 +5,7 @@
  */
 import {
   Add01Icon, ArrowUpDownIcon, DiceFaces03Icon, Tag01Icon, ArrowLeft01Icon, ArrowRight01Icon, ArrowTurnBackwardIcon, ArrowUp02Icon, AtIcon, Award01Icon,
-  Bookmark02Icon, Calendar03Icon, Cancel01Icon, ClapperboardIcon, Clock01Icon, Comment01Icon, Door01Icon,
+  Bookmark02Icon, Calendar03Icon, Cancel01Icon, FlimSlateIcon, Clock01Icon, Comment01Icon, Door01Icon,
   FavouriteIcon, FilterHorizontalIcon, Film02Icon, Flag02Icon, Globe02Icon, InstagramIcon, Layers01Icon,
   LinkSquare02Icon, Login03Icon, Logout03Icon, Mail01Icon, Moon02Icon, MoreHorizontalIcon, Notification03Icon,
   PencilEdit02Icon, PinIcon, PlayIcon, Search01Icon, Settings02Icon, Share08Icon, ShuffleIcon, SparklesIcon,
@@ -19,7 +19,7 @@ type IconData = readonly (readonly [string, Record<string, string | number>])[];
 
 const ICONS = {
   film: Film02Icon,
-  clapper: ClapperboardIcon,
+  clapper: FlimSlateIcon,
   stack: Layers01Icon,
   user: UserIcon,
   users: UserGroupIcon,
