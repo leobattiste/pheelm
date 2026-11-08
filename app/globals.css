@@ -2314,3 +2314,11 @@ html[data-auth="in"][data-chrome="app"] .film-bar { inset: auto auto var(--float
   .cast :is(a, button):hover { background: var(--glass-bg); -webkit-backdrop-filter: var(--glass-filter); backdrop-filter: var(--glass-filter); }
   .film-card a:hover .poster, .film-card[style*="--tint"] a:hover .poster { box-shadow: none; }
 }
+
+/* Mount only after the scroll trigger, then rise fully into place. */
+.film-bar[data-show="true"] { animation: film-bar-rise 320ms var(--ease) both; }
+@keyframes film-bar-rise {
+  from { opacity: 0; transform: translate(-50%, calc(100% + var(--floating-bottom) + 8px)); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+@media (prefers-reduced-motion: reduce) { .film-bar[data-show="true"] { animation: none; } }
