@@ -2105,11 +2105,11 @@ a.admin-attention-row:hover, .admin-attention-row a:hover { color: var(--ink); t
 /* Admin uses the same outlined cards and pill navigation as Settings. */
 .admin { display: block; padding: 0 var(--gutter) var(--space-48); min-width: 0; }
 .admin-navigation { min-width: 0; margin-bottom: 0; }
-.admin-main-tabs.profile-tabs { position: relative; margin: 0; flex-wrap: nowrap; padding: 2px 2px var(--space-16); border-bottom: 1px solid var(--line); scrollbar-width: thin; scroll-padding-inline: var(--space-16); }
+.admin-main-tabs.profile-tabs { position: relative; margin: 0; flex-wrap: nowrap; padding: 2px 2px var(--space-16); border-bottom: 1px solid var(--line); scrollbar-width: none; scroll-padding-inline: var(--space-16); }
 .admin-main-tabs .chip { display: inline-flex; align-items: center; gap: var(--space-8); min-height: 44px; }
 .admin-main-tabs .chip[aria-current="page"] { background: var(--ink); border-color: var(--ink); color: var(--on-ink); }
 .admin-main-tabs .chip[aria-current="page"]:hover { background: color-mix(in srgb, var(--ink) 86%, var(--bg)); }
-.admin-subtabs { position: relative; display: flex; gap: var(--space-8); overflow-x: auto; padding: var(--space-12) 2px 2px; scrollbar-width: thin; }
+.admin-subtabs { position: relative; display: flex; gap: var(--space-8); overflow-x: auto; padding: var(--space-12) 2px 2px; scrollbar-width: none; }
 .admin-subtabs a { display: inline-flex; flex: none; align-items: center; gap: var(--space-8); min-height: 44px; padding: var(--space-8) var(--space-12); border-radius: var(--pill); color: var(--muted); font-size: var(--t-sm); text-decoration: none; }
 .admin-subtabs a:hover, .admin-subtabs a[aria-current="page"] { color: var(--ink); background: var(--surface); }
 .admin-subtabs a[aria-current="page"] { box-shadow: inset 0 0 0 1px var(--control-border-strong); }
@@ -2170,7 +2170,7 @@ a.admin-attention-row:hover, .admin-attention-row a:hover { color: var(--ink); t
 
 .admin-card-title { display: flex; align-items: center; gap: var(--space-12); }
 .admin-card-title .icon { color: var(--muted); }
-.admin-main-tabs.profile-tabs::-webkit-scrollbar { display: block; height: 4px; }
+.admin-main-tabs.profile-tabs::-webkit-scrollbar { display: none; }
 .admin-main-tabs.profile-tabs::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: var(--pill); }
 
 
@@ -2540,8 +2540,8 @@ html[data-auth="in"][data-chrome="app"] body:has(dialog:modal) .tab-bar { z-inde
 /* Keep the legal tab strip inside the reading column on narrow screens. */
 .legal-page { grid-template-columns: minmax(0, 1fr); }
 .legal-page > .tabs-block { width: 100%; min-width: 0; }
-.legal-page .profile-tabs { margin-top: 0; padding-bottom: var(--space-8); scrollbar-width: thin; }
-.legal-page .profile-tabs::-webkit-scrollbar { display: block; height: 4px; }
+.legal-page .profile-tabs { margin-top: 0; padding-bottom: var(--space-8); scrollbar-width: none; }
+.legal-page .profile-tabs::-webkit-scrollbar { display: none; }
 .legal-page .profile-tabs::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: var(--pill); }
 .legal-page .tab-panel { min-width: 0; }
 
@@ -2737,3 +2737,17 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 @media (prefers-reduced-motion: reduce) {
   html[data-auth="in"][data-chrome="app"] body .install-banner { animation: none; }
 }
+
+/* Tabs remain horizontally scrollable without a visible scrollbar. */
+:root :is(.tabs, .profile-tabs, .admin-subtabs) { scrollbar-width: none; }
+:root :is(.tabs, .profile-tabs, .admin-subtabs)::-webkit-scrollbar { display: none; }
+:root .menu-account .menu-logout, :root .menu-account .menu-logout .icon { color: var(--error); }
+.menu-site .menu-links a, .menu-site .menu-legal, .footer-bottom > p,
+.footer-links a:is([href="/about"], [href="/partnerships"], [href="/contact"], [href="/legal"]) { font-size: 12px; }
+.enquiry-page .contact-form { width: 100%; }
+.suggestion-page > .submission-tabs { max-width: 100%; margin-bottom: var(--space-24); }
+.submission-tabs a { gap: var(--space-8); flex: none; }
+.submission-intro { margin-bottom: var(--space-24); }
+.suggestion-page .form, .suggestion-page fieldset { min-width: 0; }
+.suggestion-page .form { width: 100%; max-width: 760px; }
+.your-suggestions { margin-top: var(--space-40); }

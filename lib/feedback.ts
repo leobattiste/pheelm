@@ -5,7 +5,7 @@ import { safeInternalPath } from "./safe-navigation";
  * with a readable name ("Where to watch: Daughters of the Dust").
  */
 export function feedbackHref(about: string, label: string) {
-  return `/contact?topic=feedback&about=${encodeURIComponent(about)}&label=${encodeURIComponent(label.slice(0, 200))}`;
+  return `/feedback?about=${encodeURIComponent(about)}&label=${encodeURIComponent(label.slice(0, 200))}`;
 }
 
 /** Only Pheelm's own paths can be what feedback is about. */

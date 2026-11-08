@@ -18,12 +18,12 @@ export default function FeedbackLink({ about, label, className = "button ghost",
   return (
     <Link
       className={className}
-      href={fixed ?? "/contact?topic=feedback"}
+      href={fixed ?? "/feedback"}
       onClick={(e) => {
         onNavigate?.();
         if (fixed) return;
         // The page you're on, read when pressed, so it's right after client-side navigation.
-        if (location.pathname.startsWith("/contact")) return;
+        if (location.pathname.startsWith("/feedback")) return;
         e.preventDefault();
         const title = document.title.replace(/\s*[|•–-]\s*Pheelm\s*$/i, "").trim() || "This page";
         router.push(feedbackHref(location.pathname + location.search, title));

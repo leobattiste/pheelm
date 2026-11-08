@@ -39,7 +39,7 @@ export async function submitFilm(_prev: SubmitState, form: FormData): Promise<Su
 /**
  * A filmmaker submitting their own film, with what a film page shows: details, synopsis, poster
  * and trailer, credits, awards and where to watch. Kept with the submission for review
- * (supabase/own-film-submissions.sql); before that has run, the details travel in the note.
+ * in the structured details column for editorial review.
  */
 export async function submitOwnFilm(_prev: SubmitState, form: FormData): Promise<SubmitState> {
   const db = await getServerClient();
@@ -56,17 +56,27 @@ export async function submitOwnFilm(_prev: SubmitState, form: FormData): Promise
   if (year === null || !Number.isInteger(year) || year < 1890 || year > 2100) return { ok: false, message: "Enter the year as four digits." };
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return { ok: false, message: "Add an email address we can reach you at." };
   if (form.get("rights") !== "on") return { ok: false, message: "Confirm you can submit this film." };
-  const links = ["poster", "trailer", "website"].map((k) => clip(form.get(k), 500));
+  const links = ["poster", "trailer", "website", "backdrop"].map((k) => clip(form.get(k), 500));
   if (links.some((l) => l && !/^https?:\/\//i.test(l))) return { ok: false, message: "Links need to start with https://" };
 
+  const runtimeRaw = String(form.get("runtime") ?? "").trim();
+  const runtime = runtimeRaw ? Number(runtimeRaw) : null;
+  if (runtime !== null && (!/^\d{1,4}$/.test(runtimeRaw) || !Number.isInteger(runtime) || runtime < 1)) return { ok: false, message: "Enter the runtime in whole minutes, or leave it blank." };
+  const type = clip(form.get("type"), 30) || "feature";
+  if (!["feature", "documentary", "short", "animation"].includes(type)) return { ok: false, message: "Choose a film type." };
+
   const details = {
+    type,
+    aka: clip(form.get("aka"), 500) || null,
+    note: clip(form.get("note"), 2000) || null,
     original_title: clip(form.get("original_title"), 200) || null,
-    runtime: Number(clip(form.get("runtime"), 4)) || null,
+    runtime,
     countries: clip(form.get("countries"), 300) || null,
     languages: clip(form.get("languages"), 300) || null,
     genres: clip(form.get("genres"), 300) || null,
     synopsis: clip(form.get("synopsis"), 3000) || null,
     poster: links[0] || null,
+    backdrop: links[3] || null,
     trailer: links[1] || null,
     website: links[2] || null,
     credits: clip(form.get("credits"), 3000) || null,
@@ -77,11 +87,7 @@ export async function submitOwnFilm(_prev: SubmitState, form: FormData): Promise
     email,
   };
   const base = { user_id: user.id, title, director, year, link: links[2] || links[1] || null };
-  let { error } = await db.from("submissions").insert({ ...base, kind: "own", details, note: details.synopsis });
-  // Before own-film-submissions.sql has run: the details go in the note.
-  if (error && (error.code === "42703" || error.code === "PGRST204")) {
-    ({ error } = await db.from("submissions").insert({ ...base, note: `Own film submission\n${JSON.stringify(details, null, 2)}`.slice(0, 6000) }));
-  }
+  const { error } = await db.from("submissions").insert({ ...base, kind: "own", details, note: details.synopsis });
   if (error) return { ok: false, message: "Your film could not be sent. Try again in a moment." };
-  return { ok: true, message: `Thanks! We'll review ${title} and write to ${email} when it's on Pheelm.` };
+  return { ok: true, message: `Thanks! ${title} is in the review queue. We can contact you at ${email} if we need more information.` };
 }

@@ -28,12 +28,14 @@ export default function OwnFilmForm({ email }: { email: string }) {
           Original title <span className="hint">If it&rsquo;s known by another title in its own language</span>
           <input name="original_title" maxLength={200} />
         </label>
+        <label className="field">Also known as <span className="hint">Other titles, separated by semicolons</span><input name="aka" maxLength={500} /></label>
+        <label className="field">Film type<select name="type" defaultValue="feature"><option value="feature">Feature</option><option value="documentary">Documentary</option><option value="short">Short</option><option value="animation">Animation</option></select></label>
         <div className="form-row">
           <label className="field">Director <span className="hint">Separate several with commas</span><input name="director" required maxLength={300} /></label>
           <label className="field">Year<input name="year" required inputMode="numeric" pattern="[0-9]{4}" maxLength={4} /></label>
         </div>
         <div className="form-row">
-          <label className="field">Runtime <span className="hint">Minutes</span><input name="runtime" inputMode="numeric" pattern="[0-9]{1,4}" maxLength={4} /></label>
+          <label className="field">Runtime <span className="hint">Minutes</span><input name="runtime" inputMode="numeric" pattern="[0-9]{1,4}" maxLength={4} minLength={1} /></label>
           <label className="field">Countries<input name="countries" maxLength={300} placeholder="Nigeria, United Kingdom" /></label>
         </div>
         <div className="form-row">
@@ -44,6 +46,7 @@ export default function OwnFilmForm({ email }: { email: string }) {
 
       <fieldset>
         <legend>Story</legend>
+        <label className="field">Introduction <span className="hint">A short explanation of the film and why it matters</span><textarea name="note" maxLength={2000} rows={3} /></label>
         <label className="field">
           Synopsis <span className="hint">Two or three sentences, as you&rsquo;d want it on the film&rsquo;s page</span>
           <textarea name="synopsis" maxLength={3000} rows={5} />
@@ -53,6 +56,7 @@ export default function OwnFilmForm({ email }: { email: string }) {
       <fieldset>
         <legend>Poster and trailer</legend>
         <label className="field">Poster <span className="hint">A link to the image, at least 1000 pixels tall</span><input name="poster" type="url" placeholder="https://" maxLength={500} /></label>
+        <label className="field">Backdrop image <span className="hint">A link to a wide still from the film</span><input name="backdrop" type="url" placeholder="https://" maxLength={500} /></label>
         <label className="field">Trailer <span className="hint">YouTube or Vimeo</span><input name="trailer" type="url" placeholder="https://" maxLength={500} /></label>
         <label className="field">Website or press kit<input name="website" type="url" placeholder="https://" maxLength={500} /></label>
       </fieldset>
@@ -60,7 +64,7 @@ export default function OwnFilmForm({ email }: { email: string }) {
       <fieldset>
         <legend>Cast and crew</legend>
         <label className="field">
-          Who made it <span className="hint">One person per line: name, then role. For example: Ama Mensah, Writer</span>
+          Who made it <span className="hint">One person per line: name, role and character if applicable. Include directors, writers, producers, cinematographers, editors, composers and cast.</span>
           <textarea name="credits" maxLength={3000} rows={6} />
         </label>
       </fieldset>
@@ -68,7 +72,7 @@ export default function OwnFilmForm({ email }: { email: string }) {
       <fieldset>
         <legend>Awards and festivals</legend>
         <label className="field">
-          Festivals, prizes and nominations <span className="hint">One per line, with the year</span>
+          Festivals, prizes and nominations <span className="hint">One per line: festival or award, category, won or nominated, and year</span>
           <textarea name="awards" maxLength={2000} rows={4} />
         </label>
       </fieldset>
@@ -76,7 +80,7 @@ export default function OwnFilmForm({ email }: { email: string }) {
       <fieldset>
         <legend>Where to watch</legend>
         <label className="field">
-          Streaming, rental or screenings <span className="hint">One per line, with a link if there is one</span>
+          Streaming, rental or screenings <span className="hint">One per line: service, film link, stream/rent/buy/free, and available country</span>
           <textarea name="watch" maxLength={2000} rows={3} />
         </label>
       </fieldset>

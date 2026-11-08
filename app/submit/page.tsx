@@ -4,6 +4,7 @@ import Link from "next/link";
 import { getServerClient } from "@/lib/supabase/server";
 import { Submissions } from "../account/sections";
 import SubmitForm from "./SubmitForm";
+import SubmissionNav from "@/components/SubmissionNav";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Suggest a film", description: PAGE_COPY.submit };
@@ -18,11 +19,13 @@ export default async function SubmitPage() {
 
   return (
     <>
-      <section className="panel">
-        <h1>Suggest a film</h1>
-        <p className="lead">
-          {PAGE_COPY.submit} If you&rsquo;d like to submit your own film, you can do so <Link href="/submit/your-film">here</Link>.
-        </p>
+      <section className="page narrow suggestion-page">
+        <header className="page-head">
+          <h1>Suggest a film</h1>
+          <p className="lead">{PAGE_COPY.submit}</p>
+        </header>
+        <SubmissionNav />
+        <p className="muted submission-intro">For fans: tell us which film is missing and share a link. We&rsquo;ll research the details before adding it.</p>
         {!db ? (
           <p className="notice">Suggestions aren&rsquo;t open yet. Check back soon.</p>
         ) : user ? (
@@ -34,7 +37,7 @@ export default async function SubmitPage() {
         )}
       </section>
       {mine.length > 0 && (
-        <section className="panel your-suggestions" aria-labelledby="mine-h">
+        <section className="page narrow your-suggestions" aria-labelledby="mine-h">
           <h2 id="mine-h">Your suggestions</h2>
           <Submissions rows={mine} />
         </section>

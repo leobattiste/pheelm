@@ -73,7 +73,7 @@ export default function AccountMenu({ onNavigate }: { onNavigate: () => void }) 
       <Link href="/me" aria-current={current("/me")}><Icon name="bookmark" />Watchlist</Link>
       <Link href="/account" aria-current={current("/account")}><Icon name="gear" />Settings</Link>
       <form action="/auth/signout" method="post">
-        <button type="submit" className="menu-more-button"><Icon name="logout" />Log out</button>
+        <button type="submit" className="menu-more-button menu-logout"><Icon name="logout" />Log out</button>
       </form>
     </nav>
   );
