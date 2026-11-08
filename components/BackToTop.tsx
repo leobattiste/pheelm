@@ -19,37 +19,32 @@ export function BackToTopButton() {
   );
 }
 
-/** Page actions and a round scroll control share the main navigation's width. */
+/** A floating scroll control, hidden while the list's own bottom controls are visible. */
 export default function BackToTop() {
   const path = usePathname();
   const movie = /^\/films\/[^/]+/.test(path);
   const [shownOn, setShownOn] = useState<string | null>(null);
-  const [more, setMore] = useState<{ path: string; button: HTMLButtonElement | null; disabled: boolean } | null>(null);
 
   useEffect(() => {
     if (movie) return;
-    const update = () => setShownOn(window.scrollY > 160 ? path : null);
-    const read = () => {
-      const button = document.querySelector<HTMLButtonElement>("#main [data-load-more]");
-      const disabled = button?.disabled ?? false;
-      setMore(previous => previous?.path === path && previous.button === button && previous.disabled === disabled ? previous : { path, button, disabled });
+    const update = () => {
+      const bottom = document.querySelector(".pagination-controls")?.getBoundingClientRect();
+      const visible = bottom && bottom.top < window.innerHeight && bottom.bottom > 0;
+      setShownOn(window.scrollY > 160 && !visible ? path : null);
     };
     update();
-    read();
     window.addEventListener("scroll", update, { passive: true });
-    const observer = new MutationObserver(read);
+    window.addEventListener("resize", update);
+    const observer = new ResizeObserver(update);
     const main = document.querySelector("#main");
-    if (main) observer.observe(main, { childList: true, subtree: true, attributes: true, attributeFilter: ["disabled"] });
-    return () => { window.removeEventListener("scroll", update); observer.disconnect(); };
+    if (main) observer.observe(main);
+    return () => {
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+      observer.disconnect();
+    };
   }, [path, movie]);
 
   if (movie || shownOn !== path) return null;
-  const source = more?.path === path ? more : null;
-
-  return (
-    <div className="floating-controls">
-      {source?.button && <button type="button" className="floating-load-more" disabled={source.disabled} onClick={() => source.button?.click()}>Load more</button>}
-      <BackToTopButton />
-    </div>
-  );
+  return <div className="floating-controls"><BackToTopButton /></div>;
 }

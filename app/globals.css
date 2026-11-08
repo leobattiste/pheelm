@@ -2618,13 +2618,13 @@ body:has(dialog:modal) .back-to-top { visibility: hidden; }
   transform: translateX(-50%);
   animation: floating-controls-rise 320ms var(--ease) both;
 }
-:root .floating-controls > .back-to-top {
+:root :is(.floating-controls, .pagination-controls) > .back-to-top {
   position: static;
   flex: 0 0 var(--tab-h, 60px);
   animation: none;
 }
 :root .floating-controls > .film-bar.film-bar,
-.floating-load-more {
+:root .pagination-controls > .button.more {
   position: static;
   inset: auto;
   display: flex;
@@ -2658,13 +2658,19 @@ body:has(dialog:modal) .back-to-top { visibility: hidden; }
   background: transparent;
   box-shadow: none;
 }
-.floating-load-more { cursor: pointer; }
-.floating-load-more:hover { background: var(--glass-hover); }
-.floating-load-more:disabled { opacity: .5; cursor: wait; }
-.floating-load-more:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 body:has(dialog:modal) .floating-controls { visibility: hidden; }
 @keyframes floating-controls-rise {
   from { opacity: 0; transform: translate(-50%, 24px); }
   to { opacity: 1; transform: translate(-50%, 0); }
 }
 @media (prefers-reduced-motion: reduce) { .floating-controls { animation: none; } }
+
+/* The original list pagination stays in the document, alongside its own top button. */
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: var(--floating-width);
+  max-width: 100%;
+  margin: var(--space-32) auto;
+}
