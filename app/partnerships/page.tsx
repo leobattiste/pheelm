@@ -3,7 +3,7 @@ import ContactForm from "@/components/ContactForm";
 import { SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Partnerships",
+  title: "Partnership",
   description: `Work with ${SITE_NAME}: festivals, distributors, streaming services, schools and film societies.`,
 };
 
@@ -17,7 +17,7 @@ export default function PartnershipsPage() {
   return (
     <article className="page narrow info-page">
       <header className="page-head">
-        <h1>Partnerships</h1>
+        <h1>Partnership</h1>
         <p className="lead">{SITE_NAME} works with the people who make, show and teach films by Black directors.</p>
       </header>
 

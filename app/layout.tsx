@@ -124,7 +124,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <nav aria-labelledby="footer-pheelm">
               <h2 id="footer-pheelm">{SITE_NAME}</h2>
               <Link href="/about">About</Link>
-              <Link href="/partnerships">Partnerships</Link>
+              <Link href="/partnerships">Partnership</Link>
               <Link href="/contact">Contact</Link>
               <Link className="member-only" href="/submit">Suggest a film</Link>
             </nav>
@@ -139,8 +139,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </nav>
             <nav aria-labelledby="footer-legal">
               <h2 id="footer-legal">Legal</h2>
-              <Link href="/privacy">Privacy</Link>
-              <Link href="/terms">Terms</Link>
+              <Link href="/legal">Legal</Link>
             </nav>
           </div>
           <div className="footer-bottom">
@@ -149,9 +148,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <BackToTop />
             </div>
             <p>
-              &copy; {new Date().getFullYear()} {SITE_NAME}. Posters and stills belong to their filmmakers and distributors.
-              {/* TMDB's free tier requires this credit once its data is in use. */}
-              {process.env.TMDB_API_KEY && " Film data and images from TMDB. This site uses the TMDB API but is not endorsed or certified by TMDB."}
+              &copy; {new Date().getFullYear()} {SITE_NAME}. A project by Leo Battiste with the courtesy of TMDB.
             </p>
           </div>
         </footer>

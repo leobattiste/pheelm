@@ -91,15 +91,14 @@ export default function SiteHeader() {
           <div className="menu-site">
             <nav className="menu-links" aria-label={SITE_NAME}>
               <Link href="/about">About</Link>
-              <Link href="/partnerships">Partnerships</Link>
+              <Link href="/partnerships">Partnership</Link>
               <Link href="/contact">Contact</Link>
-              <Link href="/privacy">Privacy</Link>
-              <Link href="/terms">Terms</Link>
+              <Link href="/legal">Legal</Link>
               {INSTAGRAM_URL && <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="platform-link" aria-label="Pheelm on Instagram" title="Instagram"><Icon name="instagram" /></a>}
               {THREADS_URL && <a href={THREADS_URL} target="_blank" rel="noopener noreferrer" className="platform-link" aria-label="Pheelm on Threads" title="Threads"><Icon name="threads" /></a>}
             </nav>
             <p className="menu-legal">
-              &copy; {new Date().getFullYear()} {SITE_NAME}. Posters and stills belong to their filmmakers and distributors. {SITE_NAME} uses the TMDB API but is not endorsed or certified by TMDB.
+              &copy; {new Date().getFullYear()} {SITE_NAME}. A project by Leo Battiste with the courtesy of TMDB.
             </p>
           </div>
         </div>

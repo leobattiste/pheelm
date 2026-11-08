@@ -32,7 +32,7 @@ export const INSTAGRAM_URL = process.env.NEXT_PUBLIC_INSTAGRAM_URL ?? "";
 export const THREADS_URL = process.env.NEXT_PUBLIC_THREADS_URL ?? "";
 
 /** The date the privacy policy and terms were last changed, shown at the top of each. */
-export const LEGAL_UPDATED = "7 November 2026";
+export const LEGAL_UPDATED = "8 November 2026";
 
 /** Members with a check beside their name, and what it says. */
 export const VERIFIED: Record<string, string> = {
