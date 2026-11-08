@@ -2275,7 +2275,7 @@ a.admin-attention-row:hover, .admin-attention-row a:hover { color: var(--ink); t
   width: var(--floating-width);
   padding: var(--space-8);
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: var(--pill);
   background: var(--glass-bg);
   -webkit-backdrop-filter: var(--glass-filter);
   backdrop-filter: var(--glass-filter);
@@ -2283,7 +2283,7 @@ a.admin-attention-row:hover, .admin-attention-row a:hover { color: var(--ink); t
   transform: translate(-50%, 110%);
 }
 .film-bar[data-show="true"] { transform: translateX(-50%); }
-html[data-auth="in"][data-chrome="app"] .film-bar { inset: auto auto var(--floating-bottom) 50%; border-radius: 10px; }
+html[data-auth="in"][data-chrome="app"] .film-bar { inset: auto auto var(--floating-bottom) 50%; border-radius: var(--pill); }
 /* Buttons stay flat; keyboard focus remains visible. */
 .film-actions > .pill-button, .film-actions > .more-menu > .round-button,
 .film-bar > .pill-button, .film-bar > .round-button { box-shadow: none; }
