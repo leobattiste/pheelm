@@ -4,7 +4,7 @@
    red for errors, gold for awards.
    Surfaces: cards are a lighter fill with no border; borders are for controls and for panels
    that float over the page.
-   Every image and card has 10px corners; every button, chip and one-line field is a pill. */
+   Every image and card has 12px corners; every button, chip and one-line field is a pill. */
 
 :root,
 :root[data-theme="dark"] {
@@ -47,10 +47,9 @@
 
 :root {
   --font: "Switzer", var(--font-inter), var(--font-inter-ext), "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  /* Three corner sizes: 4px for tiny thumbnails and keys, 10px for every card, poster, image
-     and panel, and pills for anything you press or type into. */
-  --r-sm: 4px;
-  --r: 10px;
+  /* One 12px corner size for surfaces and details; pills and circles keep their shape. */
+  --r-sm: 12px;
+  --r: 12px;
   --pill: 999px;
 
   /* One spacing scale. Every gap, margin and padding is one of these. */
@@ -339,7 +338,7 @@ svg { flex-shrink: 0; }
 @media (min-width: 900px) { .random-trigger { margin-right: var(--space-4); } }
 .search-trigger-label, .search-trigger kbd { display: none; }
 .burger { display: grid; gap: var(--space-4); width: 18px; }
-.burger span { display: block; height: 1.6px; border-radius: 2px; background: currentColor; }
+.burger span { display: block; height: 1.6px; border-radius: var(--r); background: currentColor; }
 
 @media (min-width: 900px) {
   .search-trigger {
@@ -1680,7 +1679,7 @@ a.person-row-name:hover { text-decoration: underline; text-underline-offset: 0.2
 .footer-social-link .icon { width: var(--control-icon); height: var(--control-icon); }
 .empty-icon { width: var(--control-icon); height: var(--control-icon); margin-bottom: var(--space-4); color: var(--muted); stroke-width: 1.4; }
 .service-chip { height: var(--control); padding: 0 var(--space-16) 0 var(--space-8); gap: var(--space-8); }
-.service-logo { width: 28px; height: 28px; border-radius: 7px; object-fit: cover; flex: none; }
+.service-logo { width: 28px; height: 28px; border-radius: var(--r); object-fit: cover; flex: none; }
 .service-logo.is-letter { display: grid; place-items: center; background: var(--raised); color: var(--ink); font-size: var(--t-sm); font-weight: 700; }
 .service-chip .link-out { width: 12px; height: 12px; color: var(--muted); }
 
@@ -1708,7 +1707,7 @@ a.person-row-name:hover { text-decoration: underline; text-underline-offset: 0.2
 .more-panel dialog[open] { visibility: visible; opacity: 1; }
 .more-panel :is(.button, .link-button):not(dialog *) {
   display: flex; align-items: center; justify-content: flex-start; gap: 10px; width: 100%;
-  height: auto; min-height: 44px; padding: 10px 12px; border: 0; border-radius: calc(var(--r) - 6px);
+  height: auto; min-height: 44px; padding: 10px 12px; border: 0; border-radius: var(--r);
   background: none; color: var(--text); font-size: var(--t-md); font-weight: 400; text-decoration: none; text-align: left;
 }
 .more-panel :is(.button, .link-button):not(dialog *):hover, .more-panel :is(.button, .link-button):not(dialog *):focus-visible { background: var(--control-hover); }
@@ -1724,7 +1723,7 @@ a.person-row-name:hover { text-decoration: underline; text-underline-offset: 0.2
 .follow-note { color: var(--muted); font-size: var(--t-sm); }
 .follow-note:empty { display: none; }
 .follow .button[aria-pressed="true"] { border-color: var(--ink); }
-.notif-poster { object-fit: cover; border-radius: 6px; }
+.notif-poster { object-fit: cover; border-radius: var(--r); }
 .more-panel .follow { display: contents; }
 .more-panel .follow-note { display: none; }
 .more-panel .follow .button[aria-pressed="true"] { border: 0; }
@@ -1867,11 +1866,11 @@ a.person-row-name:hover { text-decoration: underline; text-underline-offset: 0.2
   bottom: calc(var(--space-12) + env(safe-area-inset-bottom));
   display: flex; align-items: center; gap: var(--space-12);
   padding: var(--space-12) var(--space-8) var(--space-12) var(--space-12);
-  border: 1px solid var(--line); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow);
+  border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); box-shadow: var(--shadow);
   animation: install-in 0.4s var(--ease) both;
 }
 body:has(.film-bar[data-show="true"]) .install-banner { bottom: calc(84px + env(safe-area-inset-bottom)); }
-.install-icon { flex-shrink: 0; width: 44px; height: 44px; border-radius: 10px; }
+.install-icon { flex-shrink: 0; width: 44px; height: 44px; border-radius: var(--r); }
 .install-text { display: grid; flex: 1; min-width: 0; gap: 2px; line-height: 1.35; }
 .install-text strong { color: var(--ink); font-weight: 700; }
 .install-text span { color: var(--muted); }
@@ -2049,7 +2048,7 @@ html[data-auth="in"][data-chrome="app"] .menu-sheet {
   height: auto;
   max-height: calc(100dvh - var(--tab-gap) - var(--tab-h) - 20px - env(safe-area-inset-top));
   margin: 0;
-  border-radius: 10px;
+  border-radius: var(--r);
   overflow-y: auto;
   transform: translateX(-50%);
   transform-origin: bottom center;
@@ -2269,7 +2268,7 @@ a.admin-attention-row:hover, .admin-attention-row a:hover { color: var(--ink); t
   height: auto;
   max-height: calc(100dvh - var(--floating-bottom) - 10px - env(safe-area-inset-top));
   margin: 0;
-  border-radius: 10px;
+  border-radius: var(--r);
   transform: translateX(-50%);
   transform-origin: bottom center;
 }
@@ -2383,7 +2382,7 @@ html[data-auth="in"][data-chrome="app"] .film-bar { inset: auto auto var(--float
   -webkit-backdrop-filter: var(--glass-filter);
   backdrop-filter: var(--glass-filter);
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: var(--r);
   box-shadow: var(--glass-shadow);
 }
 .film-card { min-width: 0; padding: var(--space-12); }
@@ -2420,15 +2419,44 @@ html[data-auth="in"][data-chrome="app"] .film-bar { inset: auto auto var(--float
   backdrop-filter: blur(4px);
   animation: fade 0.2s;
 }
-/* Cut the member bar out of the backdrop so its icons remain sharp and visible.
-   Native dialog focus trapping still applies while the overlay is open. */
+/* The app scrim lives in the page below the bottom bar. Native dialogs stay
+   in the top layer and retain focus trapping, without blurring navigation. */
 html[data-auth="in"][data-chrome="app"] dialog::backdrop {
-  clip-path: polygon(evenodd,
-    0 0, 100% 0, 100% 100%, 0 100%, 0 0,
-    calc(50% - var(--tab-width) / 2 - 2px) calc(100% - var(--tab-gap) - var(--tab-h) - 2px),
-    calc(50% + var(--tab-width) / 2 + 2px) calc(100% - var(--tab-gap) - var(--tab-h) - 2px),
-    calc(50% + var(--tab-width) / 2 + 2px) calc(100% - var(--tab-gap) + 2px),
-    calc(50% - var(--tab-width) / 2 - 2px) calc(100% - var(--tab-gap) + 2px),
-    calc(50% - var(--tab-width) / 2 - 2px) calc(100% - var(--tab-gap) - var(--tab-h) - 2px),
-    0 0);
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+html[data-auth="in"][data-chrome="app"] body:has(dialog:modal)::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: var(--scrim);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+  animation: fade 0.2s;
+}
+html[data-auth="in"][data-chrome="app"] body:has(dialog:modal) .tab-bar { z-index: 1001; }
+
+/* Bare action glyphs: no button frame or inset spacing on profile menus and
+   dialog dismiss controls, including hover. Keep the focus outline visible. */
+:root .person-head .more-menu.is-corner .more-button,
+:root .person-head .more-menu.is-corner .more-button:hover,
+:root :is(dialog, .menu-sheet) :is(.icon-button[aria-label^="Close"], .search-close, .trailer-close),
+:root :is(dialog, .menu-sheet) :is(.icon-button[aria-label^="Close"], .search-close, .trailer-close):hover {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+:root .person-head .more-panel {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--glass-shadow);
 }

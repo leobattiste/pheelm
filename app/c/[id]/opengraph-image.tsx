@@ -64,7 +64,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
         </div>
         <div style={{ display: "flex", position: "relative", width: 470 }}>
           {fan.map((f, i) => {
-            const place = { position: "absolute" as const, left: i * 82, top: 26 + (i % 2) * 34, width: 224, height: 336, borderRadius: 10, transform: `rotate(${(i - 1.5) * 4}deg)`, boxShadow: "0 24px 48px rgba(0,0,0,0.35)" };
+            const place = { position: "absolute" as const, left: i * 82, top: 26 + (i % 2) * 34, width: 224, height: 336, borderRadius: 12, transform: `rotate(${(i - 1.5) * 4}deg)`, boxShadow: "0 24px 48px rgba(0,0,0,0.35)" };
             if (f.poster_url) {
               // eslint-disable-next-line @next/next/no-img-element
               return <img key={f.id} src={f.poster_url} width={224} height={336} style={{ ...place, objectFit: "cover" }} alt="" />;
