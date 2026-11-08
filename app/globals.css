@@ -155,6 +155,8 @@ svg { flex-shrink: 0; }
   --glass-bg: color-mix(in srgb, var(--surface, var(--bg)) 78%, transparent);
   --glass-hover: color-mix(in srgb, var(--surface, var(--bg)) 90%, transparent);
   --glass-filter: blur(24px) saturate(1.6);
+  /* The dark menu material keeps white field contents legible in both themes. */
+  --field-glass-bg: color-mix(in srgb, #181818 78%, transparent);
   --glass-shadow: 0 12px 40px -12px rgb(0 0 0 / 0.45), 0 2px 8px rgb(0 0 0 / 0.12);
   --control-icon: 24.5px;
   --control-icon-sm: 24.5px;
@@ -315,7 +317,7 @@ svg { flex-shrink: 0; }
 .field select {
   appearance: none;
   padding-right: var(--space-40);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%238c8c8c' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23ffffff' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 16px center;
   background-size: var(--control-icon);
@@ -2358,9 +2360,9 @@ html[data-auth="in"][data-chrome="app"] .film-bar { inset: auto auto var(--float
 :root :is(.modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .film-card, .collection-tile, .admin-managed-card, .fieldset:not(:where(.admin .editor .fieldset, .admin-toolbox .fieldset)), .public-name, .person-head, :where(.ways li, .inbox li)) :is(.button, .pill-button, .round-button, .icon-button, .chip, .segmented button, .theme-toggle button):focus-visible { box-shadow: var(--control-ring); }
 :root :is(.modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .film-card, .collection-tile, .admin-managed-card, .fieldset:not(:where(.admin .editor .fieldset, .admin-toolbox .fieldset)), .public-name, .person-head, :where(.ways li, .inbox li)) :is(.button.danger, .danger-text) { color: var(--error); border-color: var(--error); }
 :root :is(.modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .film-card, .collection-tile, .admin-managed-card, .fieldset:not(:where(.admin .editor .fieldset, .admin-toolbox .fieldset)), .public-name, .person-head, :where(.ways li, .inbox li)) :is(.field input:not([type="checkbox"]):not([type="radio"]):not([type="color"]), .field select, .field textarea, .search-input, .search-bar input, .save-new input, .newsletter-row input, .invite-combo input, .composer) {
-  background-color: transparent;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
+  background-color: var(--field-glass-bg);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
 }
 /* Action menus are plain rows inside one glass panel. Dialog controls keep their borders. */
 :root .more-panel :is(.button, .link-button, a, button):not(dialog *),
@@ -2549,16 +2551,16 @@ html[data-auth="in"][data-chrome="app"] body:has(dialog:modal) .tab-bar { z-inde
 :root .search-bar.search-bar input,
 :root .search-trigger,
 :root .search-trigger:hover {
-  background: #181818;
+  background: var(--field-glass-bg);
   color: #fff;
   border-color: #555;
   color-scheme: dark;
 }
-:root .search-field { background: #181818; color: #fff; }
+:root .search-field { background: var(--field-glass-bg); color: #fff; }
 :root :is(.search-bar, .search-field, .search-trigger) svg,
 :root .search-field :is(input, .search-close) { color: #fff; }
 :root .search-bar input::placeholder,
-:root .search-field input::placeholder { color: #b8b8b8; }
+:root .search-field input::placeholder { color: #bdbdbd; }
 
 /* Cards and buttons stay flat, including hover, selected and pressed states. */
 :root :is(button, .button, .chip, .pill-button, .round-button, .icon-button, .search-trigger, .tabs a, .admin-subtabs a,
@@ -2751,3 +2753,50 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 .suggestion-page .form, .suggestion-page fieldset { min-width: 0; }
 .suggestion-page .form { width: 100%; max-width: 760px; }
 .your-suggestions { margin-top: var(--space-40); }
+
+/* All text entry uses the dark menu glass, with white content in either theme.
+   Labels outside the controls continue to follow the page theme. */
+:root :is(input:not([type="checkbox"], [type="radio"], [type="color"], [type="range"], [type="hidden"], [type="button"], [type="submit"], [type="reset"]), textarea, select, .composer, .search-field) {
+  --ink: #fff;
+  --text: #fff;
+  --muted: #bdbdbd;
+  --control-border: rgb(255 255 255 / .16);
+  --control-border-strong: rgb(255 255 255 / .32);
+  --control-fill: var(--field-glass-bg);
+  background-color: var(--field-glass-bg);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  color: #fff;
+  caret-color: #fff;
+  border-color: var(--control-border);
+  color-scheme: dark;
+}
+:root :is(input, textarea)::placeholder { color: #bdbdbd; opacity: 1; }
+:root select option, :root select optgroup { color: #fff; background: #181818; }
+:root :is(.search-bar, .search-field, .invite-combo, .input-wrap, .input-group) :is(svg, .icon),
+:root .field .input-icon { color: #fff; }
+/* Composite controls have one glass surface, avoiding a second fill inside it. */
+:root .composer textarea, :root .search-field input {
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-color: transparent;
+}
+:root :is(input:not([type="checkbox"], [type="radio"], [type="color"], [type="range"], [type="hidden"]), textarea, select):focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: -3px;
+  box-shadow: none;
+}
+:root .composer:focus-within { border-color: rgb(255 255 255 / .6); box-shadow: none; }
+/* Browser autofill must not put white text over its pale native background. */
+:root input:-webkit-autofill {
+  -webkit-text-fill-color: #fff;
+  caret-color: #fff;
+  -webkit-box-shadow: 0 0 0 1000px #181818 inset;
+}
+:root .composer { --on-ink: #0c0c0c; --error: #ff6b6b; --glass-bg: transparent; --glass-hover: transparent; }
+:root .composer :is(button, .button) {
+  background: transparent;
+  color: #fff;
+  border-color: rgb(255 255 255 / .32);
+}
