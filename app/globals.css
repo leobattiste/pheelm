@@ -1731,6 +1731,15 @@ a.person-row-name:hover { text-decoration: underline; text-underline-offset: 0.2
 
 /* The ⋯ menu sits in the top-right corner of the header, flush with its padding, no circle. */
 .person-head { position: relative; --head-pad: var(--space-16); }
+/* Glass creates a stacking context: lift the header while its menu is open so
+   the action panel stays above the tabs and cards that follow it. */
+.person-head:has(.more-panel[data-open]) { z-index: 6; }
+.person-head .more-menu.is-corner .more-button {
+  display: grid; place-items: center; width: 44px; height: 44px;
+  padding: 0; margin: -10px; border-radius: var(--pill);
+}
+.person-head .more-menu.is-corner .more-button svg { margin: 0; }
+.person-head .more-panel { max-width: calc(100vw - 2 * var(--gutter) - 2 * var(--head-pad)); min-width: min(220px, calc(100vw - 2 * var(--gutter) - 2 * var(--head-pad))); }
 @media (min-width: 640px) { .person-head { --head-pad: var(--space-24); } }
 @media (min-width: 900px) { .person-head { --head-pad: var(--space-32); } }
 .page-head.has-corner { position: relative; --head-pad-top: clamp(var(--space-32), 6vw, var(--space-64)); }
