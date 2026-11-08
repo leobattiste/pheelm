@@ -10,7 +10,7 @@ import { openSignIn } from "./SignInSheet";
 type Me = { email: string; handle: string | null; name: string | null; isPrivate: boolean | null; unread: number };
 
 /**
- * The account part of the menu. Signed out: Sign in. Signed in: Profile, Notifications (with a
+ * The account part of the menu. Signed out: Sign in. Signed in: Notifications (with a
  * count of new ones), Watchlist, Settings and
  * Log out.
  */
@@ -66,9 +66,6 @@ export default function AccountMenu({ onNavigate }: { onNavigate: () => void }) 
 
   return (
     <nav className="menu-more menu-account" aria-label="Your account">
-      <Link href={me.handle ? `/@${me.handle}` : "/profile"} aria-current={me.handle ? current(`/@${me.handle}`) : undefined}>
-        <Icon name="user" />{me.handle ? "Profile" : "Create profile"}
-      </Link>
       <Link href="/notifications" aria-current={current("/notifications")}>
         <Icon name="bell" />Notifications
         {me.unread > 0 && <span className="badge" aria-label={`${me.unread} new`}>{me.unread > 9 ? "9+" : me.unread}</span>}
