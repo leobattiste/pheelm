@@ -163,9 +163,10 @@ svg { flex-shrink: 0; }
   /* Fields, chips and switches are outlined like the secondary buttons, with no fill. */
   --control-fill: var(--glass-bg);
   --control-hover: var(--hover);
-  --control-border: var(--line);
+  --bar-border: var(--line);
+  --control-border: var(--bar-border);
   /* Outlines stay the hairline colour, at rest and on hover; hover changes the fill instead. */
-  --control-border-strong: var(--line);
+  --control-border-strong: var(--bar-border);
   --control-press: scale(0.97);
   --control-ring: 0 0 0 2px var(--bg), 0 0 0 4px var(--ink);
   --control-motion: transform 0.15s var(--ease), background-color 0.15s, border-color 0.15s, color 0.15s, opacity 0.15s, box-shadow 0.15s;
@@ -205,7 +206,7 @@ svg { flex-shrink: 0; }
 .button {
   height: var(--control);
   padding: 0 var(--control-pad);
-  border: 1px solid var(--ink);
+  border: 1px solid var(--bar-border);
   background: var(--ink);
   color: var(--on-ink);
   font-weight: 600;
@@ -243,7 +244,7 @@ svg { flex-shrink: 0; }
   color: var(--ink);
 }
 .chip:hover { border-color: var(--control-border-strong); background: var(--control-hover); }
-.chip[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--on-ink); }
+.chip[aria-pressed="true"] { border-color: var(--bar-border); background: var(--ink); color: var(--on-ink); }
 .chip .count { color: var(--muted); font-size: var(--t-xs); font-variant-numeric: tabular-nums; }
 .chip[aria-pressed="true"] .count { color: inherit; opacity: 0.6; }
 .chip .x { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; opacity: 0.6; }
@@ -893,14 +894,14 @@ main:has(.feature) { margin-top: calc(var(--header) * -1); }
   color: var(--ink);
 }
 .round-button:hover, .pill-button:hover { background: color-mix(in srgb, currentColor 10%, transparent); }
-.round-button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.round-button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--bar-border); }
 .round-button[aria-pressed="true"] svg { fill: currentColor; animation: pop 0.26s var(--ease); }
 .round-button[aria-pressed="true"] svg path[d^="m5"] { fill: none; }
 .round-button.is-loading { border-color: var(--line); }
 /* Trailer, Watchlist and Share: three labelled pills. On phones they share the row evenly. */
 .pill-button { width: auto; padding: 0 var(--control-pad) 0 var(--space-16); font-weight: 600; }
 .pill-button svg.solid { fill: currentColor; stroke: none; }
-.pill-button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.pill-button[aria-pressed="true"] { background: var(--ink); border-color: var(--bar-border); color: var(--bg); }
 .pill-button[aria-pressed="true"] svg { animation: pop 0.26s var(--ease); }
 /* Saving sends a ring of the film's colour out from the button. */
 .pill-button[aria-pressed="true"] { animation: saved 0.7s var(--ease); }
@@ -930,7 +931,7 @@ main:has(.feature) { margin-top: calc(var(--header) * -1); }
 .watch-groups dt, .details dt { color: var(--muted); font-size: var(--t-sm); font-weight: 400; }
 .film-page .chip { border-color: var(--line); background: transparent; color: var(--ink); }
 .film-page .chip:hover { background: var(--hover); }
-.film-page .chip[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--bg); }
+.film-page .chip[aria-pressed="true"] { border-color: var(--bar-border); background: var(--ink); color: var(--bg); }
 .watch-empty { color: var(--muted); }
 .watch-credit { color: var(--muted); font-size: var(--t-sm); }
 
@@ -1060,7 +1061,7 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 .search-dialog::backdrop { background: var(--scrim); backdrop-filter: blur(4px); animation: fade 0.2s; }
 .search-panel { display: flex; flex-direction: column; max-height: inherit; }
 .search-field { display: flex; align-items: center; gap: var(--space-12); padding: 0 var(--space-12) 0 var(--space-16); border-bottom: 1px solid var(--line); }
-.search-field svg { width: var(--control-icon); height: var(--control-icon); fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; color: var(--muted); }
+.search-field svg { width: var(--control-icon); height: var(--control-icon); fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; color: #fff; }
 .search-field input { flex: 1; min-width: 0; height: 58px; border: 0; background: none; font-size: var(--t-lg); outline: none; }
 .search-field input::-webkit-search-cancel-button { display: none; }
 .search-close { padding: var(--space-8) var(--space-12); border: 1px solid var(--line); border-radius: var(--pill); background: none; color: var(--muted); font-size: var(--t-xs); cursor: pointer; }
@@ -1105,7 +1106,7 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 .tabs { display: flex; gap: var(--space-8); margin-bottom: var(--space-32); overflow-x: auto; }
 .tabs a { display: inline-flex; align-items: center; height: var(--control); padding: 0 var(--control-pad); border: 1px solid var(--control-border); border-radius: var(--pill); background: var(--control-fill); text-decoration: none; white-space: nowrap; font-size: var(--t-sm); transition: var(--control-motion); }
 .tabs a:hover { border-color: var(--control-border-strong); background: var(--control-hover); }
-.tabs a[aria-current="page"] { background: var(--ink); color: var(--on-ink); border-color: var(--ink); }
+.tabs a[aria-current="page"] { background: var(--ink); color: var(--on-ink); border-color: var(--bar-border); }
 .status-pill { display: inline-block; padding: var(--space-2) var(--space-12); border-radius: var(--pill); background: var(--raised); font-size: var(--t-xs); font-weight: 600; }
 .status-pill.approved, .status-pill.published { color: var(--ok); }
 .status-pill.rejected { color: var(--error); }
@@ -1182,7 +1183,7 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 .save-row.is-fixed { cursor: default; }
 .save-row.is-fixed:hover { background: none; }
 .save-check { display: grid; place-items: center; flex-shrink: 0; width: 27px; height: 27px; border: 1.5px solid var(--line-strong); border-radius: var(--r-sm); color: var(--on-ink); }
-.save-check.is-on { background: var(--ink); border-color: var(--ink); }
+.save-check.is-on { background: var(--ink); border-color: var(--bar-border); }
 .save-check svg { width: var(--control-icon); height: var(--control-icon); fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 .save-name { flex: 1; min-width: 0; overflow: hidden; color: var(--ink); font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
 .save-count { color: var(--muted); font-size: var(--t-xs); }
@@ -1348,7 +1349,7 @@ h1, h2, .empty-state p:first-of-type, .decades a,
 .profile-tabs::-webkit-scrollbar { display: none; }
 .profile-tabs .chip { flex: none; justify-content: center; height: var(--control); padding: 0 var(--control-pad); border-color: var(--control-border-strong); background: transparent; color: var(--ink); font-weight: 600; }
 .profile-tabs .chip:hover { background: var(--control-hover); }
-.profile-tabs .chip[aria-selected="true"] { border-color: var(--ink); background: var(--ink); color: var(--on-ink); }
+.profile-tabs .chip[aria-selected="true"] { border-color: var(--bar-border); background: var(--ink); color: var(--on-ink); }
 .profile-tabs .chip[aria-selected="true"]:hover { background: color-mix(in srgb, var(--ink) 86%, var(--bg)); }
 @media (max-width: 639px) { .profile-tabs .chip { flex: 1 1 0; min-width: max-content; } }
 .tab-panel { padding-top: var(--space-32); }
@@ -1726,7 +1727,7 @@ a.person-row-name:hover { text-decoration: underline; text-underline-offset: 0.2
 .more-panel .ask-sent .link-button:not(dialog *):hover { background: none; }
 .follow-note { color: var(--muted); font-size: var(--t-sm); }
 .follow-note:empty { display: none; }
-.follow .button[aria-pressed="true"] { border-color: var(--ink); }
+.follow .button[aria-pressed="true"] { border-color: var(--bar-border); }
 .notif-poster { object-fit: cover; border-radius: var(--r-square-media); }
 .more-panel .follow { display: contents; }
 .more-panel .follow-note { display: none; }
@@ -2109,7 +2110,7 @@ a.admin-attention-row:hover, .admin-attention-row a:hover { color: var(--ink); t
 .admin-navigation { min-width: 0; margin-bottom: 0; }
 .admin-main-tabs.profile-tabs { position: relative; margin: 0; flex-wrap: nowrap; padding: 2px 2px var(--space-16); border-bottom: 1px solid var(--line); scrollbar-width: none; scroll-padding-inline: var(--space-16); }
 .admin-main-tabs .chip { display: inline-flex; align-items: center; gap: var(--space-8); min-height: 44px; }
-.admin-main-tabs .chip[aria-current="page"] { background: var(--ink); border-color: var(--ink); color: var(--on-ink); }
+.admin-main-tabs .chip[aria-current="page"] { background: var(--ink); border-color: var(--bar-border); color: var(--on-ink); }
 .admin-main-tabs .chip[aria-current="page"]:hover { background: color-mix(in srgb, var(--ink) 86%, var(--bg)); }
 .admin-subtabs { position: relative; display: flex; gap: var(--space-8); overflow-x: auto; padding: var(--space-12) 2px 2px; scrollbar-width: none; }
 .admin-subtabs a { display: inline-flex; flex: none; align-items: center; gap: var(--space-8); min-height: 44px; padding: var(--space-8) var(--space-12); border-radius: var(--pill); color: var(--muted); font-size: var(--t-sm); text-decoration: none; }
@@ -2248,7 +2249,7 @@ a.admin-attention-row:hover, .admin-attention-row a:hover { color: var(--ink); t
 .modal-foot { background: transparent; }
 .film-actions > .pill-button:hover, .film-actions > .more-menu > .round-button:hover,
 .film-bar > .pill-button:hover, .film-bar > .round-button:hover { background: var(--glass-hover); }
-.film-actions > .pill-button[aria-pressed="true"], .film-bar > .pill-button[aria-pressed="true"] { border-color: var(--ink); box-shadow: none; }
+.film-actions > .pill-button[aria-pressed="true"], .film-bar > .pill-button[aria-pressed="true"] { border-color: var(--bar-border); box-shadow: none; }
 @media (hover: hover) {
   .film-card:hover, .collection-tile:hover, .anniversary a:hover, .stat:hover, .welcome-person:hover,
   [data-grid="list"] .film-grid .film-card a:hover {
@@ -2355,8 +2356,8 @@ html[data-auth="in"][data-chrome="app"] .film-bar { inset: auto auto var(--float
   box-shadow: none;
   color: var(--text);
 }
-:root :is(.modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .film-card, .collection-tile, .admin-managed-card, .fieldset:not(:where(.admin .editor .fieldset, .admin-toolbox .fieldset)), .public-name, .person-head, :where(.ways li, .inbox li)) :is(.button, .pill-button, .round-button, .icon-button, .chip, .segmented button, .theme-toggle button):hover:not(:disabled) { border-color: var(--ink); }
-:root :is(.modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .film-card, .collection-tile, .admin-managed-card, .fieldset:not(:where(.admin .editor .fieldset, .admin-toolbox .fieldset)), .public-name, .person-head, :where(.ways li, .inbox li)) :is(.button, .pill-button, .round-button, .icon-button, .chip, .segmented button, .theme-toggle button):is([aria-pressed="true"], [aria-selected="true"], [aria-checked="true"]) { border-color: var(--ink); font-weight: 600; }
+:root :is(.modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .film-card, .collection-tile, .admin-managed-card, .fieldset:not(:where(.admin .editor .fieldset, .admin-toolbox .fieldset)), .public-name, .person-head, :where(.ways li, .inbox li)) :is(.button, .pill-button, .round-button, .icon-button, .chip, .segmented button, .theme-toggle button):hover:not(:disabled) { border-color: var(--bar-border); }
+:root :is(.modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .film-card, .collection-tile, .admin-managed-card, .fieldset:not(:where(.admin .editor .fieldset, .admin-toolbox .fieldset)), .public-name, .person-head, :where(.ways li, .inbox li)) :is(.button, .pill-button, .round-button, .icon-button, .chip, .segmented button, .theme-toggle button):is([aria-pressed="true"], [aria-selected="true"], [aria-checked="true"]) { border-color: var(--bar-border); font-weight: 600; }
 :root :is(.modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .film-card, .collection-tile, .admin-managed-card, .fieldset:not(:where(.admin .editor .fieldset, .admin-toolbox .fieldset)), .public-name, .person-head, :where(.ways li, .inbox li)) :is(.button, .pill-button, .round-button, .icon-button, .chip, .segmented button, .theme-toggle button):focus-visible { box-shadow: var(--control-ring); }
 :root :is(.modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .film-card, .collection-tile, .admin-managed-card, .fieldset:not(:where(.admin .editor .fieldset, .admin-toolbox .fieldset)), .public-name, .person-head, :where(.ways li, .inbox li)) :is(.button.danger, .danger-text) { color: var(--error); border-color: var(--error); }
 :root :is(.modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .film-card, .collection-tile, .admin-managed-card, .fieldset:not(:where(.admin .editor .fieldset, .admin-toolbox .fieldset)), .public-name, .person-head, :where(.ways li, .inbox li)) :is(.field input:not([type="checkbox"]):not([type="radio"]):not([type="color"]), .field select, .field textarea, .search-input, .search-bar input, .save-new input, .newsletter-row input, .invite-combo input, .composer) {
@@ -2553,7 +2554,7 @@ html[data-auth="in"][data-chrome="app"] body:has(dialog:modal) .tab-bar { z-inde
 :root .search-trigger:hover {
   background: var(--field-glass-bg);
   color: #fff;
-  border-color: #555;
+  border-color: var(--bar-border);
   color-scheme: dark;
 }
 :root .search-field { background: var(--field-glass-bg); color: #fff; }
@@ -2758,10 +2759,11 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
    Labels outside the controls continue to follow the page theme. */
 :root :is(input:not([type="checkbox"], [type="radio"], [type="color"], [type="range"], [type="hidden"], [type="button"], [type="submit"], [type="reset"]), textarea, select, .composer, .search-field) {
   --ink: #fff;
+  --on-ink: #0c0c0c;
   --text: #fff;
   --muted: #bdbdbd;
-  --control-border: rgb(255 255 255 / .16);
-  --control-border-strong: rgb(255 255 255 / .32);
+  --control-border: var(--bar-border);
+  --control-border-strong: var(--bar-border);
   --control-fill: var(--field-glass-bg);
   background-color: var(--field-glass-bg);
   -webkit-backdrop-filter: var(--glass-filter);
@@ -2783,11 +2785,10 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
   border-color: transparent;
 }
 :root :is(input:not([type="checkbox"], [type="radio"], [type="color"], [type="range"], [type="hidden"]), textarea, select):focus-visible {
-  outline: 2px solid #fff;
-  outline-offset: -3px;
+  outline: none;
   box-shadow: none;
 }
-:root .composer:focus-within { border-color: rgb(255 255 255 / .6); box-shadow: none; }
+:root .composer:focus-within { border-color: #fff; box-shadow: none; }
 /* Browser autofill must not put white text over its pale native background. */
 :root input:-webkit-autofill {
   -webkit-text-fill-color: #fff;
@@ -2798,5 +2799,23 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 :root .composer :is(button, .button) {
   background: transparent;
   color: #fff;
-  border-color: rgb(255 255 255 / .32);
+  border-color: var(--bar-border);
 }
+
+/* One hairline for controls and navigation; only the active text field turns white. */
+:root :is(.search-field, .composer) { border: 1px solid var(--bar-border); }
+:root :is(input:not([type="checkbox"], [type="radio"], [type="color"], [type="range"], [type="hidden"], [type="button"], [type="submit"], [type="reset"]), textarea, select) {
+  --control-ring: none;
+}
+:root :is(input:not([type="checkbox"], [type="radio"], [type="color"], [type="range"], [type="hidden"], [type="button"], [type="submit"], [type="reset"]), textarea, select):focus {
+  --control-border: #fff;
+  --control-border-strong: #fff;
+  border-color: #fff;
+  outline: none;
+  box-shadow: none;
+}
+:root :is(.search-field, .composer):focus-within { border-color: #fff; border-width: 1px; box-shadow: none; }
+:root :is(.search-field input, .composer textarea):focus { border: 0; }
+:root .composer :is(button, .button) { --control-border: var(--bar-border); --control-border-strong: var(--bar-border); }
+
+:root .search-icon { color: #fff; }

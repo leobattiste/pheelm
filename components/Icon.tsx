@@ -97,7 +97,7 @@ export default function Icon({ name, size = 24.5, label, className }: { name: Ic
   );
   return (
     <svg
-      className={`icon${className ? ` ${className}` : ""}`}
+      className={`icon${name === "search" ? " search-icon" : ""}${className ? ` ${className}` : ""}`}
       viewBox="0 0 24 24"
       width={size}
       height={size}
