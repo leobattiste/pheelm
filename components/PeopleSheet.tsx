@@ -1,12 +1,12 @@
 "use client";
 
+import UserAvatar from "./UserAvatar";
 import Icon from "./Icon";
 import Link from "next/link";
 import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { inviteCollaborator, removeCollaborator, respondToRequest, type CollabState } from "@/app/c/actions";
 import type { Member } from "@/lib/community";
 import type { Person } from "@/lib/collab";
-import { initials } from "@/lib/format";
 import { getBrowserClient } from "@/lib/supabase/client";
 
 type Props = {
@@ -20,12 +20,8 @@ type Props = {
   max: number;
 };
 
-export function Avatar({ m, size = 36 }: { m: Pick<Member, "handle" | "display_name">; size?: number }) {
-  return (
-    <span className="avatar" style={{ width: size, height: size, fontSize: size < 32 ? 11 : 13 }} aria-hidden="true">
-      {initials((m.display_name || m.handle).replace(/^@/, ""))}
-    </span>
-  );
+export function Avatar({ m, size = 36 }: { m: Pick<Member, "handle" | "display_name" | "avatar_url">; size?: number }) {
+  return <UserAvatar person={m} size={size} />;
 }
 
 function Who({ m }: { m: Member }) {
@@ -76,7 +72,7 @@ function InviteField({ listId, exclude, full }: { listId: string; exclude: strin
       const safe = term.replace(/[%_,()]/g, "");
       const { data } = await db
         .from("member_profiles")
-        .select("id, handle, display_name")
+        .select("id, handle, display_name, avatar_url")
         .eq("is_private", false)
         .or(`handle.ilike.${safe}%,display_name.ilike.%${safe}%`)
         .limit(8);

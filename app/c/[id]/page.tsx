@@ -89,7 +89,7 @@ export default async function MemberCollectionPage({ params, searchParams }: Par
   // Admins feature community collections from the menu (staff picks are featured already).
   const canFeature = isAdmin && list.is_public && !list.staff_pick;
   const featured = canFeature && db ? !!((await db.from("lists").select("featured").eq("id", list.id).maybeSingle()).data as { featured?: boolean } | null)?.featured : false;
-  const vp = (viewerProfile.data ?? null) as { handle?: string | null; display_name?: string | null; is_private?: boolean } | null;
+  const vp = (viewerProfile.data ?? null) as { handle?: string | null; display_name?: string | null; avatar_url?: string | null; is_private?: boolean } | null;
   const isCollaborator = collab.mine?.status === "active";
   const canEdit = isOwner || isCollaborator;
   const invitedMe = collab.mine?.status === "invited";
@@ -241,7 +241,7 @@ export default async function MemberCollectionPage({ params, searchParams }: Par
           initial={comments}
           pinnedId={list.pinned_comment_id ?? null}
           enabled={list.comments_enabled ?? true}
-          viewer={viewer ? { id: viewer.id, handle: vp?.handle ?? null, name: vp?.display_name ?? null, isPrivate: !!vp?.is_private } : null}
+          viewer={viewer ? { id: viewer.id, handle: vp?.handle ?? null, name: vp?.display_name ?? null, avatarUrl: vp?.avatar_url ?? null, isPrivate: !!vp?.is_private } : null}
         />
       )}
       {!canEdit && !viewer && (

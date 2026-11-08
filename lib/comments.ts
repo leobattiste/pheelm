@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-export type CommentAuthor = { id: string; handle: string; display_name: string | null; is_private?: boolean };
+export type CommentAuthor = { id: string; handle: string; display_name: string | null; is_private?: boolean; avatar_url?: string | null };
 
 export type CommentItem = {
   id: string;
@@ -42,7 +42,7 @@ export async function getComments(db: SupabaseClient | null, listId: string, vie
   const ids = [...new Set(rows.map((r) => r.user_id))];
   const authors = new Map<string, CommentAuthor>();
   if (ids.length) {
-    const first = await db.from("member_profiles").select("id, handle, display_name, is_private").in("id", ids);
+    const first = await db.from("member_profiles").select("id, handle, display_name, is_private, avatar_url").in("id", ids);
     const people = first.error ? (await db.from("member_profiles").select("id, handle, display_name").in("id", ids)).data : first.data;
     for (const p of (people ?? []) as CommentAuthor[]) authors.set(p.id, p);
   }

@@ -1,5 +1,7 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
+import { prepareProfilePhoto, avatarObjectPath } from "@/lib/profile-photo";
 import { ALL_COUNTRIES } from "@/lib/countries";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -80,6 +82,21 @@ export async function updatePublicName(_prev: NameState, form: FormData): Promis
     if (country && !ALL_COUNTRIES[country]) return { ok: false, message: "Choose a country from the list." };
     changes.country = country || null;
   }
+  const photo = form.get("avatar_file");
+  const hasPhoto = photo instanceof File && photo.size > 0;
+  const removePhoto = !hasPhoto && form.get("remove_avatar") === "1";
+  const { data: previous, error: readError } = await db.from("profiles").select("handle, avatar_url").eq("id", user.id).single();
+  if (readError) return { ok: false, message: "Your profile couldn't be loaded. Try again." };
+  let uploadedPath: string | null = null;
+  if (hasPhoto) {
+    let bytes: Buffer;
+    try { bytes = await prepareProfilePhoto(photo); }
+    catch (error) { return { ok: false, message: error instanceof Error ? error.message : "Choose another image." }; }
+    uploadedPath = `${user.id}/${randomUUID()}.webp`;
+    const { error } = await db.storage.from("avatars").upload(uploadedPath, bytes, { contentType: "image/webp", cacheControl: "3600", upsert: false });
+    if (error) return { ok: false, message: "Your photo couldn't be uploaded. Try again." };
+    changes.avatar_url = db.storage.from("avatars").getPublicUrl(uploadedPath).data.publicUrl;
+  } else if (removePhoto) changes.avatar_url = null;
   let { error } = await db.from("profiles").update(changes).eq("id", user.id);
   // Before profiles-private.sql has run, save the rest.
   if (error?.code === "42703" || error?.code === "PGRST204") {
@@ -88,10 +105,18 @@ export async function updatePublicName(_prev: NameState, form: FormData): Promis
     delete changes.bio;
     ({ error } = await db.from("profiles").update(changes).eq("id", user.id));
   }
+  if (error && uploadedPath) await db.storage.from("avatars").remove([uploadedPath]);
+  if (!error && (hasPhoto || removePhoto) && previous.avatar_url) {
+    const prefix = db.storage.from("avatars").getPublicUrl(`${user.id}/`).data.publicUrl;
+    const oldPath = avatarObjectPath(previous.avatar_url, prefix);
+    if (oldPath) await db.storage.from("avatars").remove([oldPath]);
+  }
   if (error?.code === "23505") return { ok: false, message: `@${handle} is taken. Try another.` };
   if (error?.code === "23514") return { ok: false, message: `@${handle} isn't available. Try another.` };
   if (error) return { ok: false, message: "That didn't save. Try again." };
   revalidatePath("/me");
+  revalidatePath("/account");
+  if (previous.handle && previous.handle !== handle) revalidatePath(`/@${previous.handle}`);
   if (handle) revalidatePath(`/@${handle}`);
   return { ok: true, message: "Saved.", handle: handle || null };
 }

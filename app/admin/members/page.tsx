@@ -30,6 +30,8 @@ export default async function AdminMembers({searchParams}:{searchParams:Promise<
   });
   const page=Math.max(1,Math.min(10000,Number.parseInt(sp.page??"1",10)||1));
   const pageRows=filtered.slice((page-1)*SIZE,page*SIZE);
+  const { data: photos } = await db.from("profiles").select("id, avatar_url").in("id", pageRows.map(r => r.id));
+  const photoById = new Map((photos ?? []).map(p => [p.id, p.avatar_url as string | null]));
   const href=(p:number)=>`/admin/members?${new URLSearchParams({q,segment,page:String(p)}).toString()}`;
   return (
     <>
@@ -41,7 +43,7 @@ export default async function AdminMembers({searchParams}:{searchParams:Promise<
       <ul className="director-grid admin-member-grid">
         {pageRows.map(r => <DirectorCard key={r.id} href={`/admin/members/${r.id}`} showPreviews={false} director={{
           id: r.id, slug: r.id, name: r.display_name || (r.handle ? `@${r.handle}` : "No profile yet"),
-          country: null, photo_url: null, films: 0, first: 0, last: 0, previews: [],
+          country: null, photo_url: photoById.get(r.id) ?? null, films: 0, first: 0, last: 0, previews: [],
         }} meta={r.handle ? `@${r.handle}` : "Member"} footer={
           <div className="admin-card-controls">
             <div className="admin-tags">{r.is_owner ? <span className="status-pill">Owner</span> : r.is_admin ? <span className="status-pill">Admin</span> : <span className="status-pill">Member</span>}{r.is_private && <span className="status-pill">Private</span>}</div>
