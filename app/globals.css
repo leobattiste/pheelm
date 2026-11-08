@@ -49,9 +49,9 @@
   --font: "Switzer", var(--font-inter), var(--font-inter-ext), "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   /* One 18px corner size for surfaces and details; pills and circles keep their shape. */
   --r-thumb: 18px;
-  /* Proportional media corners, with a 6px minimum and 18px maximum. */
-  --r-media: clamp(6px, 9%, 18px) / clamp(6px, 6%, 18px);
-  --r-square-media: clamp(6px, 9%, 18px);
+  /* Shared media proportions: 6px at 40px wide, capped at 18px. */
+  --r-media: min(18px, 15%) / min(18px, 10%);
+  --r-square-media: min(18px, 15%);
   --r-sm: 18px;
   --r: 18px;
   --pill: 999px;
