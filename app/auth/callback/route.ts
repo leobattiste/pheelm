@@ -1,3 +1,4 @@
+import { safeInternalPath } from "@/lib/safe-navigation";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
@@ -5,18 +6,12 @@ import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseEnabled } from "@/lib/supabase
 
 export const dynamic = "force-dynamic";
 
-// Only allow same-site paths, never protocol-relative URLs or encoded redirects.
-function safeNext(value: string | null): string {
-  if (!value || !value.startsWith("/") || value.startsWith("//") || value.includes("\\") || /[\r\n]/.test(value)) return "/me";
-  return value;
-}
-
 const OTP_TYPES = new Set<EmailOtpType>(["email", "magiclink", "signup", "invite", "recovery", "email_change"]);
 
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const remembered = request.cookies.get("signin_next")?.value;
-  const next = safeNext(url.searchParams.get("next") ?? remembered ?? null);
+  const next = safeInternalPath(url.searchParams.get("next") ?? remembered ?? null) ?? "/me";
 
   const redirect = (path: string) => {
     const response = NextResponse.redirect(new URL(path, url.origin));

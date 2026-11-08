@@ -48,7 +48,7 @@ export async function getNotifications(db: SupabaseClient, userId: string, limit
   const personIds = uniq(rows.map((r) => r.person_id ?? null));
 
   const [actors, lists, comments, members, films, people] = await Promise.all([
-    actorIds.length ? db.from("member_profiles").select("id, handle, display_name, is_private").in("id", actorIds) : null,
+    actorIds.length ? db.from("member_profiles").select("id, handle, display_name, is_private, avatar_url").in("id", actorIds) : null,
     listIds.length ? db.from("lists").select("id, title, user_id").in("id", listIds) : null,
     commentIds.length ? db.from("list_comments").select("id, body, removed_at").in("id", commentIds) : null,
     listIds.length ? db.from("list_members").select("list_id, user_id, status, note").in("list_id", listIds) : null,

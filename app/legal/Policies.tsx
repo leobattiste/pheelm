@@ -14,7 +14,7 @@ export function PrivacyPolicy() {
         <h2>What we collect</h2>
         <ul>
           <li><strong>Your account.</strong> Your email address, so you can sign in with a link or code. No password is stored.</li>
-          <li><strong>Your profile.</strong> The name, handle and country you choose, and your privacy settings.</li>
+          <li><strong>Your profile.</strong> The name, handle, country and profile photo you choose, and your privacy settings.</li>
           <li><strong>What you save and do.</strong> Your Watchlist, the films you mark as watched, your collections (and whether each is public), the collections and directors you follow, your comments and likes, and the films you suggest.</li>
           <li><strong>People you block.</strong> Kept so we can stop them commenting on your collections, co-curating with you or notifying you. They aren&rsquo;t told.</li>
           <li><strong>Newsletter.</strong> Your email address and when you signed up.</li>
@@ -25,10 +25,12 @@ export function PrivacyPolicy() {
 
         <h2>Who can see what</h2>
         <ul>
-          <li><strong>Everyone with an account</strong> can see your public profile: your name, handle, country, public collections, and, unless you hide them in Settings, the films you&rsquo;ve watched and the directors you follow. A private profile shows only your handle.</li>
+          <li><strong>Everyone with an account</strong> can see your public profile: your name, handle, country, profile photo and public collections, and, unless you hide them in Settings, the films you&rsquo;ve watched and the directors you follow. A private profile shows only your handle.</li>
           <li><strong>{SITE_NAME}&rsquo;s admins</strong>, who look after films and the community, can see the list of members: handles, when they joined and last signed in, and how many collections, saved films and comments each has. They read reports and messages.</li>
           <li><strong>{SITE_NAME}&rsquo;s owner</strong> can also see members&rsquo; email addresses, to answer them and keep the site safe. Your email is never shown to other members.</li>
         </ul>
+
+        <p>Profile photos are public image files. Making a profile private hides its photo and other profile details from the public member directory. Someone with a previously shared image link may still be able to view that image. Replacing or removing a photo deletes the stored previous image, although cached copies may remain temporarily.</p>
 
         <h2>What&rsquo;s stored on your device</h2>
         <p>
@@ -39,7 +41,7 @@ export function PrivacyPolicy() {
 
         <h2>Who helps us run the site</h2>
         <ul>
-          <li><strong>Supabase</strong> stores accounts, watchlists, collections, the newsletter list and messages.</li>
+          <li><strong>Supabase</strong> stores accounts, profile photos, watchlists, collections, the newsletter list and messages.</li>
           <li><strong>Vercel</strong> hosts the site and measures the anonymous page views.</li>
           <li><strong>TMDB</strong> provides film details, posters and photos, which your browser loads from TMDB&rsquo;s servers.</li>
           <li><strong>YouTube</strong> plays trailers, in its privacy-enhanced mode, only when you press Play.</li>

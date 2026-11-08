@@ -5,21 +5,23 @@
  * - Pages: from the network, falling back to the last copy, then to the offline page.
  * Signed-in pages, admin, auth and API calls are never cached.
  */
-const VERSION = "pheelm-v1";
+const VERSION = "pheelm-v2";
 const STATIC = `${VERSION}-static`;
 const PAGES = `${VERSION}-pages`;
 const IMAGES = `${VERSION}-images`;
 const OFFLINE = "/offline";
-const PRIVATE = /^\/(admin|account|me|notifications|auth|login|api|search-index|random)(\/|$)/;
+// Cache only known public information pages. Member pages and the gated catalog
+// must never be restored for another account from an offline HTML cache.
+const PUBLIC_PAGE = /^\/(about|partnerships|legal|privacy|terms|donate|offline)\/?$/;
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(PAGES).then((c) => c.addAll([OFFLINE, "/"])).then(() => self.skipWaiting()));
+  event.waitUntil(caches.open(PAGES).then((c) => c.addAll([OFFLINE])).then(() => self.skipWaiting()));
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => !k.startsWith(VERSION)).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k.startsWith("pheelm-") && !k.startsWith(`${VERSION}-`)).map((k) => caches.delete(k))))
       .then(() => self.clients.claim()),
   );
 });
@@ -64,14 +66,14 @@ self.addEventListener("fetch", (event) => {
 
   // Pages: network first, then the last saved copy, then the offline page.
   if (request.mode === "navigate" && url.origin === self.location.origin) {
-    if (PRIVATE.test(url.pathname)) {
+    if (!PUBLIC_PAGE.test(url.pathname) || url.search) {
       event.respondWith(fetch(request).catch(() => caches.match(OFFLINE)));
       return;
     }
     event.respondWith(
       fetch(request)
         .then((res) => {
-          if (res.ok && res.type === "basic") caches.open(PAGES).then((c) => c.put(request, res.clone()).then(() => trim(PAGES, 60)));
+          if (res.ok && res.type === "basic" && !res.redirected && !/private|no-store/i.test(res.headers.get("cache-control") || "")) caches.open(PAGES).then((c) => c.put(request, res.clone()).then(() => trim(PAGES, 60)));
           return res;
         })
         .catch(async () => (await caches.match(request)) || (await caches.match(OFFLINE))),

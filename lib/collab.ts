@@ -33,7 +33,7 @@ export async function getCollaboration(db: SupabaseClient | null, listId: string
   const ids = rows.map((r) => r.user_id);
   const people = new Map<string, Member>();
   if (ids.length) {
-    const { data: ps } = await db.from("member_profiles").select("id, handle, display_name, is_private, country").in("id", ids);
+    const { data: ps } = await db.from("member_profiles").select("id, handle, display_name, is_private, country, avatar_url").in("id", ids);
     for (const p of (ps ?? []) as Member[]) people.set(p.id, p);
   }
   const full = rows

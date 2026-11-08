@@ -3,12 +3,12 @@
 import Link from "next/link";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import type { CommentAuthor, CommentItem } from "@/lib/comments";
-import { initials } from "@/lib/format";
 import { getBrowserClient } from "@/lib/supabase/client";
 import { openSignIn } from "./SignInSheet";
+import UserAvatar from "./UserAvatar";
 import Icon from "@/components/Icon";
 
-type Viewer = { id: string; handle: string | null; name: string | null; isPrivate?: boolean } | null;
+type Viewer = { id: string; handle: string | null; name: string | null; avatarUrl?: string | null; isPrivate?: boolean } | null;
 type Props = {
   listId: string;
   ownerId: string;
@@ -131,7 +131,7 @@ export default function Comments({ listId, ownerId, collaboratorIds = [], pinned
     return () => clearInterval(t);
   }, []);
 
-  const me: CommentAuthor | null = viewer?.handle ? { id: viewer.id, handle: viewer.handle, display_name: viewer.name, is_private: viewer.isPrivate } : null;
+  const me: CommentAuthor | null = viewer?.handle ? { id: viewer.id, handle: viewer.handle, display_name: viewer.name, avatar_url: viewer.avatarUrl, is_private: viewer.isPrivate } : null;
   const isOwner = viewer?.id === ownerId;
   const crew = useMemo(() => new Set(collaboratorIds), [collaboratorIds]);
   const canModerate = isOwner || (!!viewer && crew.has(viewer.id));
@@ -271,7 +271,7 @@ export default function Comments({ listId, ownerId, collaboratorIds = [], pinned
     const isPinned = !reply && pinned === c.id;
     return (
       <article className={`comment${reply ? " is-reply" : ""}${pending ? " is-pending" : ""}`} id={`comment-${c.id}`} aria-busy={pending}>
-        <span className="comment-avatar" aria-hidden="true">{initials((a?.display_name || a?.handle || "?").replace(/^@/, ""))}</span>
+        <UserAvatar person={a ?? {}} className="comment-avatar" />
         <div className="comment-main">
           <header className="comment-head">
             {a && !a.is_private ? <Link href={`/@${a.handle}`} className="comment-name">{name}</Link> : <span className="comment-name">{name}</span>}
@@ -345,7 +345,7 @@ export default function Comments({ listId, ownerId, collaboratorIds = [], pinned
         <p className="comments-gate">Comments are turned off for this collection.</p>
       ) : me ? (
         <div className="comment-new">
-          <span className="comment-avatar" aria-hidden="true">{initials((me.display_name || me.handle).replace(/^@/, ""))}</span>
+          <UserAvatar person={me} className="comment-avatar" />
           <Composer label="Add a comment" placeholder={isOwner ? "Say something about your collection" : "Add a comment"} submitLabel="Post" busy={busy}
             onSubmit={(t) => post(t, null)} />
         </div>
@@ -382,7 +382,7 @@ export default function Comments({ listId, ownerId, collaboratorIds = [], pinned
                     )}
                     {replyTo === c.id && me && (
                       <li className="comment-new is-reply">
-                        <span className="comment-avatar" aria-hidden="true">{initials((me.display_name || me.handle).replace(/^@/, ""))}</span>
+                        <UserAvatar person={me} className="comment-avatar" />
                         <Composer label={`Reply to ${c.id}`} placeholder={`Reply to ${c.author?.display_name || "this comment"}`} submitLabel="Reply" busy={busy} autoFocus
                           initial={c.author && c.user_id !== viewer?.id ? `@${c.author.handle} ` : ""}
                           onSubmit={(t) => post(t, c.id)} onCancel={() => setReplyTo(null)} />

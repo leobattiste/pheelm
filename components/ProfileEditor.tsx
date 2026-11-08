@@ -1,19 +1,21 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { updatePublicName, type NameState } from "@/app/me/actions";
 import { COUNTRY_OPTIONS } from "@/lib/countries";
+import ProfilePhotoField from "./ProfilePhotoField";
 import Icon from "@/components/Icon";
 
-type Props = { handle: string; displayName: string | null; isPrivate: boolean; country: string | null };
+type Props = { handle: string; displayName: string | null; isPrivate: boolean; country: string | null; avatarUrl: string | null };
 
 /**
  * "Edit profile" on your own profile page: name, country, handle and the private setting, in a modal.
  * Opens on its own when the page is reached with ?edit (from the account menu).
  */
-export default function ProfileEditor({ handle, displayName, isPrivate, country }: Props) {
+export default function ProfileEditor({ handle, displayName, isPrivate, country, avatarUrl }: Props) {
   const router = useRouter();
+  const [photoVersion, setPhotoVersion] = useState(0);
   const modal = useRef<HTMLDialogElement>(null);
   const [state, action, pending] = useActionState<NameState, FormData>(updatePublicName, null);
 
@@ -39,7 +41,7 @@ export default function ProfileEditor({ handle, displayName, isPrivate, country 
         <Icon name="pencil" />
         Edit profile
       </button>
-      <dialog ref={modal} className="modal" aria-labelledby="edit-profile-title" onClick={(e) => { if (e.target === modal.current) modal.current?.close(); }}>
+      <dialog ref={modal} className="modal" onClose={() => { modal.current?.querySelector("form")?.reset(); setPhotoVersion(v => v + 1); }} aria-labelledby="edit-profile-title" onClick={(e) => { if (e.target === modal.current) modal.current?.close(); }}>
         <div className="modal-head">
           <span className="sheet-handle" aria-hidden="true" />
           <h2 id="edit-profile-title">Edit profile</h2>
@@ -49,6 +51,7 @@ export default function ProfileEditor({ handle, displayName, isPrivate, country 
         </div>
         <form action={action} className="form profile-form">
           <div className="modal-body">
+            <ProfilePhotoField key={`${avatarUrl ?? "none"}:${photoVersion}`} photo={avatarUrl} name={displayName || handle} disabled={pending} />
             <label className="field">
               Name
               <input name="display_name" defaultValue={displayName ?? ""} maxLength={60} placeholder="Your name" autoComplete="name" />

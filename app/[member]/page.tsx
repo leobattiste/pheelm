@@ -1,3 +1,4 @@
+import UserAvatar from "@/components/UserAvatar";
 import Icon from "@/components/Icon";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -47,11 +48,16 @@ export default async function MemberPage({ params }: Params) {
   const found = await getMember(handle);
   if (!found) notFound();
   const { member, collections } = found;
-  const name = member.display_name || `@${member.handle}`;
+  let name = member.display_name || `@${member.handle}`;
 
   const db = await getServerClient();
   const viewer = db ? (await db.auth.getUser()).data.user : null;
   const own = viewer?.id === member.id;
+  if (own && db) {
+    const { data: ownProfile } = await db.from("profiles").select("display_name, country, bio, avatar_url").eq("id", member.id).maybeSingle();
+    if (ownProfile) Object.assign(member, ownProfile);
+    name = member.display_name || `@${member.handle}`;
+  }
 
   if (member.is_private && !own) {
     return (
@@ -103,12 +109,12 @@ export default async function MemberPage({ params }: Params) {
       <header className="person-head">
         {(own || !member.is_private) && (
           <MoreMenu corner label="Profile actions">
-            {own && <ProfileEditor handle={member.handle} displayName={member.display_name} isPrivate={!!member.is_private} country={member.country ?? null} />}
+            {own && <ProfileEditor handle={member.handle} displayName={member.display_name} isPrivate={!!member.is_private} country={member.country ?? null} avatarUrl={member.avatar_url ?? null} />}
             {!member.is_private && <ShareButton item title={`${name} on Pheelm`} />}
             {viewer && !own && <BlockButton memberId={member.id} handle={member.handle} blocked={!!blockRow?.data} />}
           </MoreMenu>
         )}
-        <span className="portrait portrait-initials" aria-hidden="true">{initials(name.replace(/^@/, ""))}</span>
+        <UserAvatar person={member} className="portrait" />
         <div className="person-text">
           <h1>{name}{VERIFIED[member.handle] && <VerifiedBadge title={VERIFIED[member.handle]} />}</h1>
           {member.country && <p className="person-roles">{countryName(member.country)}</p>}

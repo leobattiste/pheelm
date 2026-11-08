@@ -1,5 +1,7 @@
 "use server";
 
+import { safeInternalPath } from "@/lib/safe-navigation";
+
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { collabMessage } from "@/lib/collab";
@@ -57,7 +59,8 @@ export async function respondToInvite(form: FormData) {
   await db.rpc("respond_to_invite", { lid: listId, accept: form.get("accept") === "1" });
   refresh(listId);
   const back = clip(form.get("back"), 200);
-  if (back.startsWith("/")) redirect(back);
+  const destination = safeInternalPath(back);
+  if (destination) redirect(destination);
 }
 
 /** The owner approves or declines a request. */
@@ -67,7 +70,8 @@ export async function respondToRequest(form: FormData) {
   await db.rpc("respond_to_request", { lid: listId, who: uuid(form.get("user_id")), accept: form.get("accept") === "1" });
   refresh(listId);
   const back = clip(form.get("back"), 200);
-  if (back.startsWith("/")) redirect(back);
+  const destination = safeInternalPath(back);
+  if (destination) redirect(destination);
 }
 
 /** The owner removes someone or cancels an invite; anyone leaves or withdraws their request. */
@@ -78,5 +82,6 @@ export async function removeCollaborator(form: FormData) {
   await db.rpc("remove_collaborator", who ? { lid: listId, who } : { lid: listId });
   refresh(listId);
   const back = clip(form.get("back"), 200);
-  if (back.startsWith("/")) redirect(back);
+  const destination = safeInternalPath(back);
+  if (destination) redirect(destination);
 }

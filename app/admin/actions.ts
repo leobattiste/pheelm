@@ -1,5 +1,7 @@
 "use server";
 
+import { safeInternalPath } from "@/lib/safe-navigation";
+
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -380,7 +382,8 @@ export async function setListFlag(f: FormData) {
   revalidatePath(`/c/${id}`);
   revalidatePath("/");
   const back = String(f.get("back") ?? "");
-  if (back.startsWith("/") && !back.startsWith("//")) redirect(back);
+  const destination = safeInternalPath(back);
+  if (destination) redirect(destination);
 }
 
 /** Makes a member an admin, or takes it away. Only the owner can. */

@@ -16,6 +16,12 @@ export async function deleteAccount(_prev: DeleteState, f: FormData): Promise<De
   if (!db) return { ok: false, message: "Accounts aren't available right now." };
   const { data: { user } } = await db.auth.getUser();
   if (!user) return { ok: false, message: "Sign in again, then try." };
+  const { data: photos, error: photoListError } = await db.storage.from("avatars").list(user.id, { limit: 1000 });
+  if (photoListError) return { ok: false, message: "Your profile photo couldn't be removed. Try again." };
+  if (photos?.length) {
+    const { error } = await db.storage.from("avatars").remove(photos.map(photo => `${user.id}/${photo.name}`));
+    if (error) return { ok: false, message: "Your profile photo couldn't be removed. Try again." };
+  }
   const { error } = await db.rpc("delete_my_account");
   if (error) return { ok: false, message: "Your account couldn't be deleted from here. Contact us and we'll do it for you." };
   await db.auth.signOut();

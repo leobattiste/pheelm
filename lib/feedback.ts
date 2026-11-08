@@ -1,3 +1,5 @@
+import { safeInternalPath } from "./safe-navigation";
+
 /**
  * Feedback always says what it's about: the page it came from, or a part of one ("/films/x#watch"),
  * with a readable name ("Where to watch: Daughters of the Dust").
@@ -8,5 +10,5 @@ export function feedbackHref(about: string, label: string) {
 
 /** Only Pheelm's own paths can be what feedback is about. */
 export function safeAbout(value: string | undefined | null) {
-  return value && value.startsWith("/") && !value.startsWith("//") && !value.includes("\\") && value.length <= 500 ? value : null;
+  return value && value.length <= 500 ? safeInternalPath(value) : null;
 }

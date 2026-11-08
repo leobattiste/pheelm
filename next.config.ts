@@ -20,6 +20,7 @@ if (process.env.VERCEL && (!supabaseUrl || !supabaseKey)) {
 }
 
 const nextConfig: NextConfig = {
+  experimental: { serverActions: { bodySizeLimit: "4mb" } },
   // Posters come from many places (TMDB, Supabase storage, links pasted in the admin).
   images: { unoptimized: true },
   // The share images read Inter and Beth Ellen from assets/fonts at run time, so ship those files with them.

@@ -1,3 +1,4 @@
+import { safeInternalPath } from "@/lib/safe-navigation";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getDirectors, getFilms } from "@/lib/data";
@@ -14,7 +15,8 @@ export const metadata: Metadata = { title: "Welcome", robots: { index: false } }
  */
 export default async function WelcomePage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
   const sp = await searchParams;
-  const next = sp.next && sp.next.startsWith("/") && !sp.next.startsWith("//") && !sp.next.startsWith("/welcome") ? sp.next : "/films";
+  const destination = safeInternalPath(sp.next);
+  const next = destination && !destination.startsWith("/welcome") ? destination : "/films";
   const db = await getServerClient();
   if (!db) redirect(next);
   const { data: { user } } = await db.auth.getUser();

@@ -7,10 +7,10 @@ import type { Sort } from "./collection-sorts";
 /** A collection to list in the community: needs a title, this many films and a member name. */
 export const MIN_FILMS = 5;
 
-export type Member = { id: string; handle: string; display_name: string | null; is_private?: boolean; country?: string | null; bio?: string | null };
+export type Member = { id: string; handle: string; display_name: string | null; is_private?: boolean; country?: string | null; bio?: string | null; avatar_url?: string | null };
 
 // Asks for the private setting, country and bio too, and falls back to the basic columns until profiles-private.sql has run.
-const FULL = "id, handle, display_name, is_private, country, bio";
+const FULL = "id, handle, display_name, is_private, country, bio, avatar_url";
 const BASIC = "id, handle, display_name";
 async function members<T>(run: (cols: string) => PromiseLike<{ data: T | null; error: unknown }>): Promise<T | null> {
   const first = await run(FULL);
