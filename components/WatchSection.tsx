@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Icon from "./Icon";
 import type { WatchOption } from "@/lib/types";
 import { serviceName, watchLink } from "@/lib/watch";
 import { feedbackHref } from "@/lib/feedback";
@@ -43,12 +42,10 @@ export default function WatchSection({ watch, title, slug }: { watch: WatchOptio
               <ul className="chip-list">
                 {g.list.map((w) => (
                   <li key={w.provider}>
-                    <a className="chip service-chip" href={w.href} target="_blank" rel="noopener noreferrer">
+                    <a className="platform-link service-chip" aria-label={`Watch ${title} on ${w.provider}`} title={w.provider} href={w.href} target="_blank" rel="noopener noreferrer">
                       {w.logo
                         ? <img className="service-logo" src={w.logo} alt="" width={24} height={24} loading="lazy" />
                         : <span className="service-logo is-letter" aria-hidden="true">{w.provider.replace(/[^A-Za-z0-9]/g, "").slice(0, 1)}</span>}
-                      {w.provider}
-                      <Icon name="external" className="link-out" />
                     </a>
                   </li>
                 ))}

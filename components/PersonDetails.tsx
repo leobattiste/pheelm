@@ -76,10 +76,8 @@ export function PersonLinks({ info }: { info: Pick<PersonInfo, "imdb_id" | "inst
       <dd>
         <span className="link-chips">
           {links.map((l) => (
-            <a key={l.label} className="link-chip" href={l.href} target="_blank" rel="noopener noreferrer">
-              {l.label === "Instagram" && <Icon name="instagram" />}
-              {l.label}
-              <Icon name="external" className="link-out" />
+            <a key={l.label} className="platform-link" aria-label={`${info.name} on ${l.label}`} title={l.label} href={l.href} target="_blank" rel="noopener noreferrer">
+              <Icon name={l.label === "Instagram" ? "instagram" : "imdb"} />
             </a>
           ))}
         </span>

@@ -4,7 +4,7 @@
    red for errors, gold for awards.
    Surfaces: cards are a lighter fill with no border; borders are for controls and for panels
    that float over the page.
-   Every image and card has 16px corners; every button, chip and one-line field is a pill. */
+   Every image and card has 20px corners; every button, chip and one-line field is a pill. */
 
 :root,
 :root[data-theme="dark"] {
@@ -47,10 +47,10 @@
 
 :root {
   --font: "Switzer", var(--font-inter), var(--font-inter-ext), "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  /* One 16px corner size for surfaces and details; pills and circles keep their shape. */
+  /* One 20px corner size for surfaces and details; pills and circles keep their shape. */
   --r-thumb: 4px;
-  --r-sm: 16px;
-  --r: 16px;
+  --r-sm: 20px;
+  --r: 20px;
   --pill: 999px;
 
   /* One spacing scale. Every gap, margin and padding is one of these. */
@@ -153,8 +153,8 @@ svg { flex-shrink: 0; }
   --glass-hover: color-mix(in srgb, var(--surface, var(--bg)) 90%, transparent);
   --glass-filter: blur(24px) saturate(1.6);
   --glass-shadow: 0 12px 40px -12px rgb(0 0 0 / 0.45), 0 2px 8px rgb(0 0 0 / 0.12);
-  --control-icon: 23px;
-  --control-icon-sm: 23px;
+  --control-icon: 24.5px;
+  --control-icon-sm: 24.5px;
   /* Fields, chips and switches are outlined like the secondary buttons, with no fill. */
   --control-fill: var(--glass-bg);
   --control-hover: var(--hover);
@@ -2462,7 +2462,7 @@ html[data-auth="in"][data-chrome="app"] body:has(dialog:modal) .tab-bar { z-inde
   box-shadow: var(--glass-shadow);
 }
 
-/* Small images have their own corner token; surfaces retain 16px corners. */
+/* Small images have their own corner token; surfaces retain 20px corners. */
 :root :is(.director-card .portrait, .hit-portrait, .cast-photo, .notif-poster) { border-radius: var(--r-thumb); }
 :root[data-grid="small"] .film-card .poster { border-radius: var(--r-thumb); }
 
@@ -2521,3 +2521,19 @@ html[data-auth="in"][data-chrome="app"] body:has(dialog:modal) .tab-bar { z-inde
 @media (min-width: 2560px) {
   :root { --catalog-cols: 8; --catalog-dense-cols: 12; }
 }
+
+/* One rendered size for interface and platform icons, including custom SVG controls. */
+:root svg { width: 24.5px; height: 24.5px; }
+:root .icon, :root .verified-mark svg, :root .segmented svg, :root .install-inline { width: 24.5px; height: 24.5px; }
+:root .platform-logo { fill: currentColor; stroke: none; }
+.platform-link { display: inline-grid; place-items: center; flex: none; min-width: 44px; min-height: 44px; padding: 0; color: var(--ink); text-decoration: none; }
+.platform-link:hover { color: var(--muted); }
+:root .platform-link .service-logo { width: 24.5px; height: 24.5px; border-radius: var(--r-thumb); }
+.profile-photo-field { display: flex; flex-wrap: wrap; align-items: start; gap: var(--space-16); }
+.profile-photo-controls { display: grid; flex: 1 1 180px; min-width: 0; gap: var(--space-8); justify-items: start; }
+.profile-photo-preview { display: grid; place-items: center; flex: none; width: 80px; height: 80px; border-radius: var(--r); background: var(--raised); color: var(--muted); object-fit: cover; }
+.user-photo { object-fit: cover; }
+.profile-photo-field input[type="file"] { max-width: 100%; height: auto; padding: var(--space-8); border-radius: var(--r); }
+.profile-photo-field input[type="file"]::file-selector-button { margin-right: var(--space-8); padding: var(--space-8) var(--space-12); border: 1px solid var(--line-strong); border-radius: var(--pill); background: transparent; color: inherit; cursor: pointer; }
+
+.burger { width: 24.5px; height: 24.5px; align-content: center; }
