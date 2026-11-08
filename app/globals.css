@@ -1193,8 +1193,8 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 [data-grid="list"] .film-grid { display: grid; grid-template-columns: 1fr; gap: 0; border-top: 1px solid var(--line); }
 [data-grid="list"] .film-grid .film-card a {
   display: grid;
-  grid-template-columns: 40px minmax(0, 1fr) auto;
-  grid-template-areas: "poster title runtime" "poster meta runtime";
+  grid-template-columns: 40px minmax(0, 1fr);
+  grid-template-areas: "poster title" "poster meta";
   column-gap: var(--space-16);
   align-items: center;
   padding: var(--space-12) var(--space-8);
@@ -1211,8 +1211,8 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 [data-grid="list"] .film-grid .film-card-runtime { grid-area: runtime; display: block; color: var(--muted); font-size: var(--t-md); font-variant-numeric: tabular-nums; text-align: right; }
 @media (min-width: 900px) {
   [data-grid="list"] .film-grid .film-card a {
-    grid-template-columns: 40px minmax(0, 2.2fr) minmax(0, 1.6fr) 64px minmax(0, 1.4fr) 88px;
-    grid-template-areas: "poster title meta year country runtime";
+    grid-template-columns: 40px minmax(0, 2.2fr) minmax(0, 1.6fr) 64px minmax(0, 1.4fr);
+    grid-template-areas: "poster title meta year country";
     padding: var(--space-8) var(--space-12);
   }
   [data-grid="list"] .film-grid .film-card-title, [data-grid="list"] .film-grid .film-card-meta { align-self: center; }
@@ -2478,3 +2478,8 @@ html[data-auth="in"][data-chrome="app"] body:has(dialog:modal) .tab-bar { z-inde
   grid-template-columns: repeat(3, var(--list-thumb-w));
   gap: var(--space-4);
 }
+
+/* List cards keep only their essential details, without empty metadata columns. */
+:root[data-grid="list"] .collection-tile > .collection-desc,
+:root[data-grid="list"] .film-card .film-card-runtime { display: none; }
+:root[data-grid="list"] .collection-tile > .collection-title { grid-row: 1 / span 2; align-self: center; }
