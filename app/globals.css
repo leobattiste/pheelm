@@ -2478,12 +2478,3 @@ html[data-auth="in"][data-chrome="app"] body:has(dialog:modal) .tab-bar { z-inde
   grid-template-columns: repeat(3, var(--list-thumb-w));
   gap: var(--space-4);
 }
-@media (max-width: 479px) {
-  :root[data-grid="list"] :is(.director-grid, .collection-list) .collection-tile { grid-template-columns: minmax(0, 1fr); }
-  :root[data-grid="list"] :is(.director-grid, .collection-list) .collection-fan {
-    grid-column: 1;
-    grid-row: auto;
-    margin-top: var(--space-8);
-  }
-  :root[data-grid="list"] .director-grid .director-card-head { grid-row: auto; }
-}
