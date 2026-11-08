@@ -2672,5 +2672,10 @@ body:has(dialog:modal) .floating-controls { visibility: hidden; }
   gap: 10px;
   width: var(--floating-width);
   max-width: 100%;
-  margin: var(--space-32) auto;
+  margin: var(--space-32) auto 0;
+}
+
+/* At the end of a list, leave exactly the shared 10px gap above navigation. */
+html[data-auth="in"][data-chrome="app"] body:has(.pagination-controls) {
+  padding-bottom: var(--floating-bottom);
 }
