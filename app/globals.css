@@ -2537,3 +2537,8 @@ html[data-auth="in"][data-chrome="app"] body:has(dialog:modal) .tab-bar { z-inde
 .profile-photo-field input[type="file"]::file-selector-button { margin-right: var(--space-8); padding: var(--space-8) var(--space-12); border: 1px solid var(--line-strong); border-radius: var(--pill); background: transparent; color: inherit; cursor: pointer; }
 
 .burger { width: 24.5px; height: 24.5px; align-content: center; }
+
+/* People photos and their initials fallbacks have square corners in every view. */
+:root[data-grid] :is(.portrait.portrait, .avatar:not(.notif-poster), .comment-avatar, .cast-photo, .hit-portrait, .follow-portrait, .welcome-face, .profile-photo-preview, .user-photo) {
+  border-radius: 0;
+}
