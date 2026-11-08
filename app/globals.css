@@ -2378,7 +2378,7 @@ html[data-auth="in"][data-chrome="app"] .film-bar { inset: auto auto var(--float
 :root .more-panel :is(.button, .link-button, a, button):not(dialog *):focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
 
 /* Cards use the menu bar's glass material at rest, across every page and grid mode. */
-:root :is(.film-card, .collection-tile, .admin-managed-card, .ways li, .anniversary a, .stat, .fieldset, .inbox li, .public-name, .person-head, .person-facts > div, .filmography > li, .welcome-person, .cast :is(a, button)) {
+:root :is(.collection-tile, .admin-managed-card, .ways li, .anniversary a, .stat, .fieldset, .inbox li, .public-name, .person-head, .person-facts > div, .filmography > li, .welcome-person, .cast :is(a, button)) {
   background: var(--glass-bg);
   -webkit-backdrop-filter: var(--glass-filter);
   backdrop-filter: var(--glass-filter);
@@ -2409,7 +2409,7 @@ html[data-auth="in"][data-chrome="app"] .film-bar { inset: auto auto var(--float
 .filmography { gap: var(--space-8); overflow: visible; background: transparent; }
 :root .admin .stat:not(a):hover { background: var(--glass-bg); }
 @media (hover: hover) {
-  :root :is(.film-card, .collection-tile, .admin-managed-card, .ways li, .anniversary a, a.stat, .inbox li, .public-name, .person-head, .person-facts > div, .filmography > li, .welcome-person, .cast :is(a, button)):hover { background: var(--glass-hover); }
+  :root :is(.collection-tile, .admin-managed-card, .ways li, .anniversary a, a.stat, .inbox li, .public-name, .person-head, .person-facts > div, .filmography > li, .welcome-person, .cast :is(a, button)):hover { background: var(--glass-hover); }
   :root .admin-managed-card > .collection-tile:hover { background: transparent; }
 }
 
@@ -2488,3 +2488,36 @@ html[data-auth="in"][data-chrome="app"] body:has(dialog:modal) .tab-bar { z-inde
    List links add no second inset inside the card. */
 :root[data-grid="list"] .film-card { padding: var(--space-12); }
 :root[data-grid="list"] .film-grid .film-card > a { padding: 0; }
+
+/* Films sit directly on the page: only the poster and its information remain. */
+:root .film-card,
+:root .film-card:hover,
+:root[data-grid] .film-card {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+:root .film-card > .quick-save { top: var(--space-8); right: var(--space-8); }
+@media (max-width: 639px) {
+  .button.more { width: 100%; }
+}
+
+/* Laptop grids start at four cards, or six in the denser view, and expand
+   with monitor space. List mode always remains a single column. */
+@media (min-width: 1024px) {
+  :root { --catalog-cols: 4; --catalog-dense-cols: 6; }
+  :root:not([data-grid="list"]):not([data-grid="small"]) :is(.film-grid, .director-grid, .collection-list) { grid-template-columns: repeat(var(--catalog-cols), minmax(0, 1fr)); }
+  :root[data-grid="small"] :is(.film-grid, .director-grid, .collection-list) { grid-template-columns: repeat(var(--catalog-dense-cols), minmax(0, 1fr)); }
+}
+@media (min-width: 1600px) {
+  :root { --catalog-cols: 5; --catalog-dense-cols: 8; }
+}
+@media (min-width: 1920px) {
+  :root { --catalog-cols: 6; --catalog-dense-cols: 10; }
+}
+@media (min-width: 2560px) {
+  :root { --catalog-cols: 8; --catalog-dense-cols: 12; }
+}
