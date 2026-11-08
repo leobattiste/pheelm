@@ -1,187 +1,143 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
 import Icon from "./Icon";
 import { openSignIn } from "./SignInSheet";
 
 type Status = "loading" | "signed-out" | "off" | "on";
 type List = { id: string; title: string; count: number; has: boolean; shared?: boolean };
-
-// A plus (cross) before the film is saved, a checkmark once it is.
-const PLUS = <Icon name="plus" />;
+type Props = { filmId: string; filmTitle: string; pickerOnly?: boolean; initialUserId?: string; initialSaved?: boolean; onClose?: () => void };
 const CHECK = <Icon name="check" />;
+const PLUS = <Icon name="plus" />;
 
-/**
- * Saves the film to the visitor's watchlist ("All"), then opens a sheet to sort it into their
- * own collections or start a new one. Checks the session in the browser so film pages stay static.
- */
-export default function WatchlistButton({ filmId, filmTitle }: { filmId: string; filmTitle: string }) {
+/** Opening the picker never writes data. All saves follow an explicit selection. */
+export default function WatchlistButton({ filmId, filmTitle, pickerOnly = false, initialUserId, initialSaved = false, onClose }: Props) {
   const path = usePathname();
+  const router = useRouter();
+  const changed = useRef(false);
+  const id = useId();
   const sheet = useRef<HTMLDialogElement>(null);
-  const [status, setStatus] = useState<Status>("loading");
-  const [userId, setUserId] = useState<string | null>(null);
+  const [status, setStatus] = useState<Status>(initialUserId ? initialSaved ? "on" : "off" : "loading");
+  const [userId, setUserId] = useState<string | null>(initialUserId ?? null);
   const [lists, setLists] = useState<List[] | null>(null);
   const [newTitle, setNewTitle] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
 
   useEffect(() => {
-    const db = getBrowserClient();
-    if (!db) return setStatus("signed-out");
-    db.auth.getSession().then(async ({ data }) => {
-      const id = data.session?.user.id ?? null;
-      setUserId(id);
-      if (!id) return setStatus("signed-out");
-      const { data: row } = await db.from("watchlist").select("film_id").eq("user_id", id).eq("film_id", filmId).maybeSingle();
-      setStatus(row ? "on" : "off");
-    });
-  }, [filmId]);
+    let live = true;
+    if (!initialUserId) {
+      const db = getBrowserClient();
+      if (!db) setStatus("signed-out");
+      else void db.auth.getSession().then(async ({ data }) => {
+        const uid = data.session?.user.id ?? null;
+        if (!live) return;
+        setUserId(uid);
+        if (!uid) return setStatus("signed-out");
+        const { data: row } = await db.from("watchlist").select("film_id").eq("user_id", uid).eq("film_id", filmId).maybeSingle();
+        if (live) setStatus(row ? "on" : "off");
+      });
+    }
+    const changed = (event: Event) => {
+      const change = (event as CustomEvent<{ filmId?: string; saved?: boolean }>).detail;
+      if (change?.filmId === filmId) setStatus(change.saved ? "on" : "off");
+    };
+    window.addEventListener("watchlistchange", changed);
+    return () => { live = false; window.removeEventListener("watchlistchange", changed); };
+  }, [filmId, initialUserId]);
 
-  const loadLists = async () => {
+  const loadLists = useCallback(async () => {
     const db = getBrowserClient();
     if (!db || !userId) return;
+    setLoadFailed(false);
     type Row = { id: string; title: string; list_films: { film_id: string }[] };
-    const [{ data }, shared] = await Promise.all([
+    const [own, shared] = await Promise.all([
       db.from("lists").select("id, title, list_films(film_id)").eq("user_id", userId).order("created_at"),
-      // Collections you collaborate on (none until collaboration.sql has run).
       db.from("list_members").select("lists(id, title, list_films(film_id))").eq("user_id", userId).eq("status", "active"),
     ]);
-    const toList = (l: Row, isShared: boolean): List => ({
-      id: l.id,
-      title: l.title,
-      count: l.list_films.length,
-      has: l.list_films.some((f) => f.film_id === filmId),
-      shared: isShared,
-    });
-    const sharedLists = ((shared.data ?? []) as unknown as { lists: Row | null }[]).map((r) => r.lists).filter((l): l is Row => !!l);
-    setLists([...(data ?? []).map((l: Row) => toList(l, false)), ...sharedLists.map((l) => toList(l, true))]);
-  };
+    if (own.error || shared.error) { setLists(null); setLoadFailed(true); setError("Your collections couldn't be loaded. Try again."); return; }
+    const toList = (l: Row, isShared: boolean): List => ({ id: l.id, title: l.title, count: l.list_films.length, has: l.list_films.some(f => f.film_id === filmId), shared: isShared });
+    const sharedLists = ((shared.data ?? []) as unknown as { lists: Row | null }[]).map(r => r.lists).filter((l): l is Row => !!l);
+    setLists([...(own.data ?? []).map((l: Row) => toList(l, false)), ...sharedLists.map(l => toList(l, true))]);
+  }, [filmId, userId]);
 
-  if (status === "signed-out" || status === "loading") {
-    return (
-      <Link className="pill-button" data-action="watchlist" href={`/login?next=${encodeURIComponent(path)}`} aria-busy={status === "loading"} aria-label="Add to watchlist" title="Add to watchlist"
-        onClick={(e) => { if (status === "signed-out" && openSignIn()) e.preventDefault(); }}>
-        {PLUS}
-        Watchlist
-      </Link>
-    );
-  }
-
-  const db = getBrowserClient()!;
-
-  const open = async () => {
-    setError("");
-    if (status === "off") {
-      // Saving puts the film in All straight away; the sheet is for sorting it further.
-      setStatus("on");
-      const { error } = await db.from("watchlist").upsert({ user_id: userId, film_id: filmId });
-      if (error) {
-        setStatus("off");
-        return;
-      }
-    }
+  useEffect(() => {
+    if (!pickerOnly || !userId) return;
     sheet.current?.showModal();
-    loadLists();
-  };
+    void loadLists();
+  }, [pickerOnly, userId, loadLists]);
 
+  const mark = (saved: boolean) => {
+    changed.current = true;
+    setStatus(saved ? "on" : "off");
+    window.dispatchEvent(new CustomEvent("watchlistchange", { detail: { filmId, saved } }));
+  };
+  const open = () => { setError(""); setLists(null); sheet.current?.showModal(); void loadLists(); };
+  const toggleAll = async () => {
+    const db = getBrowserClient();
+    if (!db || !userId || busy) return;
+    setBusy(true); setError("");
+    const remove = status === "on";
+    const result = remove
+      ? await db.rpc("remove_film_from_watchlist", { fid: filmId })
+      : await db.from("watchlist").upsert({ user_id: userId, film_id: filmId });
+    if (result.error) setError("Your watchlist couldn't be updated. Try again.");
+    else { mark(!remove); if (remove) await loadLists(); }
+    setBusy(false);
+  };
   const toggleList = async (list: List) => {
-    setLists((ls) => ls?.map((l) => (l.id === list.id ? { ...l, has: !l.has, count: l.count + (l.has ? -1 : 1) } : l)) ?? null);
-    const { error } = list.has
+    const db = getBrowserClient();
+    if (!db || busy) return;
+    setBusy(true); setError("");
+    const result = list.has
       ? await db.from("list_films").delete().eq("list_id", list.id).eq("film_id", filmId)
-      : await db.from("list_films").insert({ list_id: list.id, film_id: filmId });
-    if (error) {
-      setError("That didn't save. Try again.");
-      loadLists();
-    }
+      : await db.rpc("save_film_to_collection", { fid: filmId, lid: list.id });
+    if (result.error) setError("That didn't save. Try again.");
+    else { changed.current = true; if (!list.has && !list.shared) mark(true); await loadLists(); }
+    setBusy(false);
   };
-
-  const create = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const create = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const db = getBrowserClient();
     const title = newTitle.trim().slice(0, 80);
-    if (!title) return;
-    setBusy(true);
-    setError("");
-    const { data, error } = await db.from("lists").insert({ user_id: userId, title }).select("id, title").single();
-    if (error || !data) {
-      setBusy(false);
-      setError(/relation|does not exist|schema cache/i.test(error?.message ?? "") ? "Collections aren't set up yet: the site owner needs to run supabase/member-collections.sql." : "The collection couldn't be created. Try again.");
-      return;
-    }
-    await db.from("list_films").insert({ list_id: data.id, film_id: filmId });
-    setLists((ls) => [...(ls ?? []), { id: data.id, title: data.title, count: 1, has: true }]);
-    setNewTitle("");
+    if (!db || !title || busy) return;
+    setBusy(true); setError("");
+    const { error } = await db.rpc("save_film_to_collection", { fid: filmId, collection_title: title });
+    if (error) setError("The collection couldn't be created. Try again.");
+    else { mark(true); setNewTitle(""); await loadLists(); }
     setBusy(false);
   };
 
-  const remove = async () => {
-    setBusy(true);
-    // Leaving All also takes the film out of your own collections. Shared ones keep it, since
-    // other people chose it too.
-    const ids = (lists ?? []).filter((l) => l.has && !l.shared).map((l) => l.id);
-    if (ids.length) await db.from("list_films").delete().eq("film_id", filmId).in("list_id", ids);
-    const { error } = await db.from("watchlist").delete().eq("user_id", userId).eq("film_id", filmId);
-    setBusy(false);
-    if (!error) {
-      setStatus("off");
-      sheet.current?.close();
-    }
-  };
-
+  if (status === "loading") return pickerOnly ? null : (
+    <button type="button" className="pill-button" data-action="watchlist" disabled aria-busy="true" aria-label="Loading watchlist">{PLUS}Watchlist</button>
+  );
+  if (status === "signed-out") return pickerOnly ? null : (
+    <Link className="pill-button" data-action="watchlist" href={`/login?next=${encodeURIComponent(path)}`} aria-label="Add to watchlist" title="Add to watchlist"
+      onClick={e => { if (openSignIn()) e.preventDefault(); }}>{PLUS}Watchlist</Link>
+  );
   return (
     <>
-      <button type="button" className="pill-button" data-action="watchlist" aria-pressed={status === "on"} aria-haspopup="dialog" onClick={open}
-        aria-label={status === "on" ? "On your watchlist. Change collections" : "Add to watchlist"} title={status === "on" ? "Change collections" : "Add to watchlist"}>
-        {status === "on" ? CHECK : PLUS}
-        Watchlist
-      </button>
-
-      <dialog ref={sheet} className="modal save-sheet" aria-labelledby="save-title" onClick={(e) => { if (e.target === sheet.current) sheet.current?.close(); }}>
+      {!pickerOnly && <button type="button" className="pill-button" data-action="watchlist" aria-pressed={status === "on"} aria-haspopup="dialog" onClick={open} aria-label={status === "on" ? "On your watchlist. Change collections" : "Add to watchlist"} title={status === "on" ? "Change collections" : "Add to watchlist"}>{status === "on" ? CHECK : PLUS}Watchlist</button>}
+      <dialog ref={sheet} className="modal save-sheet" aria-labelledby={`${id}-title`} onClose={() => { if (changed.current) { router.refresh(); changed.current = false; } onClose?.(); }} onCancel={e => { if (busy) e.preventDefault(); }} onClick={e => { if (!busy && e.target === sheet.current) sheet.current?.close(); }}>
         <div className="modal-head">
           <span className="sheet-handle" aria-hidden="true" />
-          <h2 id="save-title">Saved to All</h2>
-          <button type="button" className="icon-button" onClick={() => sheet.current?.close()} aria-label="Close">
-            <Icon name="close" />
-          </button>
+          <h2 id={`${id}-title`}>Add to Watchlist</h2>
+          <button type="button" className="icon-button" onClick={() => sheet.current?.close()} disabled={busy} aria-label="Close"><Icon name="close" /></button>
         </div>
-        <div className="modal-body">
-          <p className="save-intro">
-            <strong>{filmTitle}</strong> is on your watchlist. Add it to one of your collections too.
-          </p>
+        <div className="modal-body" aria-busy={busy}>
+          <p className="save-intro"><strong>{filmTitle}</strong>. Choose All or a collection. Your own collections also appear in All.</p>
           <ul className="save-lists">
-            <li>
-              <span className="save-row is-fixed">
-                <span className="save-check is-on" aria-hidden="true">{CHECK}</span>
-                <span className="save-name">All</span>
-                <span className="save-count">Watchlist</span>
-              </span>
-            </li>
-            {lists === null ? (
-              <li className="save-note">Loading your collections…</li>
-            ) : (
-              lists.map((l) => (
-                <li key={l.id}>
-                  <button type="button" className="save-row" role="checkbox" aria-checked={l.has} onClick={() => toggleList(l)}>
-                    <span className={`save-check${l.has ? " is-on" : ""}`} aria-hidden="true">{l.has && CHECK}</span>
-                    <span className="save-name">{l.title}{l.shared && <span className="tile-icon" title="Shared"><Icon name="users" label="Shared" /></span>}</span>
-                  </button>
-                </li>
-              ))
-            )}
+            <li><button type="button" className="save-row" role="checkbox" aria-checked={status === "on"} disabled={busy} onClick={toggleAll}><span className={`save-check${status === "on" ? " is-on" : ""}`} aria-hidden="true">{status === "on" && CHECK}</span><span className="save-name">All</span><span className="save-count">Watchlist</span></button></li>
+            {lists === null ? <li className="save-note">{loadFailed ? <button type="button" className="link-button" onClick={() => { setError(""); void loadLists(); }}>Retry loading collections</button> : "Loading your collections…"}</li> : lists.map(l => <li key={l.id}><button type="button" className="save-row" role="checkbox" aria-checked={l.has} disabled={busy} onClick={() => void toggleList(l)}><span className={`save-check${l.has ? " is-on" : ""}`} aria-hidden="true">{l.has && CHECK}</span><span className="save-name">{l.title}{l.shared && <span className="tile-icon" title="Shared"><Icon name="users" label="Shared" /></span>}</span></button></li>)}
           </ul>
-          <form className="save-new" onSubmit={create}>
-            <label className="visually-hidden" htmlFor="new-collection">New collection name</label>
-            <input id="new-collection" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} placeholder="New collection, e.g. Date night" maxLength={80} />
-            <button className="button ghost" type="submit" disabled={busy || !newTitle.trim()}>Create</button>
-          </form>
+          <form className="save-new" onSubmit={create}><label className="visually-hidden" htmlFor={`${id}-new`}>New collection name</label><input id={`${id}-new`} value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder="New collection, e.g. Date night" maxLength={80} disabled={busy} /><button className="button ghost" type="submit" disabled={busy || !newTitle.trim()}>Create</button></form>
           {error && <p className="notice error" role="alert">{error}</p>}
         </div>
-        <div className="modal-foot">
-          <button type="button" className="button ghost" onClick={remove} disabled={busy}>Remove from watchlist</button>
-          <button type="button" className="button" onClick={() => sheet.current?.close()}>Done</button>
-        </div>
+        <div className="modal-foot">{status === "on" && <button type="button" className="button ghost" onClick={toggleAll} disabled={busy}>Remove from watchlist</button>}<button type="button" className="button" onClick={() => sheet.current?.close()} disabled={busy}>Done</button></div>
       </dialog>
     </>
   );

@@ -2545,3 +2545,28 @@ html[data-auth="in"][data-chrome="app"] body:has(dialog:modal) .tab-bar { z-inde
 .legal-page .profile-tabs::-webkit-scrollbar { display: block; height: 4px; }
 .legal-page .profile-tabs::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: var(--pill); }
 .legal-page .tab-panel { min-width: 0; }
+
+/* White search glyphs keep their contrast in both themes. */
+:root .search-bar.search-bar input,
+:root .search-trigger,
+:root .search-trigger:hover {
+  background: #181818;
+  color: #fff;
+  border-color: #555;
+  color-scheme: dark;
+}
+:root .search-field { background: #181818; color: #fff; }
+:root :is(.search-bar, .search-field, .search-trigger) svg,
+:root .search-field :is(input, .search-close) { color: #fff; }
+:root .search-bar input::placeholder,
+:root .search-field input::placeholder { color: #b8b8b8; }
+
+/* Cards and buttons stay flat, including hover, selected and pressed states. */
+:root :is(button, .button, .chip, .pill-button, .round-button, .icon-button, .search-trigger, .tabs a, .admin-subtabs a,
+  .film-card, .film-card > a, .collection-tile, .admin-managed-card, .ways li, .anniversary a, .stat,
+  .fieldset, .inbox li, .public-name, .person-head, .person-facts > div, .filmography > li,
+  .welcome-person, .cast a, .poster) { box-shadow: none !important; }
+:root :is(button, .button, .chip, .pill-button, .round-button, .icon-button, .search-trigger, .tabs a, .admin-subtabs a):focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
