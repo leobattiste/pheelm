@@ -2577,7 +2577,7 @@ html[data-auth="in"][data-chrome="app"] body:has(dialog:modal) .tab-bar { z-inde
 .back-to-top {
   position: fixed;
   z-index: 34;
-  right: max(var(--gutter), env(safe-area-inset-right));
+  right: calc((100% - var(--floating-width)) / 2);
   bottom: var(--floating-bottom);
   display: grid;
   place-items: center;
