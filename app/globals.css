@@ -2386,9 +2386,9 @@ html[data-auth="in"][data-chrome="app"] .film-bar { inset: auto auto var(--float
   border-radius: var(--r);
   box-shadow: var(--glass-shadow);
 }
-.film-card { min-width: 0; padding: var(--space-12); }
-.film-card > .quick-save { top: var(--space-20); right: var(--space-20); }
-[data-grid="small"] .film-card { padding: var(--space-8); }
+.film-card { min-width: 0; padding: var(--space-16); }
+.film-card > .quick-save { top: var(--space-24); right: var(--space-24); }
+[data-grid="small"] .film-card { padding: var(--space-12); }
 [data-grid="list"] .film-grid { gap: var(--space-8); border-top: 0; }
 :root[data-grid="list"] .film-grid .film-card > a,
 :root[data-grid="list"] .film-grid .film-card > a:hover {
@@ -2483,3 +2483,8 @@ html[data-auth="in"][data-chrome="app"] body:has(dialog:modal) .tab-bar { z-inde
 :root[data-grid="list"] .collection-tile > .collection-desc,
 :root[data-grid="list"] .film-card .film-card-runtime { display: none; }
 :root[data-grid="list"] .collection-tile > .collection-title { grid-row: 1 / span 2; align-self: center; }
+
+/* Match profile-card spacing: 16px in large grids, 12px in small and list views.
+   List links add no second inset inside the card. */
+:root[data-grid="list"] .film-card { padding: var(--space-12); }
+:root[data-grid="list"] .film-grid .film-card > a { padding: 0; }
