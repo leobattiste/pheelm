@@ -16,9 +16,10 @@ export default function FilmActionBar({ title }: { title: string }) {
     const actions = document.querySelector(".film-actions");
     if (!actions) return;
     // Checked on every scroll, so a fast flick past the buttons can't skip it.
-    const onScroll = () => setShow(actions.getBoundingClientRect().bottom < 0);
+    const onScroll = () => setShow(window.matchMedia("(max-width: 799px)").matches && actions.getBoundingClientRect().bottom < 0);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
     // Mirror the watchlist button's saved state.
     const watch = actions.querySelector<HTMLElement>("[data-action='watchlist']");
     const read = () => setSaved(watch?.getAttribute("aria-pressed") === "true");
@@ -27,11 +28,14 @@ export default function FilmActionBar({ title }: { title: string }) {
     if (watch && mo) mo.observe(watch, { attributes: true, attributeFilter: ["aria-pressed"] });
     return () => {
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
       mo?.disconnect();
     };
   }, []);
 
   const press = (action: string) => document.querySelector<HTMLElement>(`.film-actions [data-action='${action}']`)?.click();
+
+  if (!show) return null;
 
   return (
     <div className="film-bar" data-show={show} aria-hidden={!show} inert={!show}>
