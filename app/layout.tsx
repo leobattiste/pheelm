@@ -83,7 +83,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </Script>
         <a className="skip" href="#main">Skip to content</a>
         <SiteHeader />
-        <main id="main">{children}</main>
+        <main id="main" tabIndex={-1}>{children}</main>
         <footer className="site-footer">
           <div className="footer-top">
             <div className="footer-about">
@@ -145,7 +145,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="footer-bottom">
             <div className="footer-tools">
               <ThemeToggle />
-              <BackToTop />
             </div>
             <p>
               &copy; {new Date().getFullYear()} {SITE_NAME}. A project by Leo Battiste with the courtesy of TMDB.
@@ -153,6 +152,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
         </footer>
         <TabBar />
+        <BackToTop />
         <InstallBanner />
         <WelcomeNudge />
         <Search />

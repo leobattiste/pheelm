@@ -2574,3 +2574,34 @@ html[data-auth="in"][data-chrome="app"] body:has(dialog:modal) .tab-bar { z-inde
   outline: 2px solid var(--ink);
   outline-offset: 3px;
 }
+
+/* A single round companion to the floating navigation, shown after scrolling. */
+.back-to-top {
+  position: fixed;
+  z-index: 34;
+  right: max(var(--gutter), env(safe-area-inset-right));
+  bottom: var(--floating-bottom);
+  display: grid;
+  place-items: center;
+  width: var(--tab-h, 60px);
+  height: var(--tab-h, 60px);
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--pill);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  color: var(--ink);
+  box-shadow: none;
+  cursor: pointer;
+  animation: back-to-top-rise 0.3s var(--ease) both;
+}
+.back-to-top:hover { background: var(--glass-hover); }
+.back-to-top:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.back-to-top .icon { width: var(--control-icon); height: var(--control-icon); }
+body:has(dialog:modal) .back-to-top { visibility: hidden; }
+@keyframes back-to-top-rise {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) { .back-to-top { animation: none; } }
