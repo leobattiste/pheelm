@@ -147,6 +147,8 @@ svg { flex-shrink: 0; }
   --control-pad: var(--space-20);
   --control-pad-sm: var(--space-16);
   --control-gap: var(--space-8);
+  --floating-width: min(400px, calc(100vw - 2 * var(--gutter)));
+  --floating-bottom: calc(var(--space-12) + env(safe-area-inset-bottom));
   --glass-bg: color-mix(in srgb, var(--surface, var(--bg)) 78%, transparent);
   --glass-hover: color-mix(in srgb, var(--surface, var(--bg)) 90%, transparent);
   --glass-filter: blur(24px) saturate(1.6);
@@ -1933,7 +1935,8 @@ html[data-auth="in"] .visitor-only { display: none !important; }
 html[data-auth="in"][data-chrome="app"] {
   --tab-gap: calc(var(--space-12) + env(safe-area-inset-bottom));
   --tab-h: 60px;
-  --tab-width: min(400px, calc(100vw - 2 * var(--gutter)));
+  --tab-width: var(--floating-width);
+  --floating-bottom: calc(var(--tab-gap) + var(--tab-h) + 10px);
   --tab-bar: calc(var(--tab-h) + var(--tab-gap) + var(--space-12));
 }
 html[data-auth="in"][data-chrome="app"] .site-header { display: contents; }
@@ -2237,7 +2240,7 @@ a.admin-attention-row:hover, .admin-attention-row a:hover { color: var(--ink); t
 .modal-foot { background: transparent; }
 .film-actions > .pill-button:hover, .film-actions > .more-menu > .round-button:hover,
 .film-bar > .pill-button:hover, .film-bar > .round-button:hover { background: var(--glass-hover); }
-.film-actions > .pill-button[aria-pressed="true"], .film-bar > .pill-button[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink), var(--glass-shadow); }
+.film-actions > .pill-button[aria-pressed="true"], .film-bar > .pill-button[aria-pressed="true"] { border-color: var(--ink); box-shadow: none; }
 @media (hover: hover) {
   .film-card:hover, .collection-tile:hover, .anniversary a:hover, .stat:hover, .welcome-person:hover,
   [data-grid="list"] .film-grid .film-card a:hover {
@@ -2248,3 +2251,41 @@ a.admin-attention-row:hover, .admin-attention-row a:hover { color: var(--ink); t
     box-shadow: inset 0 0 0 1px var(--line), var(--glass-shadow);
   }
 }
+
+/* Shared floating geometry for every modal, with or without the member bar. */
+:root :is(.modal, .search-dialog, .trailer-dialog) {
+  position: fixed;
+  inset: auto auto var(--floating-bottom) 50%;
+  width: var(--floating-width);
+  max-width: var(--floating-width);
+  height: auto;
+  max-height: calc(100dvh - var(--floating-bottom) - 10px - env(safe-area-inset-top));
+  margin: 0;
+  border-radius: 10px;
+  transform: translateX(-50%);
+  transform-origin: bottom center;
+}
+:root :is(.modal, .search-dialog, .trailer-dialog)[open] { animation: menu-rise 0.22s var(--ease); }
+:root .trailer-dialog { overflow-y: auto; }
+:root .modal-head, :root .modal-foot { flex-shrink: 0; }
+:root .modal-body { min-height: 0; }
+:root .modal > form { min-height: 0; overflow-y: auto; }
+.film-bar {
+  inset: auto auto var(--floating-bottom) 50%;
+  width: var(--floating-width);
+  padding: var(--space-8);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  box-shadow: var(--glass-shadow);
+  transform: translate(-50%, 110%);
+}
+.film-bar[data-show="true"] { transform: translateX(-50%); }
+html[data-auth="in"][data-chrome="app"] .film-bar { inset: auto auto var(--floating-bottom) 50%; border-radius: 10px; }
+/* Buttons stay flat; keyboard focus remains visible. */
+.film-actions > .pill-button, .film-actions > .more-menu > .round-button,
+.film-bar > .pill-button, .film-bar > .round-button { box-shadow: none; }
+.pill-button[aria-pressed="true"] { animation: none; }
+:is(.film-actions, .film-bar) :is(.pill-button, .round-button):focus-visible { box-shadow: var(--control-ring); }
