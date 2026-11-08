@@ -150,7 +150,7 @@ svg { flex-shrink: 0; }
   --control-pad: var(--space-20);
   --control-pad-sm: var(--space-16);
   --control-gap: var(--space-8);
-  --floating-width: min(400px, calc(100vw - 2 * var(--gutter)));
+  --floating-width: min(340px, calc(85vw - 1.7 * var(--gutter)));
   --floating-bottom: calc(var(--space-12) + env(safe-area-inset-bottom));
   --glass-bg: color-mix(in srgb, var(--surface, var(--bg)) 78%, transparent);
   --glass-hover: color-mix(in srgb, var(--surface, var(--bg)) 90%, transparent);
