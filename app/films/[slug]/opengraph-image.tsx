@@ -38,9 +38,9 @@ export default async function Image({ params }: { params: Promise<{ slug: string
         </div>
         {film.poster_url ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={film.poster_url} width={334} height={502} style={{ borderRadius: 16, objectFit: "cover", boxShadow: "0 30px 60px rgba(0,0,0,0.35)" }} alt="" />
+          <img src={film.poster_url} width={334} height={502} style={{ borderRadius: 20, objectFit: "cover", boxShadow: "0 30px 60px rgba(0,0,0,0.35)" }} alt="" />
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", width: 334, height: 502, padding: 32, borderRadius: 16, background: card.bg, color: card.fg, boxShadow: "0 30px 60px rgba(0,0,0,0.35)" }}>
+          <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", width: 334, height: 502, padding: 32, borderRadius: 20, background: card.bg, color: card.fg, boxShadow: "0 30px 60px rgba(0,0,0,0.35)" }}>
             <div style={{ display: "flex", fontSize: 44, fontWeight: 700, lineHeight: 1.05, letterSpacing: -1 }}>{film.title}</div>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 18 }}>
               <span>{directors}</span>
