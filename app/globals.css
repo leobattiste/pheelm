@@ -1871,7 +1871,6 @@ a.person-row-name:hover { text-decoration: underline; text-underline-offset: 0.2
   border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); box-shadow: var(--shadow);
   animation: install-in 0.4s var(--ease) both;
 }
-body:has(.film-bar[data-show="true"]) .install-banner { bottom: calc(84px + env(safe-area-inset-bottom)); }
 .install-icon { flex-shrink: 0; width: 44px; height: 44px; border-radius: var(--r); }
 .install-text { display: grid; flex: 1; min-width: 0; gap: 2px; line-height: 1.35; }
 .install-text strong { color: var(--ink); font-weight: 700; }
@@ -1977,8 +1976,6 @@ html[data-auth="in"][data-chrome="app"] .tab-bar {
 .tab-dot { position: absolute; top: -1px; right: -3px; width: 9px; height: 9px; border-radius: 50%; background: var(--error); box-shadow: 0 0 0 2px var(--bg); }
 /* What sits at the bottom moves up above the pill. */
 html[data-auth="in"][data-chrome="app"] .film-bar { bottom: var(--tab-bar); border: 1px solid var(--line); border-radius: var(--pill); left: var(--gutter); right: var(--gutter); padding: var(--space-8); }
-html[data-auth="in"][data-chrome="app"] .install-banner { bottom: calc(var(--tab-bar) + var(--space-4)); }
-html[data-auth="in"][data-chrome="app"] body:has(.film-bar[data-show="true"]) .install-banner { bottom: calc(var(--tab-bar) + 72px); }
 /* With no header above, pages start a little lower, clear of the phone's status bar. */
 html[data-auth="in"][data-chrome="app"] main { padding-top: env(safe-area-inset-top); }
 /* The menu from ⋯: no section links (they're in the pill); the footer's links and newsletter are. */
@@ -2678,4 +2675,65 @@ body:has(dialog:modal) .floating-controls { visibility: hidden; }
 /* At the end of a list, leave exactly the shared 10px gap above navigation. */
 html[data-auth="in"][data-chrome="app"] body:has(.pagination-controls) {
   padding-bottom: var(--floating-bottom);
+}
+
+/* Shared clearance for page ends and panels around the main navigation. */
+html[data-auth="in"][data-chrome="app"] body {
+  --above-bar-controls: 0px;
+  padding-bottom: var(--floating-bottom);
+}
+html[data-auth="in"][data-chrome="app"] body:is(:has(.floating-controls), :has(.pagination-controls)) {
+  --above-bar-controls: calc(var(--tab-h) + 10px);
+}
+html[data-auth="in"][data-chrome="app"] body:has(.floating-controls):not(:has(.pagination-controls)) {
+  padding-bottom: calc(var(--floating-bottom) + var(--above-bar-controls));
+}
+html[data-auth="in"][data-chrome="app"] body .install-banner {
+  left: 50%;
+  right: auto;
+  width: var(--floating-width);
+  bottom: calc(var(--floating-bottom) + var(--above-bar-controls));
+  transform: translateX(-50%);
+  animation: menu-rise .22s var(--ease);
+}
+html[data-auth="in"][data-chrome="app"] .welcome-foot {
+  bottom: calc(var(--floating-bottom) + var(--above-bar-controls));
+}
+body:has(dialog:modal) .install-banner { visibility: hidden; }
+
+/* Desktop: actions to the left, navigation in the middle, top control to the right.
+   Pagination remains at the end of the list; dialogs remain centered above navigation. */
+@media (min-width: 900px) {
+  html[data-auth="in"][data-chrome="app"] body:is(:has(.floating-controls), :has(.pagination-controls)) { --above-bar-controls: 0px; }
+  html[data-auth="in"][data-chrome="app"] .floating-controls {
+    bottom: var(--tab-gap);
+    height: var(--tab-h);
+    pointer-events: none;
+  }
+  html[data-auth="in"][data-chrome="app"] :is(.floating-controls, .pagination-controls) > .back-to-top {
+    position: absolute;
+    left: calc(100% + 10px);
+    right: auto;
+    bottom: 0;
+    pointer-events: auto;
+  }
+  html[data-auth="in"][data-chrome="app"] .floating-controls > .film-bar.film-bar,
+  html[data-auth="in"][data-chrome="app"] .pagination-controls > .button.more {
+    position: absolute;
+    left: auto;
+    right: calc(100% + 10px);
+    bottom: 0;
+    width: 180px;
+    pointer-events: auto;
+  }
+  html[data-auth="in"][data-chrome="app"] .pagination-controls {
+    position: relative;
+    height: var(--tab-h);
+  }
+  html[data-auth="in"][data-chrome="app"] body:has(.pagination-controls) {
+    padding-bottom: var(--tab-gap);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-auth="in"][data-chrome="app"] body .install-banner { animation: none; }
 }
