@@ -22,13 +22,13 @@ export default async function Image() {
         <div style={{ display: "flex", position: "relative", width: 420 }}>
           {films.map((f, i) => {
             const c = posterColours(f.title);
-            const place = { position: "absolute" as const, left: i * 70, top: 40 + (i % 2) * 30, width: 200, height: 300, borderRadius: 12, transform: `rotate(${(i - 1.5) * 4}deg)` };
+            const place = { position: "absolute" as const, left: i * 70, top: 40 + (i % 2) * 30, width: 200, height: 300, borderRadius: 16, transform: `rotate(${(i - 1.5) * 4}deg)` };
             if (f.poster_url) {
               // eslint-disable-next-line @next/next/no-img-element
               return <img key={f.id} src={f.poster_url} width={200} height={300} style={{ ...place, objectFit: "cover" }} alt="" />;
             }
             return (
-              <div key={f.id} style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", position: "absolute", left: i * 70, top: 40 + (i % 2) * 30, width: 200, height: 300, padding: 18, borderRadius: 12, background: c.bg, color: c.fg, transform: `rotate(${(i - 1.5) * 4}deg)` }}>
+              <div key={f.id} style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", position: "absolute", left: i * 70, top: 40 + (i % 2) * 30, width: 200, height: 300, padding: 18, borderRadius: 16, background: c.bg, color: c.fg, transform: `rotate(${(i - 1.5) * 4}deg)` }}>
                 <div style={{ display: "flex", fontSize: 28, fontWeight: 700, lineHeight: 1.05 }}>{f.title}</div>
                 <div style={{ display: "flex", fontSize: 14 }}>{f.year}</div>
               </div>
