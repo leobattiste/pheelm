@@ -1933,6 +1933,7 @@ html[data-auth="in"] .visitor-only { display: none !important; }
 html[data-auth="in"][data-chrome="app"] {
   --tab-gap: calc(var(--space-12) + env(safe-area-inset-bottom));
   --tab-h: 60px;
+  --tab-width: min(400px, calc(100vw - 2 * var(--gutter)));
   --tab-bar: calc(var(--tab-h) + var(--tab-gap) + var(--space-12));
 }
 html[data-auth="in"][data-chrome="app"] .site-header { display: contents; }
@@ -1942,7 +1943,7 @@ html[data-auth="in"][data-chrome="app"] body { padding-bottom: var(--tab-bar); }
 html[data-auth="in"][data-chrome="app"] .tab-bar {
   position: fixed; z-index: 35; left: 50%; bottom: var(--tab-gap); transform: translateX(-50%);
   display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
-  width: min(400px, calc(100% - 2 * var(--gutter))); height: var(--tab-h); padding: 0 var(--space-8);
+  width: var(--tab-width); height: var(--tab-h); padding: 0 var(--space-8);
   border: 1px solid var(--line); border-radius: var(--pill);
   background: var(--glass-bg);
   -webkit-backdrop-filter: var(--glass-filter); backdrop-filter: var(--glass-filter);
@@ -2027,16 +2028,24 @@ html:not([data-chrome="app"]) .menu-find { display: none; }
 .quick-save:focus-visible { outline: none; box-shadow: var(--control-ring); }
 [data-grid="list"] .quick-save, [data-grid="small"] .quick-save { display: none; }
 @media (hover: hover) { .film-card .quick-save:not([aria-pressed="true"]) { opacity: 0; } .film-card:hover .quick-save, .quick-save:focus-visible { opacity: 1; } }
-/* From the pill on wider screens, the menu floats just above it, centred. */
-@media (min-width: 900px) {
-  html[data-auth="in"][data-chrome="app"] .menu-sheet {
-    inset: auto auto calc(var(--tab-bar) + var(--space-8)) 50%;
-    max-height: calc(100dvh - var(--tab-bar) - 32px);
-    transform: translateX(-50%);
-    transform-origin: bottom center;
-  }
-  html[data-auth="in"][data-chrome="app"] .menu-sheet[open] { animation: menu-rise 0.22s var(--ease); }
+/* The expanded app menu aligns with the bottom bar on every screen. */
+html[data-auth="in"][data-chrome="app"] .menu-sheet {
+  position: fixed;
+  inset: auto auto calc(var(--tab-gap) + var(--tab-h) + 10px) 50%;
+  width: var(--tab-width);
+  max-width: var(--tab-width);
+  height: auto;
+  max-height: calc(100dvh - var(--tab-gap) - var(--tab-h) - 20px - env(safe-area-inset-top));
+  margin: 0;
+  border-radius: 10px;
+  overflow-y: auto;
+  transform: translateX(-50%);
+  transform-origin: bottom center;
 }
+html[data-auth="in"][data-chrome="app"] .menu-sheet .menu-inner { min-height: 0; height: auto; padding: 0 var(--space-20) var(--space-20); }
+html[data-auth="in"][data-chrome="app"] .menu-sheet .menu-top { height: 60px; flex: none; }
+html[data-auth="in"][data-chrome="app"] .menu-sheet::backdrop { background: transparent; }
+html[data-auth="in"][data-chrome="app"] .menu-sheet[open] { animation: menu-rise 0.22s var(--ease); }
 @keyframes menu-rise { from { opacity: 0; transform: translateX(-50%) translateY(8px) scale(0.97); } }
 
 /* Create your profile: a preview of how you'll appear, then the two fields. */
