@@ -131,7 +131,7 @@ function Browser({ films, facets, params }: { films: FilmCard[]; facets: Facets;
         <>
           <div className={waiting ? "shuffle-wait" : "shuffle-ready"}><FilmGrid films={results.slice(0, shown)} priority={6} /></div>
           {shown < results.length && (
-            <button type="button" className="button ghost more" onClick={() => setShown(shown + PAGE)}>
+            <button type="button" className="button ghost more" data-load-more onClick={() => setShown(shown + PAGE)}>
               Load more
             </button>
           )}

@@ -2603,3 +2603,68 @@ body:has(dialog:modal) .back-to-top { visibility: hidden; }
   to { opacity: 1; transform: translateY(0); }
 }
 @media (prefers-reduced-motion: reduce) { .back-to-top { animation: none; } }
+
+/* The action pill and top button together align with the main menu bar. */
+.floating-controls {
+  position: fixed;
+  z-index: 34;
+  left: 50%;
+  bottom: var(--floating-bottom);
+  width: var(--floating-width);
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  transform: translateX(-50%);
+  animation: floating-controls-rise 320ms var(--ease) both;
+}
+:root .floating-controls > .back-to-top {
+  position: static;
+  flex: 0 0 var(--tab-h, 60px);
+  animation: none;
+}
+:root .floating-controls > .film-bar.film-bar,
+.floating-load-more {
+  position: static;
+  inset: auto;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-evenly;
+  gap: 0;
+  min-width: 0;
+  width: auto;
+  height: var(--tab-h, 60px);
+  padding: 0;
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--pill);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  color: var(--ink);
+  box-shadow: none;
+  transform: none;
+  animation: none;
+  font: inherit;
+}
+:root .floating-controls .film-bar > :is(.pill-button, .round-button) {
+  flex: 1;
+  min-width: 44px;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: var(--pill);
+  background: transparent;
+  box-shadow: none;
+}
+.floating-load-more { cursor: pointer; }
+.floating-load-more:hover { background: var(--glass-hover); }
+.floating-load-more:disabled { opacity: .5; cursor: wait; }
+.floating-load-more:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+body:has(dialog:modal) .floating-controls { visibility: hidden; }
+@keyframes floating-controls-rise {
+  from { opacity: 0; transform: translate(-50%, 24px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+@media (prefers-reduced-motion: reduce) { .floating-controls { animation: none; } }

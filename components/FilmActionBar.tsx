@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Icon from "@/components/Icon";
+import { BackToTopButton } from "./BackToTop";
 
 /**
- * On phones, once Trailer, Watchlist and Share scroll out of view, the same three buttons sit in a
+ * Once Trailer, Watchlist and Share scroll out of view, the same three buttons sit in a
  * bar at the bottom of the screen. Its buttons press the originals, so the watchlist state and the
  * trailer player stay in one place.
  */
@@ -16,7 +17,7 @@ export default function FilmActionBar({ title }: { title: string }) {
     const actions = document.querySelector(".film-actions");
     if (!actions) return;
     // Checked on every scroll, so a fast flick past the buttons can't skip it.
-    const onScroll = () => setShow(window.matchMedia("(max-width: 799px)").matches && actions.getBoundingClientRect().bottom < 0);
+    const onScroll = () => setShow(actions.getBoundingClientRect().bottom < 0);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
@@ -38,22 +39,23 @@ export default function FilmActionBar({ title }: { title: string }) {
   if (!show) return null;
 
   return (
-    <div className="film-bar" data-show={show} aria-hidden={!show} inert={!show}>
-      <button type="button" className="pill-button" onClick={() => press("trailer")} aria-label="Trailer" title="Trailer">
-        <Icon name="play" className="solid" />
-        Trailer
-      </button>
-      <button type="button" className="pill-button" aria-pressed={saved} onClick={() => press("watchlist")} aria-label={saved ? "Change collections" : "Add to watchlist"} title={saved ? "Change collections" : "Add to watchlist"}>
-        {saved ? (
-          <Icon name="check" />
-        ) : (
-          <Icon name="plus" />
-        )}
-        {saved ? "Saved" : "Watchlist"}
-      </button>
-      <button type="button" className="round-button" onClick={() => press("share")} aria-label={`Share ${title}`} title="Share">
-        <Icon name="share" />
-      </button>
+    <div className="floating-controls film-floating">
+      <div className="film-bar" data-show={show} aria-hidden={!show} inert={!show}>
+        <button type="button" className="pill-button" onClick={() => press("trailer")} aria-label="Trailer" title="Trailer">
+          <Icon name="play" className="solid" />
+        </button>
+        <button type="button" className="pill-button" aria-pressed={saved} onClick={() => press("watchlist")} aria-label={saved ? "Change collections" : "Add to watchlist"} title={saved ? "Change collections" : "Add to watchlist"}>
+          {saved ? (
+            <Icon name="check" />
+          ) : (
+            <Icon name="plus" />
+          )}
+        </button>
+        <button type="button" className="round-button" onClick={() => press("share")} aria-label={`Share ${title}`} title="Share">
+          <Icon name="share" />
+        </button>
+      </div>
+      <BackToTopButton />
     </div>
   );
 }

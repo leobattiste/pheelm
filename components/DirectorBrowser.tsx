@@ -105,7 +105,7 @@ export default function DirectorBrowser({ directors }: { directors: DirectorSumm
             {results.slice(0, shown).map((d) => <DirectorCard key={d.id} director={d} />)}
           </ul>
           {shown < results.length && (
-            <button type="button" className="button ghost more" onClick={() => setShown(shown + PAGE)}>
+            <button type="button" className="button ghost more" data-load-more onClick={() => setShown(shown + PAGE)}>
               Load more
             </button>
           )}
