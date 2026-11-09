@@ -2765,3 +2765,6 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
   outline: none !important;
   box-shadow: none !important;
 }
+
+/* Logout follows feedback in its own divided section without the account block minimum height. */
+.menu-signout { min-height: 0; }
