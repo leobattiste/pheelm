@@ -1,53 +1,106 @@
 import Link from "next/link";
-import DirectorCard from "@/components/DirectorCard";
 import { getDirectors, toDirectorSummary } from "@/lib/data";
-import AdminBrowserToolbar from "../AdminBrowserToolbar";
-import { requireAdmin } from "@/lib/admin";
 import { countryName } from "@/lib/format";
+import AdminBrowserToolbar from "../AdminBrowserToolbar";
+import AdminViewControls from "../AdminViewControls";
+import { requireAdmin } from "@/lib/admin";
+import PeopleBulkControls, { type AdminPersonRow } from "./PeopleBulkControls";
+import { bulkPersonChange } from "./bulk-actions";
 
-const SIZE=50;
-export default async function AdminPeople({searchParams}:{searchParams:Promise<{q?:string;all?:string;missing?:string;page?:string}>}){
-  const {db}=await requireAdmin("/admin/people");
-  const sp=await searchParams;
-  const page=Math.max(1,Math.min(10000,Number.parseInt(sp.page??"1",10)||1));
-  const q=(sp.q??"").trim().slice(0,100);
-  let query=db.from("admin_people_quality")
-    .select("id,slug,name,country,bio,photo_url,credits,directed",{count:"exact"})
-    .order("name").range((page-1)*SIZE,page*SIZE-1);
-  if(!sp.all) query=query.gt("directed",0);
-  if(q) query=query.ilike("name",`%${q}%`);
-  if(sp.missing==="bio") query=query.or("bio.is.null,bio.eq.");
-  if(sp.missing==="photo") query=query.or("photo_url.is.null,photo_url.eq.");
-  const [{data:people,count,error}, directors] = await Promise.all([query, getDirectors().catch(() => [])]);
-  const summaries = new Map(directors.map(d => [d.id, toDirectorSummary(d)]));
-  const href=(p:number)=>`/admin/people?${new URLSearchParams({q,all:sp.all??"",missing:sp.missing??"",page:String(p)}).toString()}`;
+type Params = {
+  q?: string; all?: string; missing?: string; country?: string; visibility?: string;
+  sort?: string; page?: string; limit?: string; updated?: string; error?: string;
+};
+const SIZES = ["20", "40", "80", "all"];
+
+export default async function AdminPeople({ searchParams }: { searchParams: Promise<Params> }) {
+  const { db, owner } = await requireAdmin("/admin/people");
+  const sp = await searchParams;
+  const everyone = sp.all === "1";
+  // There are many more credited people than directors. "All" is limited to
+  // the Directors view to avoid rendering thousands of unrelated people at once.
+  const size = SIZES.includes(sp.limit ?? "") ? sp.limit! : "40";
+  const effectiveSize = everyone && size === "all" ? "80" : size;
+  const perPage = effectiveSize === "all" ? 500 : Number(effectiveSize);
+  const page = effectiveSize === "all" ? 1 : Math.max(1, Math.min(5000, Number.parseInt(sp.page ?? "1", 10) || 1));
+  const q = (sp.q ?? "").trim().slice(0, 100);
+  const missing = ["bio", "photo"].includes(sp.missing ?? "") ? sp.missing! : "";
+  const visibility = ["shown", "hidden"].includes(sp.visibility ?? "") ? sp.visibility! : "";
+  const country = /^[A-Za-z]{2}$/.test(sp.country ?? "") ? sp.country!.toUpperCase() : "";
+  const sort = sp.sort === "za" ? "za" : "az";
+
+  const build = () => {
+    let query = everyone
+      ? db.from("people").select("id,slug,name,country,bio,photo_url,in_directory,credits(role)", { count: "exact" })
+      : db.from("people").select("id,slug,name,country,bio,photo_url,in_directory,credits!inner(role)", { count: "exact" }).eq("credits.role", "director");
+    if (q) query = query.ilike("name", `%${q.replace(/[%_]/g, "")}%`);
+    if (missing === "bio") query = query.or("bio.is.null,bio.eq.");
+    if (missing === "photo") query = query.or("photo_url.is.null,photo_url.eq.");
+    if (country) query = query.eq("country", country);
+    if (visibility) query = query.eq("in_directory", visibility === "shown");
+    return query.order("name", { ascending: sort === "az" });
+  };
+
+  const load = async () => {
+    const first = await build().range(effectiveSize === "all" ? 0 : (page - 1) * perPage, effectiveSize === "all" ? 499 : page * perPage - 1);
+    if (first.error || effectiveSize !== "all") return first;
+    const rows = [...(first.data ?? [])];
+    const count = first.count ?? rows.length;
+    for (let start = 500; start < count; start += 500) {
+      const next = await build().range(start, Math.min(start + 499, count - 1));
+      if (next.error) return { data: rows, count, error: next.error };
+      rows.push(...(next.data ?? []));
+      if (!next.data?.length) break;
+    }
+    return { data: rows, count, error: null };
+  };
+
+  const [result, directors, countryRows] = await Promise.all([
+    load(),
+    getDirectors().catch(() => []),
+    db.from("people").select("country").not("country", "is", null).limit(10000),
+  ]);
+  const { data: people, count, error } = result;
+  const summaries = new Map(directors.map((director) => [director.id, toDirectorSummary(director)]));
+  const rows: AdminPersonRow[] = (people ?? []).map((person) => ({
+    ...person,
+    credits: (person.credits ?? []) as { role: string }[],
+    previews: summaries.get(person.id)?.previews ?? [],
+  }));
+  const countries = [...new Set((countryRows.data ?? []).map((person) => person.country).filter((value): value is string => !!value))].sort();
+  const baseParams = new URLSearchParams();
+  for (const [key, value] of Object.entries(sp)) if (!["page", "updated", "error"].includes(key) && value) baseParams.set(key, value);
+  const href = (next: number) => { const p = new URLSearchParams(baseParams); p.set("page", String(next)); return `/admin/people?${p.toString()}`; };
+
   return (
-    <>
-      <div className="admin-head"><div><h2 className="admin-section-heading">{sp.all?"Directors & people":"Directors"}</h2><p className="muted">Edit biographical details, portraits and filmography connections.</p></div><Link className="button ghost small" href="/admin/quality">Content quality</Link></div>
-      <AdminBrowserToolbar action="/admin/people" query={q} placeholder="Search directors and people" filters={[
-        { name: "all", label: "Show", value: sp.all ?? "", options: [{ value: "", label: "Directors" }, { value: "1", label: "Everyone" }] },
-        { name: "missing", label: "Incomplete records", value: sp.missing ?? "", options: [{ value: "", label: "All records" }, { value: "bio", label: "Missing biography" }, { value: "photo", label: "Missing portrait" }] },
-      ]} />
-      <div className="actions">
-        <Link aria-pressed={!sp.all} className="button ghost small" href="/admin/people">Directors</Link>
-        <Link aria-pressed={!!sp.all} className="button ghost small" href="/admin/people?all=1">Everyone</Link>
+    <section className="admin-directors">
+      <div className="admin-head">
+        <div><h2 className="admin-section-heading">{everyone ? "Directors & people" : "Directors"}</h2><p className="muted">Manage the directory, biographies, portraits and filmography connections.</p></div>
+        <Link className="button ghost small" href="/admin/quality">Content quality</Link>
       </div>
-      <p className="muted">{count??0} matching people.</p>
-      {error?<p className="notice error">Could not load people. Check the admin database upgrade.</p>:(
-        <ul className="director-grid">
-          {(people ?? []).map(p => <DirectorCard key={p.id} href={`/admin/people/${p.id}`} director={{
-            id: p.id, slug: p.slug, name: p.name, country: p.country, photo_url: p.photo_url,
-            films: p.directed, first: 0, last: 0, previews: summaries.get(p.id)?.previews ?? [],
-          }} meta={`${p.country ? countryName(p.country) + " • " : ""}${p.directed} films directed`} footer={
-            <div className="admin-card-controls"><span>{p.credits} credits</span><div className="admin-tags">
-              {!p.bio && <span className="status-pill">Missing biography</span>}
-              {!p.photo_url && <span className="status-pill">Missing portrait</span>}
-            </div><Link href={`/admin/people/${p.id}`} className="link-button">Edit person</Link></div>
-          } />)}
-        </ul>
+      {!!sp.updated && <p className="notice ok" role="status">{sp.updated} people updated.</p>}
+      {sp.error === "selection" && <p className="notice error">Select at least one person first.</p>}
+      {sp.error === "credits" && <p className="notice error">No one was deleted. Some selected people still have film credits; remove or reassign those credits first.</p>}
+      <AdminBrowserToolbar action="/admin/people" query={q} pageSize={effectiveSize} placeholder="Search directors" filters={[
+        { name: "all", label: "Show", value: everyone ? "1" : "", options: [{ value: "", label: "Directors" }, { value: "1", label: "Everyone" }] },
+        { name: "visibility", label: "Directory visibility", value: visibility, options: [{ value: "", label: "All" }, { value: "shown", label: "Shown" }, { value: "hidden", label: "Hidden" }] },
+        { name: "country", label: "Country", value: country, options: [{ value: "", label: "All countries" }, ...countries.map((code) => ({ value: code, label: countryName(code) }))] },
+        { name: "missing", label: "Incomplete records", value: missing, options: [{ value: "", label: "Any" }, { value: "bio", label: "Missing biography" }, { value: "photo", label: "Missing portrait" }] },
+        { name: "sort", label: "Sort by", value: sort, options: [{ value: "az", label: "Name A–Z" }, { value: "za", label: "Name Z–A" }] },
+      ]} />
+      <AdminViewControls count={count ?? 0} shown={rows.length} size={effectiveSize} noun={everyone ? "people" : "directors"} allowAll={!everyone} />
+      {error ? <p className="notice error">Could not load directors. Try again.</p> : (
+        <form action={bulkPersonChange}>
+          <PeopleBulkControls people={rows} canDelete={owner} />
+        </form>
       )}
-      {!people?.length&&!error&&<p className="empty">No matching people.</p>}
-      <div className="actions admin-pagination">{page>1&&<Link className="button ghost small" href={href(page-1)}>Previous</Link>}<span className="muted">Page {page} of {Math.max(1,Math.ceil((count??0)/SIZE))}</span>{page*SIZE<(count??0)&&<Link className="button ghost small" href={href(page+1)}>Next</Link>}</div>
-    </>
+      {!rows.length && !error && <p className="empty">No matching people.</p>}
+      {effectiveSize !== "all" && <div className="actions admin-pagination">
+        {page > 1 && <Link className="button ghost small" href={href(page - 1)}>Previous</Link>}
+        <span className="muted">Page {page} of {Math.max(1, Math.ceil((count ?? 0) / perPage))}</span>
+        {page * perPage < (count ?? 0) && <Link className="button ghost small" href={href(page + 1)}>Next</Link>}
+      </div>}
+      <p className="muted admin-directory-note">Publishing a person enables their directory listing. They appear on the public Directors page when they also have a directing credit on a published film.</p>
+    </section>
   );
 }
