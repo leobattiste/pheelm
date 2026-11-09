@@ -2,17 +2,19 @@
 
 import { useEffect, useRef, useState } from "react";
 import Icon from "@/components/Icon";
+import { useSearchParams } from "next/navigation";
 
 export type BulkOperation = "publish" | "draft" | "delete" | "feature" | "unfeature";
 
 export function useAdminSelection(key: "films" | "people") {
   const storageKey = `pheelm:admin-selection:${key}:v1`;
+  const updated = useSearchParams().get("updated");
   const [selected, setSelected] = useState<string[]>([]);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     try {
-      if (new URLSearchParams(window.location.search).has("updated")) {
+      if (updated !== null) {
         sessionStorage.removeItem(storageKey);
         setSelected([]);
       } else {
@@ -21,7 +23,7 @@ export function useAdminSelection(key: "films" | "people") {
       }
     } catch { setSelected([]); }
     setReady(true);
-  }, [storageKey]);
+  }, [storageKey, updated]);
 
   useEffect(() => {
     if (!ready) return;
