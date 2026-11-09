@@ -15,7 +15,7 @@ const WAYS: [string, string][] = [
 
 export default function PartnershipsPage() {
   return (
-    <article className="page narrow info-page">
+    <article className="page full-width info-page">
       <header className="page-head">
         <h1>Partnership</h1>
         <p className="lead">{SITE_NAME} works with the people who make, show and teach films by Black directors.</p>

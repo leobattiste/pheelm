@@ -13,7 +13,7 @@ export const PAGE_COPY = {
   directors: "Discover Black directors, their backgrounds, and their work.",
   collections: "Explore curated selections of films based on themes, genres, and more.",
   about: "Learn more about Pheelm and why we created the platform.",
-  submit: "Suggest a missing film as a fan, or submit your own film as its filmmaker or rights holder.",
+  submit: "Suggest a film you think we should feature on Pheelm.",
   submitOwn: "Own a film or represent its rights holder? Share the details for its film page. We review submissions before publication. Include the information you want on the film page.",
   signIn: "Sign in or create an account to save films and make collections.",
   account: "Manage your account and your film submissions.",

@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function LegalPage() {
   return (
-    <article className="page narrow info-page legal-page">
+    <article className="page full-width info-page legal-page">
       <header className="page-head">
         <h1>Legal</h1>
         <p className="lead">Privacy, rights and the rules for using {SITE_NAME}. Updated {LEGAL_UPDATED}.</p>

@@ -16,7 +16,7 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
   }
   const topic = sp.topic === "press" || sp.topic === "privacy" ? sp.topic : "general";
   return (
-    <article className="page narrow info-page enquiry-page">
+    <article className="page full-width info-page enquiry-page">
       <header className="page-head">
         <h1>Contact</h1>
         <p className="lead">Get in touch for general enquiries, press or privacy requests. Leave your email so we can reply.</p>

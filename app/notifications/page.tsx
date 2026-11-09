@@ -70,7 +70,7 @@ const KIND_ICONS: Record<Notification["type"], IconName> = {
 function Item({ n }: { n: Notification }) {
   const link = href(n);
   return (
-    <li className={`notif${n.read_at ? "" : " is-unread"}`}>
+    <li className={`notif collection-tile${n.read_at ? "" : " is-unread"}`}>
       <span className="notif-avatar">
         {n.type === "new_film" || n.type === "collection_film" ? (
           n.film?.poster_url

@@ -38,7 +38,7 @@ export default function CollectionsToolbar({ signedIn, feed, sort }: { signedIn:
           <button
             key={o.value}
             type="button"
-            className="chip"
+            className={`chip${o.value === "all" ? " feed-all" : ""}`}
             aria-pressed={feed === o.value}
             onClick={() => {
               if (o.value === "following" && !signedIn) { openSignIn("signup"); return; }

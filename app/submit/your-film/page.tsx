@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getServerClient } from "@/lib/supabase/server";
 import OwnFilmForm from "./OwnFilmForm";
-import SubmissionNav from "@/components/SubmissionNav";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Submit your film", description: PAGE_COPY.submitOwn };
@@ -14,13 +13,12 @@ export default async function SubmitOwnFilmPage() {
   const user = db ? (await db.auth.getUser()).data.user : null;
 
   return (
-    <section className="page narrow suggestion-page own-film-page">
+    <section className="page full-width suggestion-page own-film-page">
       <header className="page-head">
-        <h1>Suggest a film</h1>
-        <p className="lead">{PAGE_COPY.submit}</p>
+        <h1>Submit your film</h1>
+        <p className="lead">{PAGE_COPY.submitOwn}</p>
       </header>
-      <SubmissionNav owner />
-      <p className="muted submission-intro">{PAGE_COPY.submitOwn}</p>
+      <p className="muted submission-intro">Want to recommend someone else&rsquo;s film? <Link href="/submit">Suggest a film</Link>.</p>
       {!db ? (
         <p className="notice">Submissions aren&rsquo;t open yet. Check back soon.</p>
       ) : user ? (
