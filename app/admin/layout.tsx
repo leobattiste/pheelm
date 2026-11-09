@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import AdminNav from "./AdminNav";
+import "./admin-browser.css";
 import { requireAdmin } from "@/lib/admin";
 
 export const dynamic = "force-dynamic";
