@@ -92,6 +92,7 @@ export default function SiteHeader() {
           <div className="menu-site">
             <nav className="menu-links" aria-label={SITE_NAME}>
               <Link href="/about">About</Link>
+              <Link href="/help" aria-current={current("/help")}>Help</Link>
               <Link href="/partnerships">Partnership</Link>
               <Link href="/contact">Contact</Link>
               <Link href="/legal">Legal</Link>
