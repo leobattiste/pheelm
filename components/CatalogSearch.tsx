@@ -93,12 +93,11 @@ function Browser({ entries, mode }: {
     const [state, setState] = useState<SearchState>(() => cleanState(new URLSearchParams(params), mode));
     const [shown, setShown] = useState(PAGE);
     const [history, setHistory] = useState<HistoryItem[]>([]);
-    const [copied, setCopied] = useState('');
     const [filtersOpen, setFiltersOpen] = useState(false);
     const modal = useRef<HTMLDialogElement>(null);
     const inputId = useId();
     const historyKey = 'pheelm:catalog-search:' + mode + ':v1';
-    useEffect(() => { setState(cleanState(new URLSearchParams(params), mode)); setShown(PAGE); setCopied(''); }, [params, mode]);
+    useEffect(() => { setState(cleanState(new URLSearchParams(params), mode)); setShown(PAGE); }, [params, mode]);
     useEffect(() => { try {
         const saved: unknown = JSON.parse(localStorage.getItem(historyKey) ?? '[]');
         if (Array.isArray(saved))
@@ -155,15 +154,8 @@ function Browser({ entries, mode }: {
    <SearchField mode={mode} value={state.q ?? ''} onChange={q => set('q', q)} results={results} history={history} onClearHistory={clearHistory} onHistory={s => { commit(s); remember(s); }} onSubmit={submit} onVisit={() => remember(state)} proposal={proposal}/>
    <button type="button" className="button ghost filter-button" aria-haspopup="dialog" onClick={() => { setFiltersOpen(true); modal.current?.showModal(); }}><Icon name="filter"/><span className="filter-label">Filters</span>{active.length > 0 && <span className="badge">{active.length}</span>}</button>
   </div>
-  <p className="catalog-search-hint muted">{mode === 'films' ? 'Search titles, directors, cast or crew. Try “Senegalese dramas under 100 minutes”.' : 'Search names, countries or films they directed. Try “Nigerian directors” or “Moonlight”.'} Press Enter to search.</p>
-  <div className="result-bar" aria-live="polite"><span className="result-count">{results.length} {results.length === 1 ? (mode === 'films' ? 'film' : 'director') : mode}</span>
-   <button type="button" className="link-button" onClick={async () => { try {
-        await navigator.clipboard.writeText(window.location.href);
-        setCopied('Search link copied');
-    }
-    catch {
-        setCopied('Copy this page’s address to share your search.');
-    } }}>Share search</button><span role="status" className="muted">{copied}</span>
+  <div className="result-bar" aria-live="polite">
+   {(!!state.q?.trim() || active.length > 0) && <span className="result-count">{results.length} {results.length === 1 ? 'result' : 'results'}</span>}
    {active.length > 0 && <ul className="chip-list">{active.map(k => <li key={k}><button type="button" className="chip" aria-label={'Remove ' + filterLabel(k, state[k]!)} onClick={() => set(k, '')}>{filterLabel(k, state[k]!)}<Icon name="close" className="x"/></button></li>)}<li><button type="button" className="link-button" onClick={clearFilters}>Clear filters</button></li></ul>}
   </div>
   {proposal && <div className="catalog-interpretation"><span>Search with filters: {Object.entries(proposal).filter(([k, v]) => k !== 'q' && v).map(([k, v]) => filterLabel(k as SearchKey, v!)).join(' · ')}</span><button type="button" className="button ghost" onClick={submit}>Apply filters</button></div>}
@@ -190,3 +182,4 @@ export default function CatalogSearch(props: {
 }) {
     return <Suspense fallback={<p className="muted" role="status">Loading search…</p>}><Browser {...props}/></Suspense>;
 }
+

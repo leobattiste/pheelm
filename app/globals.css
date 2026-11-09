@@ -2860,11 +2860,10 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 :focus { outline: none !important; }
 
 /* Catalog search retains the existing 60px controls and glass material. */
-.catalog-toolbar { position: relative; z-index: 40; }
+.catalog-toolbar { position: relative; z-index: 40; background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
 .catalog-search-control { position: relative; flex: 1; min-width: 0; }
 .catalog-search-control .search-bar { width: 100%; max-width: none; }
 .catalog-search-control .search-bar > svg { z-index: 1; }
-.catalog-search-hint { margin: 0 0 var(--space-16); font-size: var(--t-sm); }
 .catalog-suggestions {
  position: absolute; z-index: 50; inset: calc(100% + 8px) 0 auto;
  max-height: min(60dvh, 540px); overflow-y: auto; padding: var(--space-8);
@@ -2891,3 +2890,4 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
  .catalog-interpretation { flex-direction: column; align-items: stretch; }
  .catalog-suggestion-head { align-items: flex-start; flex-wrap: wrap; }
 }
+
