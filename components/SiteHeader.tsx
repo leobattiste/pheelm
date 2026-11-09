@@ -77,7 +77,7 @@ export default function SiteHeader() {
               <Link key={l.href} href={l.href} aria-current={current(l.href)}><Icon name={l.icon} />{l.label}</Link>
             ))}
           </nav>
-          <AccountMenu onNavigate={() => menu.current?.close()} />
+          <AccountMenu onNavigate={() => menu.current?.close()}>
           <nav className="menu-more menu-support" aria-label="Support Pheelm">
             {DONATE_URL ? (
               <a href={DONATE_URL} target="_blank" rel="noopener noreferrer" onClick={() => menu.current?.close()}><Icon name="heart" />Donate</a>
@@ -87,6 +87,7 @@ export default function SiteHeader() {
             <Link href="/submit" aria-current={current("/submit")}><Icon name="plus" />Suggest a film</Link>
             <FeedbackLink className="" onNavigate={() => menu.current?.close()}><Icon name="comment" />Give feedback</FeedbackLink>
           </nav>
+          </AccountMenu>
           {/* On pages with the tab bar there's no footer, so what it holds lives here. */}
           <div className="menu-site">
             <nav className="menu-links" aria-label={SITE_NAME}>

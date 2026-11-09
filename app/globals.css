@@ -2751,3 +2751,20 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 .suggestion-page .form, .suggestion-page fieldset { min-width: 0; }
 .suggestion-page .form { width: 100%; max-width: 760px; }
 .your-suggestions { margin-top: var(--space-40); }
+
+/* Route changes may focus main or a Next.js wrapper for announcements. These
+   containers are not keyboard controls and should not acquire a page-sized ring. */
+:where(main, div, section, header, h1, h2)[tabindex="-1"]:focus {
+  outline: none;
+}
+
+/* Safari can retain :focus-visible when a touch opens a native dialog. Track
+   touch input explicitly; keyboard input restores the usual focus indicators.
+   Editable fields keep their focus treatment in either mode. */
+:root[data-focus-input="touch"] :focus-visible:not(input):not(textarea):not(select):not([contenteditable]:not([contenteditable="false"])) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Logout follows feedback in its own divided section without the account block minimum height. */
+.menu-signout { min-height: 0; }
