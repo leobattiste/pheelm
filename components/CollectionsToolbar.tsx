@@ -1,13 +1,17 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef } from "react";
-import Link from "next/link";
-import { SORTS, FEEDS, collectionsHref, type Feed, type Sort } from "@/lib/collection-sorts";
+import { useRef } from "react";
+import { SORTS, type Sort } from "@/lib/collection-sorts";
 import Icon from "./Icon";
 import { openSignIn } from "./SignInSheet";
 
-export type { Feed } from "@/lib/collection-sorts";
+export type Feed = "all" | "featured" | "following";
+export const FEEDS: { value: Feed; label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "featured", label: "Featured" },
+  { value: "following", label: "Following" },
+];
 
 /** The Collections page's bar: the feed (All, Featured, Following) and a sheet to sort it. */
 export default function CollectionsToolbar({ signedIn, feed, sort }: { signedIn: boolean; feed: Feed; sort: Sort }) {
@@ -16,32 +20,33 @@ export default function CollectionsToolbar({ signedIn, feed, sort }: { signedIn:
   const params = useSearchParams();
   const sheet = useRef<HTMLDialogElement>(null);
 
-  const feedTabs = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    feedTabs.current?.querySelector<HTMLElement>('[aria-current="page"]')?.scrollIntoView({ block: "nearest", inline: "nearest" });
-  }, [feed]);
-  const href = (next: { feed?: Feed; sort?: Sort }) => collectionsHref(path, params.toString(), { feed: next.feed ?? feed, sort: next.sort ?? sort });
-  const go = (next: { sort: Sort }) => router.push(href(next), { scroll: false });
+  const go = (next: { feed?: Feed; sort?: Sort }) => {
+    const p = new URLSearchParams(params.toString());
+    const f = next.feed ?? feed;
+    const o = next.sort ?? sort;
+    if (f === "all") p.delete("feed"); else p.set("feed", f);
+    if (o === "popular") p.delete("sort"); else p.set("sort", o);
+    p.delete("show");
+    const q = p.toString();
+    router.replace(q ? `${path}?${q}` : path, { scroll: false });
+  };
 
   return (
     <div className="toolbar collections-toolbar">
-      <div className="feed-tabs" ref={feedTabs} role="navigation" aria-label="Collections to show">
+      <div className="feed-tabs" role="group" aria-label="Collections to show">
         {FEEDS.map((o) => (
-          <Link
+          <button
             key={o.value}
-            href={href({ feed: o.value })}
+            type="button"
             className="chip"
-            aria-current={feed === o.value ? "page" : undefined}
-            scroll={false}
-            onClick={(event) => {
-              if (o.value === "following" && !signedIn && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
-                if (openSignIn("signin")) event.preventDefault();
-                else { event.preventDefault(); router.push(`/login?next=${encodeURIComponent(href({ feed: o.value }))}`); }
-              }
+            aria-pressed={feed === o.value}
+            onClick={() => {
+              if (o.value === "following" && !signedIn) { openSignIn("signup"); return; }
+              go({ feed: o.value });
             }}
           >
             {o.label}
-          </Link>
+          </button>
         ))}
       </div>
       <button type="button" className="button ghost filter-button" aria-haspopup="dialog" onClick={() => sheet.current?.showModal()}>

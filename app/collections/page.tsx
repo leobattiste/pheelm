@@ -2,11 +2,9 @@ import Icon from "@/components/Icon";
 import { PAGE_COPY } from "@/lib/site";
 import type { Metadata } from "next";
 import Link from "next/link";
-import CollectionsToolbar from "@/components/CollectionsToolbar";
-import { notFound } from "next/navigation";
-import { collectionsHref, type Feed } from "@/lib/collection-sorts";
+import CollectionsToolbar, { type Feed } from "@/components/CollectionsToolbar";
 import CommunityTile from "@/components/CommunityTile";
-import { getCommunityCollections, getFollowedCollections, SORTS, type Sort, type CommunityCollection } from "@/lib/community";
+import { getCommunityCollections, SORTS, type Sort } from "@/lib/community";
 import { getFilm } from "@/lib/data";
 import { getServerClient } from "@/lib/supabase/server";
 
@@ -28,16 +26,14 @@ export default async function CollectionsPage({ searchParams }: { searchParams: 
   const feed: Feed = asked === "following" && !viewer ? "all" : asked;
 
   const film = sp.film ? await getFilm(sp.film) : null;
-  if (sp.film && !film) notFound();
-  let list: CommunityCollection[] = [];
-  let loadFailed = false;
-  try {
-    list = feed === "following" && db && viewer
-      ? await getFollowedCollections(db, viewer.id, { sort, filmId: film?.id })
-      : await getCommunityCollections({ sort, filmId: film?.id, strict: true });
-    if (feed === "featured") list = list.filter((collection) => collection.featured);
-  } catch { loadFailed = true; }
-  const retryHref = collectionsHref("/collections", film ? new URLSearchParams({ film: film.slug }).toString() : "", { feed, sort });
+  let list = await getCommunityCollections({ sort, filmId: film?.id });
+
+  if (feed === "featured") list = list.filter((c) => c.featured);
+  if (db && viewer && feed === "following") {
+    const { data } = await db.from("list_saves").select("list_id").eq("user_id", viewer.id);
+    const ids = new Set(((data ?? []) as { list_id: string }[]).map((r) => r.list_id));
+    list = list.filter((c) => ids.has(c.id));
+  }
 
   return (
     <section className="page">
@@ -50,20 +46,18 @@ export default async function CollectionsPage({ searchParams }: { searchParams: 
 
       <CollectionsToolbar signedIn={!!viewer} feed={feed} sort={sort} />
 
-      {loadFailed ? (
-        <p className="notice error" role="alert">Collections couldn&rsquo;t be loaded. <Link href={retryHref}>Try again</Link>.</p>
-      ) : list.length ? (
+      {list.length ? (
         <ul className="collection-list">{list.map((c) => <CommunityTile key={c.id} c={c} />)}</ul>
       ) : (
         <div className="empty-state">
           <Icon name="stack" className="empty-icon" />
           {feed === "following" ? (
             <>
-              <p>{film ? "No followed collections include this film yet." : "You don’t follow any public collections yet."}</p>
+              <p>You don&rsquo;t follow any collections yet.</p>
               <p className="muted">Press Follow in a collection&rsquo;s menu to keep it here and hear when films are added.</p>
             </>
           ) : (
-            <p>No {feed === "featured" ? "featured " : ""}collections {film ? "with this film " : ""}yet.</p>
+            <p>No collections {film ? "with this film " : ""}yet.</p>
           )}
           {feed !== "all" && <Link className="button ghost small" href={film ? `/collections?film=${film.slug}` : "/collections"}>See all collections</Link>}
         </div>

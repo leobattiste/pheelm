@@ -155,19 +155,15 @@ svg { flex-shrink: 0; }
   --glass-bg: color-mix(in srgb, var(--surface, var(--bg)) 78%, transparent);
   --glass-hover: color-mix(in srgb, var(--surface, var(--bg)) 90%, transparent);
   --glass-filter: blur(24px) saturate(1.6);
-  /* The dark menu material keeps white field contents legible in both themes. */
-  --menu-control-bg: color-mix(in srgb, #181818 78%, transparent);
-  --field-glass-bg: var(--menu-control-bg);
   --glass-shadow: 0 12px 40px -12px rgb(0 0 0 / 0.45), 0 2px 8px rgb(0 0 0 / 0.12);
   --control-icon: 24.5px;
   --control-icon-sm: 24.5px;
   /* Fields, chips and switches are outlined like the secondary buttons, with no fill. */
   --control-fill: var(--glass-bg);
   --control-hover: var(--hover);
-  --bar-border: var(--line);
-  --control-border: var(--bar-border);
+  --control-border: var(--line);
   /* Outlines stay the hairline colour, at rest and on hover; hover changes the fill instead. */
-  --control-border-strong: var(--bar-border);
+  --control-border-strong: var(--line);
   --control-press: scale(0.97);
   --control-ring: 0 0 0 2px var(--bg), 0 0 0 4px var(--ink);
   --control-motion: transform 0.15s var(--ease), background-color 0.15s, border-color 0.15s, color 0.15s, opacity 0.15s, box-shadow 0.15s;
@@ -207,7 +203,7 @@ svg { flex-shrink: 0; }
 .button {
   height: var(--control);
   padding: 0 var(--control-pad);
-  border: 1px solid var(--bar-border);
+  border: 1px solid var(--ink);
   background: var(--ink);
   color: var(--on-ink);
   font-weight: 600;
@@ -245,7 +241,7 @@ svg { flex-shrink: 0; }
   color: var(--ink);
 }
 .chip:hover { border-color: var(--control-border-strong); background: var(--control-hover); }
-.chip[aria-pressed="true"] { border-color: var(--bar-border); background: var(--ink); color: var(--on-ink); }
+.chip[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--on-ink); }
 .chip .count { color: var(--muted); font-size: var(--t-xs); font-variant-numeric: tabular-nums; }
 .chip[aria-pressed="true"] .count { color: inherit; opacity: 0.6; }
 .chip .x { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; opacity: 0.6; }
@@ -319,7 +315,7 @@ svg { flex-shrink: 0; }
 .field select {
   appearance: none;
   padding-right: var(--space-40);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23ffffff' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%238c8c8c' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 16px center;
   background-size: var(--control-icon);
@@ -895,14 +891,14 @@ main:has(.feature) { margin-top: calc(var(--header) * -1); }
   color: var(--ink);
 }
 .round-button:hover, .pill-button:hover { background: color-mix(in srgb, currentColor 10%, transparent); }
-.round-button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--bar-border); }
+.round-button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 .round-button[aria-pressed="true"] svg { fill: currentColor; animation: pop 0.26s var(--ease); }
 .round-button[aria-pressed="true"] svg path[d^="m5"] { fill: none; }
 .round-button.is-loading { border-color: var(--line); }
 /* Trailer, Watchlist and Share: three labelled pills. On phones they share the row evenly. */
 .pill-button { width: auto; padding: 0 var(--control-pad) 0 var(--space-16); font-weight: 600; }
 .pill-button svg.solid { fill: currentColor; stroke: none; }
-.pill-button[aria-pressed="true"] { background: var(--ink); border-color: var(--bar-border); color: var(--bg); }
+.pill-button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
 .pill-button[aria-pressed="true"] svg { animation: pop 0.26s var(--ease); }
 /* Saving sends a ring of the film's colour out from the button. */
 .pill-button[aria-pressed="true"] { animation: saved 0.7s var(--ease); }
@@ -932,7 +928,7 @@ main:has(.feature) { margin-top: calc(var(--header) * -1); }
 .watch-groups dt, .details dt { color: var(--muted); font-size: var(--t-sm); font-weight: 400; }
 .film-page .chip { border-color: var(--line); background: transparent; color: var(--ink); }
 .film-page .chip:hover { background: var(--hover); }
-.film-page .chip[aria-pressed="true"] { border-color: var(--bar-border); background: var(--ink); color: var(--bg); }
+.film-page .chip[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--bg); }
 .watch-empty { color: var(--muted); }
 .watch-credit { color: var(--muted); font-size: var(--t-sm); }
 
@@ -1062,7 +1058,7 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 .search-dialog::backdrop { background: var(--scrim); backdrop-filter: blur(4px); animation: fade 0.2s; }
 .search-panel { display: flex; flex-direction: column; max-height: inherit; }
 .search-field { display: flex; align-items: center; gap: var(--space-12); padding: 0 var(--space-12) 0 var(--space-16); border-bottom: 1px solid var(--line); }
-.search-field svg { width: var(--control-icon); height: var(--control-icon); fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; color: #fff; }
+.search-field svg { width: var(--control-icon); height: var(--control-icon); fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; color: var(--muted); }
 .search-field input { flex: 1; min-width: 0; height: 58px; border: 0; background: none; font-size: var(--t-lg); outline: none; }
 .search-field input::-webkit-search-cancel-button { display: none; }
 .search-close { padding: var(--space-8) var(--space-12); border: 1px solid var(--line); border-radius: var(--pill); background: none; color: var(--muted); font-size: var(--t-xs); cursor: pointer; }
@@ -1107,7 +1103,7 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 .tabs { display: flex; gap: var(--space-8); margin-bottom: var(--space-32); overflow-x: auto; }
 .tabs a { display: inline-flex; align-items: center; height: var(--control); padding: 0 var(--control-pad); border: 1px solid var(--control-border); border-radius: var(--pill); background: var(--control-fill); text-decoration: none; white-space: nowrap; font-size: var(--t-sm); transition: var(--control-motion); }
 .tabs a:hover { border-color: var(--control-border-strong); background: var(--control-hover); }
-.tabs a[aria-current="page"] { background: var(--ink); color: var(--on-ink); border-color: var(--bar-border); }
+.tabs a[aria-current="page"] { background: var(--ink); color: var(--on-ink); border-color: var(--ink); }
 .status-pill { display: inline-block; padding: var(--space-2) var(--space-12); border-radius: var(--pill); background: var(--raised); font-size: var(--t-xs); font-weight: 600; }
 .status-pill.approved, .status-pill.published { color: var(--ok); }
 .status-pill.rejected { color: var(--error); }
@@ -1184,7 +1180,7 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 .save-row.is-fixed { cursor: default; }
 .save-row.is-fixed:hover { background: none; }
 .save-check { display: grid; place-items: center; flex-shrink: 0; width: 27px; height: 27px; border: 1.5px solid var(--line-strong); border-radius: var(--r-sm); color: var(--on-ink); }
-.save-check.is-on { background: var(--ink); border-color: var(--bar-border); }
+.save-check.is-on { background: var(--ink); border-color: var(--ink); }
 .save-check svg { width: var(--control-icon); height: var(--control-icon); fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 .save-name { flex: 1; min-width: 0; overflow: hidden; color: var(--ink); font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
 .save-count { color: var(--muted); font-size: var(--t-xs); }
@@ -1350,7 +1346,7 @@ h1, h2, .empty-state p:first-of-type, .decades a,
 .profile-tabs::-webkit-scrollbar { display: none; }
 .profile-tabs .chip { flex: none; justify-content: center; height: var(--control); padding: 0 var(--control-pad); border-color: var(--control-border-strong); background: transparent; color: var(--ink); font-weight: 600; }
 .profile-tabs .chip:hover { background: var(--control-hover); }
-.profile-tabs .chip[aria-selected="true"] { border-color: var(--bar-border); background: var(--ink); color: var(--on-ink); }
+.profile-tabs .chip[aria-selected="true"] { border-color: var(--ink); background: var(--ink); color: var(--on-ink); }
 .profile-tabs .chip[aria-selected="true"]:hover { background: color-mix(in srgb, var(--ink) 86%, var(--bg)); }
 @media (max-width: 639px) { .profile-tabs .chip { flex: 1 1 0; min-width: max-content; } }
 .tab-panel { padding-top: var(--space-32); }
@@ -1728,10 +1724,10 @@ a.person-row-name:hover { text-decoration: underline; text-underline-offset: 0.2
 .more-panel .ask-sent .link-button:not(dialog *):hover { background: none; }
 .follow-note { color: var(--muted); font-size: var(--t-sm); }
 .follow-note:empty { display: none; }
-.follow .button[aria-pressed="true"] { border-color: var(--bar-border); }
+.follow .button[aria-pressed="true"] { border-color: var(--ink); }
 .notif-poster { object-fit: cover; border-radius: var(--r-square-media); }
 .more-panel .follow { display: contents; }
-.more-panel .follow-note { display: block; padding: 0 12px 10px; }
+.more-panel .follow-note { display: none; }
 .more-panel .follow .button[aria-pressed="true"] { border: 0; }
 
 /* The ⋯ menu sits in the top-right corner of the header, flush with its padding, no circle. */
@@ -2111,7 +2107,7 @@ a.admin-attention-row:hover, .admin-attention-row a:hover { color: var(--ink); t
 .admin-navigation { min-width: 0; margin-bottom: 0; }
 .admin-main-tabs.profile-tabs { position: relative; margin: 0; flex-wrap: nowrap; padding: 2px 2px var(--space-16); border-bottom: 1px solid var(--line); scrollbar-width: none; scroll-padding-inline: var(--space-16); }
 .admin-main-tabs .chip { display: inline-flex; align-items: center; gap: var(--space-8); min-height: 44px; }
-.admin-main-tabs .chip[aria-current="page"] { background: var(--ink); border-color: var(--bar-border); color: var(--on-ink); }
+.admin-main-tabs .chip[aria-current="page"] { background: var(--ink); border-color: var(--ink); color: var(--on-ink); }
 .admin-main-tabs .chip[aria-current="page"]:hover { background: color-mix(in srgb, var(--ink) 86%, var(--bg)); }
 .admin-subtabs { position: relative; display: flex; gap: var(--space-8); overflow-x: auto; padding: var(--space-12) 2px 2px; scrollbar-width: none; }
 .admin-subtabs a { display: inline-flex; flex: none; align-items: center; gap: var(--space-8); min-height: 44px; padding: var(--space-8) var(--space-12); border-radius: var(--pill); color: var(--muted); font-size: var(--t-sm); text-decoration: none; }
@@ -2250,7 +2246,7 @@ a.admin-attention-row:hover, .admin-attention-row a:hover { color: var(--ink); t
 .modal-foot { background: transparent; }
 .film-actions > .pill-button:hover, .film-actions > .more-menu > .round-button:hover,
 .film-bar > .pill-button:hover, .film-bar > .round-button:hover { background: var(--glass-hover); }
-.film-actions > .pill-button[aria-pressed="true"], .film-bar > .pill-button[aria-pressed="true"] { border-color: var(--bar-border); box-shadow: none; }
+.film-actions > .pill-button[aria-pressed="true"], .film-bar > .pill-button[aria-pressed="true"] { border-color: var(--ink); box-shadow: none; }
 @media (hover: hover) {
   .film-card:hover, .collection-tile:hover, .anniversary a:hover, .stat:hover, .welcome-person:hover,
   [data-grid="list"] .film-grid .film-card a:hover {
@@ -2357,14 +2353,14 @@ html[data-auth="in"][data-chrome="app"] .film-bar { inset: auto auto var(--float
   box-shadow: none;
   color: var(--text);
 }
-:root :is(.modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .film-card, .collection-tile, .admin-managed-card, .fieldset:not(:where(.admin .editor .fieldset, .admin-toolbox .fieldset)), .public-name, .person-head, :where(.ways li, .inbox li)) :is(.button, .pill-button, .round-button, .icon-button, .chip, .segmented button, .theme-toggle button):hover:not(:disabled) { border-color: var(--bar-border); }
-:root :is(.modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .film-card, .collection-tile, .admin-managed-card, .fieldset:not(:where(.admin .editor .fieldset, .admin-toolbox .fieldset)), .public-name, .person-head, :where(.ways li, .inbox li)) :is(.button, .pill-button, .round-button, .icon-button, .chip, .segmented button, .theme-toggle button):is([aria-pressed="true"], [aria-selected="true"], [aria-checked="true"]) { border-color: var(--bar-border); font-weight: 600; }
+:root :is(.modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .film-card, .collection-tile, .admin-managed-card, .fieldset:not(:where(.admin .editor .fieldset, .admin-toolbox .fieldset)), .public-name, .person-head, :where(.ways li, .inbox li)) :is(.button, .pill-button, .round-button, .icon-button, .chip, .segmented button, .theme-toggle button):hover:not(:disabled) { border-color: var(--ink); }
+:root :is(.modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .film-card, .collection-tile, .admin-managed-card, .fieldset:not(:where(.admin .editor .fieldset, .admin-toolbox .fieldset)), .public-name, .person-head, :where(.ways li, .inbox li)) :is(.button, .pill-button, .round-button, .icon-button, .chip, .segmented button, .theme-toggle button):is([aria-pressed="true"], [aria-selected="true"], [aria-checked="true"]) { border-color: var(--ink); font-weight: 600; }
 :root :is(.modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .film-card, .collection-tile, .admin-managed-card, .fieldset:not(:where(.admin .editor .fieldset, .admin-toolbox .fieldset)), .public-name, .person-head, :where(.ways li, .inbox li)) :is(.button, .pill-button, .round-button, .icon-button, .chip, .segmented button, .theme-toggle button):focus-visible { box-shadow: var(--control-ring); }
 :root :is(.modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .film-card, .collection-tile, .admin-managed-card, .fieldset:not(:where(.admin .editor .fieldset, .admin-toolbox .fieldset)), .public-name, .person-head, :where(.ways li, .inbox li)) :is(.button.danger, .danger-text) { color: var(--error); border-color: var(--error); }
 :root :is(.modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .film-card, .collection-tile, .admin-managed-card, .fieldset:not(:where(.admin .editor .fieldset, .admin-toolbox .fieldset)), .public-name, .person-head, :where(.ways li, .inbox li)) :is(.field input:not([type="checkbox"]):not([type="radio"]):not([type="color"]), .field select, .field textarea, .search-input, .search-bar input, .save-new input, .newsletter-row input, .invite-combo input, .composer) {
-  background-color: var(--field-glass-bg);
-  -webkit-backdrop-filter: var(--glass-filter);
-  backdrop-filter: var(--glass-filter);
+  background-color: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 /* Action menus are plain rows inside one glass panel. Dialog controls keep their borders. */
 :root .more-panel :is(.button, .link-button, a, button):not(dialog *),
@@ -2553,16 +2549,16 @@ html[data-auth="in"][data-chrome="app"] body:has(dialog:modal) .tab-bar { z-inde
 :root .search-bar.search-bar input,
 :root .search-trigger,
 :root .search-trigger:hover {
-  background: var(--field-glass-bg);
+  background: #181818;
   color: #fff;
-  border-color: var(--bar-border);
+  border-color: #555;
   color-scheme: dark;
 }
-:root .search-field { background: var(--field-glass-bg); color: #fff; }
+:root .search-field { background: #181818; color: #fff; }
 :root :is(.search-bar, .search-field, .search-trigger) svg,
 :root .search-field :is(input, .search-close) { color: #fff; }
 :root .search-bar input::placeholder,
-:root .search-field input::placeholder { color: #bdbdbd; }
+:root .search-field input::placeholder { color: #b8b8b8; }
 
 /* Cards and buttons stay flat, including hover, selected and pressed states. */
 :root :is(button, .button, .chip, .pill-button, .round-button, .icon-button, .search-trigger, .tabs a, .admin-subtabs a,
@@ -2755,158 +2751,3 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 .suggestion-page .form, .suggestion-page fieldset { min-width: 0; }
 .suggestion-page .form { width: 100%; max-width: 760px; }
 .your-suggestions { margin-top: var(--space-40); }
-
-/* All text entry uses the dark menu glass, with white content in either theme.
-   Labels outside the controls continue to follow the page theme. */
-:root :is(input:not([type="checkbox"], [type="radio"], [type="color"], [type="range"], [type="hidden"], [type="button"], [type="submit"], [type="reset"]), textarea, select, .composer, .search-field) {
-  --ink: #fff;
-  --on-ink: #0c0c0c;
-  --text: #fff;
-  --muted: #bdbdbd;
-  --control-border: var(--bar-border);
-  --control-border-strong: var(--bar-border);
-  --control-fill: var(--field-glass-bg);
-  background-color: var(--field-glass-bg);
-  -webkit-backdrop-filter: var(--glass-filter);
-  backdrop-filter: var(--glass-filter);
-  color: #fff;
-  caret-color: #fff;
-  border-color: var(--control-border);
-  color-scheme: dark;
-}
-:root :is(input, textarea)::placeholder { color: #bdbdbd; opacity: 1; }
-:root select option, :root select optgroup { color: #fff; background: #181818; }
-:root :is(.search-bar, .search-field, .invite-combo, .input-wrap, .input-group) :is(svg, .icon),
-:root .field .input-icon { color: #fff; }
-/* Composite controls have one glass surface, avoiding a second fill inside it. */
-:root .composer textarea, :root .search-field input {
-  background: transparent;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  border-color: transparent;
-}
-:root :is(input:not([type="checkbox"], [type="radio"], [type="color"], [type="range"], [type="hidden"]), textarea, select):focus-visible {
-  outline: none;
-  box-shadow: none;
-}
-:root .composer:focus-within { border-color: #fff; box-shadow: none; }
-/* Browser autofill must not put white text over its pale native background. */
-:root input:-webkit-autofill {
-  -webkit-text-fill-color: #fff;
-  caret-color: #fff;
-  -webkit-box-shadow: 0 0 0 1000px #181818 inset;
-}
-:root .composer { --on-ink: #0c0c0c; --error: #ff6b6b; --glass-bg: transparent; --glass-hover: transparent; }
-:root .composer :is(button, .button) {
-  background: transparent;
-  color: #fff;
-  border-color: var(--bar-border);
-}
-
-/* One hairline for controls and navigation; only the active text field turns white. */
-:root :is(.search-field, .composer) { border: 1px solid var(--bar-border); }
-:root :is(input:not([type="checkbox"], [type="radio"], [type="color"], [type="range"], [type="hidden"], [type="button"], [type="submit"], [type="reset"]), textarea, select) {
-  --control-ring: none;
-}
-:root :is(input:not([type="checkbox"], [type="radio"], [type="color"], [type="range"], [type="hidden"], [type="button"], [type="submit"], [type="reset"]), textarea, select):focus {
-  --control-border: #fff;
-  --control-border-strong: #fff;
-  border-color: #fff;
-  outline: none;
-  box-shadow: none;
-}
-:root :is(.search-field, .composer):focus-within { border-color: #fff; border-width: 1px; box-shadow: none; }
-:root :is(.search-field input, .composer textarea):focus { border: 0; }
-:root .composer :is(button, .button) { --control-border: var(--bar-border); --control-border-strong: var(--bar-border); }
-
-:root .search-icon { color: #fff; }
-
-/* The main menu and interactive surfaces share an actual glass fill.
-   Keep section wrappers clear; apply the material to the controls themselves. */
-:root :is(.tab-bar, .film-bar, .menu-sheet, .modal, .search-dialog, .trailer-dialog, .more-panel) {
-  --glass-bg: var(--menu-control-bg);
-  --surface: #181818;
-  --raised: #222;
-  --hover: #2c2c2c;
-  --text: #fff;
-  --ink: #fff;
-  --on-ink: #0c0c0c;
-  --muted: #bdbdbd;
-  --error: #ff6b6b;
-  background-color: var(--menu-control-bg);
-  color: #fff;
-  color-scheme: dark;
-}
-:root :is(.button.ghost, .button.quiet, .chip, .pill-button, .round-button:not(.more-button), .search-trigger, .tabs a, .admin-subtabs a, .segmented button, .theme-toggle button):not(:where(.danger, .danger-text, [aria-current="page"], [aria-selected="true"], [aria-pressed="true"], [aria-checked="true"], .modal *, .search-dialog *, .trailer-dialog *, .menu-sheet *, .more-panel *, .film-bar *, .tab-bar *)) {
-  --glass-bg: var(--menu-control-bg);
-  --glass-hover: var(--menu-control-bg);
-  background-color: var(--menu-control-bg) !important;
-  color: #fff !important;
-  -webkit-backdrop-filter: var(--glass-filter);
-  backdrop-filter: var(--glass-filter);
-}
-:root :is(dialog, .modal, .menu-sheet, .more-panel, .film-bar) :is(input:not([type="checkbox"], [type="radio"], [type="color"], [type="range"], [type="hidden"]), textarea, select, .composer, .search-field) {
-  background-color: var(--menu-control-bg);
-  -webkit-backdrop-filter: var(--glass-filter);
-  backdrop-filter: var(--glass-filter);
-}
-:root .toolbar {
-  background: transparent;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-}
-/* A composite search/comment control has one filled frame, with clear text inside. */
-:root .composer textarea, :root .search-field input {
-  background-color: transparent;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-}
-:root :is(.person-head .more-button, dialog .icon-button[aria-label^="Close"], .search-close, .trailer-close) {
-  background: transparent !important;
-}
-
-/* Active navigation and primary actions keep their contrasting hierarchy,
-   with translucent ink so the shared backdrop blur remains visible. */
-:root :is(
-  .button:not(.ghost):not(.quiet):not(.danger):not(.danger-text):not(:where(.more-panel *:not(dialog *))),
-  .chip:is([aria-current="page"], [aria-selected="true"], [aria-pressed="true"]),
-  .tabs a[aria-current="page"],
-  .admin-subtabs a[aria-current="page"],
-  .segmented button[aria-checked="true"],
-  .theme-toggle button[aria-checked="true"]
-) {
-  background-color: color-mix(in srgb, var(--ink) 90%, transparent) !important;
-  color: var(--on-ink) !important;
-  -webkit-backdrop-filter: var(--glass-filter);
-  backdrop-filter: var(--glass-filter);
-  border-color: var(--bar-border);
-  font-weight: 600;
-  text-decoration: none;
-}
-
-/* Panels own the glass surface; secondary actions inside do not add another fill. */
-:root :is(.modal, .search-dialog, .trailer-dialog, .menu-sheet, .film-bar, .tab-bar)
-:is(.button.ghost, .button.quiet, .pill-button, .round-button, .icon-button, .chip, .search-trigger, .segmented button, .theme-toggle button):not(:where([aria-current="page"], [aria-selected="true"], [aria-pressed="true"], [aria-checked="true"])) {
-  background: transparent !important;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-}
-/* Action popovers are rows on one surface, including watched/followed states. */
-:root .more-panel :is(.button, .link-button):not(dialog *) {
-  background: transparent !important;
-  color: var(--text) !important;
-  border: 0 !important;
-  border-radius: 0;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  box-shadow: none;
-}
-:root .more-panel :is(.button, .link-button):not(dialog *):focus-visible {
-  outline: 1px solid currentColor;
-  outline-offset: -2px;
-}
-:root .more-panel :is(.button, .link-button):not(dialog *) svg { color: inherit; }
-:root .more-panel :is(.button.danger, .danger-text):not(dialog *) { color: var(--error) !important; }
-/* Search glyphs stay white in every theme and interaction state. */
-:root :is(.search-bar, .search-field, .search-trigger) .icon,
-:root .search-icon { color: #fff !important; }
