@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { getFilms } from "./data";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseEnabled } from "./supabase/config";
 import type { Film } from "./types";
@@ -109,12 +109,15 @@ function qualifying() {
       .order("created_at", { ascending: false })
       .limit(1000));
     if (error) throw error;
-    // Staff picks always show; other collections need a member name and at least five films.
-    return (await enrich(data as unknown as Row[])).filter((c) => c.owner && (c.staff_pick || c.films.length >= MIN_FILMS));
+    // Featured collections always show; other collections need a member name and at least five films.
+    return (await enrich(data as unknown as Row[])).filter((c) => c.owner && (c.featured || c.films.length >= MIN_FILMS));
   })();
-  shared = { at: Date.now(), data };
-  // A failed read isn't kept, so the next visit tries again.
-  return data.catch(() => { if (shared?.data === data) shared = null; return [] as CommunityCollection[]; });
+  const guarded = data.catch((error) => {
+    if (shared?.data === guarded) shared = null;
+    throw error;
+  });
+  shared = { at: Date.now(), data: guarded };
+  return guarded;
 }
 
 /**
@@ -122,11 +125,35 @@ function qualifying() {
  * least five films (staff picks always qualify). Staff picks lead the popular order. Optionally
  * only those that include one film.
  */
-export async function getCommunityCollections({ sort = "popular", filmId, limit }: { sort?: Sort; filmId?: string; limit?: number } = {}) {
-  let all = [...(await qualifying())];
+export async function getCommunityCollections({ sort = "popular", filmId, limit, strict = false }: { sort?: Sort; filmId?: string; limit?: number; strict?: boolean } = {}) {
+  let all: CommunityCollection[];
+  try { all = [...(await qualifying())]; } catch (error) { if (strict) throw error; return []; }
   if (filmId) all = all.filter((c) => c.films.some((f) => f.id === filmId));
-  all.sort(order[sort]);
+  all.sort((a, b) => order[sort](a, b) || a.id.localeCompare(b.id));
   return limit ? all.slice(0, limit) : all;
+}
+
+/** Following is personal: never run it through the public discovery minimum or shared cache. */
+export async function getFollowedCollections(db: SupabaseClient, userId: string, { sort = "popular", filmId }: { sort?: Sort; filmId?: string } = {}): Promise<CommunityCollection[]> {
+  const ids: string[] = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await db.from("list_saves").select("list_id").eq("user_id", userId).range(from, from + 999);
+    if (error) throw error;
+    ids.push(...(data ?? []).map((row: { list_id: string }) => row.list_id));
+    if (!data || data.length < 1000) break;
+  }
+  if (!ids.length) return [];
+  const publicDb = anon();
+  if (!publicDb) throw new Error("Collections are unavailable.");
+  const rows: Row[] = [];
+  for (let from = 0; from < ids.length; from += 100) {
+    const { data, error } = await lists((cols) => publicDb.from("lists").select(cols).eq("is_public", true).in("id", ids.slice(from, from + 100)));
+    if (error) throw error;
+    rows.push(...(data as unknown as Row[]));
+  }
+  let result = await enrich(rows);
+  if (filmId) result = result.filter((collection) => collection.films.some((film) => film.id === filmId));
+  return result.sort((a, b) => order[sort](a, b) || a.id.localeCompare(b.id));
 }
 
 /** A member by their handle, with all their public collections (any size). */

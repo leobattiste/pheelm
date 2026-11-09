@@ -53,7 +53,7 @@ export default function MoreMenu({ label = "More actions", children, corner = fa
         // Close once an action is pressed (after it has run), unless it was inside a sheet.
         onClick={(e) => {
           const t = e.target as HTMLElement;
-          if (t.closest("dialog")) return;
+          if (t.closest("dialog, [data-keep-menu-open]")) return;
           if (t.closest("a, button")) setTimeout(() => setOpen(false), 0);
         }}
       >

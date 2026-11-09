@@ -156,7 +156,8 @@ svg { flex-shrink: 0; }
   --glass-hover: color-mix(in srgb, var(--surface, var(--bg)) 90%, transparent);
   --glass-filter: blur(24px) saturate(1.6);
   /* The dark menu material keeps white field contents legible in both themes. */
-  --field-glass-bg: color-mix(in srgb, #181818 78%, transparent);
+  --menu-control-bg: color-mix(in srgb, #181818 78%, transparent);
+  --field-glass-bg: var(--menu-control-bg);
   --glass-shadow: 0 12px 40px -12px rgb(0 0 0 / 0.45), 0 2px 8px rgb(0 0 0 / 0.12);
   --control-icon: 24.5px;
   --control-icon-sm: 24.5px;
@@ -1730,7 +1731,7 @@ a.person-row-name:hover { text-decoration: underline; text-underline-offset: 0.2
 .follow .button[aria-pressed="true"] { border-color: var(--bar-border); }
 .notif-poster { object-fit: cover; border-radius: var(--r-square-media); }
 .more-panel .follow { display: contents; }
-.more-panel .follow-note { display: none; }
+.more-panel .follow-note { display: block; padding: 0 12px 10px; }
 .more-panel .follow .button[aria-pressed="true"] { border: 0; }
 
 /* The ⋯ menu sits in the top-right corner of the header, flush with its padding, no circle. */
@@ -2820,61 +2821,54 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 
 :root .search-icon { color: #fff; }
 
-/* A modal or bar owns the surface. Nested controls keep only their outline,
-   including hover/selected states, so glass does not accumulate in layers. */
-:root :is(dialog, .modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .toolbar) :is(.button, .pill-button, .round-button, .icon-button, .chip, .segmented, .theme-toggle, .segmented button, .theme-toggle button, .composer, .search-field, input:not([type="checkbox"], [type="radio"], [type="color"], [type="range"], [type="hidden"], [type="button"], [type="submit"], [type="reset"]), select, textarea),
-:root :is(.filter-field input, .filter-field select, .filter-field textarea, .filter-button) {
-  background-color: transparent !important;
-  color: inherit;
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
-}
-:root :is(dialog, .modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .toolbar) :is(input, select, textarea, .composer, .search-field) {
-  --ink: inherit;
-  --text: inherit;
-  --on-ink: inherit;
-  --muted: inherit;
-  color: inherit;
-  caret-color: currentColor;
-}
-:root :is(dialog, .modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .toolbar) :is(input, textarea)::placeholder { color: var(--muted); }
-/* Search/filter sections stay clear; they do not create a panel surface. */
-:root .toolbar {
-  background: transparent;
-  color: inherit;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-}
-:root .toolbar .search-bar {
-  background: transparent;
-  border: 1px solid var(--bar-border);
-  border-radius: var(--pill);
-  color: #fff;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-}
-:root .toolbar .search-bar input { border: 0; color: #fff; }
-:root .toolbar .search-bar input::placeholder { color: #bdbdbd; }
-:root .toolbar .search-bar:focus-within { border-color: #fff; }
-
-/* Keep white search glyphs readable: the dialog owns the dark glass, not its fields. */
-:root .search-dialog {
+/* The main menu and interactive surfaces share an actual glass fill.
+   Keep section wrappers clear; apply the material to the controls themselves. */
+:root :is(.tab-bar, .film-bar, .menu-sheet, .modal, .search-dialog, .trailer-dialog, .more-panel) {
+  --glass-bg: var(--menu-control-bg);
   --surface: #181818;
   --raised: #222;
   --hover: #2c2c2c;
-  --line: #262626;
   --text: #fff;
   --ink: #fff;
   --on-ink: #0c0c0c;
   --muted: #bdbdbd;
-  background: var(--field-glass-bg);
+  --error: #ff6b6b;
+  background-color: var(--menu-control-bg);
   color: #fff;
   color-scheme: dark;
 }
-:root :is(dialog, .modal, .search-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .toolbar) input:-webkit-autofill {
-  -webkit-text-fill-color: var(--text);
-  -webkit-box-shadow: 0 0 0 1000px var(--surface) inset;
+:root :is(.button.ghost, .button.quiet, .chip, .pill-button, .round-button:not(.more-button), .search-trigger, .tabs a, .admin-subtabs a, .segmented button, .theme-toggle button):not(:where(.danger, .danger-text)) {
+  --glass-bg: var(--menu-control-bg);
+  --glass-hover: var(--menu-control-bg);
+  background-color: var(--menu-control-bg) !important;
+  color: #fff !important;
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
 }
-:root[data-theme="light"] :is(dialog:not(.search-dialog), .modal, .menu-sheet, .more-panel) select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%230c0c0c' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
+:root :is(dialog, .modal, .menu-sheet, .more-panel, .film-bar) :is(input:not([type="checkbox"], [type="radio"], [type="color"], [type="range"], [type="hidden"]), textarea, select, .composer, .search-field) {
+  background-color: var(--menu-control-bg);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+}
+:root .toolbar {
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+/* A composite search/comment control has one filled frame, with clear text inside. */
+:root .composer textarea, :root .search-field input {
+  background-color: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+:root :is(.person-head .more-button, dialog .icon-button[aria-label^="Close"], .search-close, .trailer-close) {
+  background: transparent !important;
+}
+
+/* Feed selection stays visible when every chip shares the menu material. */
+.feed-tabs .chip[aria-current="page"] {
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 5px;
+  text-decoration-thickness: 1px;
 }

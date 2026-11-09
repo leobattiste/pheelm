@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+import ts from 'typescript';
+const load=(file,imports={})=>{const exports={};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports,URLSearchParams,Map,Set,require:name=>{if(!(name in imports))throw Error(`Unexpected import ${name}`);return imports[name];}});return exports;};
+const sorts=load('lib/collection-sorts.ts');
+assert.equal(sorts.collectionsHref('/collections','film=saint-omer&sort=new&show=20',{feed:'following',sort:'new'}),'/collections?film=saint-omer&sort=new&feed=following');
+assert.equal(sorts.collectionsHref('/collections','feed=featured&sort=films',{feed:'all',sort:'popular'}),'/collections');
+const films=Array.from({length:5},(_,i)=>({id:`f${i}`,year:2000+i}));
+const row=(id,n,extra={})=>({id,title:id,description:null,user_id:'owner',created_at:'2026-11-01',updated_at:'2026-11-02',list_films:films.slice(0,n).map(f=>({film_id:f.id,added_at:'2026-11-02'})),...extra});
+const rows=[row('regular',5),row('short',2),row('featured-short',1,{featured:true}),row('staff',1,{staff_pick:true})];
+let broken=false;
+class Query { constructor(table,user=false){this.table=table;this.user=user;this.ids=null;this.uid=null;this.from=0;this.to=999;}select(){return this}eq(k,v){if(k==='user_id')this.uid=v;return this}in(k,v){if(k==='id')this.ids=v;return this}order(){return this}limit(){return this}range(a,b){this.from=a;this.to=b;return this}then(resolve,reject){let data=[],error=null;if(this.table==='lists'){if(broken)error={code:'NETWORK',message:'Read failed'};else data=rows.filter(r=>!this.ids||this.ids.includes(r.id));}if(this.table==='member_profiles')data=[{id:'owner',handle:'owner',display_name:'Owner'}];if(this.table==='list_saves'){if(this.uid==='broken')error={message:'Follow lookup failed'};else data=this.uid==='one'?[{list_id:'short'}]:[];data=data.slice(this.from,this.to+1);}return Promise.resolve({data,error}).then(resolve,reject);}}
+const publicDB={from:t=>new Query(t)};
+const make=()=>load('lib/community.ts',{'@supabase/supabase-js':{createClient:()=>publicDB},'./data':{getFilms:async()=>films},'./supabase/config':{SUPABASE_URL:'https://example.invalid',SUPABASE_ANON_KEY:'test',supabaseEnabled:true},'./collection-sorts':sorts});
+let community=make();
+assert.deepEqual(Array.from((await community.getCommunityCollections({strict:true})).map(r=>r.id)).sort(),['featured-short','regular','staff']);
+const follows=await community.getFollowedCollections(publicDB,'one');assert.equal(follows.length,1);assert.equal(follows[0].id,'short');assert.equal((await community.getFollowedCollections(publicDB,'two')).length,0,'Following must never share another member’s cached results');assert.equal((await community.getFollowedCollections(publicDB,'one',{filmId:'f4'})).length,0);await assert.rejects(()=>community.getFollowedCollections(publicDB,'broken'));
+broken=true;community=make();assert.equal((await community.getCommunityCollections()).length,0);await assert.rejects(()=>community.getCommunityCollections({strict:true}));broken=false;assert.equal((await community.getCommunityCollections({strict:true})).length,3,'A failed catalog cache must recover');
+console.log('PASS: feed/sort URLs, featured short collections, personal Following without discovery minimum, film context, error visibility and failed-cache recovery');
