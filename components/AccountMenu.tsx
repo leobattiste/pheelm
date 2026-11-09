@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
 import Icon from "./Icon";
 import { openSignIn } from "./SignInSheet";
@@ -14,7 +14,7 @@ type Me = { email: string; handle: string | null; name: string | null; isPrivate
  * count of new ones), Watchlist, Settings and
  * Log out.
  */
-export default function AccountMenu({ onNavigate }: { onNavigate: () => void }) {
+export default function AccountMenu({ onNavigate, children }: { onNavigate: () => void; children?: ReactNode }) {
   const path = usePathname();
   const [me, setMe] = useState<Me | null | undefined>(undefined);
 
@@ -51,30 +51,33 @@ export default function AccountMenu({ onNavigate }: { onNavigate: () => void }) 
     };
   }, []);
 
-  if (me === undefined) return <div className="menu-more menu-account" aria-busy="true" />;
+  if (me === undefined) return <><div className="menu-more menu-account" aria-busy="true" />{children}</>;
 
   if (!me) {
     return (
-      <nav className="menu-more menu-account" aria-label="Account">
+      <><nav className="menu-more menu-account" aria-label="Account">
         <button type="button" className="menu-more-button" onClick={() => { onNavigate(); openSignIn(); }}><Icon name="login" />Sign in</button>
         <p className="menu-note">Save films, make collections and follow directors.</p>
-      </nav>
+      </nav>{children}</>
     );
   }
 
   const current = (href: string) => (path === href ? "page" : undefined);
 
   return (
-    <nav className="menu-more menu-account" aria-label="Your account">
+    <><nav className="menu-more menu-account" aria-label="Your account">
       <Link href="/notifications" aria-current={current("/notifications")}>
         <Icon name="bell" />Notifications
         {me.unread > 0 && <span className="badge" aria-label={`${me.unread} new`}>{me.unread > 9 ? "9+" : me.unread}</span>}
       </Link>
       <Link href="/me" aria-current={current("/me")}><Icon name="bookmark" />Watchlist</Link>
       <Link href="/account" aria-current={current("/account")}><Icon name="gear" />Settings</Link>
+    </nav>
+    {children}
+    <nav className="menu-more menu-account menu-signout" aria-label="Session">
       <form action="/auth/signout" method="post">
         <button type="submit" className="menu-more-button menu-logout"><Icon name="logout" />Log out</button>
       </form>
-    </nav>
+    </nav></>
   );
 }
