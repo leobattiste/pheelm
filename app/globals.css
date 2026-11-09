@@ -2837,7 +2837,7 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
   color: #fff;
   color-scheme: dark;
 }
-:root :is(.button.ghost, .button.quiet, .chip, .pill-button, .round-button:not(.more-button), .search-trigger, .tabs a, .admin-subtabs a, .segmented button, .theme-toggle button):not(:where(.danger, .danger-text, [aria-current="page"], [aria-selected="true"], [aria-pressed="true"], [aria-checked="true"])) {
+:root :is(.button.ghost, .button.quiet, .chip, .pill-button, .round-button:not(.more-button), .search-trigger, .tabs a, .admin-subtabs a, .segmented button, .theme-toggle button):not(:where(.danger, .danger-text, [aria-current="page"], [aria-selected="true"], [aria-pressed="true"], [aria-checked="true"], .modal *, .search-dialog *, .trailer-dialog *, .menu-sheet *, .more-panel *, .film-bar *, .tab-bar *)) {
   --glass-bg: var(--menu-control-bg);
   --glass-hover: var(--menu-control-bg);
   background-color: var(--menu-control-bg) !important;
@@ -2868,7 +2868,7 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 /* Active navigation and primary actions keep their contrasting hierarchy,
    with translucent ink so the shared backdrop blur remains visible. */
 :root :is(
-  .button:not(.ghost):not(.quiet):not(.danger):not(.danger-text),
+  .button:not(.ghost):not(.quiet):not(.danger):not(.danger-text):not(:where(.more-panel *:not(dialog *))),
   .chip:is([aria-current="page"], [aria-selected="true"], [aria-pressed="true"]),
   .tabs a[aria-current="page"],
   .admin-subtabs a[aria-current="page"],
@@ -2883,3 +2883,30 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
   font-weight: 600;
   text-decoration: none;
 }
+
+/* Panels own the glass surface; secondary actions inside do not add another fill. */
+:root :is(.modal, .search-dialog, .trailer-dialog, .menu-sheet, .film-bar, .tab-bar)
+:is(.button.ghost, .button.quiet, .pill-button, .round-button, .icon-button, .chip, .search-trigger, .segmented button, .theme-toggle button):not(:where([aria-current="page"], [aria-selected="true"], [aria-pressed="true"], [aria-checked="true"])) {
+  background: transparent !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+/* Action popovers are rows on one surface, including watched/followed states. */
+:root .more-panel :is(.button, .link-button):not(dialog *) {
+  background: transparent !important;
+  color: var(--text) !important;
+  border: 0 !important;
+  border-radius: 0;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+:root .more-panel :is(.button, .link-button):not(dialog *):focus-visible {
+  outline: 1px solid currentColor;
+  outline-offset: -2px;
+}
+:root .more-panel :is(.button, .link-button):not(dialog *) svg { color: inherit; }
+:root .more-panel :is(.button.danger, .danger-text):not(dialog *) { color: var(--error) !important; }
+/* Search glyphs stay white in every theme and interaction state. */
+:root :is(.search-bar, .search-field, .search-trigger) .icon,
+:root .search-icon { color: #fff !important; }
