@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import HelpBrowser from "./HelpBrowser";
+import "./help.css";
 
 export const metadata: Metadata = {
   title: "Help",
