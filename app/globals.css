@@ -2838,17 +2838,12 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
   caret-color: currentColor;
 }
 :root :is(dialog, .modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .toolbar) :is(input, textarea)::placeholder { color: var(--muted); }
-/* The toolbar owns the dark glass; search and filter controls remain clear. */
+/* Search/filter sections stay clear; they do not create a panel surface. */
 :root .toolbar {
-  --surface: #181818;
-  --text: #fff;
-  --ink: #fff;
-  --on-ink: #0c0c0c;
-  --muted: #bdbdbd;
-  background: var(--field-glass-bg);
-  color: #fff;
-  -webkit-backdrop-filter: var(--glass-filter);
-  backdrop-filter: var(--glass-filter);
+  background: transparent;
+  color: inherit;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 :root .toolbar .search-bar {
   background: transparent;
