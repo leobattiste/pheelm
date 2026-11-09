@@ -1,7 +1,8 @@
 import { PAGE_COPY } from "@/lib/site";
 import type { Metadata } from "next";
+import { directorSearchEntry } from "@/lib/search-data";
 import DirectorBrowser from "@/components/DirectorBrowser";
-import { getDirectors, toDirectorSummary } from "@/lib/data";
+import { getDirectors } from "@/lib/data";
 
 export const revalidate = 300;
 export const metadata: Metadata = {
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function DirectorsPage() {
-  const directors = (await getDirectors()).map(toDirectorSummary);
+  const directors = (await getDirectors()).map(directorSearchEntry);
 
   return (
     <section className="page">
@@ -19,7 +20,7 @@ export default async function DirectorsPage() {
         <h1>Directors</h1>
         <p className="lead">{PAGE_COPY.directors}</p>
       </header>
-      <DirectorBrowser directors={directors} />
+      <DirectorBrowser entries={directors} />
     </section>
   );
 }
