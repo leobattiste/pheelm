@@ -12,7 +12,7 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - run: npx playwright-core install --with-deps chromium
+      - run: npx playwright-core install --with-deps chromium webkit
       - run: npm run test:security
       - run: node tests/film-submissions.mjs
       - run: node tests/catalog-search.mjs
@@ -22,3 +22,7 @@ jobs:
       - run: node tests/catalog-search-browser.mjs
         env:
           BASE_URL: http://localhost:3000
+      - run: node tests/catalog-search-browser.mjs
+        env:
+          BASE_URL: http://localhost:3000
+          BROWSER: webkit
