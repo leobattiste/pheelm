@@ -14,5 +14,5 @@ export async function setNewsletterSubscription(_previous: NewsletterState, form
   const { data, error } = await db.rpc("set_my_newsletter_subscription", { want_subscribed: subscribe });
   if (error) return { ok: false, subscribed: !subscribe, message: "Could not update your subscription. Try again." };
   revalidatePath("/account");
-  return { ok: true, subscribed: data === true, message: subscribe ? "You're subscribed." : "You've unsubscribed." };
+  return { ok: true, subscribed: data === true, message: subscribe ? "Check your inbox to confirm your subscription." : "You've unsubscribed." };
 }

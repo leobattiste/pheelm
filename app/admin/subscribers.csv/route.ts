@@ -11,9 +11,9 @@ export async function GET() {
   }
   const rows: { email: string; source: string | null; created_at: string }[] = [];
   for (let from = 0; ; from += 1000) {
-    const { data, error } = await db.from("subscribers").select("email, source, created_at").order("created_at").range(from, from + 999);
+    const { data, error } = await db.rpc("email_confirmed_subscribers").range(from, from + 999);
     if (error) return new NextResponse(error.message, { status: 500 });
-    rows.push(...(data ?? []));
+    rows.push(...((data ?? []) as { email: string; source: string | null; created_at: string }[]));
     if (!data || data.length < 1000) break;
   }
   const csv = ["email,source,signed_up", ...rows.map((r) => [r.email, r.source ?? "", r.created_at].map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))].join("\n");

@@ -10,16 +10,16 @@ const TOPICS = ["general", "feedback", "correction", "partnership", "press", "pr
 
 /** Newsletter sign-up. Signing up twice is fine: the second time says you're already on the list. */
 export async function subscribe(_prev: FormState, f: FormData): Promise<FormState> {
-  if (f.get("website")) return { ok: true, message: "Thanks. You're on the list." }; // a bot filled the hidden field
+  if (f.get("website")) return { ok: true, message: "Check your inbox to confirm your subscription." }; // a bot filled the hidden field
   const email = String(f.get("email") ?? "").trim().toLowerCase();
   if (!EMAIL.test(email)) return { ok: false, message: "Enter an email address, like you@example.com." };
   if (!(await passesTurnstile(f))) return { ok: false, message: "We couldn't check you're not a bot. Try again in a moment." };
   const db = await getServerClient();
   if (!db) return { ok: false, message: "The newsletter isn't open yet. Check back soon." };
   const { error } = await db.from("subscribers").insert({ email, source: String(f.get("source") ?? "site").slice(0, 40) });
-  if (error?.code === "23505") return { ok: true, message: "You're already on the list." };
+  if (error?.code === "23505") return { ok: true, message: "Your subscription request is already recorded. Check your inbox for confirmation." };
   if (error) return { ok: false, message: "The newsletter isn't open yet. Check back soon." };
-  return { ok: true, message: "Thanks. You're on the list." };
+  return { ok: true, message: "Check your inbox to confirm your subscription." };
 }
 
 /** The contact and partnership forms. Messages go to the admin inbox. */

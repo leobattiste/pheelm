@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test:smoke": "node tests/smoke.mjs",
     "test:admin": "node tests/admin-responsive.mjs",
-    "test:security": "node tests/profile-photos.mjs && node tests/service-worker-privacy.mjs && node tests/safe-navigation.mjs"
+    "test:security": "node tests/profile-photos.mjs && node tests/service-worker-privacy.mjs && node tests/safe-navigation.mjs",
+    "email:preview": "node scripts/email-previews.mjs"
   },
   "dependencies": {
     "@hugeicons/core-free-icons": "^4.4.0",
@@ -22,6 +23,7 @@
     "next": "^16.4.5",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
+    "react-email": "^6.11.8",
     "server-only": "^0.0.1",
     "sharp": "^0.35.5"
   },

@@ -13,6 +13,7 @@ import EmailForm from "./EmailForm";
 import PrivacyForm from "./PrivacyForm";
 import ProfileForm from "./ProfileForm";
 import NotificationPreferences from "./NotificationPreferences";
+import EmailPreferences, { type EmailSettings } from "./EmailPreferences";
 import { unblock } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -49,7 +50,9 @@ export default async function AccountPage() {
   const { data: notificationPrefs } = await db.from("notification_preferences").select("disabled_types").eq("user_id", user.id).maybeSingle();
   const disabledNotificationTypes = (notificationPrefs?.disabled_types ?? []) as string[];
 
-  const { data: subscribedToNewsletter } = await db.rpc("my_newsletter_subscription");
+  const { data: emailPrefs } = await db.from("email_preferences").select("collaboration_emails,digest_frequency").eq("user_id", user.id).maybeSingle();
+
+  const { data: newsletterStatus } = await db.rpc("email_newsletter_status");
 
   const tabs = [
     {
@@ -100,13 +103,14 @@ export default async function AccountPage() {
         <div className="account-panel">
           <section className="account-section" aria-labelledby="notification-settings-h">
             <h2 id="notification-settings-h">Notification preferences</h2>
+            <EmailPreferences userId={user.id} initial={(emailPrefs ?? { collaboration_emails: true, digest_frequency: "off" }) as EmailSettings} />
             <NotificationPreferences userId={user.id} initialDisabled={disabledNotificationTypes} isAdmin={!!p.is_admin} />
             <p className="muted"><Link href="/notifications">View your notifications</Link></p>
           </section>
           <section className="account-section" aria-labelledby="news-h">
             <h2 id="news-h">Newsletter</h2>
             <p className="muted">Receive occasional updates about films, collections and stories. Unsubscribe anytime.</p>
-            <NewsletterSubscribe email={user.email ?? ""} initialSubscribed={subscribedToNewsletter === true} />
+            <NewsletterSubscribe email={user.email ?? ""} initialStatus={newsletterStatus === "confirmed" ? "confirmed" : newsletterStatus === "pending" ? "pending" : "off"} />
           </section>
         </div>
       ),

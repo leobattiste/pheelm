@@ -14,6 +14,9 @@ jobs:
       - run: npm ci
       - run: npx playwright-core install --with-deps chromium webkit
       - run: npm run test:security
+      - run: npm run email:preview
+      - run: node scripts/export-auth-emails.mjs
+      - run: node tests/email-security.mjs
       - run: node tests/film-submissions.mjs
       - run: node tests/catalog-search.mjs
       - run: npm run build

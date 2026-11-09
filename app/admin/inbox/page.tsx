@@ -1,4 +1,5 @@
 import Link from "next/link";
+import EmailReply from "./EmailReply";
 import Icon from "@/components/Icon";
 import { requireAdmin } from "@/lib/admin";
 import { setMessageHandled } from "../actions";
@@ -42,6 +43,7 @@ export default async function AdminInbox({ searchParams }: { searchParams: Promi
                   </div>
                   {m.page && <p className="inbox-about">About <Link href={m.page}>{m.page_title || m.page}</Link></p>}
                   <p className="inbox-body">{m.body}</p>
+                  <EmailReply messageId={m.id} />
                   <div className="actions">
                     <a className="button small" href={`mailto:${m.email}?subject=${encodeURIComponent("Re: your message to Pheelm")}`}>Reply to {m.email}</a>
                     <form action={setMessageHandled}>
