@@ -2742,7 +2742,7 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 /* Tabs remain horizontally scrollable without a visible scrollbar. */
 :root :is(.tabs, .profile-tabs, .admin-subtabs) { scrollbar-width: none; }
 :root :is(.tabs, .profile-tabs, .admin-subtabs)::-webkit-scrollbar { display: none; }
-:root .menu-account .menu-logout, :root .menu-account .menu-logout .icon { color: var(--error); }
+:root .menu-account .menu-logout, :root .menu-account .menu-logout .icon { color: var(--text); }
 .menu-site .menu-links a, .menu-site .menu-legal, .footer-bottom > p,
 .footer-links a:is([href="/about"], [href="/partnerships"], [href="/contact"], [href="/legal"]) { font-size: 12px; }
 .enquiry-page .contact-form { width: 100%; }
@@ -2806,3 +2806,52 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
   height: 100%;
   min-height: 0;
 }
+
+/* The All collection filter is a circle, matching the main bar height. */
+:root:root .collections-toolbar .feed-all {
+  flex: 0 0 var(--bar-height);
+  width: var(--bar-height);
+  min-width: var(--bar-height);
+  padding: 0;
+  border-radius: 50%;
+}
+
+/* Tabs stay within their 60px scroll area during hover and keyboard focus. */
+:root :is(.tabs, .profile-tabs, .admin-subtabs, .feed-tabs) > :is(a, button):hover {
+  transform: none;
+}
+:root :is(.tabs, .profile-tabs, .admin-subtabs, .feed-tabs) > :is(a, button):focus-visible {
+  outline-offset: -3px;
+}
+
+/* Full-width information, enquiry, submission and settings content. */
+.page.full-width,
+.page.full-width :is(.prose, .form, .tabs-block, .tab-panel) {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+}
+.account-page :is(.tabs-block, .tab-panel, .account-panel, .account-section, .danger-zone) {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+}
+@media (min-width: 900px) {
+  .browser .search-bar { max-width: none; }
+  .account-page .profile-tabs > .chip { flex: 1 0 auto; }
+}
+
+/* Notifications share the collection list card surface and spacing. */
+.notifications-page > .notif-group { max-width: none; }
+.notif-list { grid-template-columns: minmax(0, 1fr); gap: var(--space-8); }
+.notif.collection-tile {
+  flex-direction: row;
+  align-items: flex-start;
+  height: auto;
+  gap: var(--space-12);
+  padding: var(--space-12);
+}
+.notif.collection-tile + .notif { margin-top: 0; }
+.notif.collection-tile:hover { transform: none; }
+.notif-main { align-content: start; }
+.notif-actions { flex-wrap: wrap; }

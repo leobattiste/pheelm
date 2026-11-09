@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default async function AboutPage() {
   const [films, directors, facets] = await Promise.all([getFilms(), getDirectors(), getFacets()]);
   return (
-    <article className="page narrow info-page">
+    <article className="page full-width info-page">
       <header className="page-head">
         <h1>About {SITE_NAME}</h1>
         <p className="lead">{PAGE_COPY.about}</p>

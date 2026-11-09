@@ -12,7 +12,7 @@ export default async function FeedbackPage({ searchParams }: { searchParams: Pro
   const page = safeAbout(sp.about) ?? (film ? `/films/${film.slug}` : null);
   const about = page ? { page, title: (sp.label || film?.title || page).slice(0, 200) } : undefined;
   return (
-    <article className="page narrow info-page enquiry-page">
+    <article className="page full-width info-page enquiry-page">
       <header className="page-head">
         <h1>Feedback</h1>
         <p className="lead">Help improve Pheelm. Report something that isn&rsquo;t working, suggest an improvement or correct information about a film or person.</p>
