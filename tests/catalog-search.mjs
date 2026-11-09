@@ -9,6 +9,8 @@ const {buildFacets,cleanState,indexEntries,interpretQuery,matchesFilters,searchE
 const entry=(overrides={})=>({id:'1',slug:'dust',title:'Dust',image:null,subtitle:'',aliases:[],names:['Ousmane Sembène','Actor Name'],countries:['SN'],languages:['French'],genres:['Drama'],types:['feature'],years:[1991],runtime:99,wins:1,nominations:0,awards:['Cannes Film Festival'],availability:[{provider:'Netflix',region:'US',kind:'stream'},{provider:'Mubi',region:'GB',kind:'rent'}],count:1,filmography:[{year:1991,type:'feature'}],...overrides});
 const rows=[entry(),entry({id:'2',title:'Dust and Dreams',aliases:['Poussière'],names:['Dust'],runtime:null}),entry({id:'3',title:'Us',countries:['US'],names:['Jordan Peele'],years:[2019],runtime:116}),entry({id:'4',title:'Another Film',names:['Denzel Washington','Editor Name']})];
 const index=indexEntries(rows),facets=buildFacets(rows);
+assert.equal(searchEntries(indexEntries([entry({title:'B.A.P.S.'})]),{q:'BAPS'},'films')[0].entry.title,'B.A.P.S.','punctuated titles also match compact spelling');
+assert.equal(searchEntries(index,{q:'DenzelWashington'},'films')[0].entry.id,'4','names also match without spaces');
 assert.equal(searchEntries(index,{q:'Dust'},'films')[0].entry.title,'Dust','exact titles rank first');
 assert.equal(searchEntries(index,{q:'Poussiere'},'films')[0].entry.id,'2','alternate titles ignore accents');
 assert.equal(searchEntries(index,{q:'Sembane'},'films').length,1,'director typos are tolerated');

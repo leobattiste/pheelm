@@ -136,9 +136,9 @@ export function relevance(index: IndexedEntry, query: string) {
     const q = normalized(query);
     if (!q)
         return 1;
-    if (index.title === q)
+    if (index.title === q || index.title.replace(/ /g, '') === q.replace(/ /g, ''))
         return 1000;
-    if (index.aliases.includes(q))
+    if (index.aliases.some(n => n === q || n.replace(/ /g, '') === q.replace(/ /g, '')))
         return 900;
     if (index.title.startsWith(q))
         return 800;
@@ -146,7 +146,7 @@ export function relevance(index: IndexedEntry, query: string) {
         return 750;
     if (matchScore(q, index.title) === 2)
         return 700;
-    if (index.names.some(n => n === q))
+    if (index.names.some(n => n === q || n.replace(/ /g, '') === q.replace(/ /g, '')))
         return 650;
     if (index.aliases.some(n => n.includes(q)))
         return 600;
