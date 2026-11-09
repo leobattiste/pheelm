@@ -146,7 +146,7 @@ svg { flex-shrink: 0; }
 
 :root {
   --bar-height: 60px;
-  --control: var(--bar-height);
+  --control: 44px;
   --control-sm: 36px;
   --control-pad: var(--space-20);
   --control-pad-sm: var(--space-16);
@@ -2774,7 +2774,7 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
    Selected controls retain their contrast; menu rows remain part of one panel. */
 :root:root :is(.button.ghost, .button.quiet, .chip, .search-trigger, .link-chip):not(:where([aria-pressed="true"], [aria-selected="true"], [aria-current="page"], .danger, .danger-text, .more-panel *)),
 :root:root :is(.search-bar input, .field input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="color"]), .field select, .field textarea, .search-input, .save-new input, .newsletter-row input, .invite-combo input, .composer),
-:root:root :is(.film-card, .collection-tile, .director-card, .admin-managed-card, .ways li, .anniversary a, .stat, .fieldset, .inbox li, .public-name, .person-head, .person-facts > div, .filmography > li, .welcome-person, .cast a, .cast button):not(:where(.admin .editor .fieldset, .admin-toolbox .fieldset, .admin-managed-card > .collection-tile)),
+:root:root :is(.film-card, .collection-tile, .admin-managed-card, .ways li, .anniversary a, .stat, .fieldset, .inbox li, .public-name, .person-head, .person-facts > div, .filmography > li, .welcome-person, .cast a, .cast button):not(:where(.admin .editor .fieldset, .admin-toolbox .fieldset, .admin-managed-card > .collection-tile)),
 :root:root :is(.menu-sheet, .modal, .search-dialog, .trailer-dialog, .more-panel) {
   background-color: var(--glass-bg);
   -webkit-backdrop-filter: var(--glass-filter);
@@ -2783,23 +2783,26 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 }
 @media (hover: hover) {
   :root:root :is(.button.ghost, .button.quiet, .chip, .search-trigger, .link-chip):not(:where([aria-pressed="true"], [aria-selected="true"], [aria-current="page"], .danger, .danger-text, .more-panel *)):hover,
-  :root:root :is(.film-card, .collection-tile, .director-card):hover { background-color: var(--glass-hover); }
+  :root:root :is(.film-card, .collection-tile):hover { background-color: var(--glass-hover); }
 }
-:root:root .film-card {
-  padding: var(--space-16);
-  border-radius: var(--r);
-}
-:root:root .film-card > .quick-save { top: var(--space-24); right: var(--space-24); }
-:root:root[data-grid="small"] .film-card,
-:root:root[data-grid="list"] .film-card { padding: var(--space-12); }
-:root:root[data-grid="small"] .film-card > .quick-save,
-:root:root[data-grid="list"] .film-card > .quick-save { top: var(--space-20); right: var(--space-20); }
-
 /* One-line controls match the main bar; paragraphs and panels grow naturally. */
 :root:root :is(.button, .chip, .search-trigger, .search-bar input, .search-field input, .field input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="color"]):not([type="file"]), .field select, .search-input, .save-new input, .newsletter-row input, .invite-combo input):not(:where(.more-panel *, .film-bar *, .floating-controls *, .tab-bar *, .quick-save)) {
+  box-sizing: border-box;
   height: var(--bar-height);
 }
 :root:root .filter-button { min-width: var(--bar-height); }
 @media (max-width: 420px) {
   :root:root .filter-button { width: var(--bar-height); }
+}
+
+/* Tab navigation is 60px in total, including its existing padding and borders.
+   Child tabs fit inside the strip instead of each adding a separate 60px box. */
+:root:root :is(.tabs, .profile-tabs, .admin-subtabs, .feed-tabs, .segmented, .theme-toggle) {
+  box-sizing: border-box;
+  height: var(--bar-height);
+}
+:root:root :is(.tabs, .profile-tabs, .admin-subtabs, .feed-tabs) > :is(a, button, .chip) {
+  box-sizing: border-box;
+  height: 100%;
+  min-height: 0;
 }
