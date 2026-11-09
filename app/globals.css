@@ -2891,3 +2891,23 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
  .catalog-suggestion-head { align-items: flex-start; flex-wrap: wrap; }
 }
 
+
+/* Active filters stay on one scrollable line above the summary. */
+.catalog-active-filters {
+  flex-wrap: nowrap;
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin-bottom: var(--space-12);
+}
+.catalog-active-filters::-webkit-scrollbar { display: none; }
+.catalog-active-filters > li { flex: none; }
+.catalog-results-summary {
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  align-items: center;
+}
+.catalog-results-summary .result-count { margin-left: auto; white-space: nowrap; }
+.catalog-results-summary > .link-button { min-height: 44px; }
+

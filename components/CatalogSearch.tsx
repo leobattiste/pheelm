@@ -154,10 +154,11 @@ function Browser({ entries, mode }: {
    <SearchField mode={mode} value={state.q ?? ''} onChange={q => set('q', q)} results={results} history={history} onClearHistory={clearHistory} onHistory={s => { commit(s); remember(s); }} onSubmit={submit} onVisit={() => remember(state)} proposal={proposal}/>
    <button type="button" className="button ghost filter-button" aria-haspopup="dialog" onClick={() => { setFiltersOpen(true); modal.current?.showModal(); }}><Icon name="filter"/><span className="filter-label">Filters</span>{active.length > 0 && <span className="badge">{active.length}</span>}</button>
   </div>
-  <div className="result-bar" aria-live="polite">
-   {(!!state.q?.trim() || active.length > 0) && <span className="result-count">{results.length} {results.length === 1 ? 'result' : 'results'}</span>}
-   {active.length > 0 && <ul className="chip-list">{active.map(k => <li key={k}><button type="button" className="chip" aria-label={'Remove ' + filterLabel(k, state[k]!)} onClick={() => set(k, '')}>{filterLabel(k, state[k]!)}<Icon name="close" className="x"/></button></li>)}<li><button type="button" className="link-button" onClick={clearFilters}>Clear filters</button></li></ul>}
-  </div>
+  {active.length > 0 && <ul className="chip-list catalog-active-filters" aria-label="Active filters">{active.map(k => <li key={k}><button type="button" className="chip" aria-label={'Remove ' + filterLabel(k, state[k]!)} onClick={() => set(k, '')}>{filterLabel(k, state[k]!)}<Icon name="close" className="x"/></button></li>)}</ul>}
+  {(!!state.q?.trim() || active.length > 0) && <div className="result-bar catalog-results-summary" aria-live="polite">
+   {active.length > 0 && <button type="button" className="link-button" onClick={clearFilters}>Clear</button>}
+   <span className="result-count">{results.length} {results.length === 1 ? 'result' : 'results'}</span>
+  </div>}
   {proposal && <div className="catalog-interpretation"><span>Search with filters: {Object.entries(proposal).filter(([k, v]) => k !== 'q' && v).map(([k, v]) => filterLabel(k as SearchKey, v!)).join(' · ')}</span><button type="button" className="button ghost" onClick={submit}>Apply filters</button></div>}
   {correction && <p className="catalog-correction">{rows.length > 0 ? 'Showing close matches. ' : ''}Did you mean <button type="button" className="link-button" onClick={() => set('q', correction)}>{correction}</button>?</p>}
   {boundsInvalid && <p className="notice error" role="alert">The minimum must be no greater than the maximum.</p>}
@@ -182,4 +183,5 @@ export default function CatalogSearch(props: {
 }) {
     return <Suspense fallback={<p className="muted" role="status">Loading search…</p>}><Browser {...props}/></Suspense>;
 }
+
 
