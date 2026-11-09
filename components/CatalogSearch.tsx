@@ -30,6 +30,8 @@ function SearchField({ mode, value, onChange, results, history, onClearHistory, 
     const [active, setActive] = useState(-1);
     const id = useId();
     const router = useRouter();
+    const container = useRef<HTMLDivElement>(null);
+    const input = useRef<HTMLInputElement>(null);
     const options = value.trim() ? results.slice(0, 6) : [];
     const recent = value.trim() ? [] : history;
     const count = options.length + recent.length + (proposal ? 1 : 0);
@@ -52,14 +54,19 @@ function SearchField({ mode, value, onChange, results, history, onClearHistory, 
         onHistory(recent[at].state);
         setOpen(false);
     } };
+    useEffect(() => {
+        const dismiss = (event: PointerEvent) => { if (!container.current?.contains(event.target as Node)) setOpen(false); };
+        document.addEventListener('pointerdown', dismiss, true);
+        return () => document.removeEventListener('pointerdown', dismiss, true);
+    }, []);
     useEffect(() => setActive(-1), [value]);
     useEffect(() => { if (open && active >= 0)
         document.getElementById(id + '-option-' + active)?.scrollIntoView({ block: 'nearest' }); }, [active, open, id]);
-    return <div className="catalog-search-control" onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null))
+    return <div ref={container} className="catalog-search-control" onBlur={e => { if (e.relatedTarget && !e.currentTarget.contains(e.relatedTarget as Node))
         setOpen(false); }}>
   <form className="search-bar" role="search" onSubmit={e => { e.preventDefault(); choose(open ? active : -1); }}>
    <Icon name="search"/><label htmlFor={id} className="visually-hidden">Search {mode}</label>
-   <input id={id} type="search" role="combobox" aria-autocomplete="list" aria-expanded={open && count > 0} aria-controls={id + '-suggestions'} aria-activedescendant={open && active >= 0 ? id + '-option-' + active : undefined} autoComplete="off" placeholder={'Search ' + mode} value={value} maxLength={200} onFocus={() => setOpen(true)} onChange={e => { onChange(e.target.value); setOpen(true); setActive(-1); }} onKeyDown={e => { if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+   <input ref={input} id={id} type="search" role="combobox" aria-autocomplete="list" aria-expanded={open && count > 0} aria-controls={id + '-suggestions'} aria-activedescendant={open && active >= 0 ? id + '-option-' + active : undefined} autoComplete="off" placeholder={'Search ' + mode} value={value} maxLength={200} onFocus={() => setOpen(true)} onClick={() => setOpen(true)} onChange={e => { onChange(e.target.value); setOpen(true); setActive(-1); }} onKeyDown={e => { if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         e.preventDefault();
         setOpen(true);
         setActive(n => count ? (n < 0 ? (e.key === 'ArrowDown' ? 0 : count - 1) : (n + (e.key === 'ArrowDown' ? 1 : -1) + count) % count) : -1);
@@ -69,6 +76,7 @@ function SearchField({ mode, value, onChange, results, history, onClearHistory, 
         setOpen(false);
         setActive(-1);
     } }}/>
+   {value && <button type="button" className="catalog-clear-query" aria-label="Clear search text" onClick={() => { onChange(''); setOpen(true); setActive(-1); input.current?.focus(); }}><Icon name="close"/></button>}
   </form>
   {open && count > 0 && <div className="catalog-suggestions">
    {!value.trim() && <div className="catalog-suggestion-head"><span>Recent searches on this device</span><button type="button" className="link-button" onClick={onClearHistory}>Clear history</button></div>}
@@ -76,7 +84,7 @@ function SearchField({ mode, value, onChange, results, history, onClearHistory, 
     {proposal && <li id={id + '-option-0'} role="option" aria-selected={active === 0}><button type="button" className="catalog-suggestion" onClick={() => { onSubmit(); setOpen(false); }}><Icon name="filter"/><span>Use filters<span className="muted">{Object.entries(proposal).filter(([k, v]) => k !== 'q' && v).map(([k, v]) => filterLabel(k as SearchKey, v!)).join(' · ')}</span></span></button></li>}
     {options.map((item, i) => {
                 const n = i + (proposal ? 1 : 0);
-                return <li key={item.id} id={id + '-option-' + n} role="option" aria-selected={active === n}><Link className="catalog-suggestion" href={'/' + (mode === 'films' ? 'films' : 'directors') + '/' + item.slug} onClick={onVisit}>
+                return <li key={item.id} id={id + '-option-' + n} role="option" aria-selected={active === n}><Link className="catalog-suggestion" href={'/' + (mode === 'films' ? 'films' : 'directors') + '/' + item.slug} onClick={() => { onVisit(); setOpen(false); }}>
       {item.image ? <img src={item.image} alt="" width={36} height={54}/> : <span className="catalog-suggestion-placeholder"><Icon name={mode === 'films' ? 'film' : 'user'}/></span>}<span>{item.title}<span className="muted">{item.subtitle}</span></span>
      </Link></li>;
             })}
@@ -152,12 +160,13 @@ function Browser({ entries, mode }: {
         remember(state); }}>
   <div className="toolbar catalog-toolbar">
    <SearchField mode={mode} value={state.q ?? ''} onChange={q => set('q', q)} results={results} history={history} onClearHistory={clearHistory} onHistory={s => { commit(s); remember(s); }} onSubmit={submit} onVisit={() => remember(state)} proposal={proposal}/>
-   <button type="button" className="button ghost filter-button" aria-haspopup="dialog" onClick={() => { setFiltersOpen(true); modal.current?.showModal(); }}><Icon name="filter"/><span className="filter-label">Filters</span>{active.length > 0 && <span className="badge">{active.length}</span>}</button>
+   <button type="button" className={"button ghost filter-button" + (active.length ? " has-count" : "")} aria-haspopup="dialog" onClick={() => { setFiltersOpen(true); modal.current?.showModal(); }}><Icon name="filter"/><span className="filter-label">Filters</span>{active.length > 0 && <span className="badge" aria-label={active.length + " active filters"}>{active.length}</span>}</button>
   </div>
-  <div className="result-bar" aria-live="polite">
-   {(!!state.q?.trim() || active.length > 0) && <span className="result-count">{results.length} {results.length === 1 ? 'result' : 'results'}</span>}
-   {active.length > 0 && <ul className="chip-list">{active.map(k => <li key={k}><button type="button" className="chip" aria-label={'Remove ' + filterLabel(k, state[k]!)} onClick={() => set(k, '')}>{filterLabel(k, state[k]!)}<Icon name="close" className="x"/></button></li>)}<li><button type="button" className="link-button" onClick={clearFilters}>Clear filters</button></li></ul>}
-  </div>
+  {active.length > 0 && <ul className="chip-list catalog-active-filters" aria-label="Active filters">{active.map(k => <li key={k}><button type="button" className="chip" aria-label={'Remove ' + filterLabel(k, state[k]!)} onClick={() => set(k, '')}>{filterLabel(k, state[k]!)}<Icon name="close" className="x"/></button></li>)}</ul>}
+  {(!!state.q?.trim() || active.length > 0) && <div className="result-bar catalog-results-summary" aria-live="polite">
+   {active.length > 0 && <button type="button" className="link-button" onClick={clearFilters}>Clear</button>}
+   <span className="result-count">{results.length} {results.length === 1 ? 'result' : 'results'}</span>
+  </div>}
   {proposal && <div className="catalog-interpretation"><span>Search with filters: {Object.entries(proposal).filter(([k, v]) => k !== 'q' && v).map(([k, v]) => filterLabel(k as SearchKey, v!)).join(' · ')}</span><button type="button" className="button ghost" onClick={submit}>Apply filters</button></div>}
   {correction && <p className="catalog-correction">{rows.length > 0 ? 'Showing close matches. ' : ''}Did you mean <button type="button" className="link-button" onClick={() => set('q', correction)}>{correction}</button>?</p>}
   {boundsInvalid && <p className="notice error" role="alert">The minimum must be no greater than the maximum.</p>}
@@ -182,4 +191,5 @@ export default function CatalogSearch(props: {
 }) {
     return <Suspense fallback={<p className="muted" role="status">Loading search…</p>}><Browser {...props}/></Suspense>;
 }
+
 
