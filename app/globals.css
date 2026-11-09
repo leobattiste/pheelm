@@ -2819,3 +2819,67 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 :root .composer :is(button, .button) { --control-border: var(--bar-border); --control-border-strong: var(--bar-border); }
 
 :root .search-icon { color: #fff; }
+
+/* A modal or bar owns the surface. Nested controls keep only their outline,
+   including hover/selected states, so glass does not accumulate in layers. */
+:root :is(dialog, .modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .toolbar) :is(.button, .pill-button, .round-button, .icon-button, .chip, .segmented, .theme-toggle, .segmented button, .theme-toggle button, .composer, .search-field, input:not([type="checkbox"], [type="radio"], [type="color"], [type="range"], [type="hidden"], [type="button"], [type="submit"], [type="reset"]), select, textarea),
+:root :is(.filter-field input, .filter-field select, .filter-field textarea, .filter-button) {
+  background-color: transparent !important;
+  color: inherit;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+:root :is(dialog, .modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .toolbar) :is(input, select, textarea, .composer, .search-field) {
+  --ink: inherit;
+  --text: inherit;
+  --on-ink: inherit;
+  --muted: inherit;
+  color: inherit;
+  caret-color: currentColor;
+}
+:root :is(dialog, .modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .toolbar) :is(input, textarea)::placeholder { color: var(--muted); }
+/* The toolbar owns the dark glass; search and filter controls remain clear. */
+:root .toolbar {
+  --surface: #181818;
+  --text: #fff;
+  --ink: #fff;
+  --on-ink: #0c0c0c;
+  --muted: #bdbdbd;
+  background: var(--field-glass-bg);
+  color: #fff;
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+}
+:root .toolbar .search-bar {
+  background: transparent;
+  border: 1px solid var(--bar-border);
+  border-radius: var(--pill);
+  color: #fff;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+:root .toolbar .search-bar input { border: 0; color: #fff; }
+:root .toolbar .search-bar input::placeholder { color: #bdbdbd; }
+:root .toolbar .search-bar:focus-within { border-color: #fff; }
+
+/* Keep white search glyphs readable: the dialog owns the dark glass, not its fields. */
+:root .search-dialog {
+  --surface: #181818;
+  --raised: #222;
+  --hover: #2c2c2c;
+  --line: #262626;
+  --text: #fff;
+  --ink: #fff;
+  --on-ink: #0c0c0c;
+  --muted: #bdbdbd;
+  background: var(--field-glass-bg);
+  color: #fff;
+  color-scheme: dark;
+}
+:root :is(dialog, .modal, .search-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .toolbar) input:-webkit-autofill {
+  -webkit-text-fill-color: var(--text);
+  -webkit-box-shadow: 0 0 0 1000px var(--surface) inset;
+}
+:root[data-theme="light"] :is(dialog:not(.search-dialog), .modal, .menu-sheet, .more-panel) select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%230c0c0c' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
+}
