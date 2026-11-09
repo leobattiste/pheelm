@@ -1,0 +1,32 @@
+/* Admin Films & Directors reuse the public catalog layout and controls. */
+.admin-directors { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-24); min-width: 0; }
+.admin-directors > *, .admin-films > * { min-width: 0; }
+.admin-browser-tools .catalog-toolbar { width: 100%; display: flex; gap: var(--space-12); align-items: stretch; }
+.admin-browser-tools .catalog-search-control { display: block; flex: 1 1 auto; min-width: 0; }
+.admin-browser-tools .catalog-search-control .search-bar { display: flex; align-items: center; width: 100%; height: var(--bar-height); }
+.admin-browser-tools .catalog-search-control input[type="search"] { flex: 1; min-width: 0; height: 100%; background: transparent; border: none; box-shadow: none; }
+.admin-browser-tools .catalog-search-control input[type="search"]:focus { outline: none; }
+.admin-browser-tools .catalog-active-filters { margin: 0; }
+.admin-view-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-12); min-height: 44px; }
+.admin-view-size { display: inline-flex; align-items: center; gap: var(--space-8); font-size: var(--t-sm); color: var(--muted); }
+.admin-view-size select { appearance: none; min-width: 86px; height: 40px; padding: 0 33px 0 12px; border: 1px solid var(--line); border-radius: var(--pill); background: var(--raised); color: var(--ink); cursor: pointer; }
+.admin-view-size svg { pointer-events: none; margin-left: -32px; margin-right: 12px; }
+.admin-managed-list { display: grid; gap: var(--space-16); min-width: 0; }
+.admin-select-line { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-12); padding: 0 0 var(--space-8); }
+.admin-select-line .check, .admin-card-selection .check { display: inline-flex; align-items: center; gap: var(--space-8); cursor: pointer; }
+.admin-card-selection { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: flex-start; gap: var(--space-8); min-width: 0; }
+.admin-managed-card .admin-card-selection { border-top: 1px solid var(--line); }
+.admin-selection-panel { position: sticky; top: 8px; z-index: 12; display: grid; gap: var(--space-12); padding: var(--space-16); border: 1px solid var(--control-border-strong); border-radius: var(--r); background: var(--raised); box-shadow: var(--glass-shadow); }
+.admin-selection-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-12); }
+.admin-selection-actions { display: flex; flex-wrap: wrap; gap: var(--space-8); }
+.admin-selection-panel .modal { position: fixed; }
+.admin-directory-note { font-size: var(--t-sm); }
+.admin-select-line input[type="checkbox"], .admin-card-selection input[type="checkbox"] { min-width: 20px; min-height: 20px; cursor: pointer; }
+@media (max-width: 639px) {
+  .admin-view-controls { align-items: center; }
+  .admin-browser-tools .catalog-toolbar { gap: var(--space-8); }
+  .admin-selection-panel { top: 4px; padding: var(--space-12); }
+  .admin-selection-actions > .button { flex: 1 1 calc(50% - var(--space-8)); min-width: 0; }
+  .admin-selection-heading strong { font-size: var(--t-sm); }
+  .admin-card-selection { font-size: var(--t-xs); }
+}
