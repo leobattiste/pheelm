@@ -3,7 +3,7 @@
 ## Live architecture
 
 - Supabase database triggers enqueue future events in the private `pheelm_email.outbox` schema.
-- Supabase Cron invokes `pheelm-email` every five minutes. The worker authenticates with a dedicated token stored in Vault.
+- Scheduling is defined in `supabase/email-schedule.sql`. Supabase Cron invokes `pheelm-email` every five minutes. The worker authenticates with a dedicated token stored in Vault.
 - The Edge Function uses its platform-provided service-role credential. The domain-restricted Resend key and webhook signing secret are stored in Vault, never in Git or browser bundles.
 - Messages use `Pheelm <notifications@pheelm.com>` and reply to `hey@pheelm.com`.
 - Resend delivery/bounce/complaint webhooks require Svix signature verification and a five-minute timestamp window. Event IDs are deduplicated. Bounced and complained recipients are suppressed.

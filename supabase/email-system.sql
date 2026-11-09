@@ -121,7 +121,8 @@ begin
  update pheelm_email.outbox o set state='suppressed',message='',last_error='Suppressed or preference disabled' where o.state in ('pending','processing') and
  (exists(select 1 from pheelm_email.suppressions s where s.email=lower(o.recipient)) or
  (o.category='collaboration' and exists(select 1 from public.email_preferences p where p.user_id=o.user_id and not p.collaboration_emails)) or
- (o.category='optional' and not exists(select 1 from public.email_preferences p where p.user_id=o.user_id and p.digest_frequency<>'off')));
+ (o.category='optional' and not exists(select 1 from public.email_preferences p where p.user_id=o.user_id and p.digest_frequency<>'off')) or
+ (o.category='confirmation' and not exists(select 1 from pheelm_email.subscriptions s where s.email=lower(o.recipient) and s.confirmed_at is null and s.unsubscribed_at is null and o.action_path='/newsletter-confirm?token='||s.token)));
  return query with due as (
  select id from pheelm_email.outbox where (state='pending' or (state='processing' and available_at<now())) and available_at<=now() and attempts<6 order by created_at for update skip locked limit greatest(1,least(batch_size,20))
  ) update pheelm_email.outbox o set state='processing',attempts=o.attempts+1,available_at=now()+interval '15 minutes',lease=gen_random_uuid() from due where o.id=due.id returning o.*;

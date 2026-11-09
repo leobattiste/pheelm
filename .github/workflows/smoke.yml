@@ -29,3 +29,29 @@ jobs:
         env:
           BASE_URL: http://localhost:3000
           BROWSER: webkit
+
+  email-database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: email-test-only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: email-test-only
+    steps:
+      - uses: actions/checkout@v4
+      - run: psql -v ON_ERROR_STOP=1 -f tests/email-bootstrap.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/email-system.sql
+      - run: psql -v ON_ERROR_STOP=1 -f tests/email-system.sql

@@ -12,7 +12,7 @@ do $$begin if (select count(*) from pheelm_email.outbox where template='collecti
 insert into public.subscribers(email) values('delivered+newsletter@resend.dev');
 do $$declare tok text;begin select token into tok from pheelm_email.subscriptions where email='delivered+newsletter@resend.dev';if public.email_newsletter_status() <> 'off' then raise exception 'Anonymous subscription state exposed';end if;if not public.email_token_action(tok,'confirm') then raise exception 'Confirmation failed';end if;if not public.email_token_action(tok,'unsubscribe') then raise exception 'Unsubscribe failed';end if;if exists(select 1 from public.subscribers where email='delivered+newsletter@resend.dev') then raise exception 'Unsubscribe did not persist';end if;end$$;
 create temp table claimed as select * from public.email_claim(20);
-do $$begin if not exists(select 1 from claimed) then raise exception 'Claim failed';end if;if exists(select 1 from public.email_claim(20)) then raise exception 'Lease allowed double claim';end if;end$$;
+do $$begin if exists(select 1 from claimed where template='newsletter-confirmation') then raise exception 'Canceled confirmation was delivered';end if;if not exists(select 1 from claimed) then raise exception 'Claim failed';end if;if exists(select 1 from public.email_claim(20)) then raise exception 'Lease allowed double claim';end if;end$$;
 select public.email_complete(id,lease,'test-provider-id') from claimed where template='contact-received' limit 1;
 select public.email_record_event('test-event','email.bounced','test-provider-id');
 select public.email_record_event('test-event','email.bounced','test-provider-id');
