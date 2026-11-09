@@ -145,7 +145,8 @@ svg { flex-shrink: 0; }
    States are the same everywhere: hover fill, press to 97%, one focus ring, 45% when disabled. */
 
 :root {
-  --control: 44px;
+  --bar-height: 60px;
+  --control: var(--bar-height);
   --control-sm: 36px;
   --control-pad: var(--space-20);
   --control-pad-sm: var(--space-16);
@@ -1943,7 +1944,7 @@ html[data-auth="in"] .visitor-only { display: none !important; }
 .tab-bar { display: none; }
 html[data-auth="in"][data-chrome="app"] {
   --tab-gap: calc(var(--space-12) + env(safe-area-inset-bottom));
-  --tab-h: 60px;
+  --tab-h: var(--bar-height);
   --tab-width: var(--floating-width);
   --floating-bottom: calc(var(--tab-gap) + var(--tab-h) + 10px);
   --tab-bar: calc(var(--tab-h) + var(--tab-gap) + var(--space-12));
@@ -2545,20 +2546,20 @@ html[data-auth="in"][data-chrome="app"] body:has(dialog:modal) .tab-bar { z-inde
 .legal-page .profile-tabs::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: var(--pill); }
 .legal-page .tab-panel { min-width: 0; }
 
-/* White search glyphs keep their contrast in both themes. */
+/* Search shares the navigation material and follows the active theme. */
 :root .search-bar.search-bar input,
 :root .search-trigger,
 :root .search-trigger:hover {
-  background: #181818;
-  color: #fff;
-  border-color: #555;
-  color-scheme: dark;
+  background: var(--glass-bg);
+  color: var(--text);
+  border-color: var(--line);
+  color-scheme: inherit;
 }
-:root .search-field { background: #181818; color: #fff; }
+:root .search-field { background: transparent; color: var(--text); }
 :root :is(.search-bar, .search-field, .search-trigger) svg,
-:root .search-field :is(input, .search-close) { color: #fff; }
+:root .search-field :is(input, .search-close) { color: var(--text); }
 :root .search-bar input::placeholder,
-:root .search-field input::placeholder { color: #b8b8b8; }
+:root .search-field input::placeholder { color: var(--muted); }
 
 /* Cards and buttons stay flat, including hover, selected and pressed states. */
 :root :is(button, .button, .chip, .pill-button, .round-button, .icon-button, .search-trigger, .tabs a, .admin-subtabs a,
@@ -2768,3 +2769,37 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 
 /* Logout follows feedback in its own divided section without the account block minimum height. */
 .menu-signout { min-height: 0; }
+
+/* Match the main navigation material across controls and content surfaces.
+   Selected controls retain their contrast; menu rows remain part of one panel. */
+:root:root :is(.button.ghost, .button.quiet, .chip, .search-trigger, .link-chip):not(:where([aria-pressed="true"], [aria-selected="true"], [aria-current="page"], .danger, .danger-text, .more-panel *)),
+:root:root :is(.search-bar input, .field input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="color"]), .field select, .field textarea, .search-input, .save-new input, .newsletter-row input, .invite-combo input, .composer),
+:root:root :is(.film-card, .collection-tile, .director-card, .admin-managed-card, .ways li, .anniversary a, .stat, .fieldset, .inbox li, .public-name, .person-head, .person-facts > div, .filmography > li, .welcome-person, .cast a, .cast button):not(:where(.admin .editor .fieldset, .admin-toolbox .fieldset, .admin-managed-card > .collection-tile)),
+:root:root :is(.menu-sheet, .modal, .search-dialog, .trailer-dialog, .more-panel) {
+  background-color: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  border: 1px solid var(--line);
+}
+@media (hover: hover) {
+  :root:root :is(.button.ghost, .button.quiet, .chip, .search-trigger, .link-chip):not(:where([aria-pressed="true"], [aria-selected="true"], [aria-current="page"], .danger, .danger-text, .more-panel *)):hover,
+  :root:root :is(.film-card, .collection-tile, .director-card):hover { background-color: var(--glass-hover); }
+}
+:root:root .film-card {
+  padding: var(--space-16);
+  border-radius: var(--r);
+}
+:root:root .film-card > .quick-save { top: var(--space-24); right: var(--space-24); }
+:root:root[data-grid="small"] .film-card,
+:root:root[data-grid="list"] .film-card { padding: var(--space-12); }
+:root:root[data-grid="small"] .film-card > .quick-save,
+:root:root[data-grid="list"] .film-card > .quick-save { top: var(--space-20); right: var(--space-20); }
+
+/* One-line controls match the main bar; paragraphs and panels grow naturally. */
+:root:root :is(.button, .chip, .search-trigger, .search-bar input, .search-field input, .field input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="color"]):not([type="file"]), .field select, .search-input, .save-new input, .newsletter-row input, .invite-combo input):not(:where(.more-panel *, .film-bar *, .floating-controls *, .tab-bar *, .quick-save)) {
+  height: var(--bar-height);
+}
+:root:root .filter-button { min-width: var(--bar-height); }
+@media (max-width: 420px) {
+  :root:root .filter-button { width: var(--bar-height); }
+}
