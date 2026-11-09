@@ -78,6 +78,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://image.tmdb.org" />
       </head>
       <body>
+        <Script id="focus-input" strategy="beforeInteractive">
+          {`(() => {
+            const root = document.documentElement;
+            document.addEventListener("pointerdown", (event) => {
+              if (event.pointerType === "touch") root.dataset.focusInput = "touch";
+              else delete root.dataset.focusInput;
+            }, true);
+            document.addEventListener("keydown", (event) => {
+              if (!event.altKey && !event.ctrlKey && !event.metaKey) {
+                delete root.dataset.focusInput;
+              }
+            }, true);
+          })();`}
+        </Script>
         <Script id="theme" strategy="beforeInteractive">
           {themeScript}
         </Script>
