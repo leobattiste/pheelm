@@ -22,7 +22,7 @@ export async function bulkPersonChange(form: FormData) {
     for (let i = 0; i < ids.length; i += BATCH) {
       const { data, error } = await db.from("credits").select("person_id").in("person_id", ids.slice(i, i + BATCH)).limit(1);
       if (error) throw new Error(error.message);
-      if (data?.length) throw new Error("Some selected people have film credits. Remove or reassign their credits first; no one has been deleted.");
+      if (data?.length) redirect("/admin/people?error=credits");
     }
   }
 
