@@ -1,7 +1,8 @@
 import { PAGE_COPY } from "@/lib/site";
 import type { Metadata } from "next";
+import { filmSearchEntry } from "@/lib/search-data";
 import FilmBrowser from "@/components/FilmBrowser";
-import { getFacets, getFilms, toCard } from "@/lib/data";
+import { getFilms } from "@/lib/data";
 
 export const revalidate = 300;
 export const metadata: Metadata = {
@@ -11,14 +12,14 @@ export const metadata: Metadata = {
 };
 
 export default async function FilmsPage() {
-  const [films, facets] = await Promise.all([getFilms(), getFacets()]);
+  const films = await getFilms();
   return (
     <section className="page">
       <header className="page-head intro-head">
         <h1>Films</h1>
         <p className="lead">{PAGE_COPY.films}</p>
       </header>
-      <FilmBrowser films={films.map(toCard)} facets={facets} />
+      <FilmBrowser entries={films.map(filmSearchEntry)} />
     </section>
   );
 }

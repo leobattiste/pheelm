@@ -8,12 +8,12 @@
  */
 
 /** Lower case, no accents. */
-export const plain = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+export const plain = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[øłđðæœß]/g, (c) => ({ ø: "o", ł: "l", đ: "d", ð: "d", æ: "ae", œ: "oe", ß: "ss" })[c] ?? c);
 
-const tokens = (s: string) => s.split(/[^a-z0-9]+/).filter(Boolean);
+const tokens = (s: string) => s.split(/[^\p{L}\p{N}]+/u).filter(Boolean);
 
 /** Damerau-Levenshtein distance, giving up once it's over `max`. */
-function distance(a: string, b: string, max: number): number {
+export function distance(a: string, b: string, max: number): number {
   if (Math.abs(a.length - b.length) > max) return max + 1;
   const rows: number[][] = [];
   for (let i = 0; i <= a.length; i++) rows.push([i]);

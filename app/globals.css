@@ -2858,3 +2858,36 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 
 /* Controls and navigation never draw a browser or custom focus outline. */
 :focus { outline: none !important; }
+
+/* Catalog search retains the existing 60px controls and glass material. */
+.catalog-toolbar { position: relative; z-index: 40; }
+.catalog-search-control { position: relative; flex: 1; min-width: 0; }
+.catalog-search-control .search-bar { width: 100%; max-width: none; }
+.catalog-search-control .search-bar > svg { z-index: 1; }
+.catalog-search-hint { margin: 0 0 var(--space-16); font-size: var(--t-sm); }
+.catalog-suggestions {
+ position: absolute; z-index: 50; inset: calc(100% + 8px) 0 auto;
+ max-height: min(60dvh, 540px); overflow-y: auto; padding: var(--space-8);
+ border: 1px solid var(--line); border-radius: var(--r); background: var(--glass-bg);
+ -webkit-backdrop-filter: var(--glass-filter); backdrop-filter: var(--glass-filter);
+ box-shadow: var(--glass-shadow);
+}
+.catalog-suggestion-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-8); padding: var(--space-8); color: var(--muted); font-size: var(--t-sm); }
+.catalog-suggestion {
+ display: flex; align-items: center; gap: var(--space-12); width: 100%; min-height: 60px;
+ padding: var(--space-8); border: 0; border-radius: var(--r-sm); background: transparent;
+ color: var(--text); text-align: left; cursor: pointer; text-decoration: none;
+}
+.catalog-suggestion > span:not(.catalog-suggestion-placeholder) { display: grid; gap: var(--space-4); min-width: 0; overflow-wrap: anywhere; }
+.catalog-suggestion .muted { font-size: var(--t-xs); }
+.catalog-suggestion img, .catalog-suggestion-placeholder { flex: none; width: 36px; height: 54px; border-radius: 6px; object-fit: cover; }
+.catalog-suggestion-placeholder { display: grid; place-items: center; background: var(--raised); }
+.catalog-suggestions [aria-selected="true"], .catalog-suggestion:hover, .catalog-suggestion:focus-visible { background: var(--hover); border-radius: var(--r-sm); }
+.catalog-interpretation { display: flex; align-items: center; justify-content: space-between; gap: var(--space-16); padding: var(--space-16); margin-bottom: var(--space-24); border: 1px solid var(--line); border-radius: var(--r); background: var(--glass-bg); -webkit-backdrop-filter: var(--glass-filter); backdrop-filter: var(--glass-filter); }
+:root:root .catalog-interpretation .button { flex: none; background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.catalog-correction { margin-bottom: var(--space-16); }
+.catalog-filter-dialog .modal-body { display: grid; gap: var(--space-16); }
+@media (max-width: 639px) {
+ .catalog-interpretation { flex-direction: column; align-items: stretch; }
+ .catalog-suggestion-head { align-items: flex-start; flex-wrap: wrap; }
+}
