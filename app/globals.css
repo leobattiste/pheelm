@@ -2837,7 +2837,7 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
   color: #fff;
   color-scheme: dark;
 }
-:root :is(.button.ghost, .button.quiet, .chip, .pill-button, .round-button:not(.more-button), .search-trigger, .tabs a, .admin-subtabs a, .segmented button, .theme-toggle button):not(:where(.danger, .danger-text)) {
+:root :is(.button.ghost, .button.quiet, .chip, .pill-button, .round-button:not(.more-button), .search-trigger, .tabs a, .admin-subtabs a, .segmented button, .theme-toggle button):not(:where(.danger, .danger-text, [aria-current="page"], [aria-selected="true"], [aria-pressed="true"], [aria-checked="true"])) {
   --glass-bg: var(--menu-control-bg);
   --glass-hover: var(--menu-control-bg);
   background-color: var(--menu-control-bg) !important;
@@ -2865,10 +2865,21 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
   background: transparent !important;
 }
 
-/* Feed selection stays visible when every chip shares the menu material. */
-.feed-tabs .chip[aria-current="page"] {
+/* Active navigation and primary actions keep their contrasting hierarchy,
+   with translucent ink so the shared backdrop blur remains visible. */
+:root :is(
+  .button:not(.ghost):not(.quiet):not(.danger):not(.danger-text),
+  .chip:is([aria-current="page"], [aria-selected="true"], [aria-pressed="true"]),
+  .tabs a[aria-current="page"],
+  .admin-subtabs a[aria-current="page"],
+  .segmented button[aria-checked="true"],
+  .theme-toggle button[aria-checked="true"]
+) {
+  background-color: color-mix(in srgb, var(--ink) 90%, transparent) !important;
+  color: var(--on-ink) !important;
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  border-color: var(--bar-border);
   font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 5px;
-  text-decoration-thickness: 1px;
+  text-decoration: none;
 }
