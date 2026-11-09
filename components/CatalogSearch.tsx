@@ -62,8 +62,7 @@ function SearchField({ mode, value, onChange, results, history, onClearHistory, 
     useEffect(() => setActive(-1), [value]);
     useEffect(() => { if (open && active >= 0)
         document.getElementById(id + '-option-' + active)?.scrollIntoView({ block: 'nearest' }); }, [active, open, id]);
-    return <div ref={container} className="catalog-search-control" onBlur={e => { if (e.relatedTarget && !e.currentTarget.contains(e.relatedTarget as Node))
-        setOpen(false); }}>
+    return <div ref={container} className="catalog-search-control" onKeyDownCapture={e => { if (e.key === 'Tab') requestAnimationFrame(() => { if (!container.current?.contains(document.activeElement)) setOpen(false); }); }}>
   <form className="search-bar" role="search" onSubmit={e => { e.preventDefault(); choose(open ? active : -1); }}>
    <Icon name="search"/><label htmlFor={id} className="visually-hidden">Search {mode}</label>
    <input ref={input} id={id} type="search" role="combobox" aria-autocomplete="list" aria-expanded={open && count > 0} aria-controls={id + '-suggestions'} aria-activedescendant={open && active >= 0 ? id + '-option-' + active : undefined} autoComplete="off" placeholder={'Search ' + mode} value={value} maxLength={200} onFocus={() => setOpen(true)} onClick={() => setOpen(true)} onChange={e => { onChange(e.target.value); setOpen(true); setActive(-1); }} onKeyDown={e => { if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
