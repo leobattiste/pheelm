@@ -1,4 +1,5 @@
 "use client";
+import EmailInput from "@/components/EmailInput";
 
 import { useActionState } from "react";
 import { submitOwnFilm, type SubmitState } from "../actions";
@@ -91,7 +92,7 @@ export default function OwnFilmForm({ email }: { email: string }) {
           <label className="field">Your name<input name="name" maxLength={200} autoComplete="name" /></label>
           <label className="field">Your role on the film<input name="role" maxLength={200} placeholder="Director, producer…" /></label>
         </div>
-        <label className="field">Email <span className="hint">We&rsquo;ll write here when we&rsquo;ve reviewed it</span><input name="email" type="email" required defaultValue={email} autoComplete="email" /></label>
+        <label className="field">Email <span className="hint">We&rsquo;ll write here when we&rsquo;ve reviewed it</span><EmailInput name="email"  required defaultValue={email} autoComplete="email" /></label>
         <label className="check">
           <input type="checkbox" name="rights" required /> I made this film or have the right to submit it.
         </label>

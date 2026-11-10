@@ -109,7 +109,7 @@ export default async function MemberPage({ params }: Params) {
       <header className="person-head">
         {(own || !member.is_private) && (
           <MoreMenu corner label="Profile actions">
-            {own && <ProfileEditor handle={member.handle} displayName={member.display_name} isPrivate={!!member.is_private} country={member.country ?? null} avatarUrl={member.avatar_url ?? null} />}
+            {own && <ProfileEditor bio={member.bio ?? null} handle={member.handle} displayName={member.display_name} isPrivate={!!member.is_private} country={member.country ?? null} avatarUrl={member.avatar_url ?? null} />}
             {!member.is_private && <ShareButton item title={`${name} on Pheelm`} />}
             {viewer && !own && <BlockButton memberId={member.id} handle={member.handle} blocked={!!blockRow?.data} />}
           </MoreMenu>
@@ -119,6 +119,7 @@ export default async function MemberPage({ params }: Params) {
           <h1>{name}{VERIFIED[member.handle] && <VerifiedBadge title={VERIFIED[member.handle]} />}</h1>
           {member.country && <p className="person-roles">{countryName(member.country)}</p>}
           <p className="person-sub">@{member.handle}</p>
+          {member.bio && <p className="member-bio">{member.bio}</p>}
           {own && member.is_private && <p className="person-sub">Private: only you can see this page.</p>}
         </div>
       </header>

@@ -6,7 +6,7 @@ for (const format of ["jpeg", "png", "webp"]) {
   const image = await sharp({ create: { width: 640, height: 900, channels: 3, background: "#4682b4" } }).toFormat(format).withMetadata().toBuffer();
   const result = await prepareProfilePhoto(new File([image], `photo.${format}`, { type: `image/${format}` }));
   const meta = await sharp(result).metadata();
-  assert.equal(meta.format, "webp"); assert.equal(meta.width, 512); assert.equal(meta.height, 512);
+  assert.equal(meta.format, "webp"); assert.equal(meta.width, 512); assert.equal(meta.height, 768);
   assert.equal(meta.exif, undefined); assert.equal(meta.icc, undefined);
 }
 await assert.rejects(() => prepareProfilePhoto(new File(["not an image"], "photo.png", { type: "image/png" })));

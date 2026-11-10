@@ -23,11 +23,11 @@ export default async function WelcomePage({ searchParams }: { searchParams: Prom
   if (!user) redirect("/");
 
   const [{ data: profile }, films, directors] = await Promise.all([
-    db.from("profiles").select("handle, display_name").eq("id", user.id).maybeSingle(),
+    db.from("profiles").select("handle, display_name, avatar_url, bio").eq("id", user.id).maybeSingle(),
     getFilms(),
     getDirectors(),
   ]);
-  const p = (profile ?? {}) as { handle?: string | null; display_name?: string | null };
+  const p = (profile ?? {}) as { handle?: string | null; display_name?: string | null; avatar_url?: string | null; bio?: string | null };
 
   // Directors with the most films on Pheelm, then essential films with posters.
   const people = [...directors]
@@ -40,5 +40,5 @@ export default async function WelcomePage({ searchParams }: { searchParams: Prom
     .slice(0, 12)
     .map((f) => ({ id: f.id, title: f.title, year: f.year, poster: f.poster_url, directors: f.directors.map((d) => d.name) }));
 
-  return <Welcome next={next} userId={user.id} handle={p.handle ?? null} name={p.display_name ?? null} people={people} films={picks} />;
+  return <Welcome avatarUrl={p.avatar_url ?? null} bio={p.bio ?? null} next={next} userId={user.id} handle={p.handle ?? null} name={p.display_name ?? null} people={people} films={picks} />;
 }

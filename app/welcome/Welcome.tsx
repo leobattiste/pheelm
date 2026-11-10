@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import { updatePublicName, type NameState } from "@/app/me/actions";
+import ProfilePhotoField from "@/components/ProfilePhotoField";
+import ProfileBioField from "@/components/ProfileBioField";
 import Icon from "@/components/Icon";
 import Poster from "@/components/Poster";
 import { initials } from "@/lib/format";
@@ -10,12 +12,12 @@ import { getBrowserClient } from "@/lib/supabase/client";
 
 type Person = { id: string; name: string; place: string | null; photo: string | null };
 type Pick = { id: string; title: string; year: number; poster: string | null; directors: string[] };
-type Props = { next: string; userId: string; handle: string | null; name: string | null; people: Person[]; films: Pick[] };
+type Props = { next: string; userId: string; handle: string | null; name: string | null; people: Person[]; films: Pick[]; avatarUrl?: string | null; bio?: string | null };
 
 const WELCOMED = "pheelm:welcomed";
 
 /** Three short steps for a new member. Follows and saves happen as they're tapped. */
-export default function Welcome({ next, userId, handle, name, people, films }: Props) {
+export default function Welcome({ next, userId, handle, name, people, films, avatarUrl, bio }: Props) {
   const router = useRouter();
   const [step, setStep] = useState(handle ? 1 : 0);
   const [state, action, pending] = useActionState<NameState, FormData>(updatePublicName, null);
@@ -61,6 +63,7 @@ export default function Welcome({ next, userId, handle, name, people, films }: P
             <p className="lead">Choose a name and a handle. They&rsquo;re shown on your profile, your collections and your comments.</p>
           </header>
           <form action={action} className="form welcome-form">
+            <ProfilePhotoField photo={avatarUrl ?? null} name={name || handle || "You"} disabled={pending} />
             <label className="field">
               Name
               <input name="display_name" defaultValue={name ?? ""} maxLength={60} placeholder="Your name" autoComplete="name" />
@@ -70,6 +73,7 @@ export default function Welcome({ next, userId, handle, name, people, films }: P
               <input name="handle" required maxLength={24} pattern="[A-Za-z0-9_]{3,24}" autoCapitalize="none" spellCheck={false} placeholder="yourname" aria-describedby="welcome-handle-hint" />
               <span className="hint" id="welcome-handle-hint">Your page will be pheelm.com/@handle. 3 to 24 letters, numbers or _</span>
             </label>
+            <ProfileBioField bio={bio} disabled={pending} />
             {state && !state.ok && <p className="notice error" role="alert">{state.message}</p>}
             <div className="actions">
               <button className="button" type="submit" disabled={pending}>{pending ? "Saving…" : "Continue"}</button>

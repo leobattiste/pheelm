@@ -19,16 +19,16 @@ export default async function ProfilePage({ searchParams }: Props) {
   const { data: { user } } = await db.auth.getUser();
   if (!user) redirect("/login?next=/profile");
   const { data } = await db.from("profiles").select("*").eq("id", user.id).maybeSingle();
-  const p = (data ?? {}) as { handle?: string | null; display_name?: string | null };
+  const p = (data ?? {}) as { handle?: string | null; display_name?: string | null; avatar_url?: string | null; bio?: string | null };
   if (p.handle) redirect(`/@${p.handle}${sp.edit !== undefined ? "?edit" : ""}`);
 
   return (
     <section className="page create-profile-page">
       <header className="page-head">
         <h1>Create your profile</h1>
-        <p className="lead">Choose a name and a handle to get your own page, with the collections you make public.</p>
+        <p className="lead">Add a photo, choose your handle, and tell people a little about yourself.</p>
       </header>
-      <PublicName handle={null} displayName={p.display_name ?? null} />
+      <PublicName avatarUrl={p.avatar_url ?? null} bio={p.bio ?? null} handle={null} displayName={p.display_name ?? null} />
     </section>
   );
 }

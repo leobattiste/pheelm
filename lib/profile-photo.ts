@@ -9,7 +9,7 @@ export async function prepareProfilePhoto(file: File): Promise<Buffer> {
     const image = sharp(Buffer.from(await file.arrayBuffer()), { limitInputPixels: 40_000_000, animated: false });
     const metadata = await image.metadata();
     if (!metadata.format || !["jpeg", "png", "webp"].includes(metadata.format)) throw new Error("Unsupported image");
-    return await image.rotate().resize(512, 512, { fit: "cover", position: "attention" }).webp({ quality: 85 }).toBuffer();
+    return await image.rotate().resize(512, 768, { fit: "cover", position: "attention" }).webp({ quality: 85 }).toBuffer();
   } catch {
     throw new Error("That image couldn't be opened. Choose another JPG, PNG or WebP.");
   }

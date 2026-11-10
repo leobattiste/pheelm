@@ -1,4 +1,5 @@
 "use client";
+import EmailInput from "@/components/EmailInput";
 
 import Link from "next/link";
 import { useActionState, useState } from "react";
@@ -35,7 +36,7 @@ export default function ContactForm({ topic = "general", partnership = false, fe
       )}
       <div className="form-row">
         <label className="field">Your name<input name="name" autoComplete="name" maxLength={200} /></label>
-        <label className="field">Email<input name="email" type="email" autoComplete="email" required maxLength={254} /></label>
+        <label className="field">Email<EmailInput name="email"  autoComplete="email" required maxLength={254} /></label>
       </div>
       {partnership ? (
         <>

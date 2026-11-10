@@ -14,6 +14,7 @@ jobs:
       - run: npm ci
       - run: npx playwright-core install --with-deps chromium webkit
       - run: npm run test:security
+      - run: node tests/profile-bio.mjs
       - run: npm run email:preview
       - run: node scripts/export-auth-emails.mjs
       - run: node tests/email-security.mjs
@@ -26,6 +27,7 @@ jobs:
         env:
           BASE_URL: http://localhost:3000
       - run: node tests/watchlist-mobile.mjs
+      - run: node tests/profile-forms-browser.mjs
       - run: node tests/films-shuffle-browser.mjs
         env:
           BASE_URL: http://localhost:3000

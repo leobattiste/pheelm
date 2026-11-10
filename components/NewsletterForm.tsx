@@ -1,4 +1,5 @@
 "use client";
+import EmailInput from "@/components/EmailInput";
 
 import { useActionState } from "react";
 import { subscribe, type FormState } from "@/app/platform-actions";
@@ -11,7 +12,7 @@ export default function NewsletterForm({ source = "footer", id = "newsletter-ema
     <form action={action} className="newsletter-form">
       <label htmlFor={id} className="visually-hidden">Email address</label>
       <div className="newsletter-row">
-        <input id={id} name="email" type="email" autoComplete="email" placeholder="you@example.com" required disabled={state?.ok} />
+        <EmailInput id={id} name="email"  autoComplete="email" placeholder="you@example.com" required disabled={state?.ok} />
         <button className="button" type="submit" disabled={pending || state?.ok}>{pending ? "Subscribing…" : "Subscribe"}</button>
       </div>
       {/* Left empty by people; bots fill it in. */}

@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import UserAvatar from "./UserAvatar";
+import Icon from "./Icon";
 
 /** The selected image is only uploaded when the surrounding profile form is saved. */
 export default function ProfilePhotoField({ photo, name, disabled }: { photo: string | null; name: string; disabled?: boolean }) {
@@ -16,9 +17,10 @@ export default function ProfilePhotoField({ photo, name, disabled }: { photo: st
     <div className="profile-photo-field">
       <UserAvatar person={{ avatar_url: src, display_name: name }} className="profile-photo-preview" />
       <div className="profile-photo-controls">
-        <label className="field" htmlFor={id}>
-          Profile photo
-          <input ref={input} id={id} type="file" name="avatar_file" accept="image/jpeg,image/png,image/webp" disabled={disabled} aria-describedby={`${id}-hint${error ? ` ${id}-error` : ""}`} aria-invalid={!!error} onChange={(e) => {
+        <span className="profile-photo-label">Profile photo</span>
+        <div className="profile-photo-actions">
+          <button type="button" className="button ghost" disabled={disabled} onClick={() => input.current?.click()} aria-controls={id}><Icon name="pencil" />{src ? "Change photo" : "Choose photo"}</button>
+          <input ref={input} id={id} type="file" className="visually-hidden" tabIndex={-1} aria-label="Profile photo file" name="avatar_file" accept="image/jpeg,image/png,image/webp" disabled={disabled} aria-describedby={error ? `${id}-error` : undefined} aria-invalid={!!error} onChange={(e) => {
             const file = e.target.files?.[0];
             if (!file) return;
             if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 3 * 1024 * 1024) {
@@ -29,10 +31,10 @@ export default function ProfilePhotoField({ photo, name, disabled }: { photo: st
             }
             setError(""); setRemoved(false); setPreview(URL.createObjectURL(file));
           }} />
-        </label>
-        <span className="hint" id={`${id}-hint`}>JPG, PNG or WebP, up to 3 MB. Your photo is cropped to fit.</span>
+
         <input type="hidden" name="remove_avatar" value={removed ? "1" : "0"} />
-        {src && <button type="button" className="link-button" disabled={disabled} onClick={() => { if (input.current) input.current.value = ""; setPreview(null); setRemoved(true); setError(""); }}>Remove photo</button>}
+        {src && <button type="button" className="button ghost" disabled={disabled} onClick={() => { if (input.current) input.current.value = ""; setPreview(null); setRemoved(true); setError(""); }}>Remove photo</button>}
+        </div>
         {error && <p className="notice error" id={`${id}-error`} role="alert">{error}</p>}
       </div>
     </div>

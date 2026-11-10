@@ -2937,3 +2937,23 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 .watchlist-picker .modal-head h2 { min-width: 0; overflow-wrap: anywhere; }
 .watchlist-picker .modal-foot { flex-wrap: wrap; }
 .watchlist-picker .modal-foot .button { min-width: 0; white-space: normal; height: auto; min-height: var(--control); padding-block: 10px; }
+
+/* Profile editing uses the same 2:3 portrait frame as member profiles. */
+.profile-photo-preview { width: 80px; height: 120px; aspect-ratio: 2 / 3; border-radius: var(--r-media); object-fit: cover; }
+.profile-photo-label { font-weight: 600; }
+.profile-photo-actions { display: flex; flex-wrap: wrap; gap: var(--space-8); max-width: 100%; }
+.profile-photo-controls { align-self: center; flex-basis: 200px; }
+.profile-photo-field input[type="file"].visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; border: 0; overflow: hidden; clip-path: inset(50%); }
+.profile-photo-actions .button { max-width: 100%; }
+.bio-count { justify-self: end; font-variant-numeric: tabular-nums; }
+.member-bio { max-width: 52ch; margin-top: var(--space-12); overflow-wrap: anywhere; white-space: pre-line; }
+.create-profile-page { max-width: 760px; }
+.create-profile, .welcome-form { width: 100%; max-width: 560px; min-width: 0; }
+.create-profile :is(.field, input, textarea), .welcome-form :is(.field, input, textarea) { min-width: 0; max-width: 100%; }
+.create-profile .actions > .button, .welcome-form .actions > .button { flex: 1 1 auto; }
+/* Appearance choices are plain when inactive and use the primary material when selected. */
+:root:root :is(.theme-toggle, .grid-toggle) { border: 0; background: transparent; box-shadow: none; padding: 0; gap: var(--space-8); }
+:root:root :is(.theme-toggle, .grid-toggle) button { border: 0 !important; box-shadow: none; height: var(--control); }
+:root:root :is(.theme-toggle, .grid-toggle) button:not([aria-checked="true"]) { background: transparent !important; color: var(--text) !important; backdrop-filter: none; -webkit-backdrop-filter: none; }
+:root:root :is(.theme-toggle, .grid-toggle) button[aria-checked="true"] { background: color-mix(in srgb, var(--ink) 90%, transparent) !important; color: var(--on-ink) !important; backdrop-filter: var(--glass-filter); -webkit-backdrop-filter: var(--glass-filter); }
+:root:root :is(.theme-toggle, .grid-toggle) button:focus-visible { outline: 1px solid var(--ink); outline-offset: 2px; }

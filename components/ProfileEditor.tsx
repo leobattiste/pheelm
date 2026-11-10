@@ -1,4 +1,5 @@
 "use client";
+import ProfileBioField from "@/components/ProfileBioField";
 
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useRef, useState } from "react";
@@ -7,13 +8,13 @@ import { COUNTRY_OPTIONS } from "@/lib/countries";
 import ProfilePhotoField from "./ProfilePhotoField";
 import Icon from "@/components/Icon";
 
-type Props = { handle: string; displayName: string | null; isPrivate: boolean; country: string | null; avatarUrl: string | null };
+type Props = { handle: string; displayName: string | null; isPrivate: boolean; country: string | null; avatarUrl: string | null; bio?: string | null };
 
 /**
  * "Edit profile" on your own profile page: name, country, handle and the private setting, in a modal.
  * Opens on its own when the page is reached with ?edit (from the account menu).
  */
-export default function ProfileEditor({ handle, displayName, isPrivate, country, avatarUrl }: Props) {
+export default function ProfileEditor({ handle, displayName, isPrivate, country, avatarUrl, bio }: Props) {
   const router = useRouter();
   const [photoVersion, setPhotoVersion] = useState(0);
   const modal = useRef<HTMLDialogElement>(null);
@@ -56,6 +57,7 @@ export default function ProfileEditor({ handle, displayName, isPrivate, country,
               Name
               <input name="display_name" defaultValue={displayName ?? ""} maxLength={60} placeholder="Your name" autoComplete="name" />
             </label>
+            <ProfileBioField key={`${photoVersion}:${bio ?? ""}`} bio={bio} disabled={pending} />
             <label className="field">
               Country
               <select name="country" defaultValue={country ?? ""}>

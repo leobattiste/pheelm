@@ -1,4 +1,5 @@
 "use client";
+import ProfileBioField from "@/components/ProfileBioField";
 
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect } from "react";
@@ -6,10 +7,10 @@ import { updatePublicName, type NameState } from "@/app/me/actions";
 import ProfilePhotoField from "@/components/ProfilePhotoField";
 import { COUNTRY_OPTIONS } from "@/lib/countries";
 
-type Props = { handle: string | null; displayName: string | null; isPrivate: boolean; country: string | null; avatarUrl: string | null };
+type Props = { handle: string | null; displayName: string | null; isPrivate: boolean; country: string | null; avatarUrl: string | null; bio?: string | null };
 
 /** Settings → Profile: name, handle and country, saved together (privacy has its own tab). */
-export default function ProfileForm({ handle, displayName, isPrivate, country, avatarUrl }: Props) {
+export default function ProfileForm({ handle, displayName, isPrivate, country, avatarUrl, bio }: Props) {
   const router = useRouter();
   const [state, action, pending] = useActionState<NameState, FormData>(updatePublicName, null);
 
@@ -32,6 +33,7 @@ export default function ProfileForm({ handle, displayName, isPrivate, country, a
         <input name="handle" defaultValue={handle ?? ""} required maxLength={24} pattern="[A-Za-z0-9_]{3,24}" autoCapitalize="none" spellCheck={false} aria-describedby="settings-handle-hint" />
         <span className="hint" id="settings-handle-hint">Your page is pheelm.com/@handle. 3 to 24 letters, numbers or _</span>
       </label>
+      <ProfileBioField bio={bio} disabled={pending} />
       <label className="field">
         Country
         <select name="country" defaultValue={country ?? ""}>

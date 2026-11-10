@@ -1,8 +1,9 @@
 "use client";
+import { useSessionEmail } from "@/lib/session-email";
 
 import { PAGE_COPY } from "@/lib/site";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
 import { supabaseEnabled } from "@/lib/supabase/config";
 
@@ -38,6 +39,8 @@ export default function SignInForm({ next, initialError = "", onDone, titleId, m
   const signup = mode === "signup";
   const router = useRouter();
   const [email, setEmail] = useState("");
+  const sessionEmail = useSessionEmail();
+  useEffect(() => { if (sessionEmail) setEmail(current => current || sessionEmail); }, [sessionEmail]);
   const [code, setCode] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "verifying">("idle");
   const [error, setError] = useState(initialError);
