@@ -132,7 +132,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <nav className="member-only" aria-labelledby="footer-explore">
               <h2 id="footer-explore">Explore</h2>
               <Link href="/films">Films</Link>
-              <Link href="/collections">Watchlists</Link>
+              <Link href="/watchlists">Watchlists</Link>
               <Link href="/directors">Directors</Link>
             </nav>
             <nav aria-labelledby="footer-pheelm">

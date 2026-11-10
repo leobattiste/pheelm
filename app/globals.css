@@ -2985,14 +2985,12 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 /* Primary actions keep their contrasting translucent material inside panels too. */
 :root:root .button:not(.ghost):not(.quiet):not(.danger):not(.danger-text),
 :root:root :is(.chip, .button):is([aria-selected="true"], [aria-pressed="true"], [aria-current="page"]),
-:root:root :is(.chip, .button):is([aria-selected="true"], [aria-pressed="true"], [aria-current="page"]):hover,
-:root:root .field select.primary-select {
+:root:root :is(.chip, .button):is([aria-selected="true"], [aria-pressed="true"], [aria-current="page"]):hover {
  background: color-mix(in srgb, var(--ink) 90%, transparent);
  color: var(--on-ink);
  border: 1px solid transparent;
  -webkit-backdrop-filter: var(--glass-filter);
  backdrop-filter: var(--glass-filter);
 }
-:root:root .field select.primary-select option { background: var(--bg); color: var(--text); }
 :root:root .watched-films-dialog .film-card > a { text-decoration: none; }
 :root:root .director-card .portrait { border-radius: 8px; }

@@ -137,7 +137,7 @@ export default async function MemberCollectionPage({ params, searchParams }: Par
   return (
     <section className="page">
       {jsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />}
-      <Breadcrumbs parent="Collections" href="/collections" current={list.title} />
+      <Breadcrumbs parent="Watchlists" href="/watchlists" current={list.title} />
       <header className="page-head has-corner">
         <MoreMenu corner label="Collection actions">
           {canEdit && (

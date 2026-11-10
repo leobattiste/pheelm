@@ -378,7 +378,7 @@ export async function setListFlag(f: FormData) {
   if (error) throw new Error(error.message);
   await logAdminActivity(db, "Updated collection", "collection", id, `${field}: ${f.get("value")}`);
   revalidatePath("/admin/community");
-  revalidatePath("/collections");
+  revalidatePath("/watchlists");
   revalidatePath(`/c/${id}`);
   revalidatePath("/");
   const back = String(f.get("back") ?? "");

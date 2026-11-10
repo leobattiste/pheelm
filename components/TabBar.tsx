@@ -31,7 +31,7 @@ export default function TabBar() {
   const at = (href: string) => path === href || path.startsWith(`${href}/`);
   const tabs: { href: string; label: string; icon: IconName; on: boolean }[] = [
     { href: "/films", label: "Films", icon: "film", on: at("/films") },
-    { href: "/collections", label: "Watchlists", icon: "stack", on: at("/collections") || path.startsWith("/c/") },
+    { href: "/watchlists", label: "Watchlists", icon: "stack", on: at("/watchlists") || path.startsWith("/c/") },
     { href: "/directors", label: "Directors", icon: "users2", on: at("/directors") || path.startsWith("/people/") },
     { href: profile, label: "Profile", icon: "userCircle", on: at(profile) || path === "/profile" },
   ];

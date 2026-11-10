@@ -8,7 +8,7 @@ import { getCommunityCollections, SORTS, type Sort } from "@/lib/community";
 import { getFilm } from "@/lib/data";
 import { getServerClient } from "@/lib/supabase/server";
 
-export const metadata: Metadata = { title: "Watchlists", description: PAGE_COPY.collections, alternates: { canonical: "/collections" } };
+export const metadata: Metadata = { title: "Watchlists", description: PAGE_COPY.collections, alternates: { canonical: "/watchlists" } };
 
 const FEEDS: Feed[] = ["all", "featured", "following"];
 
@@ -40,7 +40,7 @@ export default async function CollectionsPage({ searchParams }: { searchParams: 
       <header className="page-head intro-head">
         <h1>Watchlists</h1>
         <p className="lead">
-          {film ? <>Watchlists with <Link href={`/films/${film.slug}`}>{film.title}</Link>. <Link href="/collections">See all</Link></> : PAGE_COPY.collections}
+          {film ? <>Watchlists with <Link href={`/films/${film.slug}`}>{film.title}</Link>. <Link href="/watchlists">See all</Link></> : PAGE_COPY.collections}
         </p>
       </header>
 
@@ -59,7 +59,7 @@ export default async function CollectionsPage({ searchParams }: { searchParams: 
           ) : (
             <p>No watchlists {film ? "with this film " : ""}yet.</p>
           )}
-          {feed !== "all" && <Link className="button ghost small" href={film ? `/collections?film=${film.slug}` : "/collections"}>See all watchlists</Link>}
+          {feed !== "all" && <Link className="button ghost small" href={film ? `/watchlists?film=${film.slug}` : "/watchlists"}>See all watchlists</Link>}
         </div>
       )}
     </section>

@@ -113,7 +113,7 @@ export default function Search() {
       { id: "watchlist", label: "Go to my watchlist", hint: "All and your collections", icon: "bookmark", words: "watchlist saved my films account collections", run: () => navigate("/me") },
       { id: "films", label: "Browse all films", hint: "Filter by decade, country, genre", icon: "film", words: "films browse all filter", run: () => navigate("/films") },
       { id: "directors", label: "Browse directors", hint: "By country and film type", icon: "users2", words: "directors map country", run: () => navigate("/directors") },
-      { id: "collections", label: "Browse watchlists", hint: "Movements, themes and more", icon: "stack", words: "collections movements themes", run: () => navigate("/collections") },
+      { id: "collections", label: "Browse watchlists", hint: "Movements, themes and more", icon: "stack", words: "collections movements themes", run: () => navigate("/watchlists") },
       {
         id: "theme", label: "Switch light or dark mode", hint: "Theme", icon: "moon",
         words: "theme dark light mode appearance",

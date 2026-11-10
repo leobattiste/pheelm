@@ -4,5 +4,5 @@ import { redirect } from "next/navigation";
 export default async function CommunityRedirect({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams;
   const qs = new URLSearchParams(Object.entries(sp).filter((e): e is [string, string] => !!e[1])).toString();
-  redirect(`/collections${qs ? `?${qs}` : ""}`);
+  redirect(`/watchlists${qs ? `?${qs}` : ""}`);
 }

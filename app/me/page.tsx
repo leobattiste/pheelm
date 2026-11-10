@@ -154,7 +154,7 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
                     <Icon name="stack" className="empty-icon" />
                     <p>You don&rsquo;t follow any collections yet.</p>
                     <p className="muted">Follow a collection to see it here and hear when a film is added.</p>
-                    <Link className="button ghost small" href="/collections">Explore collections</Link>
+                    <Link className="button ghost small" href="/watchlists">Explore collections</Link>
                   </div>
                 )}
                 {followed.length > 0 && (

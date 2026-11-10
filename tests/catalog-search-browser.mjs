@@ -14,11 +14,12 @@ try{
  assert.ok((await modal.getByLabel('Country',{exact:true}).locator('option').allTextContents()).every(t=>! /\(\d+\)/.test(t)));
  for(const theme of ['light','dark']){
   await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);await page.waitForTimeout(1000);
-  for(const control of [modal.getByRole('button',{name:'Show films',exact:true}),modal.getByLabel('Sort by',{exact:true})]){
+  for(const control of [modal.getByRole('button',{name:'Show films',exact:true})]){
    const style=await control.evaluate(e=>({bg:getComputedStyle(e).backgroundColor,color:getComputedStyle(e).color,blur:getComputedStyle(e).backdropFilter}));
    assert.notEqual(style.bg,'rgba(0, 0, 0, 0)');assert.notEqual(style.blur,'none');assert.equal(style.color,await page.evaluate(()=>{const span=document.createElement('span');span.style.color='var(--on-ink)';document.body.append(span);const color=getComputedStyle(span).color;span.remove();return color;}));
   }
  }
+ assert.equal(await modal.getByLabel('Sort by',{exact:true}).evaluate(e=>getComputedStyle(e).backgroundColor),'rgba(0, 0, 0, 0)');
  await modal.getByLabel('Country',{exact:true}).selectOption('US');
  await until(async()=>/Show \d+ films/.test(await modal.locator('.modal-foot').textContent()),'filtered count missing');
  await modal.getByRole('button',{name:'Reset',exact:true}).click();
@@ -40,5 +41,20 @@ try{
  await page.getByRole('button',{name:'Clear search text'}).tap();await page.getByRole('button',{name:'Moonlight',exact:true}).tap();assert.equal(await people.inputValue(),'Moonlight');await page.getByRole('button',{name:'Clear search text'}).tap();await page.getByRole('button',{name:'Clear history'}).tap();assert.equal(await page.evaluate(()=>localStorage.getItem('pheelm:catalog-search:directors:v1')),null);
  await people.fill('Nigerian directors');await page.getByRole('button',{name:'Apply filters',exact:true}).click();assert.ok(page.url().includes('country=NG'));assert.equal(new URL(page.url()).searchParams.get('from'),null);
  await page.setViewportSize({width:1440,height:1000});await page.waitForLoadState('networkidle');await page.goto(BASE+'/films?q=Moonlight');await input.focus();await page.screenshot({path:'/tmp/pheelm-search-desktop.png'});const bounds=await page.locator('.catalog-search-control').boundingBox();assert.ok(bounds.width>1000);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth));
- await page.setViewportSize({width:390,height:844});await page.screenshot({path:'/tmp/pheelm-search-mobile.png'});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth));assert.deepEqual(errors,[]);console.log('PASS: cast search, ranking, suggestions/keyboard, natural filters, URLs/reload/back, history/clear, numeric filters, filmography, typo matching, responsive layouts');
+ await page.setViewportSize({width:390,height:844});await page.screenshot({path:'/tmp/pheelm-search-mobile.png'});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth));await page.goto(BASE+'/watchlists?feed=featured');
+ await page.getByRole('heading',{name:'Watchlists',exact:true}).waitFor();
+ assert.equal(await page.getByRole('button',{name:'Following',exact:true}).locator('svg').count(),0);
+ await page.locator('.collections-toolbar .filter-button').click();
+ const sortModal=page.getByRole('dialog',{name:'Sort by',exact:true});
+ for(const button of await sortModal.locator('.chip-row button').all()){
+  assert.equal(await button.getAttribute('class'),'button');
+  assert.notEqual(await button.evaluate(e=>getComputedStyle(e).backgroundColor),'rgba(0, 0, 0, 0)');
+  assert.notEqual(await button.evaluate(e=>getComputedStyle(e).backdropFilter),'none');
+ }
+ await sortModal.getByRole('button',{name:'New',exact:true}).click();
+ await until(()=>new URL(page.url()).searchParams.get('sort')==='new','Watchlists sort did not update');
+ assert.equal(new URL(page.url()).searchParams.get('feed'),'featured');
+ const legacy=await page.request.get(BASE+'/collections?feed=featured&sort=new',{maxRedirects:0});
+ assert.equal(legacy.status(),308);assert.equal(legacy.headers().location,'/watchlists?feed=featured&sort=new');
+ assert.deepEqual(errors,[]);console.log('PASS: cast search, ranking, suggestions/keyboard, natural filters, URLs/reload/back, history/clear, numeric filters, filmography, typo matching, responsive layouts');
 }finally{await browser.close();}

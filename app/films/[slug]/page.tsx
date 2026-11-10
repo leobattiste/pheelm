@@ -279,7 +279,7 @@ export default async function FilmPage({ params }: Params) {
           <div className="section-head">
             <h2 id="in-collections-h">Featured in</h2>
             {community.length > 6 && (
-              <Link className="button ghost small" href={`/collections?film=${film.slug}`}>All {community.length}</Link>
+              <Link className="button ghost small" href={`/watchlists?film=${film.slug}`}>All {community.length}</Link>
             )}
           </div>
           <ul className="collection-list">

@@ -45,12 +45,11 @@ export default function CollectionsToolbar({ signedIn, feed, sort }: { signedIn:
               go({ feed: o.value });
             }}
           >
-            {o.value === "following" && <Icon name="users2" />}
             {o.label}
           </button>
         ))}
       </div>
-      <button type="button" className="button filter-button" aria-haspopup="dialog" onClick={() => sheet.current?.showModal()}>
+      <button type="button" className="button ghost filter-button" aria-haspopup="dialog" onClick={() => sheet.current?.showModal()}>
         <Icon name="sort" />
         <span className="filter-label">{SORTS.find(([v]) => v === sort)?.[1] ?? "Sort"}</span>
       </button>
@@ -66,7 +65,7 @@ export default function CollectionsToolbar({ signedIn, feed, sort }: { signedIn:
         <div className="modal-body">
           <div className="chip-row" role="group" aria-label="Sort by">
             {SORTS.map(([v, l]) => (
-              <button key={v} type="button" className="chip" aria-pressed={sort === v} onClick={() => { go({ sort: v }); sheet.current?.close(); }}>{l}</button>
+              <button key={v} type="button" className="button" aria-pressed={sort === v} onClick={() => { go({ sort: v }); sheet.current?.close(); }}>{sort === v && <Icon name="check" />}{l}</button>
             ))}
           </div>
         </div>

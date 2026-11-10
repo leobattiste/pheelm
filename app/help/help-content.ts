@@ -238,19 +238,19 @@ export const HELP_CATEGORIES: HelpCategory[] = [
         "id": "collections-1",
         "question": "What are collections?",
         "answer": "Collections are lists of films grouped by a theme, filmmaker, place, movement or any idea. They can be made by Pheelm or community members.",
-        "href": "/collections"
+        "href": "/watchlists"
       },
       {
         "id": "collections-2",
         "question": "How do I browse collections?",
         "answer": "Open Collections. Switch between All, Featured and Following, and use Sort to change the order.",
-        "href": "/collections"
+        "href": "/watchlists"
       },
       {
         "id": "collections-3",
         "question": "What does Featured mean?",
         "answer": "Featured highlights collections selected by Pheelm.",
-        "href": "/collections?feed=featured"
+        "href": "/watchlists?feed=featured"
       },
       {
         "id": "collections-4",
@@ -298,19 +298,19 @@ export const HELP_CATEGORIES: HelpCategory[] = [
         "id": "collections-11",
         "question": "How do I follow a collection?",
         "answer": "Open a public collection and choose Follow. You can find followed collections under Watchlist → Following.",
-        "href": "/collections"
+        "href": "/watchlists"
       },
       {
         "id": "collections-12",
         "question": "How do I stop following a collection?",
         "answer": "Open the collection and change its Follow state. It will no longer appear under your followed collections.",
-        "href": "/collections"
+        "href": "/watchlists"
       },
       {
         "id": "collections-13",
         "question": "How do I share a collection?",
         "answer": "Open the collection and use its share action or copy the page URL.",
-        "href": "/collections"
+        "href": "/watchlists"
       },
       {
         "id": "collections-14",
@@ -328,7 +328,7 @@ export const HELP_CATEGORIES: HelpCategory[] = [
         "id": "collections-16",
         "question": "How do I comment on a collection?",
         "answer": "Open a collection with comments enabled and use the comment area. You may need to sign in.",
-        "href": "/collections"
+        "href": "/watchlists"
       },
       {
         "id": "collections-17",
@@ -340,7 +340,7 @@ export const HELP_CATEGORIES: HelpCategory[] = [
         "id": "collections-18",
         "question": "Why can’t I see a collection?",
         "answer": "It may be private, deleted, or unavailable to your account. Ask its owner for access if you were invited.",
-        "href": "/collections"
+        "href": "/watchlists"
       }
     ]
   },
@@ -394,7 +394,7 @@ export const HELP_CATEGORIES: HelpCategory[] = [
         "id": "directors-and-community-8",
         "question": "How do I interact with other members?",
         "answer": "You can explore members’ public collections, follow collections, and comment when comments are enabled.",
-        "href": "/collections"
+        "href": "/watchlists"
       },
       {
         "id": "directors-and-community-9",

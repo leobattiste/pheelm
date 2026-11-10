@@ -161,7 +161,7 @@ export default async function NotificationsPage() {
           <Icon name="bell" className="empty-icon" />
           <p>You&rsquo;re all caught up.</p>
           <p className="muted">Follow a director to hear when their new films are added. Invites, requests and comments on your collections show up here too.</p>
-          <Link className="button ghost small" href="/collections">Browse collections</Link>
+          <Link className="button ghost small" href="/watchlists">Browse collections</Link>
         </div>
       ) : (
         <>

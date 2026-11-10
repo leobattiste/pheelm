@@ -36,6 +36,7 @@ const nextConfig: NextConfig = {
   // The Journal was removed; old links go to the home page.
   async redirects() {
     return [
+      { source: "/collections", destination: "/watchlists", permanent: true },
       { source: "/journal", destination: "/", permanent: true },
       { source: "/journal/:slug*", destination: "/", permanent: true },
     ];

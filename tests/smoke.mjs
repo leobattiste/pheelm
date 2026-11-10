@@ -51,7 +51,7 @@ await check("a film page opens with its title and menu", async () => {
 });
 
 await check("directors and collections pages open", async () => {
-  for (const path of ["/directors", "/collections"]) {
+  for (const path of ["/directors", "/watchlists"]) {
     const res = await page.goto(BASE + path, { waitUntil: "networkidle" });
     expect(res?.ok(), `${path}: status ${res?.status()}`);
   }

@@ -38,7 +38,7 @@ export default async function AboutPage() {
         <p>
           <Link href="/films">Films</Link> can be searched and filtered by type, decade, country, language and genre.{" "}
           <Link href="/directors">Directors</Link> have their own profiles, with their biography and every film of theirs here.{" "}
-          <Link href="/collections">Collections</Link> group films by movement, theme, country and form.
+          <Link href="/watchlists">Watchlists</Link> group films by movement, theme, country and form.
         </p>
         <p>With a free account you can keep a watchlist, make your own collections and follow directors to hear when their new films are added.</p>
 
