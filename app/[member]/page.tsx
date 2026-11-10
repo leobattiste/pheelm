@@ -1,3 +1,4 @@
+import { canUseUnlimitedBio } from '@/lib/profile-bio';
 import { Suspense } from 'react';
 import { ProfilePanelSkeleton } from '@/components/ProfileSkeleton';
 import type { Metadata } from 'next';
@@ -32,14 +33,15 @@ export default async function MemberPage({params}:Params) {
  // Do not mutate the profile object shared with metadata within this request.
  const member={...publicMember},viewer=viewerResult?.data.user;
  const own=viewer?.id===member.id;
- if(own&&db){const {data}=await db.from('profiles').select('display_name,country,bio,avatar_url,social_platform,social_url,website_url').eq('id',member.id).maybeSingle();if(data)Object.assign(member,data);}
+ let unlimitedBio=false;
+ if(own&&db){const {data}=await db.from('profiles').select('display_name,country,bio,avatar_url,social_platform,social_url,website_url,is_owner').eq('id',member.id).maybeSingle();if(data){unlimitedBio=canUseUnlimitedBio({handle:member.handle,is_owner:data.is_owner});const {is_owner,...fields}=data;Object.assign(member,fields);}}
  if(member.is_private&&!own)return <section className="page"><header className="person-head"><span className="portrait portrait-initials" aria-hidden="true">{initials(member.handle)}</span><div className="person-text"><h1>@{member.handle}</h1><p className="person-sub">This profile is private.</p></div></header></section>;
  const name=member.display_name||`@${member.handle}`;
  return <section className="page member-page">
   {!member.is_private&&<script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(profileStructuredData(member)).replace(/</g,'\\u003c')}}/>}
   <header className="person-head">
    <MoreMenu corner label="Profile actions">
-    {own&&<ProfileEditor links={member} bio={member.bio??null} handle={member.handle} displayName={member.display_name} isPrivate={!!member.is_private} country={member.country??null} avatarUrl={member.avatar_url??null}/>}
+    {own&&<ProfileEditor unlimitedBio={unlimitedBio} links={member} bio={member.bio??null} handle={member.handle} displayName={member.display_name} isPrivate={!!member.is_private} country={member.country??null} avatarUrl={member.avatar_url??null}/>}
     {!member.is_private&&<ShareButton item title={`${name} on Pheelm`}/>}
     {viewer&&!own&&<Suspense fallback={null}><ProfileBlockAction member={member} viewerId={viewer.id} db={db}/></Suspense>}
    </MoreMenu>

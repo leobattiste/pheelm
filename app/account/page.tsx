@@ -1,3 +1,4 @@
+import { canUseUnlimitedBio } from "@/lib/profile-bio";
 import { PAGE_COPY } from "@/lib/site";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -37,7 +38,7 @@ export default async function AccountPage() {
 
   const { data: profile } = await db.from("profiles").select("*").eq("id", user.id).maybeSingle();
   const p = (profile ?? {}) as {
-    social_platform?: string | null; social_url?: string | null; website_url?: string | null; bio?: string | null; avatar_url?: string | null; handle?: string | null; display_name?: string | null; is_admin?: boolean; is_private?: boolean; country?: string | null;
+    social_platform?: string | null; social_url?: string | null; website_url?: string | null; bio?: string | null; avatar_url?: string | null; handle?: string | null; display_name?: string | null; is_admin?: boolean; is_owner?: boolean; is_private?: boolean; country?: string | null;
     hide_watched?: boolean; hide_following?: boolean;
   };
   const blockRows = await db.from("blocks").select("blocked_id, created_at").eq("blocker_id", user.id).order("created_at", { ascending: false });
@@ -66,7 +67,7 @@ export default async function AccountPage() {
                 ? <>How you appear on <Link href={`/@${p.handle}`}>pheelm.com/@{p.handle}</Link>, on your public collections and in comments.</>
                 : <>Choose a handle to get a profile page for your public collections.</>}
             </p>
-            <ProfileForm links={p} bio={p.bio ?? null} avatarUrl={p.avatar_url ?? null} handle={p.handle ?? null} displayName={p.display_name ?? null} isPrivate={!!p.is_private} country={p.country ?? null} />
+            <ProfileForm unlimitedBio={canUseUnlimitedBio(p)} links={p} bio={p.bio ?? null} avatarUrl={p.avatar_url ?? null} handle={p.handle ?? null} displayName={p.display_name ?? null} isPrivate={!!p.is_private} country={p.country ?? null} />
           </section>
         </div>
       ),

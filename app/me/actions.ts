@@ -1,5 +1,6 @@
 "use server";
 
+import { canUseUnlimitedBio } from "@/lib/profile-bio";
 import { socialLink, websiteUrl } from "@/lib/profile-links";
 import { randomUUID } from "node:crypto";
 import { prepareProfilePhoto, avatarObjectPath } from "@/lib/profile-photo";
@@ -75,11 +76,13 @@ export async function updatePublicName(_prev: NameState, form: FormData): Promis
   const handle = clip(form.get("handle"), 24).toLowerCase().replace(/^@/, "");
   const display_name = clip(form.get("display_name"), 60) || null;
   if (handle && !/^[a-z0-9_]{3,24}$/.test(handle)) return { ok: false, message: "Handles are 3 to 24 letters, numbers or underscores." };
+  const { data: previous, error: readError } = await db.from("profiles").select("handle, avatar_url, is_owner").eq("id", user.id).single();
+  if (readError || !previous) return { ok: false, message: "Your profile couldn't be loaded. Try again." };
   const changes: Record<string, unknown> = { handle: handle || null, display_name };
   if (form.has("has_private")) changes.is_private = form.get("is_private") === "on";
   if (form.has("bio")) {
     const bio = String(form.get("bio") ?? "").trim();
-    if (bio.length > 150) return { ok: false, message: "Keep your bio to 150 characters or fewer." };
+    if (bio.length > 150 && !(canUseUnlimitedBio(previous) && handle === "leo")) return { ok: false, message: "Keep your bio to 150 characters or fewer." };
     changes.bio = bio || null;
   }
   if (form.has("country")) {
@@ -98,8 +101,6 @@ export async function updatePublicName(_prev: NameState, form: FormData): Promis
   const photo = form.get("avatar_file");
   const hasPhoto = photo instanceof File && photo.size > 0;
   const removePhoto = !hasPhoto && form.get("remove_avatar") === "1";
-  const { data: previous, error: readError } = await db.from("profiles").select("handle, avatar_url").eq("id", user.id).single();
-  if (readError) return { ok: false, message: "Your profile couldn't be loaded. Try again." };
   let uploadedPath: string | null = null;
   if (hasPhoto) {
     let bytes: Buffer;

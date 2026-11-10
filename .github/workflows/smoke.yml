@@ -96,4 +96,6 @@ jobs:
       - uses: actions/checkout@v4
       - run: psql -v ON_ERROR_STOP=1 -f tests/profile-about-bootstrap.sql
       - run: psql -v ON_ERROR_STOP=1 -f supabase/profile-about.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/leo-bio.sql
       - run: psql -v ON_ERROR_STOP=1 -f tests/profile-about.sql
+      - run: psql -v ON_ERROR_STOP=1 -f tests/leo-bio.sql
