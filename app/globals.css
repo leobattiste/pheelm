@@ -2957,3 +2957,4 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 :root:root :is(.theme-toggle, .grid-toggle) button:not([aria-checked="true"]) { background: transparent !important; color: var(--text) !important; backdrop-filter: none; -webkit-backdrop-filter: none; }
 :root:root :is(.theme-toggle, .grid-toggle) button[aria-checked="true"] { background: color-mix(in srgb, var(--ink) 90%, transparent) !important; color: var(--on-ink) !important; backdrop-filter: var(--glass-filter); -webkit-backdrop-filter: var(--glass-filter); }
 :root:root :is(.theme-toggle, .grid-toggle) button:focus-visible { outline: 1px solid var(--ink); outline-offset: 2px; }
+:root:root .grid-toggle button { width: var(--control); flex: 0 0 var(--control); }
