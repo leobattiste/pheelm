@@ -1,4 +1,6 @@
 "use client";
+import ProfileLinksFields from "@/components/ProfileLinksFields";
+import type { ProfileLinks } from "@/lib/profile-links";
 import ProfileBioField from "@/components/ProfileBioField";
 
 import { useRouter } from "next/navigation";
@@ -7,10 +9,10 @@ import { updatePublicName, type NameState } from "@/app/me/actions";
 import ProfilePhotoField from "@/components/ProfilePhotoField";
 import { COUNTRY_OPTIONS } from "@/lib/countries";
 
-type Props = { handle: string | null; displayName: string | null; isPrivate: boolean; country: string | null; avatarUrl: string | null; bio?: string | null };
+type Props = { handle: string | null; displayName: string | null; isPrivate: boolean; country: string | null; avatarUrl: string | null; bio?: string | null; links?: ProfileLinks };
 
 /** Settings → Profile: name, handle and country, saved together (privacy has its own tab). */
-export default function ProfileForm({ handle, displayName, isPrivate, country, avatarUrl, bio }: Props) {
+export default function ProfileForm({ handle, displayName, isPrivate, country, avatarUrl, bio, links }: Props) {
   const router = useRouter();
   const [state, action, pending] = useActionState<NameState, FormData>(updatePublicName, null);
 
@@ -34,6 +36,7 @@ export default function ProfileForm({ handle, displayName, isPrivate, country, a
         <span className="hint" id="settings-handle-hint">Your page is pheelm.com/@handle. 3 to 24 letters, numbers or _</span>
       </label>
       <ProfileBioField bio={bio} disabled={pending} />
+      <ProfileLinksFields links={links} disabled={pending} />
       <label className="field">
         Country
         <select name="country" defaultValue={country ?? ""}>

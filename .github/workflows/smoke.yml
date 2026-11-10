@@ -28,6 +28,7 @@ jobs:
           BASE_URL: http://localhost:3000
       - run: node tests/watchlist-mobile.mjs
       - run: node tests/profile-forms-browser.mjs
+      - run: node tests/profile-about-browser.mjs
       - run: node tests/films-shuffle-browser.mjs
         env:
           BASE_URL: http://localhost:3000
@@ -64,3 +65,29 @@ jobs:
       - run: psql -v ON_ERROR_STOP=1 -f tests/catalog-digest-bootstrap.sql
       - run: psql -v ON_ERROR_STOP=1 -f supabase/catalog-digest.sql
       - run: psql -v ON_ERROR_STOP=1 -f tests/catalog-digest.sql
+
+  profile-database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: profile-test-only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: profile-test-only
+    steps:
+      - uses: actions/checkout@v4
+      - run: psql -v ON_ERROR_STOP=1 -f tests/profile-about-bootstrap.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/profile-about.sql
+      - run: psql -v ON_ERROR_STOP=1 -f tests/profile-about.sql

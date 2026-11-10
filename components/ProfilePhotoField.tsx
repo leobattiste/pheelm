@@ -19,7 +19,7 @@ export default function ProfilePhotoField({ photo, name, disabled }: { photo: st
       <div className="profile-photo-controls">
         <span className="profile-photo-label">Profile photo</span>
         <div className="profile-photo-actions">
-          <button type="button" className="button ghost" disabled={disabled} onClick={() => input.current?.click()} aria-controls={id}><Icon name="pencil" />{src ? "Change photo" : "Choose photo"}</button>
+          <button type="button" className="round-button profile-photo-action" disabled={disabled} onClick={() => input.current?.click()} aria-controls={id} aria-label={src ? "Change profile photo" : "Choose profile photo"} title={src ? "Change profile photo" : "Choose profile photo"}><Icon name="camera" /></button>
           <input ref={input} id={id} type="file" className="visually-hidden" tabIndex={-1} aria-label="Profile photo file" name="avatar_file" accept="image/jpeg,image/png,image/webp" disabled={disabled} aria-describedby={error ? `${id}-error` : undefined} aria-invalid={!!error} onChange={(e) => {
             const file = e.target.files?.[0];
             if (!file) return;
@@ -33,7 +33,7 @@ export default function ProfilePhotoField({ photo, name, disabled }: { photo: st
           }} />
 
         <input type="hidden" name="remove_avatar" value={removed ? "1" : "0"} />
-        {src && <button type="button" className="button ghost" disabled={disabled} onClick={() => { if (input.current) input.current.value = ""; setPreview(null); setRemoved(true); setError(""); }}>Remove photo</button>}
+        {src && <button type="button" className="round-button profile-photo-action" aria-label="Remove profile photo" title="Remove profile photo" disabled={disabled} onClick={() => { if (input.current) input.current.value = ""; setPreview(null); setRemoved(true); setError(""); }}><Icon name="trash" /></button>}
         </div>
         {error && <p className="notice error" id={`${id}-error`} role="alert">{error}</p>}
       </div>

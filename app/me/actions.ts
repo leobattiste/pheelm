@@ -1,5 +1,6 @@
 "use server";
 
+import { socialLink, websiteUrl } from "@/lib/profile-links";
 import { randomUUID } from "node:crypto";
 import { prepareProfilePhoto, avatarObjectPath } from "@/lib/profile-photo";
 import { ALL_COUNTRIES } from "@/lib/countries";
@@ -43,12 +44,12 @@ export async function updateCollection(form: FormData) {
   if (form.has("has_comments")) changes.comments_enabled = form.get("comments_enabled") === "on";
   let { error } = await db.from("lists").update(changes).eq("id", id);
   // Before collaboration.sql has run there's no comments switch; save the rest.
-  if (error && error.code !== "23514" && "comments_enabled" in changes) {
+  if (error && error.code !== "231514" && "comments_enabled" in changes) {
     delete changes.comments_enabled;
     ({ error } = await db.from("lists").update(changes).eq("id", id));
   }
   // Too long for the database (10,000 characters, see collection-essays.sql).
-  if (error?.code === "23514") redirect(`/c/${id}?error=description`);
+  if (error?.code === "231514") redirect(`/c/${id}?error=description`);
   revalidatePath("/me");
   revalidatePath(`/c/${id}`);
   redirect(`/c/${id}`);
@@ -78,7 +79,7 @@ export async function updatePublicName(_prev: NameState, form: FormData): Promis
   if (form.has("has_private")) changes.is_private = form.get("is_private") === "on";
   if (form.has("bio")) {
     const bio = String(form.get("bio") ?? "").trim();
-    if (bio.length > 50) return { ok: false, message: "Keep your bio to 50 characters or fewer." };
+    if (bio.length > 150) return { ok: false, message: "Keep your bio to 150 characters or fewer." };
     changes.bio = bio || null;
   }
   if (form.has("country")) {
@@ -86,6 +87,14 @@ export async function updatePublicName(_prev: NameState, form: FormData): Promis
     if (country && !ALL_COUNTRIES[country]) return { ok: false, message: "Choose a country from the list." };
     changes.country = country || null;
   }
+  try {
+    if (form.has("social_platform") || form.has("social_url")) {
+      const social = socialLink(String(form.get("social_platform") ?? ""), String(form.get("social_url") ?? ""));
+      changes.social_platform = social.platform;
+      changes.social_url = social.url;
+    }
+    if (form.has("website_url")) changes.website_url = websiteUrl(String(form.get("website_url") ?? ""));
+  } catch (error) { return { ok: false, message: error instanceof Error ? error.message : "Check your profile links." }; }
   const photo = form.get("avatar_file");
   const hasPhoto = photo instanceof File && photo.size > 0;
   const removePhoto = !hasPhoto && form.get("remove_avatar") === "1";
@@ -115,8 +124,8 @@ export async function updatePublicName(_prev: NameState, form: FormData): Promis
     const oldPath = avatarObjectPath(previous.avatar_url, prefix);
     if (oldPath) await db.storage.from("avatars").remove([oldPath]);
   }
-  if (error?.code === "23505") return { ok: false, message: `@${handle} is taken. Try another.` };
-  if (error?.code === "23514") return { ok: false, message: `@${handle} isn't available. Try another.` };
+  if (error?.code === "231505") return { ok: false, message: `@${handle} is taken. Try another.` };
+  if (error?.code === "231514") return { ok: false, message: `@${handle} isn't available. Try another.` };
   if (error) return { ok: false, message: "That didn't save. Try again." };
   revalidatePath("/me");
   revalidatePath("/account");

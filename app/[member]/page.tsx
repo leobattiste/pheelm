@@ -1,3 +1,4 @@
+import ProfileAbout from "@/components/ProfileAbout";
 import UserAvatar from "@/components/UserAvatar";
 import Icon from "@/components/Icon";
 import type { Metadata } from "next";
@@ -39,8 +40,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 }
 
 /**
- * A member's profile: their name, then tabs for their public collections (Watchlist), the films
- * they've watched and the directors they follow. Watched and Following can each be hidden in Settings.
+ * A member's profile: their name, then tabs for their public collections (Watchlist), About, with watched films in a modal, and the directors they follow. Watched and Following can each be hidden in Settings.
  */
 export default async function MemberPage({ params }: Params) {
   const handle = handleOf((await params).member);
@@ -54,7 +54,7 @@ export default async function MemberPage({ params }: Params) {
   const viewer = db ? (await db.auth.getUser()).data.user : null;
   const own = viewer?.id === member.id;
   if (own && db) {
-    const { data: ownProfile } = await db.from("profiles").select("display_name, country, bio, avatar_url").eq("id", member.id).maybeSingle();
+    const { data: ownProfile } = await db.from("profiles").select("display_name, country, bio, avatar_url, social_platform, social_url, website_url").eq("id", member.id).maybeSingle();
     if (ownProfile) Object.assign(member, ownProfile);
     name = member.display_name || `@${member.handle}`;
   }
@@ -109,7 +109,7 @@ export default async function MemberPage({ params }: Params) {
       <header className="person-head">
         {(own || !member.is_private) && (
           <MoreMenu corner label="Profile actions">
-            {own && <ProfileEditor bio={member.bio ?? null} handle={member.handle} displayName={member.display_name} isPrivate={!!member.is_private} country={member.country ?? null} avatarUrl={member.avatar_url ?? null} />}
+            {own && <ProfileEditor links={member} bio={member.bio ?? null} handle={member.handle} displayName={member.display_name} isPrivate={!!member.is_private} country={member.country ?? null} avatarUrl={member.avatar_url ?? null} />}
             {!member.is_private && <ShareButton item title={`${name} on Pheelm`} />}
             {viewer && !own && <BlockButton memberId={member.id} handle={member.handle} blocked={!!blockRow?.data} />}
           </MoreMenu>
@@ -117,9 +117,7 @@ export default async function MemberPage({ params }: Params) {
         <UserAvatar person={member} className="portrait" />
         <div className="person-text">
           <h1>{name}{VERIFIED[member.handle] && <VerifiedBadge title={VERIFIED[member.handle]} />}</h1>
-          {member.country && <p className="person-roles">{countryName(member.country)}</p>}
           <p className="person-sub">@{member.handle}</p>
-          {member.bio && <p className="member-bio">{member.bio}</p>}
           {own && member.is_private && <p className="person-sub">Private: only you can see this page.</p>}
         </div>
       </header>
@@ -128,6 +126,7 @@ export default async function MemberPage({ params }: Params) {
           {
             id: "watchlist",
             label: "Watchlist",
+            icon: "stack",
             panel: (
               <>
                 {collectionsPanel}
@@ -140,23 +139,11 @@ export default async function MemberPage({ params }: Params) {
               </>
             ),
           },
-          ...(watchedOn && showsWatched ? [{
-            id: "watched",
-            label: "Watched",
-            panel: watched.length ? (
-              <FilmGrid films={watched.map(toCard)} />
-            ) : (
-              <div className="empty-state">
-                <Icon name="eye" className="empty-icon" />
-                <p>No watched films yet.</p>
-                {own && <p className="muted">On any film, open the &#8943; menu and press <strong>Add to Watched</strong>.</p>}
-              </div>
-            ),
-          }] : []),
-          ...(showsFollowing ? [{
+          {
             id: "following",
             label: "Following",
-            panel: following.length ? (
+            icon: "clapper",
+            panel: !showsFollowing ? <p className="muted">Following is private.</p> : following.length ? (
               <ul className="director-grid">{following.map((d) => <DirectorCard key={d.id} director={toDirectorSummary(d)} />)}</ul>
             ) : (
               <div className="empty-state">
@@ -170,7 +157,8 @@ export default async function MemberPage({ params }: Params) {
                 )}
               </div>
             ),
-          }] : []),
+          },
+          { id: "about", label: "About", icon: "userCircle", panel: <ProfileAbout member={member} watched={watchedOn && showsWatched ? watched.map(toCard) : null} watchedHidden={!showsWatched} /> },
         ]}
       />
     </section>

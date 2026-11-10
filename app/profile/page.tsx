@@ -19,7 +19,7 @@ export default async function ProfilePage({ searchParams }: Props) {
   const { data: { user } } = await db.auth.getUser();
   if (!user) redirect("/login?next=/profile");
   const { data } = await db.from("profiles").select("*").eq("id", user.id).maybeSingle();
-  const p = (data ?? {}) as { handle?: string | null; display_name?: string | null; avatar_url?: string | null; bio?: string | null };
+  const p = (data ?? {}) as { handle?: string | null; display_name?: string | null; social_platform?: string | null; social_url?: string | null; website_url?: string | null; avatar_url?: string | null; bio?: string | null };
   if (p.handle) redirect(`/@${p.handle}${sp.edit !== undefined ? "?edit" : ""}`);
 
   return (
@@ -28,7 +28,7 @@ export default async function ProfilePage({ searchParams }: Props) {
         <h1>Create your profile</h1>
         <p className="lead">Add a photo, choose your handle, and tell people a little about yourself.</p>
       </header>
-      <PublicName avatarUrl={p.avatar_url ?? null} bio={p.bio ?? null} handle={null} displayName={p.display_name ?? null} />
+      <PublicName links={p} avatarUrl={p.avatar_url ?? null} bio={p.bio ?? null} handle={null} displayName={p.display_name ?? null} />
     </section>
   );
 }

@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import { updatePublicName, type NameState } from "@/app/me/actions";
+import ProfileLinksFields from "@/components/ProfileLinksFields";
+import type { ProfileLinks } from "@/lib/profile-links";
 import ProfilePhotoField from "@/components/ProfilePhotoField";
 import ProfileBioField from "@/components/ProfileBioField";
 import Icon from "@/components/Icon";
@@ -12,12 +14,12 @@ import { getBrowserClient } from "@/lib/supabase/client";
 
 type Person = { id: string; name: string; place: string | null; photo: string | null };
 type Pick = { id: string; title: string; year: number; poster: string | null; directors: string[] };
-type Props = { next: string; userId: string; handle: string | null; name: string | null; people: Person[]; films: Pick[]; avatarUrl?: string | null; bio?: string | null };
+type Props = { next: string; userId: string; handle: string | null; name: string | null; people: Person[]; films: Pick[]; avatarUrl?: string | null; bio?: string | null; links?: ProfileLinks };
 
 const WELCOMED = "pheelm:welcomed";
 
 /** Three short steps for a new member. Follows and saves happen as they're tapped. */
-export default function Welcome({ next, userId, handle, name, people, films, avatarUrl, bio }: Props) {
+export default function Welcome({ next, userId, handle, name, people, films, avatarUrl, bio, links }: Props) {
   const router = useRouter();
   const [step, setStep] = useState(handle ? 1 : 0);
   const [state, action, pending] = useActionState<NameState, FormData>(updatePublicName, null);
@@ -74,6 +76,7 @@ export default function Welcome({ next, userId, handle, name, people, films, ava
               <span className="hint" id="welcome-handle-hint">Your page will be pheelm.com/@handle. 3 to 24 letters, numbers or _</span>
             </label>
             <ProfileBioField bio={bio} disabled={pending} />
+            <ProfileLinksFields links={links} disabled={pending} />
             {state && !state.ok && <p className="notice error" role="alert">{state.message}</p>}
             <div className="actions">
               <button className="button" type="submit" disabled={pending}>{pending ? "Saving…" : "Continue"}</button>
