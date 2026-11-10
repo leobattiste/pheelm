@@ -1,40 +1,21 @@
 import type { Metadata } from "next";
 import ContactForm from "@/components/ContactForm";
-import { SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Partnership",
-  description: `Work with ${SITE_NAME}: festivals, distributors, streaming services, schools and film societies.`,
+  title: "Partnerships",
+  description: "Partner with Pheelm on screenings, editorial collaborations, educational projects and community initiatives celebrating films by Black directors.",
+  alternates: { canonical: "/partnerships" },
 };
-
-const WAYS: [string, string][] = [
-  ["Festivals", "Bring your programme, past winners and retrospectives to a global audience with a dedicated collection, and keep them findable long after the festival ends."],
-  ["Distributors and streaming services", "Make sure your films are listed with accurate details, trailers and where to watch, and featured when they're released."],
-  ["Schools, libraries and film societies", "Build curated collections for courses and screenings, and point students and members to where each film can be watched."],
-];
-
 export default function PartnershipsPage() {
-  return (
-    <article className="page full-width info-page">
-      <header className="page-head">
-        <h1>Partnership</h1>
-        <p className="lead">{SITE_NAME} works with the people who make, show and teach films by Black directors.</p>
-      </header>
-
-      <ul className="ways">
-        {WAYS.map(([title, text]) => (
-          <li key={title}>
-            <h2>{title}</h2>
-            <p>{text}</p>
-          </li>
-        ))}
-      </ul>
-
-      <section className="info-section" aria-labelledby="partner-form">
-        <h2 id="partner-form">Get in touch</h2>
-        <p className="muted">Tell us who you are and what you have in mind. We reply to every message.</p>
-        <ContactForm partnership />
-      </section>
-    </article>
-  );
+  return <article className="page full-width info-page">
+    <header className="page-head"><h1>Partnerships</h1><p className="lead">Partner With Pheelm</p></header>
+    <div className="prose">
+      <p>Pheelm is an independent platform dedicated to helping people discover films by Black directors from around the world.</p>
+      <p>We’re open to collaborating with filmmakers, film festivals, cultural organizations, educational institutions, and other individuals or organizations that share our passion for cinema.</p>
+      <p>Whether it’s a screening, editorial collaboration, community initiative, or another creative project, we’d love to hear your ideas.</p>
+      <h2>Let’s Work Together</h2>
+      <p>Interested in partnering with us? Complete the form below to tell us about your proposal. We’ll review your inquiry and reach out if there’s an opportunity to collaborate.</p>
+    </div>
+    <section className="info-section" aria-labelledby="partner-form"><h2 id="partner-form">Partnership Inquiry Form</h2><ContactForm partnership /></section>
+  </article>;
 }

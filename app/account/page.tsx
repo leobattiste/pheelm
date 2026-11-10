@@ -195,7 +195,7 @@ export default async function AccountPage() {
           {p.is_admin && <> • <Link href="/admin">Admin</Link></>}
         </p>
       </header>
-      <Tabs tabs={tabs} />
+      <Tabs tabs={tabs} showIcons />
     </section>
   );
 }

@@ -7,7 +7,7 @@ import Icon, { type IconName } from "./Icon";
  * Tabs for a profile: a row of pills, one panel showing at a time. The open tab is kept in the
  * address (#about), so a link or the back button returns to it. Arrow keys move between tabs.
  */
-export default function Tabs({ tabs }: { tabs: { id: string; label: string; icon?: IconName; panel: React.ReactNode }[] }) {
+export default function Tabs({ tabs, showIcons = false }: { showIcons?: boolean; tabs: { id: string; label: string; icon?: IconName; panel: React.ReactNode }[] }) {
   const [active, setActive] = useState(tabs[0]?.id);
   const list = useRef<HTMLDivElement>(null);
 
@@ -24,7 +24,13 @@ export default function Tabs({ tabs }: { tabs: { id: string; label: string; icon
   const choose = (id: string, focus = false) => {
     setActive(id);
     history.replaceState(null, "", id === tabs[0].id ? window.location.pathname : `#${id}`);
-    if (focus) list.current?.querySelector<HTMLButtonElement>(`#tab-${id}`)?.focus();
+    const button = list.current?.querySelector<HTMLButtonElement>(`#tab-${id}`);
+    if (focus) button?.focus({ preventScroll: true });
+    if (button && list.current) {
+      const item = button.getBoundingClientRect(), strip = list.current.getBoundingClientRect();
+      if (item.left < strip.left) list.current.scrollLeft += item.left - strip.left;
+      else if (item.right > strip.right) list.current.scrollLeft += item.right - strip.right;
+    }
   };
 
   const onKey = (e: React.KeyboardEvent) => {
@@ -51,7 +57,7 @@ export default function Tabs({ tabs }: { tabs: { id: string; label: string; icon
             tabIndex={t.id === active ? 0 : -1}
             onClick={() => choose(t.id)}
           >
-            {t.icon && <Icon name={t.icon} />}
+            {showIcons && t.icon && <Icon name={t.icon} />}
             {t.label}
           </button>
         ))}

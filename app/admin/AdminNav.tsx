@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import Icon, { type IconName } from "@/components/Icon";
+import { type IconName } from "@/components/Icon";
 
 /**
  * Same pill-tab language as Settings. The URL (rather than hidden mounted panels)
@@ -62,7 +62,6 @@ export default function AdminNav() {
           const active = activeGroup?.href === group.href;
           return (
             <Link key={group.href} href={group.href} className="chip" aria-current={active ? "page" : undefined}>
-              <Icon name={group.icon} />
               <span>{group.label}</span>
             </Link>
           );
@@ -74,7 +73,6 @@ export default function AdminNav() {
             const active = matches(path, child.href);
             return (
               <Link key={child.href} href={child.href} aria-current={active ? "page" : undefined}>
-                <Icon name={child.icon} />
                 <span>{child.label}</span>
               </Link>
             );

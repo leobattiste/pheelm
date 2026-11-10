@@ -2995,3 +2995,18 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 }
 :root:root .watched-films-dialog .film-card > a { text-decoration: none; }
 :root:root .director-card .portrait { border-radius: 8px; }
+
+/* Tab labels stay aligned in every interaction state; only their material changes. */
+:root:root :is(.tabs, .profile-tabs, .admin-subtabs, .feed-tabs) {
+ align-items: center;
+ flex-shrink: 0;
+ padding-block: 0;
+ overflow-y: hidden;
+ overflow-anchor: none;
+}
+:root:root :is(.tabs, .profile-tabs, .admin-subtabs, .feed-tabs) > :is(a, button),
+:root:root :is(.tabs, .profile-tabs, .admin-subtabs, .feed-tabs) > :is(a, button):is(:hover, :active, :focus-visible) {
+ align-self: center;
+ align-items: center;
+ transform: none;
+}

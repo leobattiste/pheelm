@@ -1,4 +1,5 @@
 "use client";
+import { PARTNERSHIP_TYPES } from "@/lib/partnership";
 import EmailInput from "@/components/EmailInput";
 
 import Link from "next/link";
@@ -35,12 +36,14 @@ export default function ContactForm({ topic = "general", partnership = false, fe
         </div>
       )}
       <div className="form-row">
-        <label className="field">Your name<input name="name" autoComplete="name" maxLength={200} /></label>
-        <label className="field">Email<EmailInput name="email"  autoComplete="email" required maxLength={254} /></label>
+        <label className="field">{partnership ? "Full name *" : "Your name"}<input name="name" autoComplete="name" required={partnership} maxLength={200} /></label>
+        <label className="field">{partnership ? "Email address *" : "Email"}<EmailInput name="email"  autoComplete="email" required maxLength={254} /></label>
       </div>
       {partnership ? (
         <>
-          <label className="field">Organisation<input name="organization" autoComplete="organization" maxLength={200} /></label>
+          <label className="field">Organization or project<input name="organization" autoComplete="organization" maxLength={200} /></label>
+          <label className="field">Website or social media<input name="partnership_url" type="url" autoComplete="url" maxLength={500} placeholder="https://" /></label>
+          <label className="field">Partnership type *<select name="partnership_type" aria-label="Partnership type" required defaultValue=""><option value="" disabled>Choose a partnership type</option>{PARTNERSHIP_TYPES.map(type=><option key={type} value={type}>{type}</option>)}</select></label>
           <input type="hidden" name="topic" value="partnership" />
         </>
       ) : (
@@ -52,14 +55,14 @@ export default function ContactForm({ topic = "general", partnership = false, fe
         </label>
       )}
       <label className="field">
-        {feedback ? "Your feedback" : "Message"}
-        <textarea name="body" required maxLength={5000} placeholder={partnership ? "Tell us about your organisation and what you have in mind." : feedback ? "Tell us what happened, what you expected, or what needs correcting." : "How can we help?"} />
+        {partnership ? "Tell us about your proposal *" : feedback ? "Your feedback" : "Message"}
+        <textarea name="body" required maxLength={partnership ? 4000 : 5000} placeholder={partnership ? "Tell us about your organisation and what you have in mind." : feedback ? "Tell us what happened, what you expected, or what needs correcting." : "How can we help?"} />
       </label>
       <input name="website" tabIndex={-1} autoComplete="off" className="visually-hidden" aria-hidden="true" />
       <Turnstile />
       {state && !state.ok && <p className="notice error" role="alert">{state.message}</p>}
       <div className="actions">
-        <button className="button" type="submit" disabled={pending}>{pending ? "Sending…" : feedback ? "Send feedback" : "Send message"}</button>
+        <button className="button" type="submit" disabled={pending}>{pending ? "Sending…" : partnership ? "Submit Inquiry" : feedback ? "Send feedback" : "Send message"}</button>
       </div>
     </form>
   );

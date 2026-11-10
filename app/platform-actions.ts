@@ -1,5 +1,7 @@
 "use server";
 
+import { PARTNERSHIP_TYPES, PARTNERSHIP_SUCCESS } from "@/lib/partnership";
+import { websiteUrl } from "@/lib/profile-links";
 import { getServerClient } from "@/lib/supabase/server";
 import { passesTurnstile } from "@/lib/turnstile";
 
@@ -31,6 +33,19 @@ export async function sendMessage(_prev: FormState, f: FormData): Promise<FormSt
   if (!EMAIL.test(email)) return { ok: false, message: "Enter your email address so we can reply." };
   if (!body) return { ok: false, message: "Write a message first." };
   if (body.length > 5000) return { ok: false, message: "That's a long one. Keep it under 5,000 characters." };
+  const name = String(f.get("name") ?? "").trim();
+  let messageBody = body;
+  if (topic === "partnership") {
+    const type = String(f.get("partnership_type") ?? "");
+    if (body.length > 4000) return { ok: false, message: "Keep your proposal under 4,000 characters." };
+    if (!name || name.length > 200) return { ok: false, message: "Enter your full name, up to 200 characters." };
+    if (!(PARTNERSHIP_TYPES as readonly string[]).includes(type)) return { ok: false, message: "Choose a partnership type." };
+    let url: string | null;
+    try { url = websiteUrl(String(f.get("partnership_url") ?? "")); }
+    catch { return { ok: false, message: "Enter a valid website or social media link." }; }
+    messageBody = [`Partnership type: ${type}`, url ? `Website or social media: ${url}` : null, "", "Proposal:", body].filter(line => line !== null).join("\n");
+    if (messageBody.length > 5000) return { ok: false, message: "Keep your proposal under 4,000 characters." };
+  }
   if (!(await passesTurnstile(f))) return { ok: false, message: "We couldn't check you're not a bot. Try again in a moment." };
   const db = await getServerClient();
   if (!db) return { ok: false, message: "Messages can't be sent from here yet. Check back soon." };
@@ -43,7 +58,7 @@ export async function sendMessage(_prev: FormState, f: FormData): Promise<FormSt
     organization: String(f.get("organization") ?? "").trim().slice(0, 200) || null,
     email,
     topic: (TOPICS as readonly string[]).includes(topic) ? topic : "general",
-    body,
+    body: messageBody,
   };
   let { error } = await db.from("messages").insert(page ? { ...row, page, page_title: pageTitle } : row);
   // Before feedback-page.sql has run: no "feedback" topic or page columns, so keep both in the message.
@@ -52,9 +67,9 @@ export async function sendMessage(_prev: FormState, f: FormData): Promise<FormSt
     ({ error } = await db.from("messages").insert({
       ...row,
       topic: row.topic === "feedback" ? "general" : row.topic,
-      body: note ? `${body}\n\n${note}`.slice(0, 5000) : body,
+      body: note ? `${messageBody}\n\n${note}`.slice(0, 5000) : messageBody,
     }));
   }
   if (error) return { ok: false, message: "Messages can't be sent from here yet. Check back soon." };
-  return { ok: true, message: `Thanks. We'll reply to ${email}.` };
+  return { ok: true, message: topic === "partnership" ? PARTNERSHIP_SUCCESS : `Thanks. We'll reply to ${email}.` };
 }

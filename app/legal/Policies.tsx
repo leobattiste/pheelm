@@ -1,127 +1,177 @@
 import Link from "next/link";
-import { CONTACT_EMAIL, SITE_NAME } from "@/lib/site";
+
+const EMAIL = "hey@pheelm.com";
+function Contact() { return <a href={`mailto:${EMAIL}`}>{EMAIL}</a>; }
 
 export function PrivacyPolicy() {
-  const reach = CONTACT_EMAIL ? <>write to <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> or use the <Link href="/contact?topic=privacy">contact form</Link></> : <>use the <Link href="/contact?topic=privacy">contact form</Link></>;
-  return (
-      <div className="prose">
-        <h2>The short version</h2>
-        <p>
-          {SITE_NAME} is in early access, so most of it needs a free account. We keep only what&rsquo;s needed to run it, we don&rsquo;t sell
-          anything, there are no advertising trackers, and you can download or delete your data yourself in Settings.
-        </p>
-
-        <h2>What we collect</h2>
-        <ul>
-          <li><strong>Your account.</strong> Your email address, so you can sign in with a link or code. No password is stored.</li>
-          <li><strong>Your profile.</strong> The name, handle, country and profile photo you choose, and your privacy settings.</li>
-          <li><strong>What you save and do.</strong> Your Watchlist, the films you mark as watched, your collections (and whether each is public), the collections and directors you follow, your comments and likes, and the films you suggest.</li>
-          <li><strong>People you block.</strong> Kept so we can stop them commenting on your collections, co-curating with you or notifying you. They aren&rsquo;t told.</li>
-          <li><strong>Newsletter.</strong> Your email address and when you signed up.</li>
-          <li><strong>Messages and feedback.</strong> What you send through the contact and partnership forms: your name, email, organisation and message, and for feedback, the page or film it&rsquo;s about.</li>
-          <li><strong>Reports.</strong> When you report a collection or comment, the report and, if you&rsquo;re signed in, your account.</li>
-          <li><strong>Visits.</strong> Anonymous, aggregated page views (which pages are popular, from which countries and devices), measured without cookies and without identifying you.</li>
-        </ul>
-
-        <h2>Who can see what</h2>
-        <ul>
-          <li><strong>Everyone with an account</strong> can see your public profile: your name, handle, country, profile photo and public collections, and, unless you hide them in Settings, the films you&rsquo;ve watched and the directors you follow. A private profile shows only your handle.</li>
-          <li><strong>{SITE_NAME}&rsquo;s admins</strong>, who look after films and the community, can see the list of members: handles, when they joined and last signed in, and how many collections, saved films and comments each has. They read reports and messages.</li>
-          <li><strong>{SITE_NAME}&rsquo;s owner</strong> can also see members&rsquo; email addresses, to answer them and keep the site safe. Your email is never shown to other members.</li>
-        </ul>
-
-        <p>Profile photos are public image files. Making a profile private hides its photo and other profile details from the public member directory. Someone with a previously shared image link may still be able to view that image. Replacing or removing a photo deletes the stored previous image, although cached copies may remain temporarily.</p>
-
-        <h2>What&rsquo;s stored on your device</h2>
-        <p>
-          Your browser remembers your light or dark setting, how posters are shown, your recent searches and whether you&rsquo;ve seen the welcome
-          steps. These stay on your device. Signing in sets a cookie that keeps you signed in. If you add {SITE_NAME} to your home screen, pages
-          you&rsquo;ve opened are kept so it works offline. There are no advertising or tracking cookies.
-        </p>
-
-        <h2>Who helps us run the site</h2>
-        <ul>
-          <li><strong>Supabase</strong> stores accounts, profile photos, watchlists, collections, the newsletter list and messages.</li>
-          <li><strong>Vercel</strong> hosts the site and measures the anonymous page views.</li>
-          <li><strong>TMDB</strong> provides film details, posters and photos, which your browser loads from TMDB&rsquo;s servers.</li>
-          <li><strong>YouTube</strong> plays trailers, in its privacy-enhanced mode, only when you press Play.</li>
-          <li><strong>An email service</strong> sends sign-in emails and the newsletter.</li>
-          <li><strong>Cloudflare Turnstile</strong> checks that the contact and newsletter forms are sent by people, not bots.</li>
-        </ul>
-        <p>Streaming links take you to the service&rsquo;s own site, where its privacy policy applies.</p>
-
-        <h2>How long we keep it</h2>
-        <p>
-          Account data is kept until you delete your account or ask us to. Newsletter addresses are kept until you unsubscribe. Messages are kept
-          as long as needed to reply and follow up.
-        </p>
-
-        <h2>Your choices</h2>
-        <p>
-          You can see and change what you&rsquo;ve saved from your <Link href="/me">Watchlist</Link> page. In <Link href="/account">Settings</Link>
-          you can make your profile private, hide what you&rsquo;ve watched or who you follow, unblock people, download a copy of your data, and
-          delete your account and everything in it. For anything else, {reach}. We&rsquo;ll reply within 30 days.
-        </p>
-
-        <h2>Children</h2>
-        <p>{SITE_NAME} isn&rsquo;t meant for children under 13, and we don&rsquo;t knowingly collect their information.</p>
-
-        <h2>Changes</h2>
-        <p>If this policy changes, we&rsquo;ll update the date at the top, and tell account holders by email if the change is significant.</p>
-      </div>
-  );
+  return <div className="prose">
+    <h2>Privacy Policy</h2>
+    <p>This policy explains how Pheelm, an independent project operated by Leo Battiste, collects, uses, shares and protects personal information when you visit the website, create an account, contribute content or contact us. Pheelm is responsible for the personal information it processes to operate the platform. Privacy requests can be sent to <Contact />.</p>
+    <h3>1. Information you provide</h3>
+    <ul>
+      <li><strong>Account information:</strong> your email address, account identifier, sign-in records and preferences. Pheelm uses email-based authentication; if you choose an available third-party sign-in option, we receive the account information that provider shares through the sign-in process.</li>
+      <li><strong>Profile information:</strong> your handle, display name and optional photograph, biography, country, social username and website, together with your visibility settings.</li>
+      <li><strong>Community activity:</strong> saved films, watched films, collections, follows, comments, likes, collaboration requests, invitations, blocks and reports, including the information needed to associate those actions with an account.</li>
+      <li><strong>Submissions and correspondence:</strong> film suggestions, rights-holder submissions, feedback, corrections, partnership proposals and support messages. These may include your name, organization, contact details, links and the page you are asking about.</li>
+      <li><strong>Email preferences:</strong> subscription and confirmation records, Digest frequency, notification preferences and unsubscribe or delivery-suppression records.</li>
+    </ul>
+    <p>Optional profile fields can be left blank. Do not send identity documents, financial account details, private medical information or other sensitive information through public profiles, comments or ordinary inquiry forms.</p>
+    <h3>2. Technical information and local storage</h3>
+    <p>Hosting, authentication and security systems process technical information such as IP addresses, browser and device information, request times, requested URLs, sign-in events and error or abuse signals. We use aggregated website analytics to understand page usage and improve performance. We do not use Pheelm to build advertising profiles or display behaviorally targeted advertisements.</p>
+    <p>Essential cookies maintain authentication and support security. Browser storage remembers preferences such as theme, grid view, recent searches and onboarding choices. Recent searches saved on your device can be cleared through the search interface or browser settings. The installed web app may cache public assets, images and eligible public pages for performance and offline support; private account pages and authenticated API responses are not intended for offline HTML caching. Clearing browser storage removes local preferences and cached material, but does not delete information stored in your account.</p>
+    <p>Blocking essential cookies or storage may prevent sign-in or other features from working. Pheelm does not sell personal information or share it for cross-context behavioral advertising, so there is no advertising sale or sharing activity to opt out of. Browser privacy signals do not prevent essential processing needed to deliver a requested service.</p>
+    <h3>3. How we use information</h3>
+    <p>We process information to authenticate users; maintain profiles, watchlists and community features; review catalog submissions; respond to inquiries; deliver requested notifications and Digest emails; investigate reports; prevent fraud and abuse; diagnose problems; measure aggregate usage; and meet legal obligations or establish, exercise or defend legal claims.</p>
+    <p>Where a legal basis is required, we rely on performance of our agreement with you for account and service functions; consent for optional subscriptions and other consent-based processing; legitimate interests in operating, securing and improving the platform and responding to correspondence; and legal obligations where applicable. You can withdraw consent for optional communications without affecting earlier lawful processing or essential account communications.</p>
+    <h3>4. Public profiles and visibility controls</h3>
+    <p>Public profiles can be viewed without signing in and may appear in search engines, link previews and the public profile sitemap. Public profile information can include your chosen name, handle, photo, bio, country, links and public collections. Watched films and followed directors are displayed according to the relevant Settings controls. Collections have their own publication and collaboration settings; review those settings before sharing.</p>
+    <p>Your email address is not a public profile field. Making your profile private hides its public details, while your handle may remain visible. It does not necessarily remove references to your handle on content or interactions you previously shared. Privacy changes cannot immediately erase copies already held by search engines, recipients, caches or other third parties.</p>
+    <p>Profile photographs are served as public image files. A person with a previously shared image URL may be able to view that image even after a profile becomes private. Replacing or removing a photo removes the previous stored image through the photo workflow, but cached copies may persist temporarily. Do not upload an image you need to keep confidential.</p>
+    <h3>5. Who receives information</h3>
+    <p>Authorized administrators access information needed to maintain the catalog, answer messages, manage accounts and review safety concerns. Public content is available to its intended audience. Collaboration features share the information necessary to manage the relevant invitation or collection; they are not a private document-storage service.</p>
+    <ul>
+      <li><strong>Supabase</strong> provides database, authentication and image-storage infrastructure.</li>
+      <li><strong>Vercel</strong> hosts the website and provides deployment, request-processing and aggregate analytics infrastructure.</li>
+      <li><strong>Resend and authentication email infrastructure</strong> deliver supported account, inquiry, notification and subscription messages, with delivery and suppression information used to operate email reliably.</li>
+      <li><strong>Cloudflare Turnstile</strong> helps protect supported forms against automated abuse and may process technical browser information for that purpose.</li>
+      <li><strong>Fontshare</strong> supplies website typography; loading these fonts may send your IP address and normal browser-request information to its servers.</li>
+      <li><strong>TMDB and other linked media sources</strong> supply catalog information or images. Loading externally hosted media sends the information normally associated with a browser request to that source.</li>
+      <li><strong>YouTube and other external services</strong> apply their own privacy practices when you activate embedded media or follow an external link. Privacy-enhanced embedding reduces some initial exposure but does not make playback anonymous.</li>
+    </ul>
+    <p>We may disclose information when reasonably necessary to comply with applicable law or valid legal process, protect people and the service, investigate abuse, or establish or defend legal rights. A transfer of the platform to a new operator may include necessary service records, subject to applicable law and appropriate notice. We do not give partners permission to use inquiry details for unrelated marketing merely because they proposed a collaboration.</p>
+    <h3>6. Email communications</h3>
+    <p>Account, security and service messages relate to your account or an action you requested. Optional Digest and subscription emails are controlled through the relevant preferences and unsubscribe links. Digest choices may include daily or weekly summaries of newly added films, directors and public collections. Unsubscribing from optional mail does not delete your account or prevent necessary security or request-related messages.</p>
+    <p>Email systems process addresses, message content and delivery, bounce, complaint and unsubscribe events. A limited suppression record may be retained after unsubscribing so we can honor that choice. Do not forward account sign-in links or codes; anyone with access to a valid sign-in credential may be able to access your account.</p>
+    <h3>7. Retention and deletion</h3>
+    <p>We retain active account information while needed to provide your account and chosen features. Inquiries, submissions and moderation records are kept for the time reasonably needed to resolve them, maintain appropriate operational records and address disputes, abuse or legal requirements. Email delivery content and related technical records follow operational retention schedules; unsubscribe and suppression records may need to remain longer to prevent unwanted mail.</p>
+    <p>You can request account deletion in Settings or contact us for assistance. Deletion applies through the service’s account-deletion workflow. Limited records may remain where necessary for legal compliance, security, fraud prevention or resolving an existing dispute. Backup and provider-held copies may expire on their normal retention schedules rather than immediately. Copies independently saved or published by others are outside our direct control.</p>
+    <h3>8. Your privacy rights</h3>
+    <p>You can edit profile details, change visibility and email preferences, manage blocks, export available account data and request account deletion through <Link href="/account">Settings</Link>. Depending on your location and applicable law, you may also have rights to access, correct or delete personal information; obtain a portable copy; restrict or object to certain processing; withdraw consent; or complain to a competent privacy authority.</p>
+    <p>Send additional requests or privacy appeals to <Contact /> with enough information to identify the relevant account and request. We may ask for proportionate verification to prevent unauthorized disclosure or deletion; do not send identity documents unless a secure, necessary verification process has been agreed. Authorized agents may need to demonstrate their authority. We aim to respond within 30 days and will follow the deadlines, permitted extensions and exceptions required by applicable law. We do not penalize people for exercising applicable privacy rights.</p>
+    <h3>9. International processing and security</h3>
+    <p>Pheelm and its providers may process information in the United States and other countries whose privacy laws differ from those where you live. Applicable provider data-processing terms and legally required transfer safeguards govern relevant cross-border processing. Contact us for information about safeguards applicable to your request.</p>
+    <p>We use access controls, authentication, encrypted connections and other technical and organizational measures appropriate to the service. No online service can guarantee absolute security. Protect access to your email account and devices, and notify <Contact /> promptly if you suspect unauthorized access. We will address security incidents and provide notifications when applicable law requires them.</p>
+    <h3>10. Children, third-party pages and policy changes</h3>
+    <p>Pheelm is not directed to children under 13 or below a higher minimum age required by local law. We do not knowingly collect information from children below that threshold. A parent or guardian who believes such information has been provided should contact us so we can investigate and take appropriate action.</p>
+    <p>This policy covers Pheelm, not independent streaming providers, social networks, payment providers or other linked websites. We update the effective date when this policy changes and provide additional notice of material changes where required. Questions about this policy or our handling of personal information can be sent to <Contact />.</p>
+  </div>;
 }
 
 export function TermsPolicy() {
-  return (
-      <div className="prose">
-        <h2>Using {SITE_NAME}</h2>
-        <p>
-          {SITE_NAME} is free to browse. By using it you agree to these terms. If you don&rsquo;t agree, please don&rsquo;t use the site.
-        </p>
+  return <div className="prose">
+    <h2>Terms of Use</h2>
+    <p>These terms govern access to and use of Pheelm, an independent film-discovery platform operated by Leo Battiste. “Pheelm,” “we” and “us” refer to the platform and its operator; “you” refers to the person using it. By accessing or using Pheelm, you agree to these terms and the <Link href="/legal#community-guidelines">Community Guidelines</Link>. Our <Link href="/legal#privacy">Privacy Policy</Link> explains personal-information practices.</p>
+    <h3>1. Eligibility and accounts</h3>
+    <p>You must be at least 13 and satisfy any higher minimum age required where you live. If you are a minor who cannot independently enter this agreement, use the service only with a parent’s or guardian’s permission and supervision. If you act for an organization, you must have authority to bind it.</p>
+    <p>Some pages and features require an account, including during limited-access releases. Provide accurate account information, use a handle you are entitled to use and keep access to your email and sign-in credentials secure. Do not share sign-in codes or impersonate another person. You are responsible for activity you authorize through your account. Report suspected unauthorized access to <Contact />.</p>
+    <h3>2. What the platform provides</h3>
+    <p>Pheelm helps people discover films by Black directors, explore catalog information, maintain watchlists, follow directors and share eligible community contributions. It is a discovery and community service, not a streaming subscription, film distributor or guarantee that a particular film can be watched in your location. Availability, pricing, eligibility and playback are controlled by the relevant external provider.</p>
+    <p>The catalog is curated and may be incomplete. We decide which submissions to publish and may correct, reorganize or remove information. A listing, featured collection or verification indicator does not establish ownership, endorsement, personal identity verification or an affiliation beyond what is expressly described.</p>
+    <h3>3. Permission to use Pheelm</h3>
+    <p>Subject to these terms, you may access the service for lawful discovery, personal organization, discussion and other uses expressly offered by the interface. This permission does not transfer ownership of software, branding, editorial content, catalog compilations or third-party material. Ordinary links to publicly available Pheelm pages are welcome when they do not misrepresent an affiliation or bypass access controls.</p>
+    <p>You may not resell access, reproduce or redistribute substantial portions of the directory, conduct bulk extraction without permission, or use automated tools in a way that interferes with the service or violates applicable rights. This restriction does not override rights that applicable law makes non-waivable.</p>
+    <h3>4. Your contributions and permissions</h3>
+    <p>You retain rights you hold in original profile content, descriptions, comments, collections, images, suggestions and other contributions. You must own the necessary rights or have permission to provide the material, identify people where appropriate, and respect privacy, publicity and intellectual-property rights. Do not submit confidential material you expect Pheelm to protect under a nondisclosure agreement unless we have separately agreed to one in writing.</p>
+    <p>By submitting content, you grant Pheelm a non-exclusive, worldwide, royalty-free license to host, store, copy, format, display, distribute and make technical adaptations to that content as reasonably necessary to operate, secure and improve the service and make it available to the audience you select. This includes normal sharing previews of publicly shared pages. It does not transfer ownership or authorize unrelated merchandising of your work. Separate promotional uses outside those service functions require an appropriate additional permission.</p>
+    <p>You can remove eligible contributions or request help. The license ends for removed content when it is no longer needed for the permitted service functions, except for ordinary backup, technical-cache and lawful recordkeeping periods, and copies other users or independent services have already lawfully made. Do not assume that removing a public contribution can retrieve every shared copy.</p>
+    <h3>5. Film and rights-holder submissions</h3>
+    <p>Suggestions do not guarantee publication, placement, review by a particular date or a response. Rights holders and representatives must accurately describe their authority and supply material they are entitled to share. Submitting a film does not grant Pheelm theatrical, broadcast or streaming rights unless a separate written agreement expressly does so.</p>
+    <p>We may edit supplied descriptions for accuracy, length and presentation, seek clarification, decline a submission or remove a listing. Do not provide private identification documents, unreleased confidential assets or restricted screening links unless we have explicitly arranged an appropriate process.</p>
+    <h3>6. Prohibited conduct</h3>
+    <ul>
+      <li>Harassment, threats, hateful abuse, exploitation, unlawful discrimination, impersonation, doxxing or other violations of the Community Guidelines.</li>
+      <li>Spam, scams, deceptive promotions, fake engagement, fraudulent rights claims or misleading affiliations.</li>
+      <li>Posting malicious code, credential-stealing links, unauthorized copies of films or material that infringes another person’s rights.</li>
+      <li>Accessing another person’s account, bypassing privacy or access controls, evading a suspension, or attempting to obtain nonpublic data without authorization.</li>
+      <li>Disrupting or overloading the service, circumventing rate limits, or conducting intrusive security testing without prior written permission.</li>
+    </ul>
+    <h3>7. Moderation and account restrictions</h3>
+    <p>We may review reports, request information, correct or remove content, restrict features or suspend or terminate accounts when reasonably necessary to enforce these terms, protect people or the service, address suspected unlawful activity or meet legal obligations. Where appropriate, we may act before providing notice, particularly for urgent safety or security concerns. We do not promise to identify or remove every violation.</p>
+    <p>You may appeal a moderation decision by emailing <Contact /> with your handle, the relevant page or notice, and an explanation. We review appeals in context and may maintain or change the decision. Applicable legal rights remain available. You can stop using Pheelm and request deletion of your account through Settings.</p>
+    <h3>8. Third-party content, links and credits</h3>
+    <p>Films, posters, stills, portraits, trailers, logos and related materials remain the property of their respective rights holders. Some catalog information and images come from TMDB; this product uses the TMDB API but is not endorsed or certified by TMDB. Viewing information may originate from JustWatch through TMDB or other linked sources. Listing material does not grant you permission to reuse it.</p>
+    <p>Third-party sites, media embeds, sign-in services and external payment or viewing providers have their own terms and privacy practices. We do not control their content, availability, security, transactions or decisions. Confirm the destination and relevant terms before sharing information or making a purchase. Report catalog errors through <Link href="/feedback">Feedback</Link> and rights concerns using the <Link href="/legal#copyright">Copyright Policy</Link>.</p>
+    <h3>9. Contributions, donations and partnerships</h3>
+    <p>Any available contribution or donation option supports Pheelm’s operations. An external payment provider’s checkout terms apply to payments made through that provider. A contribution does not purchase editorial placement, a favorable review, ownership of Pheelm or a guaranteed service outcome. Do not assume a contribution is tax-deductible; Pheelm does not represent itself as a tax-exempt charity. Contact <Contact /> about payment concerns, including duplicate or unauthorized contributions, so we can review the circumstances and applicable requirements.</p>
+    <p>A partnership inquiry is an invitation to discuss a proposal, not acceptance of a partnership, endorsement, confidentiality obligation or commitment to deliver services. Any binding commercial, promotional, licensing or partnership arrangement must be agreed separately by authorized parties.</p>
+    <h3>10. Availability and disclaimers</h3>
+    <p>We aim to provide a useful and reliable platform, but information can be incomplete, outdated or incorrect. We do not guarantee uninterrupted access, error-free operation, permanent availability of a feature, complete catalog coverage or the accuracy of external viewing links. Maintain independent copies of contributions important to you.</p>
+    <p>To the extent permitted by applicable law, the service and information are provided “as is” and “as available,” without implied warranties of merchantability, fitness for a particular purpose or non-infringement. Nothing excludes a warranty or consumer protection that cannot lawfully be excluded.</p>
+    <h3>11. Responsibility and limits of liability</h3>
+    <p>To the extent permitted by applicable law, Pheelm and its operator are not liable for indirect, incidental, consequential or special losses, loss of profits or opportunities, or losses caused by independent third-party services arising from use of the platform. For claims connected with the service, our total liability is limited to the greater of US$100 or the amount you paid directly to Pheelm for the service in the 12 months before the event giving rise to the claim.</p>
+    <p>These limits do not apply to fraud, intentional misconduct, gross negligence where liability cannot be limited, death or personal injury where legally protected, or any other liability that applicable law prohibits us from excluding or limiting. You remain responsible for your own unlawful conduct and for third-party claims caused by content you provide without the required rights. Nothing requires you to reimburse Pheelm for its own wrongful conduct.</p>
+    <h3>12. Governing law and disputes</h3>
+    <p>These terms are governed by Florida law and applicable United States federal law, without applying conflict-of-law rules that would displace mandatory protections. If you are a consumer elsewhere, mandatory protections and access to courts or authorities available under the law of your residence are not waived. Subject to those protections and other mandatory jurisdiction rules, disputes may be brought before courts of competent jurisdiction in Florida.</p>
+    <p>Please contact <Contact /> first with a description of the issue so we have an opportunity to resolve it informally. This request does not prevent you from seeking urgent relief, contacting a regulator or exercising a legal right. These terms do not impose mandatory arbitration or waive non-waivable collective or representative rights.</p>
+    <h3>13. Changes and general provisions</h3>
+    <p>We may update the service and these terms. The effective date appears on the Legal page. Material changes will receive appropriate notice and, where required, an opportunity to review or agree before they apply. Continued use after a properly notified change takes effect constitutes acceptance to the extent permitted by law; you may stop using the service if you disagree.</p>
+    <p>If a provision is unenforceable, the remaining provisions continue to apply. A failure to enforce a provision immediately is not a permanent waiver. You may not transfer your account or agreement without permission. A lawful transfer of the platform remains subject to applicable rights and obligations. These terms, the incorporated Community Guidelines and any separately agreed written terms form the agreement for their respective subject matter. Contact <Contact /> with questions or notices.</p>
+  </div>;
+}
 
-        <h2>Your account</h2>
-        <p>
-          You need an account to keep a watchlist, make collections or suggest films. Keep access to your email secure, since
-          that&rsquo;s how you sign in. You can delete your account in <Link href="/account">Settings</Link> or <Link href="/contact?topic=privacy">contact us</Link> for help.
-        </p>
+export function CopyrightPolicy() {
+  return <div className="prose">
+    <h2>Copyright Policy</h2>
+    <p>© {new Date().getFullYear()} Pheelm. A project by Leo Battiste with the courtesy of TMDB. This notice identifies Pheelm’s original work; it does not claim ownership of films, photographs, posters or other material belonging to third parties.</p>
+    <h3>1. Ownership and attribution</h3>
+    <p>Pheelm’s original editorial writing, interface, branding and original compilations are protected where applicable by intellectual-property law. Film titles, facts and third-party works may have different legal protections. Films, trailers, posters, stills, portraits, service logos and contributor material remain the property of their respective owners. A credit is not a grant of permission, and lack of a credit does not mean a work is unprotected.</p>
+    <p>Some information and images are supplied through TMDB. This product uses the TMDB API but is not endorsed or certified by TMDB. Viewing availability may include JustWatch information supplied through TMDB. References to either service do not imply sponsorship. Applicable source licenses and rights-holder permissions continue to govern their material.</p>
+    <h3>2. Using content and submitting your own</h3>
+    <p>You may share ordinary links to Pheelm pages. Reproducing images, substantial editorial text, software or catalog compilations requires the relevant permission unless an applicable legal exception authorizes your use. Pheelm cannot license a third party’s film, photograph or artwork merely because it appears in the directory. Contact the actual rights holder for those permissions.</p>
+    <p>Contributors retain the rights they hold and grant the limited service license described in our Terms. Submit only material you own, are authorized to submit or may lawfully use. Do not upload pirated films, unauthorized screeners or material copied from another source without the necessary rights.</p>
+    <h3>3. Send a copyright complaint</h3>
+    <p>Send rights concerns to <Contact /> with the subject “Copyright notice.” To help us evaluate and locate the material, include:</p>
+    <ol>
+      <li>Your name, a reliable email address and contact details; if you represent a rights holder, identify that person or organization and your authority to act.</li>
+      <li>Identification of the copyrighted work claimed to be infringed, or a representative list if the notice covers multiple works.</li>
+      <li>The exact Pheelm URL for each allegedly infringing item and enough detail to distinguish it from other material. A general reference to the entire website is usually insufficient.</li>
+      <li>A statement that you have a good-faith belief that the disputed use is not authorized by the copyright owner, its agent or applicable law.</li>
+      <li>A statement that the notice is accurate and, under penalty of perjury where applicable, that you are the owner or authorized to act for the owner of the right allegedly infringed.</li>
+      <li>Your physical or electronic signature. If you seek treatment as a statutory notice, include the additional contact details, including a mailing address and telephone number, required by the applicable law.</li>
+    </ol>
+    <p>Consider applicable licenses and legal exceptions, including fair use where relevant, before submitting a notice. Knowingly material misrepresentations in a copyright notice or counter-notice may create legal liability. Do not use copyright complaints to resolve ordinary disagreements, obtain private account information or suppress lawful criticism.</p>
+    <h3>4. Review, restrictions and confidentiality limits</h3>
+    <p>We review sufficiently detailed notices and may request clarification, remove or restrict material, preserve relevant records or contact the contributor. Removal is not an admission of infringement. We may maintain a restriction for other policy or safety reasons even where a copyright dispute is unresolved. Repeated or serious infringement may result in account restrictions or termination, taking relevant circumstances into account.</p>
+    <p>We may share the substance of a notice and necessary claimant information with the affected contributor, a relevant service provider or a competent authority to evaluate or respond to the claim. Do not include unnecessary sensitive information. We do not promise absolute confidentiality for rights complaints.</p>
+    <h3>5. Disputing a removal and counter-notices</h3>
+    <p>If your content was removed and you believe the removal was a mistake or misidentification, email <Contact /> with the relevant URL or notice reference, your explanation and supporting permissions. If an applicable statutory counter-notice process applies, a counter-notice generally must identify the removed material and its former location, include your physical or electronic signature, provide your name and required contact details, and state under penalty of perjury that you have a good-faith belief the material was removed because of mistake or misidentification.</p>
+    <p>For a United States Digital Millennium Copyright Act counter-notice, the required information also includes your address and telephone number, consent to the jurisdiction of the appropriate United States federal district court for your address—or, if outside the United States, a judicial district where the service provider may be found—and agreement to accept service of process from the claimant or its agent. We may forward a qualifying counter-notice to the claimant and apply the relevant legal process and time periods, including any lawful restoration process, unless notified of a court action or another lawful basis for restriction exists. This policy does not promise statutory safe-harbor status or replace any formal notice requirements imposed by law.</p>
+    <h3>6. Other rights and corrections</h3>
+    <p>For trademark, privacy, publicity or impersonation concerns, explain the right involved, your relationship to the affected person or organization, the precise URL and the requested resolution in an email to <Contact />. For factual catalog corrections, use <Link href="/feedback">Feedback</Link>. A correction request does not require claiming copyright ownership over a fact.</p>
+  </div>;
+}
 
-        <h2>What you add</h2>
-        <p>
-          Collections you make public, and films you suggest, should be your own work and lawful. By adding them you let {SITE_NAME} show them on
-          the site. We may edit or remove anything that breaks these terms. Suggested films are reviewed before they&rsquo;re added, and we
-          decide what goes in the directory.
-        </p>
-
-        <h2>Please don&rsquo;t</h2>
-        <ul>
-          <li>Copy the directory in bulk, scrape it, or overload the site.</li>
-          <li>Use the forms to send spam, abuse or anything unlawful.</li>
-          <li>Try to get into accounts or parts of the site that aren&rsquo;t yours.</li>
-        </ul>
-
-        <h2>Films, posters and information</h2>
-        <p>
-          Posters, stills and trailers belong to their filmmakers and distributors and are shown to help people find the films. Film information
-          comes partly from TMDB and JustWatch. {SITE_NAME} uses the TMDB API but is not endorsed or certified by TMDB. We work to keep everything
-          accurate, but details, awards and where-to-watch information can be incomplete or change. <Link href="/contact?topic=correction">Tell us</Link>{" "}
-          about mistakes and we&rsquo;ll fix them.
-        </p>
-
-        <h2>Other sites</h2>
-        <p>Links to streaming services, IMDb, Instagram and others take you to sites we don&rsquo;t run, where their own terms apply.</p>
-
-        <h2>No guarantees</h2>
-        <p>
-          {SITE_NAME} is provided as it is. We can&rsquo;t promise it will always be available or free of errors, and to the extent the law
-          allows, we&rsquo;re not responsible for losses from using it.
-        </p>
-
-        <h2>Changes</h2>
-        <p>We may update these terms. The date at the top shows when they last changed. Using the site after a change means you accept the new terms.</p>
-
-        <h2>Questions</h2>
-        <p><Link href="/contact">Contact us</Link> with any questions about these terms.</p>
-      </div>
-  );
+export function CommunityGuidelines() {
+  return <div className="prose">
+    <h2>Community Guidelines</h2>
+    <p>Pheelm exists to help people discover and appreciate films by Black directors. These guidelines apply to profiles, watchlists, collection descriptions, comments, links, submissions, collaboration activity and interactions with our team. They supplement the Terms of Use.</p>
+    <h3>1. Respect people and discuss ideas</h3>
+    <p>Thoughtful disagreement, critical reviews and discussion of difficult subjects are welcome. Address films, ideas and public conduct without threatening, harassing, humiliating or persistently targeting a person. Do not encourage others to harass someone or continue unwanted contact through new accounts, invitations or mentions.</p>
+    <p>We prohibit hateful attacks, dehumanization, threats and advocacy of exclusion or violence against people based on race, ethnicity, nationality, religion, caste, sex, gender, gender identity, sexual orientation, disability or another protected characteristic. Critical, historical or educational discussion of discriminatory material is different from endorsing or directing that abuse; context and presentation matter.</p>
+    <h3>2. Protect privacy and safety</h3>
+    <p>Do not publish private addresses, phone numbers, private email addresses, credentials, identity documents, confidential communications or another person’s sensitive information without a lawful basis and appropriate permission. Do not threaten to reveal such information. Use public professional contact details only in a relevant, non-harassing context.</p>
+    <p>Do not post credible threats, instructions encouraging targeted harm, sexual exploitation, non-consensual intimate imagery or material involving the sexual abuse or exploitation of children. Content that exploits a real person’s vulnerability for intimidation or fraud is prohibited. Pheelm is not an emergency service; contact the appropriate local emergency service if someone faces immediate danger.</p>
+    <h3>3. Be truthful about identity and affiliation</h3>
+    <p>Choose a handle and profile that do not impersonate another person or falsely suggest an official relationship. You may use a pseudonym, but may not misuse another person’s name, image or credentials to deceive others. Clearly distinguish a fan account, commentary or an unofficial project from an authorized representative.</p>
+    <p>Do not fabricate professional credits, awards, festival selections, rights ownership or claims that Pheelm has endorsed you. An account badge or catalog listing has only the meaning expressly described alongside it.</p>
+    <h3>4. Keep contributions useful and accurate</h3>
+    <p>Make descriptions, comments and submissions relevant to the film, filmmaker, collection or discussion. Check names, titles, credits and release information where possible. Identify uncertainty instead of inventing facts, sources or quotations. You remain responsible for material created with automated tools; generated text is not an excuse for false credits, plagiarism or misleading claims.</p>
+    <p>Use <Link href="/submit">Suggest a film</Link> for catalog additions and <Link href="/feedback">Feedback</Link> for corrections. Suggestions are reviewed and may be declined or edited. Repeated submission of the same request does not create a right to publication or faster review.</p>
+    <h3>5. Respect creative rights and viewing choices</h3>
+    <p>Share only images, text and links you are entitled to provide. Do not upload or link to pirated copies, stolen screeners, leaked private materials or services designed to bypass lawful access restrictions. A film’s availability in one country does not mean the same provider or license applies everywhere.</p>
+    <p>Clearly warn readers before significant plot spoilers. Discussion of violence, sexuality, racism and other challenging themes can be relevant to cinema, but present it with appropriate context and avoid gratuitous graphic material used to shock, abuse or exploit people.</p>
+    <h3>6. No spam, scams or manipulation</h3>
+    <p>Do not flood comments, profiles, submissions or invitations with repetitive promotion; post phishing links, malware or deceptive fundraising; buy or automate engagement; manufacture reports; or coordinate misleading rankings or popularity signals. Disclose a material personal or commercial connection when presenting a recommendation as independent.</p>
+    <p>Relevant professional information is welcome in the appropriate place. Use the <Link href="/partnerships">Partnerships form</Link> for collaboration proposals rather than unsolicited messages or repeated promotional comments.</p>
+    <h3>7. Collaborate with permission</h3>
+    <p>Invite collaborators respectfully and accurately explain the purpose of a shared collection. Do not use collaboration access to sabotage a collection, remove another person’s work maliciously or collect information unrelated to the collaboration. Removing a collaborator or declining an invitation is not permission to harass either party.</p>
+    <h3>8. Report concerns and use your controls</h3>
+    <p>Use available report actions to flag problematic comments or collections. Include specific URLs and relevant context so the issue can be reviewed. Reports must be made in good faith; disagreement with someone’s taste is not itself a policy violation. Do not organize retaliatory reports or knowingly make false accusations.</p>
+    <p>You can block a member from their profile and manage blocks and privacy controls in Settings. Blocking limits supported interactions; it cannot prevent a person from accessing material that remains publicly available elsewhere. For issues without a report action, serious safety concerns or a dispute involving your own identity or rights, contact <Contact />. Copyright-specific complaints should follow the Copyright Policy.</p>
+    <h3>9. How enforcement works</h3>
+    <p>We consider context, severity, repeated behavior, potential harm and evidence available to us. Actions can include requesting edits, removing content, limiting features, temporarily suspending an account or terminating access. Serious safety threats, exploitation, account compromise or repeated evasion may justify immediate action without a prior warning. We may preserve necessary evidence and respond to lawful authority requests where appropriate.</p>
+    <p>We aim to apply these guidelines fairly, but cannot promise to review every contribution, detect every violation or respond within a fixed period. Do not evade an action by creating new accounts or asking someone else to repost removed material. We may also restrict content for legal, security or rights reasons described in the Terms and Copyright Policy.</p>
+    <h3>10. Appeals and updates</h3>
+    <p>If you believe we made a mistake, email <Contact /> with your handle, the relevant notice or URL and a concise explanation. Provide new context or evidence where available. We may uphold, modify or reverse a decision following review. Good-faith appeals do not themselves justify a penalty; abusive or repetitive contact can be restricted. These guidelines may be updated as the community develops, with material changes communicated as appropriate. Our aim remains the same: a useful, respectful space for discovering cinema.</p>
+  </div>;
 }

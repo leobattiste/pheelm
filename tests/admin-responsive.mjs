@@ -105,7 +105,7 @@ try {
         assert.deepEqual(wrongIcons, [], `${prefix}: all admin icons are 23px`);
         assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${prefix}: page overflows`);
         assert.equal(await page.locator('.admin-main-tabs [aria-current="page"]').count(), 1, `${prefix}: active main tab`);
-        assert.equal(await page.locator('.admin-main-tabs a .icon').count(), 8, `${prefix}: tab icons`);
+        assert.equal(await page.locator('.admin-main-tabs a .icon').count(), 0, `${prefix}: admin tabs are text only`);
         assert.equal(await page.locator('.admin-main-tabs [aria-current="page"]').getAttribute('href'), screen === 'overview' ? '/admin' : screen === 'editor' ? '/admin/people' : `/admin/${screen}`);
         const tooWide = await page.locator('.admin-content .button, .admin-content input:not([type="hidden"]), .admin-content textarea, .admin-content select').evaluateAll(elements => elements.filter(el => el.getBoundingClientRect().right > innerWidth || el.getBoundingClientRect().left < 0).map(el => el.outerHTML.slice(0, 150)));
         assert.deepEqual(tooWide, [], `${prefix}: overflowing controls`);

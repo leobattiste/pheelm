@@ -1,63 +1,41 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getDirectors, getFacets, getFilms } from "@/lib/data";
-import { SITE_NAME, PAGE_COPY } from "@/lib/site";
 
-export const revalidate = 3600;
 export const metadata: Metadata = {
-  title: "About",
-  description: PAGE_COPY.about,
+  title: "About Pheelm",
+  description: "Pheelm is an independent platform dedicated to discovering and celebrating films directed by Black filmmakers from around the world.",
+  alternates: { canonical: "/about" },
 };
 
-export default async function AboutPage() {
-  const [films, directors, facets] = await Promise.all([getFilms(), getDirectors(), getFacets()]);
-  return (
-    <article className="page full-width info-page">
-      <header className="page-head">
-        <h1>About {SITE_NAME}</h1>
-        <p className="lead">{PAGE_COPY.about}</p>
-      </header>
-
-      <div className="prose">
-        <p>
-          {SITE_NAME} brings together films by Black directors from {facets.countries.length} countries in one place:
-          features, documentaries, shorts and animation, each with its cast and crew, awards, trailer and where to watch it.
-        </p>
-
-        <h2>What&rsquo;s in it</h2>
-        <p>
-          Films directed or co-directed by Black filmmakers, from anywhere in the world and any era. We look for films that matter: landmarks,
-          festival winners, the ones critics and audiences return to, and the ones that deserve to be better known.
-        </p>
-        <p>
-          The directory is curated, not complete. If a film you love is missing, <Link href="/submit">suggest it</Link>. Every suggestion is reviewed
-          before it&rsquo;s added.
-        </p>
-
-        <h2>How it&rsquo;s organised</h2>
-        <p>
-          <Link href="/films">Films</Link> can be searched and filtered by type, decade, country, language and genre.{" "}
-          <Link href="/directors">Directors</Link> have their own profiles, with their biography and every film of theirs here.{" "}
-          <Link href="/watchlists">Watchlists</Link> group films by movement, theme, country and form.
-        </p>
-        <p>With a free account you can keep a watchlist, make your own collections and follow directors to hear when their new films are added.</p>
-
-        <h2>Where the information comes from</h2>
-        <p>
-          Film details, posters, cast and crew come from <a href="https://www.themoviedb.org" target="_blank" rel="noopener noreferrer">TMDB</a>, and
-          streaming information from JustWatch through TMDB. {SITE_NAME} uses the TMDB API but is not endorsed or certified by TMDB. Awards and
-          collections are put together by us. Posters and stills belong to their filmmakers and distributors.
-        </p>
-        <p>
-          Spotted a mistake? <Link href="/contact">Tell us</Link> and we&rsquo;ll fix it.
-        </p>
-
-        <h2>Work with us</h2>
-        <p>
-          Festivals, distributors, streaming services, schools and film societies can <Link href="/partnerships">partner with {SITE_NAME}</Link>.
-          For anything else, <Link href="/contact">get in touch</Link>.
-        </p>
-      </div>
-    </article>
-  );
+export default function AboutPage() {
+  return <article className="page full-width info-page">
+    <header className="page-head"><h1>About Pheelm</h1><p className="lead">Pheelm is an independent platform dedicated to discovering and celebrating films directed by Black filmmakers from around the world.</p></header>
+    <div className="prose">
+      <p>From early cinema to contemporary releases, we bring together films across different countries, genres, and generations. Our goal is to make it easier for anyone to discover great films, explore the work of Black directors, and experience stories they might otherwise miss.</p>
+      <h2>Why We Exist</h2>
+      <p>Black directors have made significant contributions to cinema, shaping the industry and bringing important stories and perspectives to the screen. Yet, many of their films remain overlooked, underrepresented, or difficult to discover.</p>
+      <p>We created Pheelm because we believe these films deserve greater visibility and recognition.</p>
+      <p>Black cinema extends far beyond any single country, culture, or genre. From influential classics to independent productions, there is a rich history of filmmaking that deserves to be explored and appreciated.</p>
+      <p>Pheelm exists to help more people discover that history and the filmmakers who continue to shape it.</p>
+      <h2>Our Mission</h2>
+      <p>Our mission is simple: to make films by Black directors easier to discover, explore, and appreciate.</p>
+      <p>We aim to build a growing, accessible platform that highlights Black filmmakers from across the world, regardless of their level of recognition, where they come from, or when their films were made.</p>
+      <p>We believe that discovering films should be simple, that great work deserves recognition, and that cinema has the power to connect people through different stories and perspectives.</p>
+      <h2>How You Can Contribute</h2>
+      <p>Pheelm is an independent project, and the support of our community helps us continue to grow. There are several ways you can make a difference.</p>
+      <h3>Suggest a Film or Director</h3>
+      <p>Know a film or director we haven’t featured yet? We’d love to hear from you. Your suggestions help us expand our collection and introduce more people to filmmakers whose work deserves attention.</p>
+      <p><Link href="/submit">Suggest a film</Link> or <Link href="/contact">tell us about a director</Link>.</p>
+      <h3>Share Pheelm</h3>
+      <p>Help us reach more film lovers by sharing Pheelm with your friends, family, and communities. Every share helps more people discover films and the directors behind them.</p>
+      <h3>Support Us With a Donation</h3>
+      <p>Pheelm is independently built and operated. We don’t run advertisements, and we want to keep the platform accessible to everyone.</p>
+      <p>Your donations help cover the costs of maintaining, improving, and expanding Pheelm. Every contribution, no matter the amount, helps us continue our work while remaining independent.</p>
+      <p><Link href="/donate">Support Pheelm</Link>.</p>
+      <h2>Thank You</h2>
+      <p>Whether you’re discovering your first film, suggesting a director, sharing our platform, or supporting us financially, you’re helping Pheelm grow.</p>
+      <p>We’re grateful to everyone who believes in what we’re building and helps us make more films by Black directors easier to discover.</p>
+      <p>Made for the love of cinema.</p>
+    </div>
+  </article>;
 }
