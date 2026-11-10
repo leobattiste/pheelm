@@ -15,6 +15,8 @@ create table if not exists private.moderation_approvals (
 );
 create index if not exists moderation_approvals_lookup_idx
   on private.moderation_approvals(actor_id, field, text_hash, expires_at);
+create index if not exists moderation_approvals_expiry_idx
+  on private.moderation_approvals(expires_at);
 revoke all on private.moderation_approvals from public, anon, authenticated;
 grant select, insert, delete on private.moderation_approvals to service_role;
 grant usage, select on sequence private.moderation_approvals_id_seq to service_role;
@@ -31,6 +33,8 @@ begin
      or p_text is null or char_length(p_text) > 10000 or btrim(p_text) = '' then
     raise exception 'Invalid moderation approval request';
   end if;
+  -- Prevent unused receipts from building up when a member abandons a draft.
+  delete from private.moderation_approvals where expires_at < now();
   insert into private.moderation_approvals(actor_id, field, text_hash)
     values (p_actor, p_field, md5(p_text));
 end;
