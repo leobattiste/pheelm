@@ -3049,3 +3049,7 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 .profile-skeleton-field { display: grid; gap: var(--space-8); }
 @keyframes profile-skeleton-pulse { from { opacity: .45; } to { opacity: .85; } }
 @media (prefers-reduced-motion: reduce) { .profile-skeleton-block { animation: none; } }
+
+/* Crawlable catalog pages use in-flow links, separate from floating Load more controls. */
+.catalog-page-navigation { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:10px; max-width:100%; margin:var(--space-32) auto 0; }
+.catalog-page-navigation .button { white-space:nowrap; }
