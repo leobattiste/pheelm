@@ -30,9 +30,11 @@ console.log('PASS: targeted published-film reads, director ordering, accurate co
 
 const hiddenMember={id:'member',handle:'member',display_name:null,is_private:true,bio:'PRIVATE BIO'};let viewer=null;
 const pageDb={auth:{getUser:async()=>({data:{user:viewer}})},from:()=>({select:()=>({eq:()=>({maybeSingle:async()=>({data:{display_name:'Owner name',bio:'Owner bio'},error:null})})})})};
+const bioRules={};vm.runInNewContext(compile('lib/profile-bio.ts'),{exports:bioRules});
 const pageExports={};vm.runInNewContext(compile('app/[member]/page.tsx'),{exports:pageExports,require:name=>{
  if(name==='react/jsx-runtime')return requireJsx;if(name==='react')return{Suspense:Symbol.for('react.suspense')};
  if(name==='next/navigation')return{notFound:()=>{throw Error('Not found');}};
+ if(name==='@/lib/profile-bio')return bioRules;
  if(name==='@/lib/community')return{getMemberProfile:async()=>hiddenMember};
  if(name==='@/lib/supabase/server')return{getServerClient:async()=>pageDb};
  if(name==='@/lib/format')return{initials:()=> 'M'};if(name==='@/lib/site')return{VERIFIED:{}};
