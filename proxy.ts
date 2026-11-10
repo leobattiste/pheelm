@@ -6,12 +6,12 @@ import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseEnabled } from "@/lib/supabase
  * Early access: without an account, only the home page and a few pages about Pheelm are open.
  * Everything else sends visitors home, where the sign-up sheet opens and brings them back after.
  */
-const OPEN = /^\/(login|auth|email|feedback|legal|privacy|terms|contact|about|partnerships|donate|newsletter|offline)(\/|$)/;
+const OPEN = /^\/(watchlists|c|collections|login|auth|email|feedback|legal|privacy|terms|contact|about|partnerships|donate|newsletter|offline)(\/|$)/;
 // Share images stay open, so links to films and collections still preview in messages and posts.
 const MEMBER_PAGE = /^\/(?:@|%40)[a-z0-9_]{3,24}\/?$/i;
 const SHARE_IMAGE = /\/(opengraph-image|twitter-image)(-\w+)?$/;
 // Session work only where it's needed: account pages and authenticated endpoints.
-const SESSION = /^\/(me|account|c|submit|admin|auth|api|notifications|profile)(\/|$)/;
+const SESSION = /^\/(me|account|watchlists|c|submit|admin|auth|api|notifications|profile)(\/|$)/;
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });

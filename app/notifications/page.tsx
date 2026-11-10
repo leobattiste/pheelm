@@ -1,3 +1,4 @@
+import { watchlistPath } from "@/lib/watchlist-links";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -56,9 +57,9 @@ function href(n: Notification) {
   if (n.type === "new_member") return n.actor ? `/@${n.actor.handle}` : "/admin/members";
   if (n.type === "new_film" || n.type === "collection_film") return n.film ? `/films/${n.film.slug}` : null;
   if (!n.list || n.type === "removed") return null;
-  if (n.comment) return `/c/${n.list.id}#comment-${n.comment.id}`;
-  if (n.type === "request") return `/c/${n.list.id}?people`;
-  return `/c/${n.list.id}`;
+  if (n.comment) return `${watchlistPath(n.list)}#comment-${n.comment.id}`;
+  if (n.type === "request") return `${watchlistPath(n.list)}?people`;
+  return watchlistPath(n.list);
 }
 
 const KIND_ICONS: Record<Notification["type"], IconName> = {
@@ -93,7 +94,7 @@ function Item({ n }: { n: Notification }) {
               <>
                 <form action={respondToInvite}>
                   <input type="hidden" name="list_id" value={n.list.id} /><input type="hidden" name="accept" value="1" />
-                  <input type="hidden" name="back" value={`/c/${n.list.id}`} />
+                  <input type="hidden" name="back" value={watchlistPath(n.list)} />
                   <button type="submit" className="button small">Accept</button>
                 </form>
                 <form action={respondToInvite}>

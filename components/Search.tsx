@@ -1,5 +1,6 @@
 "use client";
 
+import { watchlistPath } from "@/lib/watchlist-links";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { initials, posterColours } from "@/lib/format";
@@ -11,7 +12,7 @@ import { describe, hasFilters, parseQuery } from "@/lib/query";
 type FilmHit = { s: string; t: string; o: string | null; y: number; d: string[]; k?: string[]; p: string | null; c?: string[]; g?: string[] };
 type DirectorHit = { s: string; n: string; c: string | null; f: number; p: string | null };
 type PersonHit = { s: string; n: string; r: string; f: number; p: string | null };
-type CollectionHit = { s: string; t: string; n: number };
+type CollectionHit = { s: string; slug?: string; t: string; n: number };
 type Index = { films: FilmHit[]; directors: DirectorHit[]; people?: PersonHit[]; collections?: CollectionHit[] };
 
 type Action = { id: string; label: string; hint: string; icon: IconName; words: string; run: () => void };
@@ -185,7 +186,7 @@ export default function Search() {
       }
       if (parsed.women) {
         const women = (index.collections ?? []).find((c) => c.t === "Women Behind the Camera");
-        if (women) browse.push({ kind: "browse", item: { id: "women", label: "Films by women directors", hint: "Women Behind the Camera", href: `/c/${women.s}` } });
+        if (women) browse.push({ kind: "browse", item: { id: "women", label: "Films by women directors", hint: "Women Behind the Camera", href: watchlistPath({id:women.s,slug:women.slug}) } });
       }
       if (parsed.country || parsed.genre || decade) {
         browse.push({ kind: "browse", item: { id: "films", label: describe({ ...parsed, women: false }, countryName), hint: "See them all on the Films page", href: `/films?${params}` } });
@@ -241,7 +242,7 @@ export default function Search() {
       : hit.kind === "film" ? `/films/${hit.item.s}`
       : hit.kind === "director" ? `/directors/${hit.item.s}`
       : hit.kind === "person" ? `/people/${hit.item.s}`
-      : `/c/${hit.item.s}`;
+      : watchlistPath({id:hit.item.s,slug:hit.item.slug});
     navigate(href);
   };
 

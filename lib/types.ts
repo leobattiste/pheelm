@@ -105,6 +105,7 @@ export type Collection = CollectionRow & { films: Film[] };
 /** The three preview images and text used by a collection card. */
 export type CollectionTileData = {
   id: string;
+  slug?: string;
   title: string;
   owner: { handle: string } | null;
   films: { id: string; title: string; year: number; poster_url: string | null; color?: string | null; directors: { name: string }[] }[];

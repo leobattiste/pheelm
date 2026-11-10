@@ -28,6 +28,7 @@ const nextConfig: NextConfig = {
     "/opengraph-image": ["./assets/fonts/**"],
     "/films/[slug]/opengraph-image": ["./assets/fonts/**"],
     "/c/[id]/opengraph-image": ["./assets/fonts/**"],
+    "/watchlists/[slug]/opengraph-image": ["./assets/fonts/**"],
     "/icon": ["./assets/fonts/**"],
     "/apple-icon": ["./assets/fonts/**"],
   },

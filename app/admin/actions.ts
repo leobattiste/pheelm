@@ -380,6 +380,8 @@ export async function setListFlag(f: FormData) {
   revalidatePath("/admin/community");
   revalidatePath("/watchlists");
   revalidatePath(`/c/${id}`);
+  revalidatePath("/watchlists/[slug]", "page");
+  revalidatePath("/sitemap.xml");
   revalidatePath("/");
   const back = String(f.get("back") ?? "");
   const destination = safeInternalPath(back);

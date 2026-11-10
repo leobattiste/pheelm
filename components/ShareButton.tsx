@@ -4,11 +4,11 @@ import { useState } from "react";
 import Icon from "@/components/Icon";
 
 /** Opens the phone's share sheet, or copies the link where there isn't one. */
-export default function ShareButton({ title, item = false }: { title: string; item?: boolean }) {
+export default function ShareButton({ title, item = false, url: shareUrl }: { title: string; item?: boolean; url?: string }) {
   const [copied, setCopied] = useState(false);
 
   const share = async () => {
-    const url = window.location.href.split("#")[0];
+    const url = shareUrl ?? window.location.href.split("#")[0];
     if (navigator.share) {
       try {
         await navigator.share({ title, url });

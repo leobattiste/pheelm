@@ -20,6 +20,7 @@ async function members<T>(run: (cols: string) => PromiseLike<{ data: T | null; e
 }
 export type CommunityCollection = {
   id: string;
+  slug?: string;
   title: string;
   description: string | null;
   staff_pick: boolean;
@@ -39,10 +40,10 @@ export type CommunityCollection = {
 // Read as a visitor (no cookies), so these pages can be cached like the rest of the catalog.
 const anon = () => (supabaseEnabled ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: false } }) : null);
 
-export type Row = { id: string; title: string; description: string | null; staff_pick?: boolean; featured?: boolean; created_at: string; updated_at?: string | null; user_id: string; list_films: { film_id: string; added_at: string }[] };
+export type Row = { id: string; slug?: string; title: string; description: string | null; staff_pick?: boolean; featured?: boolean; created_at: string; updated_at?: string | null; user_id: string; list_films: { film_id: string; added_at: string }[] };
 
-const ROW_COLS = "id, title, description, staff_pick, featured, created_at, updated_at, user_id, list_films(film_id, added_at)";
-const ROW_COLS_BASIC = "id, title, description, staff_pick, created_at, updated_at, user_id, list_films(film_id, added_at)";
+const ROW_COLS = "id, slug, title, description, staff_pick, featured, created_at, updated_at, user_id, list_films(film_id, added_at)";
+const ROW_COLS_BASIC = "id, slug, title, description, staff_pick, created_at, updated_at, user_id, list_films(film_id, added_at)";
 /** Runs a lists query, without the featured column until admins-watched-blocks.sql has run. */
 async function lists(run: (cols: string) => PromiseLike<{ data: unknown; error: unknown }>) {
   const first = await run(ROW_COLS);
@@ -68,6 +69,7 @@ export async function enrich(rows: Row[]): Promise<CommunityCollection[]> {
   const savesById = new Map(((counts.data ?? []) as { list_id: string; saves: number }[]).map((c) => [c.list_id, c.saves]));
   return rows.map((r) => ({
     id: r.id,
+    slug: r.slug,
     title: r.title,
     description: r.description,
     staff_pick: !!r.staff_pick,

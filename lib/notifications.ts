@@ -13,7 +13,7 @@ export type Notification = {
   created_at: string;
   read_at: string | null;
   actor: Member | null;
-  list: { id: string; title: string } | null;
+  list: { id: string; slug?: string; title: string } | null;
   comment: { id: string; body: string } | null;
   /** For new films: the film, and the followed director it's by. */
   film: { slug: string; title: string; year: number | null; poster_url: string | null } | null;
@@ -49,7 +49,7 @@ export async function getNotifications(db: SupabaseClient, userId: string, limit
 
   const [actors, lists, comments, members, films, people] = await Promise.all([
     actorIds.length ? db.from("member_profiles").select("id, handle, display_name, is_private, avatar_url").in("id", actorIds) : null,
-    listIds.length ? db.from("lists").select("id, title, user_id").in("id", listIds) : null,
+    listIds.length ? db.from("lists").select("id, slug, title, user_id").in("id", listIds) : null,
     commentIds.length ? db.from("list_comments").select("id, body, removed_at").in("id", commentIds) : null,
     listIds.length ? db.from("list_members").select("list_id, user_id, status, note").in("list_id", listIds) : null,
     filmIds.length ? db.from("films").select("id, slug, title, year, poster_url").in("id", filmIds) : null,
@@ -58,7 +58,7 @@ export async function getNotifications(db: SupabaseClient, userId: string, limit
   const filmBy = new Map(((films?.data ?? []) as { id: string; slug: string; title: string; year: number | null; poster_url: string | null }[]).map((f) => [f.id, f]));
   const personBy = new Map(((people?.data ?? []) as { id: string; slug: string; name: string }[]).map((p) => [p.id, p]));
   const actorBy = new Map(((actors?.data ?? []) as Member[]).map((a) => [a.id, a]));
-  const listBy = new Map(((lists?.data ?? []) as { id: string; title: string }[]).map((l) => [l.id, l]));
+  const listBy = new Map(((lists?.data ?? []) as { id: string; slug?: string; title: string }[]).map((l) => [l.id, l]));
   const commentBy = new Map(((comments?.data ?? []) as { id: string; body: string; removed_at: string | null }[]).filter((c) => !c.removed_at).map((c) => [c.id, c]));
   const memberRows = (members?.data ?? []) as { list_id: string; user_id: string; status: string; note: string | null }[];
   const status = (lid: string | null, uid: string | null) => memberRows.find((m) => m.list_id === lid && m.user_id === uid);

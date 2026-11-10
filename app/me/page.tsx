@@ -18,7 +18,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Watchlist", description: PAGE_COPY.watchlist, robots: { index: false } };
 
 type ListRow = CommunityRow & { is_public: boolean };
-const LIST_COLS = "id, title, description, is_public, staff_pick, created_at, user_id, list_films(film_id, added_at)";
+const LIST_COLS = "id, slug, title, description, is_public, staff_pick, created_at, user_id, list_films(film_id, added_at)";
 
 /**
  * Your Watchlist, in two tabs. By you: everything you've saved, your collections and the ones you
@@ -47,7 +47,7 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
   const [{ data: saved }, listsResult, savedResult, films, sharedResult, followsResult, directors] = await Promise.all([
     db.from("watchlist").select("film_id, added_at").eq("user_id", user.id).order("added_at", { ascending: false }),
     db.from("lists").select(LIST_COLS).eq("user_id", user.id).order("created_at", { ascending: false }),
-    db.from("list_saves").select("created_at, lists(id, title, description, staff_pick, created_at, user_id, list_films(film_id, added_at))").eq("user_id", user.id).order("created_at", { ascending: false }),
+    db.from("list_saves").select("created_at, lists(id, slug, title, description, staff_pick, created_at, user_id, list_films(film_id, added_at))").eq("user_id", user.id).order("created_at", { ascending: false }),
     getFilms(),
     // Collections you collaborate on. Until collaboration.sql has run, none.
     db.from("list_members").select("list_id").eq("user_id", user.id).eq("status", "active"),

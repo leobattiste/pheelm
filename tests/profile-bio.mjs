@@ -2,10 +2,12 @@ import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 
 let saved;let currentProfile={handle:'member',avatar_url:null,is_owner:false};const db={auth:{getUser:async()=>({data:{user:{id:'member'}}})},from:()=>({select:()=>({eq:()=>({single:async()=>({data:currentProfile,error:null})})}),update:changes=>({eq:async()=>{saved=changes;return{error:null}}})})};
 const links={};vm.runInNewContext(ts.transpileModule(fs.readFileSync('lib/profile-links.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports:links,URL});
 const bioRules={};vm.runInNewContext(ts.transpileModule(fs.readFileSync('lib/profile-bio.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,{exports:bioRules});
+const watchlistLinks={};vm.runInNewContext(ts.transpileModule(fs.readFileSync("lib/watchlist-links.ts","utf8"),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,{exports:watchlistLinks});
 const exports={};const code=ts.transpileModule(fs.readFileSync('app/me/actions.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
 vm.runInNewContext(code,{exports,FormData,File,Buffer,require:name=>{
  if(name==='node:crypto')return{randomUUID:()=> 'test'};
  if(name==='@/lib/profile-photo')return{};
+ if(name==='@/lib/watchlist-links')return watchlistLinks;
  if(name==='@/lib/profile-bio')return bioRules;
  if(name==='@/lib/profile-links')return links;
  if(name==='@/lib/countries')return{ALL_COUNTRIES:{}};

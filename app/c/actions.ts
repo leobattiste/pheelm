@@ -26,6 +26,7 @@ async function signedIn(next: string) {
 
 const refresh = (listId: string) => {
   revalidatePath(`/c/${listId}`);
+  revalidatePath("/watchlists/[slug]", "page");
   revalidatePath("/me");
   revalidatePath("/notifications");
 };

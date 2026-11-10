@@ -47,6 +47,6 @@ export async function GET() {
       p: d.photo_url,
     })),
     people: [...people.values()].map((p) => ({ s: p.s, n: p.n, r: [...p.r].join(", "), f: p.f.size, p: p.p })),
-    collections: collections.map((c) => ({ s: c.id, t: c.title, n: c.films.length })),
+    collections: collections.map((c) => ({ s: c.id, slug: c.slug, t: c.title, n: c.films.length })),
   });
 }

@@ -1,5 +1,6 @@
 "use server";
 
+import { watchlistPath } from "@/lib/watchlist-links";
 import { canUseUnlimitedBio } from "@/lib/profile-bio";
 import { socialLink, websiteUrl } from "@/lib/profile-links";
 import { randomUUID } from "node:crypto";
@@ -24,10 +25,10 @@ export async function createCollection(form: FormData) {
   const { db, user } = await member();
   const title = clip(form.get("title"), 80);
   if (!title) redirect("/me");
-  const { data, error } = await db.from("lists").insert({ user_id: user.id, title }).select("id").single();
+  const { data, error } = await db.from("lists").insert({ user_id: user.id, title }).select("id,slug").single();
   if (error || !data) redirect("/me?error=collection");
   revalidatePath("/me");
-  redirect(`/c/${data.id}`);
+  redirect(watchlistPath(data));
 }
 
 export async function updateCollection(form: FormData) {
@@ -53,6 +54,8 @@ export async function updateCollection(form: FormData) {
   if (error?.code === "231514") redirect(`/c/${id}?error=description`);
   revalidatePath("/me");
   revalidatePath(`/c/${id}`);
+  revalidatePath("/watchlists/[slug]", "page");
+  revalidatePath("/sitemap.xml");
   redirect(`/c/${id}`);
 }
 
@@ -61,6 +64,7 @@ export async function deleteCollection(form: FormData) {
   const id = clip(form.get("id"), 64);
   // The films stay in All; only the collection goes.
   await db.from("lists").delete().eq("id", id);
+  revalidatePath("/sitemap.xml");
   revalidatePath("/me");
   redirect("/me");
 }

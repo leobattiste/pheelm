@@ -1,3 +1,4 @@
+import { watchlistPath } from "@/lib/watchlist-links";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import type { CommunityCollection } from "@/lib/community";
@@ -14,7 +15,7 @@ export default function CommunityTile({ c, showOwner = true, badge, filmCount, f
   const meta = showOwner && c.owner ? `@${c.owner.handle} • ${count}` : count;
   return (
     <li className={footer ? "admin-managed-card" : undefined}>
-      <Link href={`/c/${c.id}`} className="collection-tile" style={tintStyle(c.films.slice(0, 3).find((f) => f.color)?.color)}>
+      <Link href={watchlistPath(c)} className="collection-tile" style={tintStyle(c.films.slice(0, 3).find((f) => f.color)?.color)}>
         <span className="collection-fan" aria-hidden="true">
           {[0, 1, 2].map((i) => {
             const f = c.films[i];

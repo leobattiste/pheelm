@@ -23,7 +23,7 @@ export async function getProfileFilmCards(ids:string[]):Promise<FilmCard[]> {
  return ids.flatMap(id=>byId.has(id)?[byId.get(id)!]:[]);
 }
 
-type ListRow={id:string;title:string;staff_pick:boolean;created_at:string;user_id:string;list_films:{film_id:string;added_at:string;films:{year:number;status:string}}[]};
+type ListRow={id:string;slug?:string;title:string;staff_pick:boolean;created_at:string;user_id:string;list_films:{film_id:string;added_at:string;films:{year:number;status:string}}[]};
 export type ProfileCollection={tile:CollectionTileData;count:number};
 
 /** Only the three covers are rendered, but the count includes every published film. */
@@ -42,13 +42,13 @@ async function collectionCards(rows:ListRow[]):Promise<ProfileCollection[]> {
  return [...rows].sort((a,b)=>Number(b.staff_pick)-Number(a.staff_pick)||(savesById.get(b.id)??0)-(savesById.get(a.id)??0)||b.created_at.localeCompare(a.created_at)).map(row=>{
   const ordered=orderedFilms.get(row.id)??[];
   const selected=ordered.slice(0,3).flatMap(f=>filmsById.has(f.film_id)?[filmsById.get(f.film_id)!]:[]);
-  return {count:ordered.length,tile:{id:row.id,title:row.title,owner:ownersById.get(row.user_id)??null,films:selected.slice(0,3).map(f=>({id:f.id,title:f.title,year:f.year,poster_url:f.poster_url,color:f.color,directors:f.directors.map(name=>({name}))}))}};
+  return {count:ordered.length,tile:{id:row.id,slug:row.slug,title:row.title,owner:ownersById.get(row.user_id)??null,films:selected.slice(0,3).map(f=>({id:f.id,title:f.title,year:f.year,poster_url:f.poster_url,color:f.color,directors:f.directors.map(name=>({name}))}))}};
  });
 }
 
 export async function getProfileCollections(memberId:string):Promise<ProfileCollection[]> {
  const db=publicDb();if(!db)return [];
- const {data,error}=await db.from('lists').select('id,title,staff_pick,created_at,user_id,list_films(film_id,added_at,films!inner(year,status))').eq('is_public',true).eq('list_films.films.status','published').eq('user_id',memberId).order('created_at',{ascending:false});
+ const {data,error}=await db.from('lists').select('id,slug,title,staff_pick,created_at,user_id,list_films(film_id,added_at,films!inner(year,status))').eq('is_public',true).eq('list_films.films.status','published').eq('user_id',memberId).order('created_at',{ascending:false});
  if(error)throw Error('Could not load profile collections: '+error.message);
  return collectionCards((data??[]) as unknown as ListRow[]);
 }
@@ -58,7 +58,7 @@ export async function getProfileCollaborations(memberId:string):Promise<ProfileC
  const {data:memberships,error}=await db.from('list_members').select('list_id').eq('user_id',memberId).eq('status','active');
  if(error)throw Error('Could not load profile collaborations: '+error.message);
  if(!memberships?.length)return [];
- const {data,error:listError}=await db.from('lists').select('id,title,staff_pick,created_at,user_id,list_films(film_id,added_at,films!inner(year,status))').eq('is_public',true).eq('list_films.films.status','published').neq('user_id',memberId).in('id',memberships.map(m=>m.list_id));
+ const {data,error:listError}=await db.from('lists').select('id,slug,title,staff_pick,created_at,user_id,list_films(film_id,added_at,films!inner(year,status))').eq('is_public',true).eq('list_films.films.status','published').neq('user_id',memberId).in('id',memberships.map(m=>m.list_id));
  if(listError)throw Error('Could not load shared collections: '+listError.message);
  return collectionCards((data??[]) as unknown as ListRow[]);
 }

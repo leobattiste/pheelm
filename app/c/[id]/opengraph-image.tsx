@@ -7,7 +7,7 @@ import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/supabase/config";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 export async function generateStaticParams() {
   return [];
@@ -27,7 +27,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
   // Signed out on purpose: a share image only ever shows what anyone could see.
   const db = SUPABASE_URL && SUPABASE_ANON_KEY && /^[0-9a-f-]{36}$/i.test(id) ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
   const { data } = db
-    ? await db.from("lists").select("title, staff_pick, user_id, list_films(film_id, added_at)").eq("id", id).eq("is_public", true).maybeSingle()
+    ? await db.from("lists").select("title, staff_pick, user_id, list_films(film_id, added_at)").eq("id", id).eq("is_public", true).eq("hidden", false).maybeSingle()
     : { data: null };
   const list = data as Row | null;
 
@@ -36,11 +36,11 @@ export default async function Image({ params }: { params: Promise<{ id: string }
       <div style={{ display: "flex", width: "100%", height: "100%", alignItems: "center", justifyContent: "center", background: "#0b0b0b", color: "#fff" }}>
         <OgWordmark size={96} />
       </div>,
-      { ...size, fonts },
+      { ...size, fonts, headers: { "Cache-Control": "no-store" } },
     );
   }
 
-  const owner = list.staff_pick || !db ? null : (await db.from("profiles").select("handle").eq("id", list.user_id).maybeSingle()).data as { handle: string } | null;
+  const owner = list.staff_pick || !db ? null : (await db.from("member_profiles").select("handle").eq("id", list.user_id).maybeSingle()).data as { handle: string } | null;
   const byId = new Map(films.map((f) => [f.id, f]));
   const picks = [...list.list_films]
     .sort((a, b) => list.staff_pick ? (byId.get(a.film_id)?.year ?? 0) - (byId.get(b.film_id)?.year ?? 0) : b.added_at.localeCompare(a.added_at))
@@ -80,6 +80,6 @@ export default async function Image({ params }: { params: Promise<{ id: string }
         </div>
       </div>
     ),
-    { ...size, fonts },
+    { ...size, fonts, headers: { "Cache-Control": "no-store" } },
   );
 }
