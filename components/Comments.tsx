@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import type { CommentAuthor, CommentItem } from "@/lib/comments";
+import { postModeratedComment, editModeratedComment } from "@/app/c/comment-actions";
 import { getBrowserClient } from "@/lib/supabase/client";
 import { openSignIn } from "./SignInSheet";
 import UserAvatar from "./UserAvatar";
@@ -22,7 +23,6 @@ type Sort = "top" | "new";
 
 const MAX = 1000;
 const REPLIES_SHOWN = 2;
-const SELECT = "id, parent_id, user_id, body, created_at, edited_at";
 const PIN = <Icon name="pin" />;
 
 /** "now", "5m", "3h", "2d", then a date. */
@@ -158,40 +158,39 @@ export default function Comments({ listId, ownerId, collaboratorIds = [], pinned
     e?.message?.includes("very fast") ? "You're commenting very fast. Wait a minute and try again." : "That didn't go through. Check your connection and try again.";
 
   const post = async (body: string, parentId: string | null) => {
-    const db = getBrowserClient();
-    if (!db || !viewer || !me) return false;
+    if (!viewer || !me) return false;
     setBusy(true);
-    const temp: CommentItem = {
-      id: `temp-${Date.now()}`, parent_id: parentId, user_id: viewer.id, body,
-      created_at: new Date().toISOString(), edited_at: null, likes: 0, liked: false, author: me,
-    };
-    setComments((cs) => [...cs, temp]);
-    if (parentId) setOpen((o) => new Set(o).add(parentId));
-    const { data, error: e } = await db.from("list_comments").insert({ list_id: listId, user_id: viewer.id, parent_id: parentId, body }).select(SELECT).single();
-    setBusy(false);
-    if (e || !data) {
-      setComments((cs) => cs.filter((c) => c.id !== temp.id));
-      fail(reason(e));
+    try {
+      const result = await postModeratedComment({ listId, parentId, body });
+      if (!result.ok) { fail(result.message); return false; }
+      const comment: CommentItem = { ...result.comment, likes: 0, liked: false, author: me };
+      setComments((cs) => [...cs, comment]);
+      if (parentId) setOpen((o) => new Set(o).add(parentId));
+      setReplyTo(null);
+      return true;
+    } catch {
+      fail("That didn't go through. Please try again.");
       return false;
+    } finally {
+      setBusy(false);
     }
-    setComments((cs) => cs.map((c) => (c.id === temp.id ? { ...temp, ...(data as Partial<CommentItem>) } : c)));
-    setReplyTo(null);
-    return true;
   };
 
   const save = async (id: string, body: string) => {
-    const db = getBrowserClient();
-    if (!db) return false;
-    const before = comments.find((c) => c.id === id);
-    setComments((cs) => cs.map((c) => (c.id === id ? { ...c, body, edited_at: new Date().toISOString() } : c)));
-    setEditing(null);
-    const { error: e } = await db.from("list_comments").update({ body }).eq("id", id);
-    if (e && before) {
-      setComments((cs) => cs.map((c) => (c.id === id ? before : c)));
-      fail(reason(e));
+    setBusy(true);
+    try {
+      const result = await editModeratedComment({ id, body });
+      if (!result.ok) { fail(result.message); return false; }
+      setComments((cs) => cs.map((c) =>
+        c.id === id ? { ...c, body: result.comment.body, edited_at: result.comment.edited_at } : c));
+      setEditing(null);
+      return true;
+    } catch {
+      fail("Your comment couldn't be updated. Please try again.");
       return false;
+    } finally {
+      setBusy(false);
     }
-    return true;
   };
 
   const remove = async (id: string) => {
@@ -283,7 +282,7 @@ export default function Comments({ listId, ownerId, collaboratorIds = [], pinned
           </header>
 
           {editing === c.id ? (
-            <Composer label={`Edit comment ${c.id}`} placeholder="Edit your comment" initial={c.body} submitLabel="Save" busy={false} autoFocus
+            <Composer label={`Edit comment ${c.id}`} placeholder="Edit your comment" initial={c.body} submitLabel="Save" busy={busy} autoFocus
               onSubmit={(t) => save(c.id, t)} onCancel={() => setEditing(null)} />
           ) : (
             <Body text={c.body} />
