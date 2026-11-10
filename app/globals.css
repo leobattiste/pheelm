@@ -2966,10 +2966,18 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 .profile-about-fields dd { margin: 0; overflow-wrap: anywhere; }
 .profile-about-links { display: flex; align-items: center; gap: var(--space-8); }
 .profile-about-link { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; color: var(--text); }
-.watched-count { border: 0; padding: 0; min-width: 44px; min-height: 44px; text-align: left; background: none; color: var(--text); font: inherit; font-size: var(--t-2xl); font-weight: 600; cursor: pointer; text-decoration: underline; text-underline-offset: 5px; }
+.watched-count { border: 0; padding: 0; min-width: 44px; min-height: 44px; text-align: left; background: none; color: var(--text); font: inherit; cursor: pointer; text-decoration: underline; text-underline-offset: 5px; }
 .watched-films-dialog .modal-body { padding-top: var(--space-16); }
-.watched-films-dialog .film-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
 [data-grid="list"] .watched-films-dialog .film-grid { grid-template-columns: minmax(0, 1fr); }
 .watched-load-more { width: 100%; margin-top: var(--space-16); }
 .profile-photo-actions { flex-wrap: nowrap; }
 .profile-photo-action { flex: 0 0 var(--control); width: var(--control); height: var(--control); }
+
+/* Watched uses compact film list rows within the modal at every screen size. */
+.watched-films-dialog[data-grid="list"] .film-grid { grid-template-columns: minmax(0, 1fr); }
+.watched-films-dialog[data-grid="list"] .film-card > a { grid-template-columns: 40px minmax(0, 1fr); grid-template-areas: "poster title" "poster meta"; padding: var(--space-12) var(--space-8); }
+.watched-films-dialog[data-grid="list"] .film-card-title { align-self: end; }
+.watched-films-dialog[data-grid="list"] .film-card-meta { align-self: start; }
+.watched-films-dialog[data-grid="list"] .film-card-col { display: none; }
+.watched-films-dialog[data-grid="list"] .film-card-year { display: inline; }
