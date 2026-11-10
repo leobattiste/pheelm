@@ -11,7 +11,7 @@ const metadata=exports.profileMetadata(member);
 assert.equal(metadata.alternates.canonical,'/@member');
 assert.equal(metadata.description,member.bio);
 assert.equal(metadata.openGraph.username,'member');
-assert.equal(metadata.twitter.images[0].url,member.avatar_url);
+assert.equal(metadata.twitter.images[0].url,'/@member/opengraph-image');assert.equal(metadata.twitter.card,'summary_large_image');assert.equal(metadata.openGraph.images[0].width,1200);
 assert.equal(exports.profileStructuredData(member).mainEntity.sameAs[0],member.social_url);
 const privateMetadata=exports.profileMetadata({...member,is_private:true});
 assert.equal(privateMetadata.robots.index,false);assert.equal(privateMetadata.robots.googleBot.index,false);

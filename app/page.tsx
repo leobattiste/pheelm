@@ -1,3 +1,4 @@
+import { publicPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import CommunityTile from "@/components/CommunityTile";
 import DirectorCard from "@/components/DirectorCard";
@@ -10,7 +11,7 @@ import { PAGE_COPY, SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
 import { SITE_URL } from "@/lib/supabase/config";
 
 export const revalidate = 300;
-export const metadata: Metadata = { description: PAGE_COPY.home, alternates: { canonical: "/" } };
+export const metadata: Metadata = publicPageMetadata("/");
 
 const WEEK = 7 * 24 * 60 * 60 * 1000;
 
@@ -103,8 +104,8 @@ export default async function Home() {
 
       <section className="statement is-cta" aria-labelledby="join-title">
         <div className="statement-body">
-          <h2 id="join-title">Get early access, it&rsquo;s free.</h2>
-          <p>Sign up to get early access to start exploring, create watchlists, follow directors, and more.</p>
+          <h2 id="join-title">Create your free account.</h2>
+          <p>Save films, create watchlists, follow directors, and make Pheelm your own.</p>
           <div className="actions">
             <EarlyAccessButton>Sign up for free</EarlyAccessButton>
           </div>

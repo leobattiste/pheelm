@@ -1,7 +1,8 @@
+import type {ReactNode} from "react";
 import CatalogSearch from './CatalogSearch';
 import type { SearchEntry } from '@/lib/catalog-search';
-export default function FilmBrowser({ entries }: {
-    entries: SearchEntry[];
+export default function FilmBrowser({ entries, fallback }: {
+    entries: SearchEntry[]; fallback?:ReactNode;
 }) {
-    return <CatalogSearch entries={entries} mode="films"/>;
+    return <CatalogSearch entries={entries} fallback={fallback} mode="films"/>;
 }

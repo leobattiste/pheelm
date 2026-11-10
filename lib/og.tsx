@@ -13,7 +13,7 @@ let switzer: Promise<OgFont[] | null> | null = null;
 function loadSwitzer() {
   return (switzer ??= (async () => {
     try {
-      const css = await (await fetch("https://api.fontshare.com/v2/css?f[]=switzer@400,700&display=swap", { cache: "force-cache" })).text();
+      const css = await (await fetch("https://api.fontshare.com/v2/css?f[]=switzer@400,700&display=swap", { cache: "force-cache", signal: AbortSignal.timeout(5000) })).text();
       const faces = css.split("@font-face").slice(1);
       const urlFor = (weight: number) => {
         const face = faces.find((f) => new RegExp(`font-weight:\\s*${weight}\\b`).test(f) && !/italic/i.test(f.match(/font-style:\s*([a-z]+)/i)?.[1] ?? ""));
@@ -23,7 +23,7 @@ function loadSwitzer() {
       };
       const [r, b] = [urlFor(400), urlFor(700)];
       if (!r || !b) return null;
-      const [regular, bold] = await Promise.all([r, b].map(async (u) => (await fetch(u, { cache: "force-cache" })).arrayBuffer()));
+      const [regular, bold] = await Promise.all([r, b].map(async (u) => (await fetch(u, { cache: "force-cache", signal: AbortSignal.timeout(5000) })).arrayBuffer()));
       return [
         { name: "Switzer", data: regular, weight: 400, style: "normal" },
         { name: "Switzer", data: bold, weight: 700, style: "normal" },

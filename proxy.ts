@@ -6,7 +6,7 @@ import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseEnabled } from "@/lib/supabase
  * Early access: without an account, only the home page and a few pages about Pheelm are open.
  * Everything else sends visitors home, where the sign-up sheet opens and brings them back after.
  */
-const OPEN = /^\/(watchlists|c|collections|login|auth|email|feedback|legal|privacy|terms|contact|about|partnerships|donate|newsletter|offline)(\/|$)/;
+const OPEN = /^\/(films|directors|people|help|submit|watchlists|c|collections|login|auth|email|feedback|legal|privacy|terms|contact|about|partnerships|donate|newsletter|offline)(\/|$)/;
 // Share images stay open, so links to films and collections still preview in messages and posts.
 const MEMBER_PAGE = /^\/(?:@|%40)[a-z0-9_]{3,24}\/?$/i;
 const SHARE_IMAGE = /\/(opengraph-image|twitter-image)(-\w+)?$/;
@@ -22,7 +22,7 @@ export async function proxy(request: NextRequest) {
   const hasSession = request.cookies.getAll().some((c) => /^sb-.*-auth-token(\.0)?$/.test(c.name));
 
   if (!hasSession) {
-    if (home || OPEN.test(path) || MEMBER_PAGE.test(path) || SHARE_IMAGE.test(path)) return response;
+    if (path === "/api/og" || home || OPEN.test(path) || MEMBER_PAGE.test(path) || SHARE_IMAGE.test(path)) return response;
     const to = request.nextUrl.clone();
     to.pathname = "/";
     to.search = `?join=1&next=${encodeURIComponent(path + request.nextUrl.search)}`;

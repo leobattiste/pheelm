@@ -1,3 +1,4 @@
+import { pageMetadata, privateMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Portrait } from "@/components/DirectorCard";
@@ -24,13 +25,8 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const d = await getDirector((await params).slug);
-  if (!d) return {};
-  return {
-    title: `${d.name}, director`,
-    description: d.bio?.split(/\n{2,}/)[0] ?? `Films directed by ${d.name}, with where to watch them, on Pheelm.`,
-    alternates: { canonical: `/directors/${d.slug}` },
-    openGraph: { type: "profile", ...(d.photo_url ? { images: [{ url: d.photo_url }] } : {}) },
-  };
+  if (!d) return privateMetadata("Director not found");
+  return pageMetadata(`${d.name}, director`,d.bio||`Films directed by ${d.name}, with where to watch them, on Pheelm.`,`/directors/${d.slug}`,`/directors/${d.slug}/opengraph-image`,'profile');
 }
 
 /**
@@ -105,7 +101,7 @@ export default async function DirectorPage({ params }: { params: Promise<{ slug:
   return (
     <article className="page profile">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
-      <Breadcrumbs parent="Directors" href="/directors" current={director.name} />
+      <Breadcrumbs parent="Directors" href="/directors" current={director.name} currentHref={`/directors/${director.slug}`} />
       <header className="person-head">
         <MoreMenu corner label={`Actions for ${director.name}`}>
           <FollowButton personId={director.id} name={director.name} />

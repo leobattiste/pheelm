@@ -1,3 +1,4 @@
+import { publicPageMetadata, seoText } from "@/lib/seo";
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { Analytics } from "@vercel/analytics/next";
@@ -45,14 +46,14 @@ const bethEllen = localFont({
 });
 
 export const metadata: Metadata = {
+  ...publicPageMetadata("/"),
   metadataBase: new URL(SITE_URL),
   title: { default: `${SITE_NAME}: ${SITE_TAGLINE.replace(/\.$/, "")}`, template: `%s | ${SITE_NAME}` },
-  description: SITE_DESCRIPTION,
+  description: seoText(SITE_DESCRIPTION),
   applicationName: SITE_NAME,
   keywords: ["Black directors", "Black cinema", "African cinema", "Black filmmakers", "films by Black directors", "Nollywood", "FESPACO", "where to watch", "film directory"],
   category: "entertainment",
-  openGraph: { siteName: SITE_NAME, type: "website", locale: "en_US" },
-  twitter: { card: "summary_large_image" },
+
   // Added to a home screen, Pheelm opens full screen like an app (see app/manifest.ts).
   appleWebApp: { capable: true, title: "Pheelm", statusBarStyle: "black" },
   formatDetection: { telephone: false },

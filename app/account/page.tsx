@@ -1,3 +1,4 @@
+import { privateMetadata } from "@/lib/seo";
 import { canUseUnlimitedBio } from "@/lib/profile-bio";
 import { PAGE_COPY } from "@/lib/site";
 import type { Metadata } from "next";
@@ -17,7 +18,7 @@ import EmailPreferences, { type EmailSettings } from "./EmailPreferences";
 import { unblock } from "./actions";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Settings", description: PAGE_COPY.account, robots: { index: false } };
+export const metadata: Metadata = privateMetadata("Settings");
 
 /**
  * Settings, in tabs: your profile, your account (sign-in email and signing out), notifications, privacy

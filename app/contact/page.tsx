@@ -1,10 +1,11 @@
+import { publicPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import ContactForm from "@/components/ContactForm";
 import { CONTACT_EMAIL } from "@/lib/site";
 
-export const metadata: Metadata = { title: "Contact", description: "Contact Pheelm for general enquiries, press and privacy requests." };
+export const metadata: Metadata = publicPageMetadata("/contact");
 
 export default async function ContactPage({ searchParams }: { searchParams: Promise<{ topic?: string; film?: string; about?: string; label?: string }> }) {
   const sp = await searchParams;

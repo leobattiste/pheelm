@@ -4,13 +4,13 @@ import { SITE_URL } from './supabase/config';
 import { socialLink, websiteUrl } from './profile-links';
 
 export function profileMetadata(member:Member|null):Metadata {
- if(!member)return {title:'Profile not found',robots:{index:false,follow:false}};
- if(member.is_private)return {title:`@${member.handle}`,description:'This profile is private.',robots:{index:false,follow:false,googleBot:{index:false,follow:false}}};
+ if(!member)return {title:'Profile not found',alternates:{canonical:null},robots:{index:false,follow:false,googleBot:{index:false,follow:false}}};
+ if(member.is_private)return {title:`@${member.handle}`,description:'This profile is private.',alternates:{canonical:null},robots:{index:false,follow:false,googleBot:{index:false,follow:false}}};
  const title=member.display_name?`${member.display_name} (@${member.handle})`:`@${member.handle}`;
- const description=member.bio?.slice(0,160) || `Explore @${member.handle}’s watchlists, watched films and favorite directors on Pheelm.`;
+ const description=member.bio?.replace(/\s+/g,' ').trim().slice(0,160) || `Explore @${member.handle}’s watchlists, watched films and favorite directors on Pheelm.`;
  const url=`/@${member.handle}`;
- const images=member.avatar_url?[{url:member.avatar_url,alt:`${member.display_name || member.handle}’s profile photo`}]:undefined;
- return {title,description,alternates:{canonical:url},robots:{index:true,follow:true},openGraph:{type:'profile',title,description,url,username:member.handle,...(images?{images}:{})},twitter:{card:images?'summary':'summary_large_image',title,description,...(images?{images}:{})}};
+ const images=[{url:`/@${member.handle}/opengraph-image`,width:1200,height:630,alt:`${member.display_name || member.handle} on Pheelm`}];
+ return {title,description,alternates:{canonical:url},robots:{index:true,follow:true},openGraph:{type:'profile',title,description,url,username:member.handle,...(images?{images}:{})},twitter:{card:'summary_large_image',title,description,...(images?{images}:{})}};
 }
 export function profileStructuredData(member:Member){
  if(member.is_private)return null;

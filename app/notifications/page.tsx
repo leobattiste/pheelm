@@ -1,3 +1,4 @@
+import { privateMetadata } from "@/lib/seo";
 import { watchlistPath } from "@/lib/watchlist-links";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -12,7 +13,7 @@ import { clearRead, markAllRead } from "./actions";
 import Seen from "./Seen";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Notifications", robots: { index: false } };
+export const metadata: Metadata = privateMetadata("Notifications");
 
 function when(iso: string) {
   const s = (Date.now() - new Date(iso).getTime()) / 1000;

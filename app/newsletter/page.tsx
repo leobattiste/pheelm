@@ -1,9 +1,10 @@
+import { publicPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import NewsletterForm from "@/components/NewsletterForm";
 import { SITE_NAME } from "@/lib/site";
 
-export const metadata: Metadata = { title: "Newsletter", description: `New films and collections from ${SITE_NAME}, by email.` };
+export const metadata: Metadata = publicPageMetadata("/newsletter");
 
 export default function NewsletterPage() {
   return (

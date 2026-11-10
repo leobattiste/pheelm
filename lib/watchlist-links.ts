@@ -9,6 +9,7 @@ type SeoWatchlist={id:string;slug:string;title:string;description:string|null;is
 export function watchlistMetadata(list:SeoWatchlist|null):Metadata {
  if(!list || !list.is_public || list.hidden)return {
   title:list?'Private watchlist':'Watchlist not found',
+  alternates:{canonical:null},
   description:list?'This watchlist is not publicly available.':'This watchlist could not be found.',
   robots:{index:false,follow:false,googleBot:{index:false,follow:false}},
   openGraph:{title:'Watchlist',description:'Discover watchlists on Pheelm.',images:[]},

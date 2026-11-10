@@ -1,5 +1,6 @@
 "use client";
 import Link from 'next/link';
+import type {ReactNode} from 'react';
 import { Suspense, useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Icon from './Icon';
@@ -216,9 +217,10 @@ function Browser({ entries, mode }: {
 }
 export default function CatalogSearch(props: {
     entries: SearchEntry[];
+    fallback?:ReactNode;
     mode: SearchMode;
 }) {
-    return <Suspense fallback={<p className="muted" role="status">Loading search…</p>}><Browser {...props}/></Suspense>;
+    return <Suspense fallback={props.fallback??<p className="muted" role="status">Loading search…</p>}><Browser {...props}/></Suspense>;
 }
 
 

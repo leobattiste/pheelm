@@ -1,10 +1,11 @@
+import { publicPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import ContactForm from "@/components/ContactForm";
 import { getFilm } from "@/lib/data";
 import { safeAbout } from "@/lib/feedback";
 
-export const metadata: Metadata = { title: "Feedback", description: "Report a problem, suggest an improvement or correct film information on Pheelm." };
+export const metadata: Metadata = publicPageMetadata("/feedback");
 
 export default async function FeedbackPage({ searchParams }: { searchParams: Promise<{ topic?: string; film?: string; about?: string; label?: string }> }) {
   const sp = await searchParams;

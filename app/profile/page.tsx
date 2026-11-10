@@ -1,10 +1,11 @@
+import { privateMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getServerClient } from "@/lib/supabase/server";
 import PublicName from "../me/PublicName";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Your profile", robots: { index: false } };
+export const metadata: Metadata = privateMetadata("Your profile");
 
 type Props = { searchParams: Promise<{ edit?: string }> };
 

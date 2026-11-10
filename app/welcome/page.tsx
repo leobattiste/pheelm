@@ -1,3 +1,4 @@
+import { privateMetadata } from "@/lib/seo";
 import { safeInternalPath } from "@/lib/safe-navigation";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
@@ -7,7 +8,7 @@ import { getServerClient } from "@/lib/supabase/server";
 import Welcome from "./Welcome";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Welcome", robots: { index: false } };
+export const metadata: Metadata = privateMetadata("Welcome");
 
 /**
  * After signing up: choose a name and handle, follow a few directors, save a few films. Every step

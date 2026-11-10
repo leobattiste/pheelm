@@ -1,12 +1,9 @@
+import { publicPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import HelpBrowser from "./HelpBrowser";
 import "./help.css";
 
-export const metadata: Metadata = {
-  title: "Help",
-  description: "Find answers about films, collections, Watchlist, accounts, privacy and using Pheelm.",
-  alternates: { canonical: "/help" },
-};
+export const metadata: Metadata = publicPageMetadata("/help");
 
 export default function HelpPage() {
   return (

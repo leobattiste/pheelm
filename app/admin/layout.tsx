@@ -1,3 +1,4 @@
+import { privateMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import AdminNav from "./AdminNav";
@@ -7,7 +8,7 @@ import { requireAdmin } from "@/lib/admin";
 export const dynamic = "force-dynamic";
 // Adding and importing films in batches can take a while; give admin actions room to finish.
 export const maxDuration = 60;
-export const metadata: Metadata = { title: "Admin", robots: { index: false } };
+export const metadata: Metadata = privateMetadata("Admin");
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user } = await requireAdmin();

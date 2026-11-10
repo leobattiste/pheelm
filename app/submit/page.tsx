@@ -1,3 +1,4 @@
+import { publicPageMetadata } from "@/lib/seo";
 import { PAGE_COPY } from "@/lib/site";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -5,7 +6,7 @@ import { getServerClient } from "@/lib/supabase/server";
 import SubmitForm from "./SubmitForm";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Suggest a film", description: PAGE_COPY.submit };
+export const metadata: Metadata = publicPageMetadata("/submit");
 
 /** Fan suggestions, with a separate route for filmmakers submitting their own work. */
 export default async function SubmitPage() {

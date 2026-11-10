@@ -1,3 +1,4 @@
+import { pageMetadata, privateMetadata } from "@/lib/seo";
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -46,13 +47,9 @@ export async function generateViewport({ params }: Params): Promise<Viewport> {
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const film = await getFilm((await params).slug);
-  if (!film) return {};
+  if (!film) return privateMetadata("Film not found");
   const by = listJoin(film.directors.map((d) => d.name));
-  return {
-    title: `${film.title} (${film.year}), directed by ${by}`,
-    description: film.synopsis ?? `${film.title}, directed by ${by}.`,
-    alternates: { canonical: `/films/${film.slug}` },
-  };
+  return pageMetadata(`${film.title} (${film.year})`,film.synopsis||`${film.title}, directed by ${by}.`,`/films/${film.slug}`,`/films/${film.slug}/opengraph-image`);
 }
 
 // Crew in the order people look for them.
@@ -144,8 +141,11 @@ export default async function FilmPage({ params }: Params) {
     "@type": "Movie",
     name: film.title,
     url: `${SITE_URL}/films/${film.slug}`,
-    datePublished: String(film.year),
-    director: film.directors.map((d) => ({ "@type": "Person", name: d.name })),
+    "@id": `${SITE_URL}/films/${film.slug}#film`,
+    mainEntityOfPage: `${SITE_URL}/films/${film.slug}`,
+    dateCreated: String(film.year),
+    ...(film.runtime ? {duration:`PT${film.runtime}M`}:{}),
+    director: film.directors.map((d) => ({ "@type": "Person", name: d.name, url:`${SITE_URL}/${anyDirector.has(d.id)?"directors":"people"}/${d.slug}` })),
     actor: cast.slice(0, 10).map((c) => ({ "@type": "Person", name: c.person.name })),
     image: film.poster_url ?? undefined,
     description: film.synopsis ?? undefined,
@@ -160,7 +160,7 @@ export default async function FilmPage({ params }: Params) {
         {bg && <style>{pageColours(bg)}</style>}
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
 
-        <Breadcrumbs parent="Films" href="/films" current={film.title} />
+        <Breadcrumbs parent="Films" href="/films" current={film.title} currentHref={`/films/${film.slug}`} />
 
         <div className="film-art">
           <Poster title={film.title} year={film.year} directors={directorNames} src={film.poster_url} sizes="(min-width: 800px) 46vw, 100vw" priority hero />

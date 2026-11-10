@@ -1,3 +1,4 @@
+import { publicPageMetadata } from "@/lib/seo";
 import Icon from "@/components/Icon";
 import { PAGE_COPY } from "@/lib/site";
 import type { Metadata } from "next";
@@ -8,7 +9,7 @@ import { getCommunityCollections, SORTS, type Sort } from "@/lib/community";
 import { getFilm } from "@/lib/data";
 import { getServerClient } from "@/lib/supabase/server";
 
-export const metadata: Metadata = { title: "Watchlists", description: PAGE_COPY.collections, alternates: { canonical: "/watchlists" } };
+export const metadata: Metadata = publicPageMetadata("/watchlists");
 
 const FEEDS: Feed[] = ["all", "featured", "following"];
 

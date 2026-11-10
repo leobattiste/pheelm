@@ -1,11 +1,8 @@
+import { publicPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import ContactForm from "@/components/ContactForm";
 
-export const metadata: Metadata = {
-  title: "Partnerships",
-  description: "Partner with Pheelm on screenings, editorial collaborations, educational projects and community initiatives celebrating films by Black directors.",
-  alternates: { canonical: "/partnerships" },
-};
+export const metadata: Metadata = publicPageMetadata("/partnerships");
 export default function PartnershipsPage() {
   return <article className="page full-width info-page">
     <header className="page-head"><h1>Partnerships</h1><p className="lead">Partner With Pheelm</p></header>

@@ -1,3 +1,5 @@
+import { privateMetadata } from "@/lib/seo";
+export const metadata=privateMetadata("Page not found");
 import Link from "next/link";
 
 export default function NotFound() {

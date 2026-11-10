@@ -1,9 +1,10 @@
+import { publicPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { feedbackHref } from "@/lib/feedback";
 import { DONATE_URL } from "@/lib/site";
 
-export const metadata: Metadata = { title: "Donate", description: "Support Pheelm, an independent directory of films by Black directors." };
+export const metadata: Metadata = publicPageMetadata("/donate");
 
 export default function DonatePage() {
   return (

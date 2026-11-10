@@ -25,6 +25,10 @@ const nextConfig: NextConfig = {
   images: { unoptimized: true },
   // The share images read Inter and Beth Ellen from assets/fonts at run time, so ship those files with them.
   outputFileTracingIncludes: {
+    "/api/og": ["./assets/fonts/**"],
+    "/[member]/opengraph-image": ["./assets/fonts/**"],
+    "/directors/[slug]/opengraph-image": ["./assets/fonts/**"],
+    "/people/[slug]/opengraph-image": ["./assets/fonts/**"],
     "/opengraph-image": ["./assets/fonts/**"],
     "/films/[slug]/opengraph-image": ["./assets/fonts/**"],
     "/c/[id]/opengraph-image": ["./assets/fonts/**"],

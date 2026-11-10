@@ -1,3 +1,4 @@
+import { privateMetadata } from "@/lib/seo";
 import Icon from "@/components/Icon";
 import { PAGE_COPY } from "@/lib/site";
 import type { Metadata } from "next";
@@ -15,7 +16,7 @@ import { getServerClient } from "@/lib/supabase/server";
 import { createCollection } from "./actions";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Watchlist", description: PAGE_COPY.watchlist, robots: { index: false } };
+export const metadata: Metadata = privateMetadata("Watchlist");
 
 type ListRow = CommunityRow & { is_public: boolean };
 const LIST_COLS = "id, slug, title, description, is_public, staff_pick, created_at, user_id, list_films(film_id, added_at)";

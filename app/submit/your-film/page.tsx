@@ -1,3 +1,4 @@
+import { publicPageMetadata } from "@/lib/seo";
 import { PAGE_COPY } from "@/lib/site";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -5,7 +6,7 @@ import { getServerClient } from "@/lib/supabase/server";
 import OwnFilmForm from "./OwnFilmForm";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Submit your film", description: PAGE_COPY.submitOwn };
+export const metadata: Metadata = publicPageMetadata("/submit/your-film");
 
 /** For filmmakers: submit your own film, with everything its page on Pheelm would show. */
 export default async function SubmitOwnFilmPage() {

@@ -1,11 +1,8 @@
+import { publicPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
 
-export const metadata: Metadata = {
-  title: "About Pheelm",
-  description: "Pheelm is an independent platform dedicated to discovering and celebrating films directed by Black filmmakers from around the world.",
-  alternates: { canonical: "/about" },
-};
+export const metadata: Metadata = publicPageMetadata("/about");
 
 export default function AboutPage() {
   return <article className="page full-width info-page">

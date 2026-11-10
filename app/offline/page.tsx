@@ -1,6 +1,7 @@
+import { privateMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = { title: "Offline", robots: { index: false } };
+export const metadata: Metadata = privateMetadata("Offline");
 
 /** Shown by the app when there's no connection and the page wasn't saved for offline. */
 export default function OfflinePage() {
