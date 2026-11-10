@@ -2,6 +2,7 @@
 
 import { watchlistPath } from "@/lib/watchlist-links";
 import { canUseUnlimitedBio } from "@/lib/profile-bio";
+import { moderateAndApprove } from "@/lib/moderation";
 import { socialLink, websiteUrl } from "@/lib/profile-links";
 import { randomUUID } from "node:crypto";
 import { prepareProfilePhoto, avatarObjectPath } from "@/lib/profile-photo";
@@ -31,27 +32,36 @@ export async function createCollection(form: FormData) {
   redirect(watchlistPath(data));
 }
 
-export async function updateCollection(form: FormData) {
-  const { db } = await member();
+export type CollectionUpdateState = { ok: false; message: string } | null;
+
+export async function updateCollection(_previous: CollectionUpdateState, form: FormData): Promise<CollectionUpdateState> {
+  const { db, user } = await member();
   const id = clip(form.get("id"), 64);
   const title = clip(form.get("title"), 80);
-  if (!id || !title) redirect(`/c/${id}`);
+  if (!id || !title) return { ok: false, message: "Enter a collection name." };
+  const description = clip(form.get("description"), 10000);
+  const { data: before, error: readError } = await db.from("lists").select("description").eq("id", id).maybeSingle();
+  if (readError || !before) return { ok: false, message: "This collection couldn't be loaded. Try again." };
+  if (description && description !== (before.description ?? "").trim()) {
+    const moderation = await moderateAndApprove("watchlist_description", description, user.id);
+    if (!moderation.ok) return moderation;
+  }
   const changes: Record<string, unknown> = {
     title,
-    description: clip(form.get("description"), 10000) || null,
+    description: description || null,
     updated_at: new Date().toISOString(),
   };
   // Only the owner's form has the Public switch; collaborators change the words only.
   if (form.has("has_public")) changes.is_public = form.get("is_public") === "on";
   if (form.has("has_comments")) changes.comments_enabled = form.get("comments_enabled") === "on";
   let { error } = await db.from("lists").update(changes).eq("id", id);
-  // Before collaboration.sql has run there's no comments switch; save the rest.
+  // Older databases may not have the comments switch.
   if (error && error.code !== "231514" && "comments_enabled" in changes) {
     delete changes.comments_enabled;
     ({ error } = await db.from("lists").update(changes).eq("id", id));
   }
-  // Too long for the database (10,000 characters, see collection-essays.sql).
-  if (error?.code === "231514") redirect(`/c/${id}?error=description`);
+  if (error?.code === "231514") return { ok: false, message: "Please check your description and try again." };
+  if (error) return { ok: false, message: "Your collection couldn't be saved. Please try again." };
   revalidatePath("/me");
   revalidatePath(`/c/${id}`);
   revalidatePath("/watchlists/[slug]", "page");
@@ -80,13 +90,17 @@ export async function updatePublicName(_prev: NameState, form: FormData): Promis
   const handle = clip(form.get("handle"), 24).toLowerCase().replace(/^@/, "");
   const display_name = clip(form.get("display_name"), 60) || null;
   if (handle && !/^[a-z0-9_]{3,24}$/.test(handle)) return { ok: false, message: "Handles are 3 to 24 letters, numbers or underscores." };
-  const { data: previous, error: readError } = await db.from("profiles").select("handle, avatar_url, is_owner").eq("id", user.id).single();
+  const { data: previous, error: readError } = await db.from("profiles").select("handle, avatar_url, is_owner, bio").eq("id", user.id).single();
   if (readError || !previous) return { ok: false, message: "Your profile couldn't be loaded. Try again." };
   const changes: Record<string, unknown> = { handle: handle || null, display_name };
   if (form.has("has_private")) changes.is_private = form.get("is_private") === "on";
   if (form.has("bio")) {
     const bio = String(form.get("bio") ?? "").trim();
     if (bio.length > 150 && !(canUseUnlimitedBio(previous) && handle === "leo")) return { ok: false, message: "Keep your bio to 150 characters or fewer." };
+    if (bio && bio !== (previous.bio ?? "").trim()) {
+      const moderation = await moderateAndApprove("bio", bio, user.id);
+      if (!moderation.ok) return moderation;
+    }
     changes.bio = bio || null;
   }
   if (form.has("country")) {
