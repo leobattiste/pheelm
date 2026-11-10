@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { getFilms } from "./data";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseEnabled } from "./supabase/config";
@@ -129,11 +130,20 @@ export async function getCommunityCollections({ sort = "popular", filmId, limit 
   return limit ? all.slice(0, limit) : all;
 }
 
+/** Shared only within a render: metadata and the page use one lightweight profile read. */
+export const getMemberProfile = cache(async (handle: string): Promise<Member | null> => {
+  const db = anon();
+  if (!db) return null;
+  const { data, error } = await db.from("member_profiles").select(FULL).eq("handle", handle.toLowerCase()).maybeSingle();
+  if (error) throw new Error("Could not load member profile: " + error.message);
+  return data as Member | null;
+});
+
 /** A member by their handle, with all their public collections (any size). */
 export async function getMember(handle: string) {
   const db = anon();
   if (!db) return null;
-  const member = (await members((cols) => db.from("member_profiles").select(cols).eq("handle", handle.toLowerCase()).maybeSingle())) as Member | null;
+  const member = await getMemberProfile(handle);
   if (!member) return null;
   const { data } = await lists((cols) => db
     .from("lists")

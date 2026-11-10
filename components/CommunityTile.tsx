@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import type { CommunityCollection } from "@/lib/community";
+import type { CollectionTileData } from "@/lib/types";
 import { tintStyle } from "@/lib/format";
 import Icon, { type IconName } from "./Icon";
 import Poster from "./Poster";
@@ -8,7 +9,7 @@ import Poster from "./Poster";
 const BADGE_ICONS: Record<string, IconName> = { Private: "lock", Public: "globe", Shared: "users" };
 
 /** A collection: three posters, its title, then its curator and how many films ("@ada • 12 films"). */
-export default function CommunityTile({ c, showOwner = true, badge, filmCount, footer }: { c: CommunityCollection; showOwner?: boolean; badge?: string; filmCount?: number; footer?: ReactNode }) {
+export default function CommunityTile({ c, showOwner = true, badge, filmCount, footer }: { c: CollectionTileData | CommunityCollection; showOwner?: boolean; badge?: string; filmCount?: number; footer?: ReactNode }) {
   const count = `${filmCount ?? c.films.length} ${(filmCount ?? c.films.length) === 1 ? "film" : "films"}`;
   const meta = showOwner && c.owner ? `@${c.owner.handle} • ${count}` : count;
   return (

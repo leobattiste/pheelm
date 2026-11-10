@@ -16,6 +16,7 @@ jobs:
       - run: npm run test:security
       - run: node tests/profile-bio.mjs
       - run: node tests/profile-seo.mjs
+      - run: node tests/profile-loading.mjs
       - run: node tests/partnership-inquiry.mjs
       - run: npm run email:preview
       - run: node scripts/export-auth-emails.mjs

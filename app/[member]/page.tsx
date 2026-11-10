@@ -1,165 +1,57 @@
-import { profileMetadata, profileStructuredData } from "@/lib/profile-seo";
-import ProfileAbout from "@/components/ProfileAbout";
-import UserAvatar from "@/components/UserAvatar";
-import Icon from "@/components/Icon";
-import type { Metadata } from "next";
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import CommunityTile from "@/components/CommunityTile";
-import ProfileEditor from "@/components/ProfileEditor";
-import MoreMenu from "@/components/MoreMenu";
-import ShareButton from "@/components/ShareButton";
-import VerifiedBadge from "@/components/VerifiedBadge";
-import { VERIFIED } from "@/lib/site";
-import { getCollaboratingOn, getMember } from "@/lib/community";
-import { countryName, initials } from "@/lib/format";
-import { getServerClient } from "@/lib/supabase/server";
-import BlockButton from "@/components/BlockButton";
-import DirectorCard from "@/components/DirectorCard";
-import { FilmGrid } from "@/components/FilmCard";
-import Tabs from "@/components/Tabs";
-import { getDirectors, getFilms, toCard, toDirectorSummary } from "@/lib/data";
+import { Suspense } from 'react';
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { profileMetadata, profileStructuredData } from '@/lib/profile-seo';
+import { getMemberProfile } from '@/lib/community';
+import { getServerClient } from '@/lib/supabase/server';
+import { initials } from '@/lib/format';
+import { VERIFIED } from '@/lib/site';
+import UserAvatar from '@/components/UserAvatar';
+import ProfileEditor from '@/components/ProfileEditor';
+import MoreMenu from '@/components/MoreMenu';
+import ShareButton from '@/components/ShareButton';
+import VerifiedBadge from '@/components/VerifiedBadge';
+import Tabs from '@/components/Tabs';
+import { ProfileWatchlists, ProfileFollowing, ProfileDetails, ProfileBlockAction } from './ProfilePanels';
 
-// Who's looking matters (your own page shows Edit and stays visible when private), so render per visit.
-export const dynamic = "force-dynamic";
-
-type Params = { params: Promise<{ member: string }> };
-
-/** Member pages live at /@handle; anything else at the top level isn't a page. */
-function handleOf(segment: string) {
-  const s = decodeURIComponent(segment);
-  return s.startsWith("@") && /^@[a-z0-9_]{3,24}$/i.test(s) ? s.slice(1).toLowerCase() : null;
+export const dynamic = 'force-dynamic';
+type Params = {params:Promise<{member:string}>};
+function handleOf(segment:string) {
+ try{const value=decodeURIComponent(segment);return /^@[a-z0-9_]{3,24}$/i.test(value)?value.slice(1).toLowerCase():null;}catch{return null;}
 }
-
-export async function generateMetadata({ params }: Params): Promise<Metadata> {
-  const handle = handleOf((await params).member);
-  const found = handle ? await getMember(handle) : null;
-  return profileMetadata(found?.member ?? null);
+export async function generateMetadata({params}:Params):Promise<Metadata> {
+ const handle=handleOf((await params).member);
+ return profileMetadata(handle?await getMemberProfile(handle):null);
 }
-
-/**
- * A member's profile: their name, then tabs for their public collections (Watchlist), About, with watched films in a modal, and the directors they follow. Watched and Following can each be hidden in Settings.
- */
-export default async function MemberPage({ params }: Params) {
-  const handle = handleOf((await params).member);
-  if (!handle) notFound();
-  const found = await getMember(handle);
-  if (!found) notFound();
-  const { member, collections } = found;
-  let name = member.display_name || `@${member.handle}`;
-
-  const db = await getServerClient();
-  const viewer = db ? (await db.auth.getUser()).data.user : null;
-  const own = viewer?.id === member.id;
-  if (own && db) {
-    const { data: ownProfile } = await db.from("profiles").select("display_name, country, bio, avatar_url, social_platform, social_url, website_url").eq("id", member.id).maybeSingle();
-    if (ownProfile) Object.assign(member, ownProfile);
-    name = member.display_name || `@${member.handle}`;
-  }
-
-  if (member.is_private && !own) {
-    return (
-      <section className="page">
-        <header className="person-head">
-          <span className="portrait portrait-initials" aria-hidden="true">{initials(member.handle)}</span>
-          <div className="person-text">
-            <h1>@{member.handle}</h1>
-            <p className="person-sub">This profile is private.</p>
-          </div>
-        </header>
-      </section>
-    );
-  }
-
-  const [collaborating, followRows, directors, watchedRows, films, showsWatched, showsFollowing, blockRow] = await Promise.all([
-    getCollaboratingOn(member.id),
-    db ? db.from("follows").select("person_id, created_at").eq("user_id", member.id).order("created_at", { ascending: false }) : null,
-    getDirectors(),
-    db ? db.from("watched").select("film_id, watched_at").eq("user_id", member.id).order("watched_at", { ascending: false }) : null,
-    getFilms(),
-    own || !db ? true : db.rpc("shows_watched", { uid: member.id }).then((r) => (r.error ? false : !!r.data)),
-    own || !db ? true : db.rpc("shows_following", { uid: member.id }).then((r) => (r.error ? true : !!r.data)),
-    viewer && !own && db ? db.from("blocks").select("blocked_id").eq("blocker_id", viewer.id).eq("blocked_id", member.id).maybeSingle() : null,
-  ]);
-  const filmById = new Map(films.map((f) => [f.id, f]));
-  const watched = ((watchedRows?.data ?? []) as { film_id: string }[]).map((r) => filmById.get(r.film_id)).filter((f) => f !== undefined);
-  const watchedOn = !watchedRows?.error;
-  const directorById = new Map(directors.map((d) => [d.id, d]));
-  const following = ((followRows?.data ?? []) as { person_id: string }[]).map((r) => directorById.get(r.person_id)).filter((d) => d !== undefined);
-
-  const collectionsPanel = collections.length ? (
-    <ul className="collection-list">{collections.map((c) => <CommunityTile key={c.id} c={c} showOwner={false} />)}</ul>
-  ) : (
-    <div className="empty-state">
-      <Icon name="stack" className="empty-icon" />
-      <p>Nothing here yet.</p>
-      {own && (
-        <>
-          <p className="muted">Make one of your collections public from your Watchlist and it shows up here.</p>
-          <Link className="button ghost small" href="/me">Go to your Watchlist</Link>
-        </>
-      )}
-    </div>
-  );
-
-  return (
-    <section className="page member-page">
-      {!member.is_private && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(profileStructuredData(member)).replace(/</g, "\\u003c") }} />}
-      <header className="person-head">
-        {(own || !member.is_private) && (
-          <MoreMenu corner label="Profile actions">
-            {own && <ProfileEditor links={member} bio={member.bio ?? null} handle={member.handle} displayName={member.display_name} isPrivate={!!member.is_private} country={member.country ?? null} avatarUrl={member.avatar_url ?? null} />}
-            {!member.is_private && <ShareButton item title={`${name} on Pheelm`} />}
-            {viewer && !own && <BlockButton memberId={member.id} handle={member.handle} blocked={!!blockRow?.data} />}
-          </MoreMenu>
-        )}
-        <UserAvatar person={member} className="portrait" />
-        <div className="person-text">
-          <h1>{name}{VERIFIED[member.handle] && <VerifiedBadge title={VERIFIED[member.handle]} />}</h1>
-          <p className="person-sub">@{member.handle}</p>
-          {own && member.is_private && <p className="person-sub">Private: only you can see this page.</p>}
-        </div>
-      </header>
-      <Tabs
-        tabs={[
-          {
-            id: "watchlist",
-            label: "Watchlist",
-            icon: "stack",
-            panel: (
-              <>
-                {collectionsPanel}
-                {collaborating.length > 0 && (
-                  <section className="film-section member-collections" aria-labelledby="member-collab-h">
-                    <h2 id="member-collab-h">Co-curating</h2>
-                    <ul className="collection-list">{collaborating.map((c) => <CommunityTile key={c.id} c={c} />)}</ul>
-                  </section>
-                )}
-              </>
-            ),
-          },
-          {
-            id: "following",
-            label: "Following",
-            icon: "users2",
-            panel: !showsFollowing ? <p className="muted">Following is private.</p> : following.length ? (
-              <ul className="director-grid">{following.map((d) => <DirectorCard key={d.id} director={toDirectorSummary(d)} />)}</ul>
-            ) : (
-              <div className="empty-state">
-                <Icon name="users2" className="empty-icon" />
-                <p>Not following any directors yet.</p>
-                {own && (
-                  <>
-                    <p className="muted">Follow directors from their pages to hear when they have a new film.</p>
-                    <Link className="button ghost small" href="/directors">Browse directors</Link>
-                  </>
-                )}
-              </div>
-            ),
-          },
-          { id: "about", label: "About", icon: "userCircle", panel: <ProfileAbout member={member} watched={watchedOn && showsWatched ? watched.map(toCard) : null} watchedHidden={!showsWatched} /> },
-        ]}
-      />
-    </section>
-  );
+function LoadingPanel({label}:{label:string}) {
+ return <p className="muted profile-panel-loading" role="status">Loading {label}…</p>;
+}
+export default async function MemberPage({params}:Params) {
+ const handle=handleOf((await params).member);if(!handle)notFound();
+ const db=await getServerClient();
+ const [publicMember,viewerResult]=await Promise.all([getMemberProfile(handle),db?db.auth.getUser():null]);
+ if(!publicMember)notFound();
+ // Do not mutate the profile object shared with metadata within this request.
+ const member={...publicMember},viewer=viewerResult?.data.user;
+ const own=viewer?.id===member.id;
+ if(own&&db){const {data}=await db.from('profiles').select('display_name,country,bio,avatar_url,social_platform,social_url,website_url').eq('id',member.id).maybeSingle();if(data)Object.assign(member,data);}
+ if(member.is_private&&!own)return <section className="page"><header className="person-head"><span className="portrait portrait-initials" aria-hidden="true">{initials(member.handle)}</span><div className="person-text"><h1>@{member.handle}</h1><p className="person-sub">This profile is private.</p></div></header></section>;
+ const name=member.display_name||`@${member.handle}`;
+ return <section className="page member-page">
+  {!member.is_private&&<script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(profileStructuredData(member)).replace(/</g,'\\u003c')}}/>}
+  <header className="person-head">
+   <MoreMenu corner label="Profile actions">
+    {own&&<ProfileEditor links={member} bio={member.bio??null} handle={member.handle} displayName={member.display_name} isPrivate={!!member.is_private} country={member.country??null} avatarUrl={member.avatar_url??null}/>}
+    {!member.is_private&&<ShareButton item title={`${name} on Pheelm`}/>}
+    {viewer&&!own&&<Suspense fallback={null}><ProfileBlockAction member={member} viewerId={viewer.id} db={db}/></Suspense>}
+   </MoreMenu>
+   <UserAvatar person={member} className="portrait"/>
+   <div className="person-text"><h1>{name}{VERIFIED[member.handle]&&<VerifiedBadge title={VERIFIED[member.handle]}/>}</h1><p className="person-sub">@{member.handle}</p>{own&&member.is_private&&<p className="person-sub">Private: only you can see this page.</p>}</div>
+  </header>
+  <Tabs tabs={[
+   {id:'watchlist',label:'Watchlist',panel:<Suspense fallback={<LoadingPanel label="watchlists"/>}><ProfileWatchlists member={member} own={own} db={db}/></Suspense>},
+   {id:'following',label:'Following',panel:<Suspense fallback={<LoadingPanel label="following"/>}><ProfileFollowing member={member} own={own} db={db}/></Suspense>},
+   {id:'about',label:'About',panel:<Suspense fallback={<LoadingPanel label="profile details"/>}><ProfileDetails member={member} own={own} db={db}/></Suspense>},
+  ]}/>
+ </section>;
 }
