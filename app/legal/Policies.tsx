@@ -6,7 +6,7 @@ function Contact() { return <a href={`mailto:${EMAIL}`}>{EMAIL}</a>; }
 export function PrivacyPolicy() {
   return <div className="prose">
     <h2>Privacy Policy</h2>
-    <p>This policy explains how Pheelm, an independent project operated by Leo Battiste, collects, uses, shares and protects personal information when you visit the website, create an account, contribute content or contact us. Pheelm is responsible for the personal information it processes to operate the platform. Privacy requests can be sent to <Contact />.</p>
+    <p>This policy explains how Pheelm, an independent film-discovery platform, collects, uses, shares and protects personal information when you visit the website, create an account, contribute content or contact us. Pheelm is responsible for the personal information it processes to operate the platform. Privacy requests can be sent to <Contact />.</p>
     <h3>1. Information you provide</h3>
     <ul>
       <li><strong>Account information:</strong> your email address, account identifier, sign-in records and preferences. Pheelm uses email-based authentication; if you choose an available third-party sign-in option, we receive the account information that provider shares through the sign-in process.</li>
@@ -58,7 +58,7 @@ export function PrivacyPolicy() {
 export function TermsPolicy() {
   return <div className="prose">
     <h2>Terms of Use</h2>
-    <p>These terms govern access to and use of Pheelm, an independent film-discovery platform operated by Leo Battiste. “Pheelm,” “we” and “us” refer to the platform and its operator; “you” refers to the person using it. By accessing or using Pheelm, you agree to these terms and the <Link href="/legal#community-guidelines">Community Guidelines</Link>. Our <Link href="/legal#privacy">Privacy Policy</Link> explains personal-information practices.</p>
+    <p>These terms govern access to and use of Pheelm, an independent film-discovery platform. “Pheelm,” “we” and “us” refer to the platform and its operator; “you” refers to the person using it. By accessing or using Pheelm, you agree to these terms and the <Link href="/legal#community-guidelines">Community Guidelines</Link>. Our <Link href="/legal#privacy">Privacy Policy</Link> explains personal-information practices.</p>
     <h3>1. Eligibility and accounts</h3>
     <p>You must be at least 13 and satisfy any higher minimum age required where you live. If you are a minor who cannot independently enter this agreement, use the service only with a parent’s or guardian’s permission and supervision. If you act for an organization, you must have authority to bind it.</p>
     <p>Some pages and features require an account, including during limited-access releases. Provide accurate account information, use a handle you are entitled to use and keep access to your email and sign-in credentials secure. Do not share sign-in codes or impersonate another person. You are responsible for activity you authorize through your account. Report suspected unauthorized access to <Contact />.</p>
@@ -110,7 +110,7 @@ export function TermsPolicy() {
 export function CopyrightPolicy() {
   return <div className="prose">
     <h2>Copyright Policy</h2>
-    <p>© {new Date().getFullYear()} Pheelm. A project by Leo Battiste with the courtesy of TMDB. This notice identifies Pheelm’s original work; it does not claim ownership of films, photographs, posters or other material belonging to third parties.</p>
+    <p>This policy explains ownership, permitted use and how to report copyright or other rights concerns involving content on Pheelm.</p>
     <h3>1. Ownership and attribution</h3>
     <p>Pheelm’s original editorial writing, interface, branding and original compilations are protected where applicable by intellectual-property law. Film titles, facts and third-party works may have different legal protections. Films, trailers, posters, stills, portraits, service logos and contributor material remain the property of their respective owners. A credit is not a grant of permission, and lack of a credit does not mean a work is unprotected.</p>
     <p>Some information and images are supplied through TMDB. This product uses the TMDB API but is not endorsed or certified by TMDB. Viewing availability may include JustWatch information supplied through TMDB. References to either service do not imply sponsorship. Applicable source licenses and rights-holder permissions continue to govern their material.</p>

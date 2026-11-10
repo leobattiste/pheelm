@@ -3034,3 +3034,18 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 .admin-filter-selection .admin-selection-actions .button { width: 100%; }
 .admin-filter-links > .button { flex: 1 1 140px; }
 .admin-filter-links > p { flex: 1 1 100%; }
+
+/* Profile shells paint immediately, with no visible loading copy or font dependency. */
+.profile-skeleton { min-width: 0; pointer-events: none; }
+.profile-skeleton-block { display: block; background: var(--raised); animation: profile-skeleton-pulse 1.4s ease-in-out infinite alternate; }
+.profile-skeleton-line { width: 72%; max-width: 100%; height: 20px; min-height: 20px; border-radius: var(--r); }
+.profile-skeleton-short { width: 35%; }
+.profile-skeleton-name { width: 70%; max-width: 100%; height: var(--t-3xl); border-radius: var(--r); }
+.profile-skeleton-page .person-text { min-width: 0; gap: var(--space-12); }
+.profile-skeleton-tabs { height: var(--bar-height); gap: var(--control-gap); }
+.profile-skeleton-tab { flex: 1 1 0; height: var(--bar-height); border-radius: var(--pill); }
+.profile-skeleton-details { max-width: 68ch; }
+.profile-skeleton-details > div { display: grid; gap: var(--space-24); }
+.profile-skeleton-field { display: grid; gap: var(--space-8); }
+@keyframes profile-skeleton-pulse { from { opacity: .45; } to { opacity: .85; } }
+@media (prefers-reduced-motion: reduce) { .profile-skeleton-block { animation: none; } }

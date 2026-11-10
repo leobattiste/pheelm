@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import { ProfilePanelSkeleton } from '@/components/ProfileSkeleton';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { profileMetadata, profileStructuredData } from '@/lib/profile-seo';
@@ -23,9 +24,6 @@ export async function generateMetadata({params}:Params):Promise<Metadata> {
  const handle=handleOf((await params).member);
  return profileMetadata(handle?await getMemberProfile(handle):null);
 }
-function LoadingPanel({label}:{label:string}) {
- return <p className="muted profile-panel-loading" role="status">Loading {label}…</p>;
-}
 export default async function MemberPage({params}:Params) {
  const handle=handleOf((await params).member);if(!handle)notFound();
  const db=await getServerClient();
@@ -49,9 +47,9 @@ export default async function MemberPage({params}:Params) {
    <div className="person-text"><h1>{name}{VERIFIED[member.handle]&&<VerifiedBadge title={VERIFIED[member.handle]}/>}</h1><p className="person-sub">@{member.handle}</p>{own&&member.is_private&&<p className="person-sub">Private: only you can see this page.</p>}</div>
   </header>
   <Tabs tabs={[
-   {id:'watchlist',label:'Watchlist',panel:<Suspense fallback={<LoadingPanel label="watchlists"/>}><ProfileWatchlists member={member} own={own} db={db}/></Suspense>},
-   {id:'following',label:'Following',panel:<Suspense fallback={<LoadingPanel label="following"/>}><ProfileFollowing member={member} own={own} db={db}/></Suspense>},
-   {id:'about',label:'About',panel:<Suspense fallback={<LoadingPanel label="profile details"/>}><ProfileDetails member={member} own={own} db={db}/></Suspense>},
+   {id:'watchlist',label:'Watchlist',panel:<Suspense fallback={<ProfilePanelSkeleton view="watchlists"/>}><ProfileWatchlists member={member} own={own} db={db}/></Suspense>},
+   {id:'following',label:'Following',panel:<Suspense fallback={<ProfilePanelSkeleton view="following"/>}><ProfileFollowing member={member} own={own} db={db}/></Suspense>},
+   {id:'about',label:'About',panel:<Suspense fallback={<ProfilePanelSkeleton view="about"/>}><ProfileDetails member={member} own={own} db={db}/></Suspense>},
   ]}/>
  </section>;
 }
