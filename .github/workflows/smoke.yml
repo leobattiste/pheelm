@@ -25,6 +25,7 @@ jobs:
       - run: node tests/catalog-search-browser.mjs
         env:
           BASE_URL: http://localhost:3000
+      - run: node tests/watchlist-mobile.mjs
       - run: node tests/films-shuffle-browser.mjs
         env:
           BASE_URL: http://localhost:3000
@@ -58,3 +59,6 @@ jobs:
       - run: psql -v ON_ERROR_STOP=1 -f tests/email-bootstrap.sql
       - run: psql -v ON_ERROR_STOP=1 -f supabase/email-system.sql
       - run: psql -v ON_ERROR_STOP=1 -f tests/email-system.sql
+      - run: psql -v ON_ERROR_STOP=1 -f tests/catalog-digest-bootstrap.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/catalog-digest.sql
+      - run: psql -v ON_ERROR_STOP=1 -f tests/catalog-digest.sql

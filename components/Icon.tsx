@@ -4,7 +4,7 @@
  * thing saying what something is.
  */
 import {
-  Add01Icon, ArrowUpDownIcon, DiceFaces03Icon, Tag01Icon, ArrowLeft01Icon, ArrowRight01Icon, ArrowTurnBackwardIcon, ArrowUp02Icon, AtIcon, Award01Icon,
+  DashboardCircleSettingsIcon, Add01Icon, ArrowUpDownIcon, DiceFaces03Icon, Tag01Icon, ArrowLeft01Icon, ArrowRight01Icon, ArrowTurnBackwardIcon, ArrowUp02Icon, AtIcon, Award01Icon,
   Bookmark02Icon, Calendar03Icon, Cancel01Icon, FlimSlateIcon, Clock01Icon, Comment01Icon, Door01Icon,
   FavouriteIcon, FilterHorizontalIcon, Film02Icon, Flag02Icon, Globe02Icon, InstagramIcon, Layers01Icon,
   LinkSquare02Icon, Login03Icon, Logout03Icon, Mail01Icon, Moon02Icon, MoreHorizontalIcon, Notification03Icon,
@@ -18,6 +18,7 @@ import { GalleryHorizontalEndIcon, RectangleVerticalIcon } from "lucide-react";
 type IconData = readonly (readonly [string, Record<string, string | number>])[];
 
 const ICONS = {
+  dashboardSettings: DashboardCircleSettingsIcon,
   film: Film02Icon,
   clapper: FlimSlateIcon,
   stack: Layers01Icon,

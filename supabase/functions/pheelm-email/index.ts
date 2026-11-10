@@ -31,8 +31,10 @@ Deno.serve(async req=>{try{const url=new URL(req.url);const action=url.searchPar
   const optional=job.category==='optional'||job.category==='marketing';if(job.category==='marketing')throw new Error('Marketing broadcasts require explicit campaign approval');
   const preferences=job.user_id?await rpc('email_job_preferences',{uid:job.user_id}):null;
   const unsub=preferences?.token?BASE+'/email?action=unsubscribe&token='+preferences.token:BASE+'/account?tab=notifications';
-  const values:Record<string,string>={MESSAGE:job.message,ACTION_URL:actionUrl(job.action_path,BASE,endpoint),UNSUBSCRIBE_URL:unsub,POSTAL_ADDRESS:config.pheelm_postal_address??''};
-  const html=template.html.replace(/\[\[([A-Z_]+)\]\]/g,(_,key)=>escapeHtml(values[key]??''));const text=template.text.replace(/\[\[([A-Z_]+)\]\]/g,(_,key)=>values[key]??'');
+  const digest=job.template==='activity-digest'?await rpc('email_digest_payload',{job_id:job.id,lease_id:job.lease}):job.message;
+  if(!digest){await rpc('email_complete',{job_id:job.id,lease_id:job.lease,failure:'No public additions remain',retryable:false});continue;}
+  const values:Record<string,string>={MESSAGE:digest,ACTION_URL:actionUrl(job.action_path,BASE,endpoint),UNSUBSCRIBE_URL:unsub,POSTAL_ADDRESS:config.pheelm_postal_address??''};
+  const html=template.html.replace(/\[\[([A-Z_]+)\]\]/g,(_,key)=>key==='MESSAGE'?escapeHtml(values[key]??'').replaceAll('\n','<br>'):escapeHtml(values[key]??''));const text=template.text.replace(/\[\[([A-Z_]+)\]\]/g,(_,key)=>values[key]??'');
   const r=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:'Bearer '+config.pheelm_resend_api_key,'Content-Type':'application/json','Idempotency-Key':'pheelm-email/'+job.id},body:JSON.stringify({from:'Pheelm <notifications@pheelm.com>',reply_to:'hey@pheelm.com',to:[job.recipient],subject:template.subject,html,text,...(optional?{headers:{'List-Unsubscribe':`<${unsub}>`,'List-Unsubscribe-Post':'List-Unsubscribe=One-Click'}}:{}),tags:[{name:'template',value:job.template}]}),signal:AbortSignal.timeout(10000)});
   if(!r.ok){await rpc('email_complete',{job_id:job.id,lease_id:job.lease,failure:'Email provider HTTP '+r.status,retryable:r.status===429||r.status>=500});failed++;}else{const result=await r.json();await rpc('email_complete',{job_id:job.id,lease_id:job.lease,provider:result.id});sent++;}
  }catch{await rpc('email_complete',{job_id:job.id,lease_id:job.lease,failure:'Delivery interrupted or invalid configuration',retryable:true});failed++;}

@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import GridToggle from "@/components/GridToggle";
-import NewsletterSubscribe from "./NewsletterSubscribe";
 import type { IconName } from "@/components/Icon";
 import Tabs from "@/components/Tabs";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -52,7 +51,6 @@ export default async function AccountPage() {
 
   const { data: emailPrefs } = await db.from("email_preferences").select("collaboration_emails,digest_frequency").eq("user_id", user.id).maybeSingle();
 
-  const { data: newsletterStatus } = await db.rpc("email_newsletter_status");
 
   const tabs = [
     {
@@ -107,11 +105,7 @@ export default async function AccountPage() {
             <NotificationPreferences userId={user.id} initialDisabled={disabledNotificationTypes} isAdmin={!!p.is_admin} />
             <p className="muted"><Link href="/notifications">View your notifications</Link></p>
           </section>
-          <section className="account-section" aria-labelledby="news-h">
-            <h2 id="news-h">Newsletter</h2>
-            <p className="muted">Receive occasional updates about films, collections and stories. Unsubscribe anytime.</p>
-            <NewsletterSubscribe email={user.email ?? ""} initialStatus={newsletterStatus === "confirmed" ? "confirmed" : newsletterStatus === "pending" ? "pending" : "off"} />
-          </section>
+
         </div>
       ),
     },
@@ -169,7 +163,7 @@ export default async function AccountPage() {
     {
       id: "data",
       label: "Your data",
-      icon: "stack" as IconName,
+      icon: "dashboardSettings" as IconName,
       panel: (
         <div className="account-panel">
           <section className="account-section" aria-labelledby="download-h">

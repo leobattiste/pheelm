@@ -28,7 +28,7 @@
 | collection-invitation | Invitation notification created and email preference allows it |
 | collaboration-update | Collaboration request or membership response notification created and email preference allows it |
 | newsletter-confirmation | New newsletter subscription request; double opt-in, no automatic mailing-list import |
-| activity-digest | Member selects daily or weekly; unread eligible notifications only; off by default |
+| activity-digest | Digest: newly added public films, directors and collections; daily or weekly from the member’s selection; off by default; empty periods send no email |
 | newsletter | Ready for a separately authorized editorial campaign; no campaign is sent by this setup |
 | report-update | Template ready; report outcome messages require an explicit moderation action |
 | moderation-notice | Template ready; requires an explicit moderation action |
@@ -36,7 +36,7 @@
 | data-export-ready | Template ready for a future asynchronous export; current export is synchronous |
 | admin-digest | Template ready for a future dedicated admin summary; normal activity digest can include admin notifications |
 
-Essential account and request emails are separate from optional email preferences. In-app disabled notification types are respected for collaboration and digests. Public newsletter requests do not confer marketing consent until confirmed. Owner CSV export includes only confirmed, currently subscribed, unsuppressed recipients; historical addresses are not silently opted in.
+Essential account and request emails are separate from optional email preferences. In-app disabled notification types are respected for collaboration. Digest has its own Off/Daily/Weekly preference and covers public catalog additions, not unread community activity. Public newsletter requests do not confer marketing consent until confirmed. Owner CSV export includes only confirmed, currently subscribed, unsuppressed recipients; historical addresses are not silently opted in.
 
 ## Supabase Auth SMTP: remaining dashboard connection
 
@@ -76,3 +76,7 @@ No bulk campaigns or historical user emails are sent during setup. Delivery test
 ## Operations
 
 Inspect queue state and retry errors in the private schema using the SQL editor. Never expose `email_delivery_config()` to anon/authenticated roles. Failed jobs require investigation; do not blindly replay jobs older than the provider's idempotency window. Keep the sending key and webhook secret in Vault; rotation must update Vault before switching providers.
+
+## Catalog Digest
+
+`supabase/catalog-digest.sql` records newly discoverable items on the five-minute delivery schedule. Existing catalog entries are baselined without announcements. Daily and weekly subscriptions accumulate additions from their preference selection time. Eligibility is checked again immediately before sending, excluding drafts, hidden directors, private collections/profiles, and collections below the public discovery threshold. Changing frequency resets the accumulation window; Off stops future digests.

@@ -50,7 +50,6 @@ export default function NotificationPreferences({ userId, initialDisabled, isAdm
   };
   return (
     <div className="form settings-form">
-      <p className="muted">Choose which notifications appear in Pheelm. Changes are saved to your account and apply to new notifications.</p>
       {GROUPS.filter((g) => isAdmin || g.title !== "Administration").map((group) => (
         <section className="account-section" key={group.title}>
           <h3>{group.title}</h3>

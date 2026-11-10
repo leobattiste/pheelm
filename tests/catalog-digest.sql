@@ -1,0 +1,27 @@
+\set ON_ERROR_STOP on
+begin;
+insert into auth.users(id,email,email_confirmed_at) values('00000000-0000-0000-0000-000000000010','delivered+digest@resend.dev',now());
+insert into public.email_preferences(user_id,digest_frequency,digest_cursor) values('00000000-0000-0000-0000-000000000010','daily',now()-interval '2 days');
+insert into public.films values('00000000-0000-0000-0000-000000000011','Published title','published-title','published'),('00000000-0000-0000-0000-000000000012','Private draft','private-draft','draft');
+insert into public.people values('00000000-0000-0000-0000-000000000013','New Director','new-director',true),('00000000-0000-0000-0000-000000000014','Hidden Director','hidden-director',false);
+insert into public.credits values('00000000-0000-0000-0000-000000000011','00000000-0000-0000-0000-000000000013','director'),('00000000-0000-0000-0000-000000000011','00000000-0000-0000-0000-000000000014','director');
+insert into public.profiles values('00000000-0000-0000-0000-000000000010','member',false);
+insert into public.lists values('00000000-0000-0000-0000-000000000015','00000000-0000-0000-0000-000000000010','Public Collection',true,true),('00000000-0000-0000-0000-000000000016','00000000-0000-0000-0000-000000000010','Private Collection',false,true);
+select public.email_prepare_digests();
+do $$declare msg text;begin select message into msg from pheelm_email.outbox where template='activity-digest';if msg is null or msg not like '%Published title%' or msg not like '%New Director%' or msg not like '%Public Collection%' then raise exception 'Digest additions missing';end if;if msg like '%Private%' or msg like '%Hidden%' then raise exception 'Private material exposed';end if;end$$;
+select public.email_prepare_digests();
+do $$begin if(select count(*) from pheelm_email.outbox where template='activity-digest')<>1 then raise exception 'Duplicate digest';end if;end$$;
+create temp table digest_job as select * from public.email_claim(20) where template='activity-digest';
+update public.lists set is_public=false where title='Public Collection';
+do $$declare msg text;begin select public.email_digest_payload(id,lease) into msg from digest_job;if msg like '%Public Collection%' then raise exception 'Private change not rechecked';end if;end$$;
+update public.email_preferences set digest_frequency='weekly' where user_id='00000000-0000-0000-0000-000000000010';
+do $$begin if(select digest_cursor from public.email_preferences where user_id='00000000-0000-0000-0000-000000000010')<>now() then raise exception 'Frequency did not reset window';end if;end$$;
+update public.email_preferences set digest_cursor=now()-interval '6 days';
+select public.email_prepare_digests();
+do $$begin if(select count(*) from pheelm_email.outbox where template='activity-digest')<>1 then raise exception 'Weekly digest sent too early';end if;end$$;
+update public.email_preferences set digest_frequency='off';
+select public.email_prepare_digests();
+do $$declare payload text;begin select public.email_digest_payload(id,lease) into payload from digest_job;if payload is not null then raise exception 'Opt-out ignored after claim';end if;end$$;
+do $$begin if has_function_privilege('authenticated','public.email_digest_payload(uuid,uuid)','execute') then raise exception 'Private payload callable';end if;end$$;
+rollback;
+select 'PASS: public film/director/collection additions, private exclusion, de-duplication, send-time visibility, frequency windows and service-only access' as result;

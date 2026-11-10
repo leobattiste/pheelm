@@ -122,14 +122,13 @@ export default function WatchlistButton({ filmId, filmTitle, pickerOnly = false,
   return (
     <>
       {!pickerOnly && <button type="button" className="pill-button" data-action="watchlist" aria-pressed={status === "on"} aria-haspopup="dialog" onClick={open} aria-label={status === "on" ? "On your watchlist. Change collections" : "Add to watchlist"} title={status === "on" ? "Change collections" : "Add to watchlist"}>{status === "on" ? CHECK : PLUS}Watchlist</button>}
-      <dialog ref={sheet} className="modal save-sheet" aria-labelledby={`${id}-title`} onClose={() => { if (changed.current) { router.refresh(); changed.current = false; } onClose?.(); }} onCancel={e => { if (busy) e.preventDefault(); }} onClick={e => { if (!busy && e.target === sheet.current) sheet.current?.close(); }}>
+      <dialog ref={sheet} className="modal save-sheet watchlist-picker" aria-labelledby={`${id}-title`} onClose={() => { if (changed.current) { router.refresh(); changed.current = false; } onClose?.(); }} onCancel={e => { if (busy) e.preventDefault(); }} onClick={e => { if (!busy && e.target === sheet.current) sheet.current?.close(); }}>
         <div className="modal-head">
           <span className="sheet-handle" aria-hidden="true" />
           <h2 id={`${id}-title`}>Add to Watchlist</h2>
           <button type="button" className="icon-button" onClick={() => sheet.current?.close()} disabled={busy} aria-label="Close"><Icon name="close" /></button>
         </div>
         <div className="modal-body" aria-busy={busy}>
-          <p className="save-intro"><strong>{filmTitle}</strong>. Choose All or a collection. Your own collections also appear in All.</p>
           <ul className="save-lists">
             <li><button type="button" className="save-row" role="checkbox" aria-checked={status === "on"} disabled={busy} onClick={toggleAll}><span className={`save-check${status === "on" ? " is-on" : ""}`} aria-hidden="true">{status === "on" && CHECK}</span><span className="save-name">All</span><span className="save-count">Watchlist</span></button></li>
             {lists === null ? <li className="save-note">{loadFailed ? <button type="button" className="link-button" onClick={() => { setError(""); void loadLists(); }}>Retry loading collections</button> : "Loading your collections…"}</li> : lists.map(l => <li key={l.id}><button type="button" className="save-row" role="checkbox" aria-checked={l.has} disabled={busy} onClick={() => void toggleList(l)}><span className={`save-check${l.has ? " is-on" : ""}`} aria-hidden="true">{l.has && CHECK}</span><span className="save-name">{l.title}{l.shared && <span className="tile-icon" title="Shared"><Icon name="users" label="Shared" /></span>}</span></button></li>)}

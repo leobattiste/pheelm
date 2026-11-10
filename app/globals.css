@@ -2926,3 +2926,14 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
  :root:root .catalog-toolbar .filter-button.has-count { width: calc(var(--bar-height) + 12px); min-width: calc(var(--bar-height) + 12px); padding: 0; }
 }
 .catalog-active-filters .chip:hover { transform: none; }
+
+/* Keep the Watchlist picker within its frame at narrow widths. */
+.watchlist-picker :is(.modal-head, .modal-body, .modal-foot, .save-lists, .save-lists li, .save-row, .save-new) { min-width: 0; max-width: 100%; }
+.watchlist-picker .modal-body { overflow-x: hidden; padding-top: var(--space-16); }
+.watchlist-picker .save-lists { grid-template-columns: minmax(0, 1fr); }
+.watchlist-picker .save-row { box-sizing: border-box; }
+.watchlist-picker .save-new { flex-wrap: wrap; }
+.watchlist-picker .save-new input { width: 0; flex: 1 1 100px; }
+.watchlist-picker .modal-head h2 { min-width: 0; overflow-wrap: anywhere; }
+.watchlist-picker .modal-foot { flex-wrap: wrap; }
+.watchlist-picker .modal-foot .button { min-width: 0; white-space: normal; height: auto; min-height: var(--control); padding-block: 10px; }
