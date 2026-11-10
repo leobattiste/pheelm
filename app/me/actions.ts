@@ -78,7 +78,7 @@ export async function updatePublicName(_prev: NameState, form: FormData): Promis
   if (form.has("has_private")) changes.is_private = form.get("is_private") === "on";
   if (form.has("bio")) {
     const bio = String(form.get("bio") ?? "").trim();
-    if (bio.length > 130) return { ok: false, message: "Keep your bio to 130 characters or fewer." };
+    if (bio.length > 50) return { ok: false, message: "Keep your bio to 50 characters or fewer." };
     changes.bio = bio || null;
   }
   if (form.has("country")) {

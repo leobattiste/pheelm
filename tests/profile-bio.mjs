@@ -11,4 +11,4 @@ vm.runInNewContext(code,{exports,FormData,File,Buffer,require:name=>{
  throw Error(name);
 }});
 const form=bio=>{const f=new FormData();f.set('handle','member');f.set('display_name','Member');f.set('bio',bio);return f};
-assert.equal((await exports.updatePublicName(null,form('x'.repeat(131)))).ok,false);assert.equal(saved,undefined,'oversized bio wrote to database');assert.equal((await exports.updatePublicName(null,form('x'.repeat(130)))).ok,true);assert.equal(saved.bio.length,130);assert.equal((await exports.updatePublicName(null,form('  '))).ok,true);assert.equal(saved.bio,null);console.log('PASS: profile action rejects over-limit bios, saves 130 characters and supports clearing.');
+assert.equal((await exports.updatePublicName(null,form('x'.repeat(51)))).ok,false);assert.equal(saved,undefined,'oversized bio wrote to database');assert.equal((await exports.updatePublicName(null,form('x'.repeat(50)))).ok,true);assert.equal(saved.bio.length,50);assert.equal((await exports.updatePublicName(null,form('  '))).ok,true);assert.equal(saved.bio,null);console.log('PASS: profile action rejects over-limit bios, saves 50 characters and supports clearing.');
