@@ -17,7 +17,7 @@ export default function FilmCard({ film, priority, sizes, note, extra, posterOnl
     <li className={`film-card${posterOnly ? " is-poster-only" : ""}`} style={tintStyle(film.color)}>
       <CardLink href={href ?? `/films/${film.slug}`} aria-label={posterOnly ? `${film.title}, ${film.directors.join(" and ")}, ${film.year}` : undefined}>
         <Poster title={film.title} year={film.year} directors={film.directors} src={film.poster_url} priority={priority} sizes={sizes} />
-        <span className="film-card-title">{film.title}</span>
+        <span className="film-card-title" title={film.title}>{film.title}</span>
         <span className="film-card-meta">
           {/* On a person's page the line says what they did; elsewhere, who directed it. */}
           {note ?? film.directors.join(" and ")}<span className="film-card-year"> • {film.year}</span>
