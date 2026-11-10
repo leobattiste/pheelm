@@ -47,9 +47,10 @@ try{
  await page.locator('.collections-toolbar .filter-button').click();
  const sortModal=page.getByRole('dialog',{name:'Sort by',exact:true});
  for(const button of await sortModal.locator('.chip-row button').all()){
-  assert.equal(await button.getAttribute('class'),'button');
-  assert.notEqual(await button.evaluate(e=>getComputedStyle(e).backgroundColor),'rgba(0, 0, 0, 0)');
-  assert.notEqual(await button.evaluate(e=>getComputedStyle(e).backdropFilter),'none');
+  const selected=await button.getAttribute('aria-pressed')==='true';
+  const style=await button.evaluate(e=>({background:getComputedStyle(e).backgroundColor,blur:getComputedStyle(e).backdropFilter}));
+  if(selected){assert.notEqual(style.background,'rgba(0, 0, 0, 0)');assert.notEqual(style.blur,'none');}
+  else{assert.equal(style.background,'rgba(0, 0, 0, 0)');assert.equal(style.blur,'none');}
  }
  await sortModal.getByRole('button',{name:'New',exact:true}).click();
  await until(()=>new URL(page.url()).searchParams.get('sort')==='new','Watchlists sort did not update');
