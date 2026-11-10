@@ -42,7 +42,7 @@ export async function updateCollection(_previous: CollectionUpdateState, form: F
   const description = clip(form.get("description"), 10000);
   const { data: before, error: readError } = await db.from("lists").select("description").eq("id", id).maybeSingle();
   if (readError || !before) return { ok: false, message: "This collection couldn't be loaded. Try again." };
-  if (description && description !== (before.description ?? "").trim()) {
+  if (description && description !== (before.description ?? "")) {
     const moderation = await moderateAndApprove("watchlist_description", description, user.id);
     if (!moderation.ok) return moderation;
   }
@@ -97,7 +97,7 @@ export async function updatePublicName(_prev: NameState, form: FormData): Promis
   if (form.has("bio")) {
     const bio = String(form.get("bio") ?? "").trim();
     if (bio.length > 150 && !(canUseUnlimitedBio(previous) && handle === "leo")) return { ok: false, message: "Keep your bio to 150 characters or fewer." };
-    if (bio && bio !== (previous.bio ?? "").trim()) {
+    if (bio && bio !== (previous.bio ?? "")) {
       const moderation = await moderateAndApprove("bio", bio, user.id);
       if (!moderation.ok) return moderation;
     }
