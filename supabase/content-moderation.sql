@@ -60,15 +60,21 @@ begin
 
   if tg_table_name = 'list_comments' then
     field_name := 'comment';
-    if tg_op = 'UPDATE' and new.body is not distinct from old.body then return new; end if;
+    if tg_op = 'UPDATE' then
+      if new.body is not distinct from old.body then return new; end if;
+    end if;
     body_text := btrim(new.body);
   elsif tg_table_name = 'profiles' then
     field_name := 'bio';
-    if tg_op = 'UPDATE' and new.bio is not distinct from old.bio then return new; end if;
+    if tg_op = 'UPDATE' then
+      if new.bio is not distinct from old.bio then return new; end if;
+    end if;
     body_text := btrim(coalesce(new.bio, ''));
   elsif tg_table_name = 'lists' then
     field_name := 'watchlist_description';
-    if tg_op = 'UPDATE' and new.description is not distinct from old.description then return new; end if;
+    if tg_op = 'UPDATE' then
+      if new.description is not distinct from old.description then return new; end if;
+    end if;
     body_text := btrim(coalesce(new.description, ''));
   else
     raise exception 'Unknown moderation target';
