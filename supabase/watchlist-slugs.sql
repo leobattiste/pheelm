@@ -11,7 +11,7 @@ language plpgsql security definer set search_path='' as $$
 declare base text; candidate text; suffix integer:=1;
 begin
  if tg_op='UPDATE' and old.slug is not null then new.slug:=old.slug;return new;end if;
- base:=trim(both '-' from left(regexp_replace(lower(normalize(coalesce(new.title,''),NFKD)),'[^a-z0-9]+','-','g'),90));
+ base:=trim(both '-' from left(regexp_replace(lower(regexp_replace(normalize(coalesce(new.title,''),NFKD),U&'[\0300-\036f]','','g')),'[^a-z0-9]+','-','g'),90));
  if base='' then base:='watchlist';end if;
  -- Serialize allocation across all names, including a name that already ends in '-2'.
  perform pg_advisory_xact_lock(hashtextextended('pheelm-watchlist-slug-allocation',0));

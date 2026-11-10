@@ -102,4 +102,5 @@ jobs:
       - run: psql -v ON_ERROR_STOP=1 -f tests/leo-bio.sql
       - run: psql -v ON_ERROR_STOP=1 -f tests/watchlist-slugs-bootstrap.sql
       - run: psql -v ON_ERROR_STOP=1 -f supabase/watchlist-slugs.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/watchlist-slug-normalization.sql
       - run: psql -v ON_ERROR_STOP=1 -f tests/watchlist-slugs.sql
