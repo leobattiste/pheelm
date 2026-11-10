@@ -1,8 +1,10 @@
 import Link from "next/link";
-import { getDirectors, toDirectorSummary } from "@/lib/data";
+import { getProfileDirectorCards } from "@/lib/profile-data";
 import { countryName } from "@/lib/format";
 import AdminBrowserToolbar from "../AdminBrowserToolbar";
-import AdminViewControls from "../AdminViewControls";
+import AdminAddPanel from "../AdminAddPanel";
+import { AdminSelectionProvider, AdminSelectionTools } from "../AdminSelectionBar";
+import AddPersonForm from "./AddPersonForm";
 import { requireAdmin } from "@/lib/admin";
 import PeopleBulkControls, { type AdminPersonRow } from "./PeopleBulkControls";
 import { bulkPersonChange } from "./bulk-actions";
@@ -55,13 +57,13 @@ export default async function AdminPeople({ searchParams }: { searchParams: Prom
     return { data: rows, count, error: null };
   };
 
-  const [result, directors, countryRows] = await Promise.all([
+  const [result, countryRows] = await Promise.all([
     load(),
-    getDirectors().catch(() => []),
     db.from("people").select("country").not("country", "is", null).limit(10000),
   ]);
   const { data: people, count, error } = result;
-  const summaries = new Map(directors.map((director) => [director.id, toDirectorSummary(director)]));
+  const directors = await getProfileDirectorCards((people ?? []).map(person => person.id)).catch(() => []);
+  const summaries = new Map(directors.map(director => [director.id, director]));
   const rows: AdminPersonRow[] = (people ?? []).map((person) => ({
     ...person,
     credits: (person.credits ?? []) as { role: string }[],
@@ -73,26 +75,23 @@ export default async function AdminPeople({ searchParams }: { searchParams: Prom
   const href = (next: number) => { const p = new URLSearchParams(baseParams); p.set("page", String(next)); return `/admin/people?${p.toString()}`; };
 
   return (
-    <section className="admin-directors">
-      <div className="admin-head">
-        <div><h2 className="admin-section-heading">{everyone ? "Directors & people" : "Directors"}</h2><p className="muted">Manage the directory, biographies, portraits and filmography connections.</p></div>
-        <Link className="button ghost small" href="/admin/quality">Content quality</Link>
-      </div>
+    <AdminSelectionProvider key="people" entity="people"><section className="admin-directors">
       {!!sp.updated && <p className="notice ok" role="status">{sp.updated} people updated.</p>}
       {sp.error === "selection" && <p className="notice error">Select at least one person first.</p>}
       {sp.error === "credits" && <p className="notice error">No one was deleted. Some selected people still have film credits; remove or reassign those credits first.</p>}
-      <AdminBrowserToolbar action="/admin/people" query={q} pageSize={effectiveSize} placeholder="Search directors" filters={[
+      <AdminBrowserToolbar action="/admin/people" query={q} pageSize={effectiveSize} placeholder="Search directors" compact count={count ?? 0} noun={everyone ? "people" : "directors"} allowAll={!everyone}
+        addControl={<AdminAddPanel label="Add or import a director"><AddPersonForm/></AdminAddPanel>}
+        panelTools={<><Link className="button ghost" href="/admin/quality">Content quality</Link><p className="muted">A person appears in the public Directors directory when their listing is enabled and they have a directing credit on a published film.</p></>}
+        selectionControls={<AdminSelectionTools entity="people" ids={rows.map(person => person.id)} canDelete={owner} action={bulkPersonChange}/>}
+        filters={[
         { name: "all", label: "Show", value: everyone ? "1" : "", options: [{ value: "", label: "Directors" }, { value: "1", label: "Everyone" }] },
         { name: "visibility", label: "Directory visibility", value: visibility, options: [{ value: "", label: "All" }, { value: "shown", label: "Shown" }, { value: "hidden", label: "Hidden" }] },
         { name: "country", label: "Country", value: country, options: [{ value: "", label: "All countries" }, ...countries.map((code) => ({ value: code, label: countryName(code) }))] },
         { name: "missing", label: "Incomplete records", value: missing, options: [{ value: "", label: "Any" }, { value: "bio", label: "Missing biography" }, { value: "photo", label: "Missing portrait" }] },
         { name: "sort", label: "Sort by", value: sort, options: [{ value: "az", label: "Name A–Z" }, { value: "za", label: "Name Z–A" }] },
       ]} />
-      <AdminViewControls count={count ?? 0} shown={rows.length} size={effectiveSize} noun={everyone ? "people" : "directors"} allowAll={!everyone} />
       {error ? <p className="notice error">Could not load directors. Try again.</p> : (
-        <form action={bulkPersonChange}>
-          <PeopleBulkControls people={rows} canDelete={owner} />
-        </form>
+        <PeopleBulkControls people={rows} canDelete={owner} />
       )}
       {!rows.length && !error && <p className="empty">No matching people.</p>}
       {effectiveSize !== "all" && <div className="actions admin-pagination">
@@ -100,7 +99,6 @@ export default async function AdminPeople({ searchParams }: { searchParams: Prom
         <span className="muted">Page {page} of {Math.max(1, Math.ceil((count ?? 0) / perPage))}</span>
         {page * perPage < (count ?? 0) && <Link className="button ghost small" href={href(page + 1)}>Next</Link>}
       </div>}
-      <p className="muted admin-directory-note">Publishing a person enables their directory listing. They appear on the public Directors page when they also have a directing credit on a published film.</p>
-    </section>
+    </section></AdminSelectionProvider>
   );
 }

@@ -18,6 +18,7 @@ jobs:
       - run: node tests/profile-seo.mjs
       - run: node tests/profile-loading.mjs
       - run: node tests/partnership-inquiry.mjs
+      - run: node tests/admin-create-person.mjs
       - run: npm run email:preview
       - run: node scripts/export-auth-emails.mjs
       - run: node tests/email-security.mjs
@@ -33,6 +34,7 @@ jobs:
       - run: node tests/profile-forms-browser.mjs
       - run: node tests/profile-about-browser.mjs
       - run: node tests/tabs-browser.mjs
+      - run: node tests/admin-catalog-toolbar-browser.mjs
       - run: node tests/films-shuffle-browser.mjs
         env:
           BASE_URL: http://localhost:3000

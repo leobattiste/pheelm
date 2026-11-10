@@ -30,13 +30,11 @@ export function PrivacyPolicy() {
     <h3>5. Who receives information</h3>
     <p>Authorized administrators access information needed to maintain the catalog, answer messages, manage accounts and review safety concerns. Public content is available to its intended audience. Collaboration features share the information necessary to manage the relevant invitation or collection; they are not a private document-storage service.</p>
     <ul>
-      <li><strong>Supabase</strong> provides database, authentication and image-storage infrastructure.</li>
-      <li><strong>Vercel</strong> hosts the website and provides deployment, request-processing and aggregate analytics infrastructure.</li>
-      <li><strong>Resend and authentication email infrastructure</strong> deliver supported account, inquiry, notification and subscription messages, with delivery and suppression information used to operate email reliably.</li>
-      <li><strong>Cloudflare Turnstile</strong> helps protect supported forms against automated abuse and may process technical browser information for that purpose.</li>
-      <li><strong>Fontshare</strong> supplies website typography; loading these fonts may send your IP address and normal browser-request information to its servers.</li>
-      <li><strong>TMDB and other linked media sources</strong> supply catalog information or images. Loading externally hosted media sends the information normally associated with a browser request to that source.</li>
-      <li><strong>YouTube and other external services</strong> apply their own privacy practices when you activate embedded media or follow an external link. Privacy-enhanced embedding reduces some initial exposure but does not make playback anonymous.</li>
+      <li><strong>Service operations:</strong> providers that help host the website, maintain accounts, store information and media, and measure aggregate usage receive the information necessary for those functions.</li>
+      <li><strong>Communications:</strong> email-delivery providers process recipient addresses, message content and delivery or unsubscribe records so we can send requested communications reliably.</li>
+      <li><strong>Safety and reliability:</strong> security and abuse-prevention providers may process technical browser and request information to protect accounts and supported forms.</li>
+      <li><strong>External content:</strong> loading fonts, images or other externally hosted content sends the information normally associated with a browser request to its source.</li>
+      <li><strong>Linked services and embedded media:</strong> when you activate a trailer or follow an external link, that service’s own privacy practices apply. An embedded player does not make playback anonymous.</li>
     </ul>
     <p>We may disclose information when reasonably necessary to comply with applicable law or valid legal process, protect people and the service, investigate abuse, or establish or defend legal rights. A transfer of the platform to a new operator may include necessary service records, subject to applicable law and appropriate notice. We do not give partners permission to use inquiry details for unrelated marketing merely because they proposed a collaboration.</p>
     <h3>6. Email communications</h3>

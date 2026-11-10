@@ -1,0 +1,21 @@
+import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';import ts from 'typescript';
+let allowed=true,existing=null,created=[],imports=0,redirected=null,failed=false;
+const db={from:()=>({select:()=>({eq:()=>({maybeSingle:async()=>({data:existing,error:null})})}),insert:row=>{created.push(row);return{select:()=>({single:async()=>({data:failed?null:{id:'new-person'},error:failed?{code:'23505'}:null})})};}})};
+const code=ts.transpileModule(fs.readFileSync('app/admin/people/create-actions.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+const exports={};vm.runInNewContext(code,{exports,FormData,crypto:{randomUUID:()=> 'unique-id'},require:name=>{
+ if(name==='@/lib/admin')return{adminClient:async()=>{if(!allowed)throw Error('Only admins can do this.');return db;}};
+ if(name==='@/lib/admin-activity')return{logAdminActivity:async()=>{}};
+ if(name==='@/lib/format')return{slugify:name=>name.toLowerCase().replace(/[^a-z0-9]+/g,'-')};
+ if(name==='@/lib/countries')return{ALL_COUNTRIES:{HT:'Haiti'}};
+ if(name==='@/lib/tmdb')return{tmdbEnabled:true,getPersonDetails:async()=>{imports++;return{bio:'Biography',photo_url:'https://example.invalid/photo',birth_year:1970};}};
+ if(name==='next/cache')return{revalidatePath:()=>{}};
+ if(name==='next/navigation')return{redirect:path=>{redirected=path;throw Error('REDIRECT');}};throw Error(name);
+}});
+const form=(fields={})=>{const f=new FormData();for(const[k,v]of Object.entries({name:'A Director',country:'HT',...fields}))f.set(k,v);return f;};
+for(const fields of [{name:''},{country:'XX'},{tmdb_id:'bad'},{tmdb_id:'0'}])assert.equal((await exports.createPerson(null,form(fields))).ok,false);assert.equal(created.length,0);
+allowed=false;assert.equal((await exports.createPerson(null,form())).ok,false);assert.equal(created.length,0);assert.equal(imports,0);allowed=true;
+await assert.rejects(exports.createPerson(null,form()),/REDIRECT/);assert.equal(created[0].in_directory,false);assert.equal(created[0].country,'HT');assert.equal(redirected,'/admin/people/new-person');
+created=[];await assert.rejects(exports.createPerson(null,form({tmdb_id:'42'})),/REDIRECT/);assert.equal(imports,1);assert.equal(created[0].tmdb_id,42);assert.equal(created[0].bio,'Biography');assert.equal(created[0].photo_url,'https://example.invalid/photo');
+existing={id:'existing-person'};created=[];await assert.rejects(exports.createPerson(null,form()),/REDIRECT/);assert.equal(created.length,0);assert.equal(redirected,'/admin/people/existing-person');
+existing=null;failed=true;assert.equal((await exports.createPerson(null,form())).ok,false);
+console.log('PASS: admin authorization, required fields, validated country/TMDB ID, hidden initial listing, optional import, duplicate avoidance and database errors for adding directors.');

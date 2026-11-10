@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import Icon from "@/components/Icon";
 import { useSearchParams } from "next/navigation";
 
 export type BulkOperation = "publish" | "draft" | "delete" | "feature" | "unfeature";
 
-export function useAdminSelection(key: "films" | "people") {
+function useSelectionState(key: "films" | "people") {
   const storageKey = `pheelm:admin-selection:${key}:v1`;
   const updated = useSearchParams().get("updated");
   const [selected, setSelected] = useState<string[]>([]);
@@ -39,6 +39,30 @@ export function useAdminSelection(key: "films" | "people") {
   return { selected, toggle, togglePage, clear: () => setSelected([]) };
 }
 
+type SelectionState = ReturnType<typeof useSelectionState>;
+const SelectionContext = createContext<{entity:"films"|"people";state:SelectionState}|null>(null);
+export function AdminSelectionProvider({entity,children}:{entity:"films"|"people";children:ReactNode}) {
+  const state=useSelectionState(entity);
+  return <SelectionContext.Provider value={{entity,state}}>{children}</SelectionContext.Provider>;
+}
+export function useAdminSelection(entity:"films"|"people") {
+  const value=useContext(SelectionContext);
+  if(!value||value.entity!==entity)throw new Error("Selection controls must be inside their catalog provider.");
+  return value.state;
+}
+
+export function AdminSelectionTools({entity,ids,canDelete,action}:{entity:"films"|"people";ids:string[];canDelete:boolean;action:(form:FormData)=>void|Promise<void>}) {
+  const {selected,togglePage,clear}=useAdminSelection(entity);
+  const all=ids.length>0&&ids.every(id=>selected.includes(id));
+  const some=ids.some(id=>selected.includes(id));
+  return <section className="admin-filter-selection" aria-label="Manage selection">
+    <h3>Selection</h3>
+    <label className="check"><input type="checkbox" checked={all} disabled={!ids.length} ref={node=>{if(node)node.indeterminate=some&&!all;}} onChange={event=>togglePage(ids,event.target.checked)}/>Select displayed</label>
+    {!selected.length&&<p className="muted">Select individual cards or all displayed items to manage them.</p>}
+    <form action={action}><AdminSelectionBar selected={selected} onClear={clear} entity={entity} canDelete={canDelete} hasFeatured={entity==="films"}/></form>
+  </section>;
+}
+
 /** Contextual bulk actions are shown only after items have been selected. */
 export function AdminSelectionBar({ selected, onClear, entity, canDelete, hasFeatured = false }: {
   selected: string[]; onClear: () => void; entity: "films" | "people";
@@ -68,7 +92,7 @@ export function AdminSelectionBar({ selected, onClear, entity, canDelete, hasFea
         {canDelete && <button className="button ghost small danger-text" type="button" onClick={() => ask("delete")}><Icon name="close" />Delete</button>}
       </div>
       <dialog ref={dialog} className="modal" aria-label={label} onClick={(e) => { if (e.target === dialog.current) dialog.current?.close(); }}>
-        <div className="modal-head"><h2>{label} {selected.length} {noun}?</h2><button type="button" className="icon-button" aria-label="Cancel" onClick={() => dialog.current?.close()}><Icon name="close" /></button></div>
+        <div className="modal-head"><h2>{label} {selected.length} {noun}?</h2><button type="button" className="icon-button" aria-label="Close confirmation" onClick={() => dialog.current?.close()}><Icon name="close" /></button></div>
         <div className="modal-body">
           {operation === "delete" ? (
             <p className="notice error">{entity === "films" ? "This permanently deletes the selected films and their related records. It cannot be undone." : "This permanently deletes the selected people. People with film credits cannot be deleted in bulk; remove those credits first. This cannot be undone."}</p>

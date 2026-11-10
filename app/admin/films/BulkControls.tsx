@@ -3,7 +3,7 @@
 import FilmCard from "@/components/FilmCard";
 import { TYPE_LABELS } from "@/lib/format";
 import type { FilmType } from "@/lib/types";
-import { AdminSelectionBar, useAdminSelection } from "../AdminSelectionBar";
+import { useAdminSelection } from "../AdminSelectionBar";
 
 export type AdminFilmRow = {
   id: string; slug: string; title: string; year: number; type: string; status: string;
@@ -12,21 +12,11 @@ export type AdminFilmRow = {
 };
 
 export default function BulkControls({ films, canDelete }: { films: AdminFilmRow[]; canDelete: boolean }) {
-  const { selected, toggle, togglePage, clear } = useAdminSelection("films");
-  const ids = films.map((film) => film.id);
-  const allSelected = ids.length > 0 && ids.every((id) => selected.includes(id));
-  const someSelected = ids.some((id) => selected.includes(id));
+  const { selected, toggle } = useAdminSelection("films");
+
 
   return (
     <div className="admin-managed-list">
-      <div className="admin-select-line">
-        <label className="check">
-          <input type="checkbox" checked={allSelected} ref={(node) => { if (node) node.indeterminate = someSelected && !allSelected; }} onChange={(event) => togglePage(ids, event.target.checked)} />
-          Select displayed
-        </label>
-        <span className="muted">Choose films to manage</span>
-      </div>
-      <AdminSelectionBar selected={selected} onClear={clear} entity="films" canDelete={canDelete} hasFeatured />
       <ul className="film-grid admin-film-grid">
         {films.map((film) => (
           <FilmCard key={film.id} href={`/admin/films/${film.id}`} film={{

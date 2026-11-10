@@ -3010,3 +3010,27 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
  align-items: center;
  transform: none;
 }
+
+/* Catalog management starts with one compact search / add / filter row. */
+.admin-directors { display: grid; gap: var(--space-24); min-width: 0; }
+:root:root .admin-catalog-tools .catalog-toolbar { display: grid; grid-template-columns: minmax(0, 1fr) var(--bar-height) var(--bar-height); align-items: center; gap: var(--space-8); flex-wrap: nowrap; }
+.admin-catalog-tools .catalog-search-control { width: 100%; min-width: 0; }
+:root:root .admin-catalog-tools .catalog-toolbar :is(.admin-add-control, .filter-button) { width: var(--bar-height); min-width: var(--bar-height); height: var(--bar-height); padding: 0; border-radius: 50%; }
+.admin-catalog-tools .filter-button .badge { position: absolute; top: -2px; right: -2px; }
+.admin-catalog-tools .filter-button { position: relative; }
+.admin-filter-content, .admin-add-content { display: grid; gap: var(--space-24); min-width: 0; }
+.admin-filter-content .admin-filter-form { display: grid; gap: var(--space-16); overflow: visible; }
+.admin-filter-content .catalog-active-filters { flex-wrap: wrap; overflow: visible; }
+.admin-filter-selection { display: grid; gap: var(--space-12); padding-top: var(--space-16); border-top: 1px solid var(--line); }
+.admin-filter-selection .admin-selection-panel { margin: 0; }
+.admin-add-content .admin-toolbox-body { padding: 0; }
+.admin-add-content :is(.form, .fieldset) { min-width: 0; max-width: 100%; }
+.admin-add-content .form-row { grid-template-columns: minmax(0, 1fr); }
+.admin-add-content .fieldset { padding: 0; border: 0; background: none; }
+
+.admin-filter-selection .admin-selection-panel { display: grid; gap: var(--space-16); min-width: 0; }
+.admin-filter-selection .admin-selection-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-8); }
+.admin-filter-selection .admin-selection-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr)); gap: var(--space-8); }
+.admin-filter-selection .admin-selection-actions .button { width: 100%; }
+.admin-filter-links > .button { flex: 1 1 140px; }
+.admin-filter-links > p { flex: 1 1 100%; }

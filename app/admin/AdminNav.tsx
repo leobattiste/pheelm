@@ -67,7 +67,7 @@ export default function AdminNav() {
           );
         })}
       </nav>
-      {activeGroup?.children && (
+      {activeGroup?.children && path !== "/admin/films" && (
         <nav ref={secondary} className="admin-subtabs" aria-label={activeGroup.label + " pages"}>
           {activeGroup.children.map((child) => {
             const active = matches(path, child.href);

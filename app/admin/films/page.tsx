@@ -1,6 +1,7 @@
 import Link from "next/link";
 import AdminBrowserToolbar from "../AdminBrowserToolbar";
-import AdminViewControls from "../AdminViewControls";
+import AdminAddPanel from "../AdminAddPanel";
+import { AdminSelectionProvider, AdminSelectionTools } from "../AdminSelectionBar";
 import { requireAdmin } from "@/lib/admin";
 import { countryName } from "@/lib/format";
 import { createFilm } from "../actions";
@@ -91,38 +92,12 @@ export default async function AdminFilms({ searchParams }: { searchParams: Promi
   const shown = films?.length ?? 0;
 
   return (
-    <section className="admin-films">
-      <div className="admin-head">
-        <div><h2 className="admin-section-heading">Films</h2><p className="muted">Manage the catalog, publication status and credits.</p></div>
-        <div className="actions"><Link className="button ghost small" href="/admin/quality">Content quality</Link><Link className="button ghost small" href="/admin/automation">Automation</Link></div>
-      </div>
+    <AdminSelectionProvider key="films" entity="films"><section className="admin-films">
       {!!sp.updated && <p className="notice ok" role="status">{sp.updated} films updated.</p>}
       {sp.error === "selection" && <p className="notice error">Select at least one film first.</p>}
-      <AdminBrowserToolbar action="/admin/films" query={q} pageSize={size} placeholder="Search films" filters={[
-        { name: "status", label: "Publication status", value: status, options: [{ value: "", label: "All films" }, { value: "published", label: "Published" }, { value: "draft", label: "Draft" }] },
-        { name: "type", label: "Film type", value: type, options: [{ value: "", label: "All types" }, { value: "feature", label: "Feature" }, { value: "documentary", label: "Documentary" }, { value: "short", label: "Short" }, { value: "animation", label: "Animation" }] },
-        { name: "decade", label: "Decade", value: decade?.toString() ?? "", options: [{ value: "", label: "All decades" }, ...decades.map((d) => ({ value: String(d), label: `${d}s` }))] },
-        { name: "country", label: "Country", value: country, options: [{ value: "", label: "All countries" }, ...countries.map((code) => ({ value: code, label: countryName(code) }))] },
-        { name: "genre", label: "Genre", value: genre, options: [{ value: "", label: "All genres" }, ...genres.map((value) => ({ value, label: value }))] },
-        { name: "featured", label: "Featured", value: featured, options: [{ value: "", label: "All" }, { value: "yes", label: "Featured" }, { value: "no", label: "Not featured" }] },
-        { name: "missing", label: "Incomplete records", value: missing, options: [{ value: "", label: "Any" }, { value: "poster", label: "Missing poster" }, { value: "synopsis", label: "Missing synopsis" }] },
-        { name: "sort", label: "Sort by", value: sort, options: [{ value: "newest", label: "Newest releases" }, { value: "oldest", label: "Oldest releases" }, { value: "title", label: "Title A–Z" }, { value: "recent", label: "Recently updated" }] },
-      ]} />
-      <AdminViewControls count={count ?? 0} shown={shown} size={size} noun="films" />
-      {error ? <p className="notice error">Could not load films. Try again.</p> : (
-        <form action={bulkFilmChange}>
-          <BulkControls films={(films ?? []) as unknown as AdminFilmRow[]} canDelete={owner} />
-        </form>
-      )}
-      {!shown && !error && <p className="empty">No films match your filters.</p>}
-      {size !== "all" && <div className="actions admin-pagination">
-        {page > 1 && <Link className="button ghost small" href={href(page - 1)}>Previous</Link>}
-        <span className="muted">Page {page} of {Math.max(1, Math.ceil((count ?? 0) / perPage))}</span>
-        {page * perPage < (count ?? 0) && <Link className="button ghost small" href={href(page + 1)}>Next</Link>}
-      </div>}
-      <details className="admin-toolbox">
-        <summary className="button ghost small">Add or import films</summary>
-        <div className="admin-toolbox-body">
+      <AdminBrowserToolbar action="/admin/films" query={q} pageSize={size} placeholder="Search films" compact count={count ?? 0} noun="films"
+        addControl={<AdminAddPanel label="Add or import films">
+          <div className="admin-toolbox-body">
           <form action={createFilm} className="fieldset form">
             <h2>Add a film</h2>
             <div className="form-row">
@@ -136,7 +111,29 @@ export default async function AdminFilms({ searchParams }: { searchParams: Promi
           {page === 1 && !q && <FilmQueue items={waiting} />}
           <BulkAdd collections={collectionsResult.data ?? []} />
         </div>
-      </details>
-    </section>
+        </AdminAddPanel>}
+        panelTools={<><Link className="button ghost" href="/admin/quality">Content quality</Link><Link className="button ghost" href="/admin/automation">Automation</Link></>}
+        selectionControls={<AdminSelectionTools entity="films" ids={(films ?? []).map(film => film.id)} canDelete={owner} action={bulkFilmChange}/>}
+        filters={[
+        { name: "status", label: "Publication status", value: status, options: [{ value: "", label: "All films" }, { value: "published", label: "Published" }, { value: "draft", label: "Draft" }] },
+        { name: "type", label: "Film type", value: type, options: [{ value: "", label: "All types" }, { value: "feature", label: "Feature" }, { value: "documentary", label: "Documentary" }, { value: "short", label: "Short" }, { value: "animation", label: "Animation" }] },
+        { name: "decade", label: "Decade", value: decade?.toString() ?? "", options: [{ value: "", label: "All decades" }, ...decades.map((d) => ({ value: String(d), label: `${d}s` }))] },
+        { name: "country", label: "Country", value: country, options: [{ value: "", label: "All countries" }, ...countries.map((code) => ({ value: code, label: countryName(code) }))] },
+        { name: "genre", label: "Genre", value: genre, options: [{ value: "", label: "All genres" }, ...genres.map((value) => ({ value, label: value }))] },
+        { name: "featured", label: "Featured", value: featured, options: [{ value: "", label: "All" }, { value: "yes", label: "Featured" }, { value: "no", label: "Not featured" }] },
+        { name: "missing", label: "Incomplete records", value: missing, options: [{ value: "", label: "Any" }, { value: "poster", label: "Missing poster" }, { value: "synopsis", label: "Missing synopsis" }] },
+        { name: "sort", label: "Sort by", value: sort, options: [{ value: "newest", label: "Newest releases" }, { value: "oldest", label: "Oldest releases" }, { value: "title", label: "Title A–Z" }, { value: "recent", label: "Recently updated" }] },
+      ]} />
+      {error ? <p className="notice error">Could not load films. Try again.</p> : (
+        <BulkControls films={(films ?? []) as unknown as AdminFilmRow[]} canDelete={owner} />
+      )}
+      {!shown && !error && <p className="empty">No films match your filters.</p>}
+      {size !== "all" && <div className="actions admin-pagination">
+        {page > 1 && <Link className="button ghost small" href={href(page - 1)}>Previous</Link>}
+        <span className="muted">Page {page} of {Math.max(1, Math.ceil((count ?? 0) / perPage))}</span>
+        {page * perPage < (count ?? 0) && <Link className="button ghost small" href={href(page + 1)}>Next</Link>}
+      </div>}
+
+    </section></AdminSelectionProvider>
   );
 }

@@ -3,7 +3,7 @@
 import DirectorCard from "@/components/DirectorCard";
 import { countryName } from "@/lib/format";
 import type { DirectorSummary } from "@/lib/types";
-import { AdminSelectionBar, useAdminSelection } from "../AdminSelectionBar";
+import { useAdminSelection } from "../AdminSelectionBar";
 
 export type AdminPersonRow = {
   id: string; slug: string; name: string; country: string | null; bio: string | null;
@@ -13,21 +13,11 @@ export type AdminPersonRow = {
 };
 
 export default function PeopleBulkControls({ people, canDelete }: { people: AdminPersonRow[]; canDelete: boolean }) {
-  const { selected, toggle, togglePage, clear } = useAdminSelection("people");
-  const ids = people.map((person) => person.id);
-  const allSelected = ids.length > 0 && ids.every((id) => selected.includes(id));
-  const someSelected = ids.some((id) => selected.includes(id));
+  const { selected, toggle } = useAdminSelection("people");
+
 
   return (
     <div className="admin-managed-list">
-      <div className="admin-select-line">
-        <label className="check">
-          <input type="checkbox" checked={allSelected} ref={(node) => { if (node) node.indeterminate = someSelected && !allSelected; }} onChange={(event) => togglePage(ids, event.target.checked)} />
-          Select displayed
-        </label>
-        <span className="muted">Choose people to manage</span>
-      </div>
-      <AdminSelectionBar selected={selected} onClear={clear} entity="people" canDelete={canDelete} />
       <ul className="director-grid admin-director-grid">
         {people.map((person) => {
           const directed = person.credits.filter((credit) => credit.role === "director").length;
