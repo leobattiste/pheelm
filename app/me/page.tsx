@@ -144,6 +144,7 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
           {
             id: "following",
             label: "Following",
+            icon: "users2",
             panel: (
               <>
                 {savedCollections.length > 0 ? (

@@ -1,3 +1,4 @@
+import { profileMetadata, profileStructuredData } from "@/lib/profile-seo";
 import ProfileAbout from "@/components/ProfileAbout";
 import UserAvatar from "@/components/UserAvatar";
 import Icon from "@/components/Icon";
@@ -33,10 +34,7 @@ function handleOf(segment: string) {
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const handle = handleOf((await params).member);
   const found = handle ? await getMember(handle) : null;
-  if (!found) return {};
-  if (found.member.is_private) return { title: `@${found.member.handle}`, robots: { index: false } };
-  const name = found.member.display_name || `@${found.member.handle}`;
-  return { title: `${name} (@${found.member.handle})`, description: `Collections of films by Black directors, made by ${name} on Pheelm.` };
+  return profileMetadata(found?.member ?? null);
 }
 
 /**
@@ -106,6 +104,7 @@ export default async function MemberPage({ params }: Params) {
 
   return (
     <section className="page member-page">
+      {!member.is_private && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(profileStructuredData(member)).replace(/</g, "\\u003c") }} />}
       <header className="person-head">
         {(own || !member.is_private) && (
           <MoreMenu corner label="Profile actions">
@@ -142,12 +141,12 @@ export default async function MemberPage({ params }: Params) {
           {
             id: "following",
             label: "Following",
-            icon: "clapper",
+            icon: "users2",
             panel: !showsFollowing ? <p className="muted">Following is private.</p> : following.length ? (
               <ul className="director-grid">{following.map((d) => <DirectorCard key={d.id} director={toDirectorSummary(d)} />)}</ul>
             ) : (
               <div className="empty-state">
-                <Icon name="clapper" className="empty-icon" />
+                <Icon name="users2" className="empty-icon" />
                 <p>Not following any directors yet.</p>
                 {own && (
                   <>

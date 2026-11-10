@@ -8,6 +8,7 @@ import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseEnabled } from "@/lib/supabase
  */
 const OPEN = /^\/(login|auth|email|feedback|legal|privacy|terms|contact|about|partnerships|donate|newsletter|offline)(\/|$)/;
 // Share images stay open, so links to films and collections still preview in messages and posts.
+const MEMBER_PAGE = /^\/(?:@|%40)[a-z0-9_]{3,24}\/?$/i;
 const SHARE_IMAGE = /\/(opengraph-image|twitter-image)(-\w+)?$/;
 // Session work only where it's needed: account pages and authenticated endpoints.
 const SESSION = /^\/(me|account|c|submit|admin|auth|api|notifications|profile)(\/|$)/;
@@ -21,7 +22,7 @@ export async function proxy(request: NextRequest) {
   const hasSession = request.cookies.getAll().some((c) => /^sb-.*-auth-token(\.0)?$/.test(c.name));
 
   if (!hasSession) {
-    if (home || OPEN.test(path) || SHARE_IMAGE.test(path)) return response;
+    if (home || OPEN.test(path) || MEMBER_PAGE.test(path) || SHARE_IMAGE.test(path)) return response;
     const to = request.nextUrl.clone();
     to.pathname = "/";
     to.search = `?join=1&next=${encodeURIComponent(path + request.nextUrl.search)}`;

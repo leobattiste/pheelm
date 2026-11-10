@@ -19,7 +19,7 @@ export default function ProfilePhotoField({ photo, name, disabled }: { photo: st
       <div className="profile-photo-controls">
         <span className="profile-photo-label">Profile photo</span>
         <div className="profile-photo-actions">
-          <button type="button" className="round-button profile-photo-action" disabled={disabled} onClick={() => input.current?.click()} aria-controls={id} aria-label={src ? "Change profile photo" : "Choose profile photo"} title={src ? "Change profile photo" : "Choose profile photo"}><Icon name="camera" /></button>
+          <button type="button" className="round-button profile-photo-action" disabled={disabled} onClick={() => input.current?.click()} aria-controls={id} aria-label={src ? "Change profile photo" : "Choose profile photo"} title={src ? "Change profile photo" : "Choose profile photo"}><Icon name="editPhoto" /></button>
           <input ref={input} id={id} type="file" className="visually-hidden" tabIndex={-1} aria-label="Profile photo file" name="avatar_file" accept="image/jpeg,image/png,image/webp" disabled={disabled} aria-describedby={error ? `${id}-error` : undefined} aria-invalid={!!error} onChange={(e) => {
             const file = e.target.files?.[0];
             if (!file) return;

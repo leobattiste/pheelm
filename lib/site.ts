@@ -11,7 +11,7 @@ export const PAGE_COPY = {
   home: "Discover films, explore directors, and learn more about Black cinema around the world.",
   films: "Explore films by Black directors across countries, genres, and years.",
   directors: "Discover Black directors, their backgrounds, and their work.",
-  collections: "Explore curated selections of films based on themes, genres, and more.",
+  collections: "Explore watchlists shared by the Pheelm community.",
   about: "Learn more about Pheelm and why we created the platform.",
   submit: "Suggest a film you think we should feature on Pheelm.",
   submitOwn: "Own a film or represent its rights holder? Share the details for its film page. We review submissions before publication. Include the information you want on the film page.",

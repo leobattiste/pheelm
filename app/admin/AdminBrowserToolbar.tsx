@@ -69,7 +69,7 @@ export default function AdminBrowserToolbar({ action, query = "", placeholder, f
           {pageSize !== "40" && <input type="hidden" name="limit" value={pageSize} />}
           <div className="modal-body">
             {filters.map((filter) => <label className="field filter-field" key={filter.name}>{filter.label}
-              <select name={filter.name} defaultValue={filter.value} key={filter.name + ":" + filter.value}>
+              <select aria-label={filter.label} className={filter.name === "sort" ? "primary-select" : undefined} name={filter.name} defaultValue={filter.value} key={filter.name + ":" + filter.value}>
                 {filter.options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
               </select>
             </label>)}

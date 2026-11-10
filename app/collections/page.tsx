@@ -8,7 +8,7 @@ import { getCommunityCollections, SORTS, type Sort } from "@/lib/community";
 import { getFilm } from "@/lib/data";
 import { getServerClient } from "@/lib/supabase/server";
 
-export const metadata: Metadata = { title: "Collections", description: PAGE_COPY.collections, alternates: { canonical: "/collections" } };
+export const metadata: Metadata = { title: "Watchlists", description: PAGE_COPY.collections, alternates: { canonical: "/collections" } };
 
 const FEEDS: Feed[] = ["all", "featured", "following"];
 
@@ -38,9 +38,9 @@ export default async function CollectionsPage({ searchParams }: { searchParams: 
   return (
     <section className="page">
       <header className="page-head intro-head">
-        <h1>Collections</h1>
+        <h1>Watchlists</h1>
         <p className="lead">
-          {film ? <>Collections with <Link href={`/films/${film.slug}`}>{film.title}</Link>. <Link href="/collections">See all</Link></> : PAGE_COPY.collections}
+          {film ? <>Watchlists with <Link href={`/films/${film.slug}`}>{film.title}</Link>. <Link href="/collections">See all</Link></> : PAGE_COPY.collections}
         </p>
       </header>
 
@@ -53,13 +53,13 @@ export default async function CollectionsPage({ searchParams }: { searchParams: 
           <Icon name="stack" className="empty-icon" />
           {feed === "following" ? (
             <>
-              <p>You don&rsquo;t follow any collections yet.</p>
+              <p>You don&rsquo;t follow any watchlists yet.</p>
               <p className="muted">Press Follow in a collection&rsquo;s menu to keep it here and hear when films are added.</p>
             </>
           ) : (
-            <p>No collections {film ? "with this film " : ""}yet.</p>
+            <p>No watchlists {film ? "with this film " : ""}yet.</p>
           )}
-          {feed !== "all" && <Link className="button ghost small" href={film ? `/collections?film=${film.slug}` : "/collections"}>See all collections</Link>}
+          {feed !== "all" && <Link className="button ghost small" href={film ? `/collections?film=${film.slug}` : "/collections"}>See all watchlists</Link>}
         </div>
       )}
     </section>

@@ -2358,7 +2358,7 @@ html[data-auth="in"][data-chrome="app"] .film-bar { inset: auto auto var(--float
 :root :is(.modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .film-card, .collection-tile, .admin-managed-card, .fieldset:not(:where(.admin .editor .fieldset, .admin-toolbox .fieldset)), .public-name, .person-head, :where(.ways li, .inbox li)) :is(.button, .pill-button, .round-button, .icon-button, .chip, .segmented button, .theme-toggle button):is([aria-pressed="true"], [aria-selected="true"], [aria-checked="true"]) { border-color: transparent; font-weight: 600; }
 :root :is(.modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .film-card, .collection-tile, .admin-managed-card, .fieldset:not(:where(.admin .editor .fieldset, .admin-toolbox .fieldset)), .public-name, .person-head, :where(.ways li, .inbox li)) :is(.button, .pill-button, .round-button, .icon-button, .chip, .segmented button, .theme-toggle button):focus-visible { box-shadow: var(--control-ring); }
 :root :is(.modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .film-card, .collection-tile, .admin-managed-card, .fieldset:not(:where(.admin .editor .fieldset, .admin-toolbox .fieldset)), .public-name, .person-head, :where(.ways li, .inbox li)) :is(.button.danger, .danger-text) { color: var(--error); border-color: var(--error); }
-:root :is(.modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .film-card, .collection-tile, .admin-managed-card, .fieldset:not(:where(.admin .editor .fieldset, .admin-toolbox .fieldset)), .public-name, .person-head, :where(.ways li, .inbox li)) :is(.field input:not([type="checkbox"]):not([type="radio"]):not([type="color"]), .field select, .field textarea, .search-input, .search-bar input, .save-new input, .newsletter-row input, .invite-combo input, .composer) {
+:root :is(.modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .film-card, .collection-tile, .admin-managed-card, .fieldset:not(:where(.admin .editor .fieldset, .admin-toolbox .fieldset)), .public-name, .person-head, :where(.ways li, .inbox li)) :where(.field input:not([type="checkbox"]):not([type="radio"]):not([type="color"]), .field select, .field textarea, .search-input, .search-bar input, .save-new input, .newsletter-row input, .invite-combo input, .composer) {
   background-color: transparent;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
@@ -2981,3 +2981,18 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 .watched-films-dialog[data-grid="list"] .film-card-meta { align-self: start; }
 .watched-films-dialog[data-grid="list"] .film-card-col { display: none; }
 .watched-films-dialog[data-grid="list"] .film-card-year { display: inline; }
+
+/* Primary actions keep their contrasting translucent material inside panels too. */
+:root:root .button:not(.ghost):not(.quiet):not(.danger):not(.danger-text),
+:root:root :is(.chip, .button):is([aria-selected="true"], [aria-pressed="true"], [aria-current="page"]),
+:root:root :is(.chip, .button):is([aria-selected="true"], [aria-pressed="true"], [aria-current="page"]):hover,
+:root:root .field select.primary-select {
+ background: color-mix(in srgb, var(--ink) 90%, transparent);
+ color: var(--on-ink);
+ border: 1px solid transparent;
+ -webkit-backdrop-filter: var(--glass-filter);
+ backdrop-filter: var(--glass-filter);
+}
+:root:root .field select.primary-select option { background: var(--bg); color: var(--text); }
+:root:root .watched-films-dialog .film-card > a { text-decoration: none; }
+:root:root .director-card .portrait { border-radius: 8px; }

@@ -33,7 +33,7 @@ export default function CollectionsToolbar({ signedIn, feed, sort }: { signedIn:
 
   return (
     <div className="toolbar collections-toolbar">
-      <div className="feed-tabs" role="group" aria-label="Collections to show">
+      <div className="feed-tabs" role="group" aria-label="Watchlists to show">
         {FEEDS.map((o) => (
           <button
             key={o.value}
@@ -45,11 +45,12 @@ export default function CollectionsToolbar({ signedIn, feed, sort }: { signedIn:
               go({ feed: o.value });
             }}
           >
+            {o.value === "following" && <Icon name="users2" />}
             {o.label}
           </button>
         ))}
       </div>
-      <button type="button" className="button ghost filter-button" aria-haspopup="dialog" onClick={() => sheet.current?.showModal()}>
+      <button type="button" className="button filter-button" aria-haspopup="dialog" onClick={() => sheet.current?.showModal()}>
         <Icon name="sort" />
         <span className="filter-label">{SORTS.find(([v]) => v === sort)?.[1] ?? "Sort"}</span>
       </button>

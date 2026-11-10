@@ -177,3 +177,15 @@ export async function collectionIdForLegacySlug(slug: string) {
   const { data } = await db.from("lists").select("id").eq("legacy_slug", slug).maybeSingle();
   return (data as { id: string } | null)?.id ?? null;
 }
+
+/** Anonymous reads include only profiles whose owners have made them public. */
+export async function getPublicProfileHandles():Promise<string[]> {
+ const db=anon();if(!db)return [];
+ const handles:string[]=[];
+ for(let from=0;;from+=1000){
+  const {data,error}=await db.from('member_profiles').select('handle').eq('is_private',false).order('handle').range(from,from+999);
+  if(error)return [];
+  for(const row of data??[])if(/^[a-z0-9_]{3,24}$/.test(row.handle))handles.push(row.handle);
+  if(!data || data.length<1000)return handles;
+ }
+}

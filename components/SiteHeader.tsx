@@ -11,8 +11,8 @@ import SignInSheet, { openSignIn } from "./SignInSheet";
 
 const MAIN: { href: string; label: string; icon: IconName }[] = [
   { href: "/films", label: "Films", icon: "film" },
-  { href: "/collections", label: "Collections", icon: "stack" },
-  { href: "/directors", label: "Directors", icon: "clapper" },
+  { href: "/collections", label: "Watchlists", icon: "stack" },
+  { href: "/directors", label: "Directors", icon: "users2" },
 ];
 
 export default function SiteHeader() {

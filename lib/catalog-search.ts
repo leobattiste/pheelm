@@ -37,8 +37,8 @@ export const SEARCH_KEYS = ['q', 'sort', 'country', 'decade', 'language', 'genre
 export type SearchKey = typeof SEARCH_KEYS[number];
 export type SearchState = Partial<Record<SearchKey, string>>;
 export type SearchMode = 'films' | 'directors';
-export const FILM_FILTERS: SearchKey[] = ['country', 'decade', 'year', 'language', 'genre', 'type', 'minRuntime', 'maxRuntime', 'award', 'festival', 'provider', 'region', 'access'];
-export const DIRECTOR_FILTERS: SearchKey[] = ['country', 'type', 'from', 'to', 'min'];
+export const FILM_FILTERS: SearchKey[] = ['country', 'decade', 'year', 'language', 'genre', 'type', 'provider', 'access'];
+export const DIRECTOR_FILTERS: SearchKey[] = ['country', 'type'];
 export const TYPE_LABELS: Record<string, string> = { feature: 'Feature', documentary: 'Documentary', short: 'Short', animation: 'Animation' };
 export const SORTS: Record<SearchMode, [
     string,
@@ -248,6 +248,8 @@ export function interpretQuery(input: string, mode: SearchMode, facets: SearchFa
             filters.to = String(parsed.year);
         }
     }
+    const allowed = mode === 'films' ? FILM_FILTERS : DIRECTOR_FILTERS;
+    if (Object.keys(filters).some(k => !allowed.includes(k as SearchKey))) return null;
     if (!Object.keys(filters).length || parsed.women)
         return null;
     // Unsupported phrases remain literal rather than being silently discarded.

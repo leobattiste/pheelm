@@ -112,8 +112,8 @@ export default function Search() {
       },
       { id: "watchlist", label: "Go to my watchlist", hint: "All and your collections", icon: "bookmark", words: "watchlist saved my films account collections", run: () => navigate("/me") },
       { id: "films", label: "Browse all films", hint: "Filter by decade, country, genre", icon: "film", words: "films browse all filter", run: () => navigate("/films") },
-      { id: "directors", label: "Browse directors", hint: "By country and era, or on a map", icon: "clapper", words: "directors map country", run: () => navigate("/directors") },
-      { id: "collections", label: "Browse collections", hint: "Movements, themes and more", icon: "stack", words: "collections movements themes", run: () => navigate("/collections") },
+      { id: "directors", label: "Browse directors", hint: "By country and film type", icon: "users2", words: "directors map country", run: () => navigate("/directors") },
+      { id: "collections", label: "Browse watchlists", hint: "Movements, themes and more", icon: "stack", words: "collections movements themes", run: () => navigate("/collections") },
       {
         id: "theme", label: "Switch light or dark mode", hint: "Theme", icon: "moon",
         words: "theme dark light mode appearance",
@@ -325,7 +325,7 @@ function HitRow({ hit }: { hit: Hit }) {
     case "browse":
       return (
         <>
-          <HitIcon name={hit.item.id === "directors" ? "clapper" : hit.item.id === "women" ? "stack" : "filter"} />
+          <HitIcon name={hit.item.id === "directors" ? "users2" : hit.item.id === "women" ? "stack" : "filter"} />
           <span className="hit-text">
             <span className="hit-title">{hit.item.label}</span>
             <span className="hit-meta">{hit.item.hint}</span>
