@@ -37,3 +37,12 @@ const state=cleanState(new URLSearchParams('q=Dust&maxRuntime=100&sort=invalid&y
 assert.equal(spellingCorrection(index,'zzzzzzzzzz'),null);
 assert.equal(searchEntries(index,{q:'Us'},'films')[0].entry.title,'Us','short literal titles stay searchable');
 console.log('PASS: ranking, titles, accents, typos, cast/crew, coherent filters, natural phrases, filmography and shareable state');
+
+const shuffleIndex=indexEntries(Array.from({length:100},(_,i)=>entry({id:String(i),title:`Film ${i}`,years:[1900+i]})));
+const ids=(state,seed)=>searchEntries(shuffleIndex,state,'films',seed).map(r=>r.entry.id).join(',');
+assert.equal(ids({},123),ids({},123),'a visit keeps its order');
+assert.notEqual(ids({},123),ids({},456),'a different visit changes the order');
+assert.equal(new Set(ids({},123).split(',')).size,100,'shuffle includes every film exactly once');
+for(const sort of ['title','newest','oldest','awards','relevance'])assert.equal(ids({sort},123),ids({sort},456),'explicit non-shuffle sorts ignore the seed');
+assert.equal(ids({q:'Film 2'},123),ids({q:'Film 2'},456),'default search relevance is not shuffled');
+console.log('PASS: seeded film shuffle is stable, complete, changes per visit, and preserves search/explicit sorting.');

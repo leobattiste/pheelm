@@ -14,6 +14,7 @@ type HistoryItem = {
     state: SearchState;
 };
 const PAGE = 24;
+let documentVisitId: string | undefined;
 function SearchField({ mode, value, onChange, results, history, onClearHistory, onHistory, onSubmit, onVisit, proposal }: {
     mode: SearchMode;
     value: string;
@@ -99,12 +100,41 @@ function Browser({ entries, mode }: {
     const params = useSearchParams().toString();
     const [state, setState] = useState<SearchState>(() => cleanState(new URLSearchParams(params), mode));
     const [shown, setShown] = useState(PAGE);
+    const [shuffleSeed, setShuffleSeed] = useState(0);
+    const [visitReady, setVisitReady] = useState(false);
     const [history, setHistory] = useState<HistoryItem[]>([]);
     const [filtersOpen, setFiltersOpen] = useState(false);
     const modal = useRef<HTMLDialogElement>(null);
     const inputId = useId();
     const historyKey = 'pheelm:catalog-search:' + mode + ':v1';
     useEffect(() => { setState(cleanState(new URLSearchParams(params), mode)); setShown(PAGE); }, [params, mode]);
+    useEffect(() => {
+        if (mode !== 'films') { setVisitReady(true); return; }
+        documentVisitId ??= crypto.randomUUID();
+        const saved = window.history.state?.pheelmFilmVisit;
+        const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+        const restore = saved && (saved.document === documentVisitId || navigation?.type === 'back_forward') && Number.isInteger(saved.seed);
+        const seed = restore ? saved.seed : crypto.getRandomValues(new Uint32Array(1))[0];
+        setShuffleSeed(seed);
+        if (restore && saved.query === window.location.search) {
+            setShown(Math.max(PAGE, Math.min(entries.length, Number(saved.shown) || PAGE)));
+            const frame = requestAnimationFrame(() => window.scrollTo(0, Number(saved.scroll) || 0));
+            setVisitReady(true);
+            return () => cancelAnimationFrame(frame);
+        }
+        setVisitReady(true);
+    }, [mode, entries.length]);
+    const saveVisit = () => {
+        if (mode !== 'films' || !visitReady || window.location.pathname !== '/films') return;
+        window.history.replaceState({ ...window.history.state, pheelmFilmVisit: {
+            document: documentVisitId, seed: shuffleSeed, shown, scroll: window.scrollY, query: window.location.search,
+        } }, '', window.location.href);
+    };
+    useEffect(() => { saveVisit(); }, [shuffleSeed, shown, visitReady]);
+    useEffect(() => {
+        window.addEventListener('pagehide', saveVisit);
+        return () => window.removeEventListener('pagehide', saveVisit);
+    }, [shuffleSeed, shown, visitReady, mode]);
     useEffect(() => { try {
         const saved: unknown = JSON.parse(localStorage.getItem(historyKey) ?? '[]');
         if (Array.isArray(saved))
@@ -116,12 +146,12 @@ function Browser({ entries, mode }: {
     const facets = useMemo(() => buildFacets(entries), [entries]);
     const index = useMemo(() => indexEntries(entries), [entries]);
     const deferred = useDeferredValue(state);
-    const rows = useMemo(() => searchEntries(index, deferred, mode), [index, deferred, mode]);
+    const rows = useMemo(() => searchEntries(index, deferred, mode, shuffleSeed), [index, deferred, mode, shuffleSeed]);
     const results = rows.map(r => r.entry);
     const filters = mode === 'films' ? FILM_FILTERS : DIRECTOR_FILTERS;
     const active = filters.filter(k => state[k]);
     const proposal = useMemo(() => state.q && !index.some(i => relevance(i, state.q!) >= 900) ? interpretQuery(state.q, mode, facets) : null, [state.q, index, mode, facets]);
-    const commit = (s: SearchState) => { const next = cleanState(new URLSearchParams(stateQuery(s)), mode); setState(next); setShown(PAGE); const q = stateQuery(next); window.history.replaceState(null, '', window.location.pathname + (q ? '?' + q : '')); };
+    const commit = (s: SearchState) => { const next = cleanState(new URLSearchParams(stateQuery(s)), mode); setState(next); setShown(PAGE); const q = stateQuery(next); window.history.replaceState(window.history.state, '', window.location.pathname + (q ? '?' + q : '')); };
     const set = (key: SearchKey, value: string) => commit({ ...state, [key]: value || undefined });
     const remember = (s: SearchState) => { if (!s.q && !filters.some(k => s[k]))
         return; const label = [s.q, ...filters.filter(k => s[k]).map(k => filterLabel(k, s[k]!))].filter(Boolean).join(' · ').slice(0, 200); const next = [{ label, state: s }, ...history.filter(h => stateQuery(h.state) !== stateQuery(s))].slice(0, 8); setHistory(next); try {
@@ -155,10 +185,10 @@ function Browser({ entries, mode }: {
     const titles: Partial<Record<SearchKey, string>> = { country: 'Country', decade: 'Decade', year: 'Release year', language: 'Language', genre: 'Genre', type: 'Film type', minRuntime: 'Minimum runtime (minutes)', maxRuntime: 'Maximum runtime (minutes)', award: 'Awards', festival: 'Award or festival', provider: 'Where to watch', region: 'Viewing region', access: 'Viewing option', from: 'Films from year', to: 'Films through year', min: 'Films in the directory' };
     const countFor = (key: SearchKey, value: string) => matchingIndex.filter(i => matchesFilters(i.entry, { ...state, [key]: value }, mode)).length;
     const boundsInvalid = !!((state.minRuntime && state.maxRuntime && +state.minRuntime > +state.maxRuntime) || (state.from && state.to && +state.from > +state.to));
-    return <div className="browser catalog-browser" aria-busy={state !== deferred} onClickCapture={e => { if ((e.target as Element).closest(".film-grid a, .director-grid a"))
-        remember(state); }}>
+    return <div className="browser catalog-browser" data-shuffle-ready={visitReady} aria-busy={state !== deferred} onClickCapture={e => { if ((e.target as Element).closest(".film-grid a, .director-grid a"))
+        { saveVisit(); remember(state); } }}>
   <div className="toolbar catalog-toolbar">
-   <SearchField mode={mode} value={state.q ?? ''} onChange={q => set('q', q)} results={results} history={history} onClearHistory={clearHistory} onHistory={s => { commit(s); remember(s); }} onSubmit={submit} onVisit={() => remember(state)} proposal={proposal}/>
+   <SearchField mode={mode} value={state.q ?? ''} onChange={q => set('q', q)} results={results} history={history} onClearHistory={clearHistory} onHistory={s => { commit(s); remember(s); }} onSubmit={submit} onVisit={() => { saveVisit(); remember(state); }} proposal={proposal}/>
    <button type="button" className={"button ghost filter-button" + (active.length ? " has-count" : "")} aria-haspopup="dialog" onClick={() => { setFiltersOpen(true); modal.current?.showModal(); }}><Icon name="filter"/><span className="filter-label">Filters</span>{active.length > 0 && <span className="badge" aria-label={active.length + " active filters"}>{active.length}</span>}</button>
   </div>
   {active.length > 0 && <ul className="chip-list catalog-active-filters" aria-label="Active filters">{active.map(k => <li key={k}><button type="button" className="chip" aria-label={'Remove ' + filterLabel(k, state[k]!)} onClick={() => set(k, '')}>{filterLabel(k, state[k]!)}<Icon name="close" className="x"/></button></li>)}</ul>}

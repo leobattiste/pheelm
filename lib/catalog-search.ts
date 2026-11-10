@@ -1,3 +1,4 @@
+import { filmShuffleRank } from "./film-shuffle";
 import { plain, matchScore, distance } from './fuzzy';
 import { parseQuery } from './query';
 import { countryName } from './format';
@@ -157,15 +158,14 @@ export function relevance(index: IndexedEntry, query: string) {
     const score = matchScore(q, index.all);
     return score === 2 ? 350 : score === 1 ? 200 : 0;
 }
-const hash = (s: string) => [...s].reduce((h, c) => (Math.imul(h, 31) + c.charCodeAt(0)) | 0, 0);
-export function searchEntries(index: IndexedEntry[], state: SearchState, mode: SearchMode) {
+export function searchEntries(index: IndexedEntry[], state: SearchState, mode: SearchMode, shuffleSeed = 0) {
     const q = state.q ?? '';
     const sort = state.sort ?? (q ? 'relevance' : mode === 'films' ? 'shuffle' : 'films');
     return index.filter(i => matchesFilters(i.entry, state, mode)).map(i => ({ entry: i.entry, score: relevance(i, q) })).filter(r => r.score > 0).sort((a, b) => {
         if (sort === 'relevance' && q && a.score !== b.score)
             return b.score - a.score;
         if (sort === 'shuffle')
-            return hash(a.entry.id) - hash(b.entry.id);
+            return filmShuffleRank(a.entry.id, shuffleSeed) - filmShuffleRank(b.entry.id, shuffleSeed) || a.entry.id.localeCompare(b.entry.id);
         if (sort === 'newest' || sort === 'latest')
             return Math.max(...b.entry.years) - Math.max(...a.entry.years) || a.entry.title.localeCompare(b.entry.title);
         if (sort === 'oldest' || sort === 'earliest')
