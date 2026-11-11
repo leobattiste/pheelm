@@ -1861,10 +1861,8 @@ a.person-row-name:hover { text-decoration: underline; text-underline-offset: 0.2
 .your-suggestions h2 { font-size: var(--t-xl); margin-bottom: var(--space-16); }
 
 /* Menu and Settings: the Grid and Theme switches are the same width, their options sharing it equally. */
-.menu-setting { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-12); }
 :is(.menu-setting, .setting-row) :is(.segmented, .theme-toggle) { width: 156px; }
 :is(.menu-setting, .setting-row) :is(.segmented, .theme-toggle) button { flex: 1; width: auto; min-width: 0; padding: 0; }
-.menu-setting .grid-toggle { width: auto; flex: none; }
 
 /* Add to Home Screen banner (phones only), floating above the bottom edge and any film bar. */
 .install-banner {
