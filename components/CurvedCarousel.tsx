@@ -24,6 +24,8 @@ export type CurvedLensCarouselProps = {
   label?: React.ReactNode
   /** Accessible name of the carousel. */
   ariaLabel?: string
+  /** Only the cards: no title, counter or buttons. */
+  bare?: boolean
   /** How hard the lens bends the outer cards. 0 is flat. */
   bend?: number
   /** Stage colour behind the cards. */
@@ -216,6 +218,7 @@ export default function CurvedLensCarousel({
   slides,
   label,
   ariaLabel,
+  bare,
   bend = 0.55,
   background = "transparent",
   ink = "#f3ede4",
@@ -475,6 +478,10 @@ export default function CurvedLensCarousel({
           <b>{label}</b>
         </div>
       ) : null}
+      {bare ? (
+        <span className="clc-sr" aria-live="polite">{slide.title}</span>
+      ) : (
+        <>
       <Copy key={index} slide={slide} shown={shown} />
       <div className="clc-ctl">
         <span className="clc-count">
@@ -492,6 +499,8 @@ export default function CurvedLensCarousel({
           </button>
         </div>
       </div>
+        </>
+      )}
     </div>
   )
 }

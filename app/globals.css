@@ -3089,3 +3089,10 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 .home-carousel .clc-title { font-size: clamp(36px, 5.2vw, 72px); }
 .home-carousel .clc-copy { bottom: clamp(20px, 3vw, 36px); }
 @media (max-width: 640px) { .home-carousel .clc-copy { bottom: 88px; } }
+
+/* Home page sections: headings, text and buttons are centred. */
+.home-lead .statement-body, .early-gate .statement-body, .statement.is-cta .statement-body, .faq .statement-body { justify-items: center; text-align: center; }
+.statement .actions { justify-content: center; }
+.statement p { margin-inline: auto; max-width: 60ch; }
+.faq-body { margin-inline: auto; }
+.faq h2 { text-align: center; }
