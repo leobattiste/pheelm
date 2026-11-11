@@ -3102,19 +3102,17 @@ html:has(.early-gate) { scroll-snap-type: y proximity; }
 .faq-list { display: grid; gap: var(--space-12); }
 .faq-card, .cta-card {
   padding: var(--space-16) var(--space-20);
-  border: 1px solid var(--control-border-strong);
+  border: 1px solid var(--line);
   border-radius: var(--r);
-  background: transparent;
-  transition: background-color 0.2s;
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-filter); backdrop-filter: var(--glass-filter);
 }
-.faq-card:hover { background: var(--control-hover); }
 .faq-card summary { display: flex; align-items: center; justify-content: space-between; gap: var(--space-16); cursor: pointer; list-style: none; font-weight: 600; }
 .faq-card summary::-webkit-details-marker { display: none; }
-.faq-card .slate { flex: none; }
-.slate-arm { transform-box: view-box; transform-origin: 3.5px 7px; transition: transform 0.3s var(--ease); }
-.faq-card[open] .slate-arm { transform: rotate(-24deg); }
+.faq-card .slate { flex: none; display: grid; }
+.slate > * { grid-area: 1 / 1; }
+.slate-open { display: none; }
+.faq-card[open] .slate-closed { display: none; }
+.faq-card[open] .slate-open { display: block; }
 .faq-card p { margin-top: var(--space-12); color: var(--muted); max-width: 64ch; }
-@media (prefers-reduced-motion: reduce) { .slate-arm { transition: none; } }
-.statement.is-cta .cta-card { max-width: 760px; width: 100%; margin-inline: auto; padding: var(--space-40) var(--space-24); }
-/* Visitors keep the header (Sign in) in reach while they scroll the home page. */
-html:not([data-auth="in"]) body:has(.early-gate) .site-header { position: sticky; top: 0; }
+@media (prefers-reduced-motion: reduce) { .statement.is-cta .cta-card { max-width: 760px; width: 100%; margin-inline: auto; padding: var(--space-40) var(--space-24); }

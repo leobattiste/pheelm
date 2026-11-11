@@ -4,6 +4,7 @@ import CommunityTile from "@/components/CommunityTile";
 import DirectorCard from "@/components/DirectorCard";
 import EarlyAccessButton, { EarlyAccessGate } from "@/components/EarlyAccessButton";
 import CurvedCarousel from "@/components/CurvedCarousel";
+import Icon from "@/components/Icon";
 import Row from "@/components/Row";
 import { getCommunityCollections } from "@/lib/community";
 import { getDirectors, getFilms, toCard, toDirectorSummary } from "@/lib/data";
@@ -134,13 +135,10 @@ export default async function Home() {
               <details key={q} name="faq" className="faq-card">
                 <summary>
                   <span>{q}</span>
-                  <svg className="slate" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round" aria-hidden="true">
-                    <path d="M3.5 10.5h17V19a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 19z" />
-                    <g className="slate-arm">
-                      <path d="M3.5 10.5V7.8a1 1 0 0 1 1-1h15a1 1 0 0 1 1 1v2.7z" />
-                      <path d="M8 6.8l2.2 3.7M13 6.8l2.2 3.7" />
-                    </g>
-                  </svg>
+                  <span className="slate" aria-hidden="true">
+                    <Icon name="clapperboard" className="slate-closed" />
+                    <Icon name="clapper" className="slate-open" />
+                  </span>
                 </summary>
                 <p>{a}</p>
               </details>
