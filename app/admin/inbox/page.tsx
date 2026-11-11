@@ -1,3 +1,4 @@
+import { safeInternalPath } from "@/lib/safe-navigation";
 import Link from "next/link";
 import EmailReply from "./EmailReply";
 import Icon from "@/components/Icon";
@@ -41,7 +42,9 @@ export default async function AdminInbox({ searchParams }: { searchParams: Promi
                     <span className="status-pill">{TOPICS[m.topic] ?? m.topic}</span>
                     <span className="muted">{new Date(m.created_at).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}</span>
                   </div>
-                  {m.page && <p className="inbox-about">About <Link href={m.page}>{m.page_title || m.page}</Link></p>}
+                  {m.page && (safeInternalPath(m.page)
+                    ? <p className="inbox-about">About <Link href={m.page}>{m.page_title || m.page}</Link></p>
+                    : <p className="inbox-about">About {m.page_title || "a page"} <span className="muted">(link removed: not a Pheelm page)</span></p>)}
                   <p className="inbox-body">{m.body}</p>
                   <EmailReply messageId={m.id} />
                   <div className="actions">

@@ -113,7 +113,7 @@ export default async function MemberCollectionPage({ params, searchParams }: Par
       {jsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />}
       <Breadcrumbs parent="Watchlists" href="/watchlists" current={list.title} currentHref={watchlistPath(list)} />
       <header className="page-head has-corner">
-        <MoreMenu corner label="Collection actions">
+        <MoreMenu corner label="Watchlist actions">
           {canEdit && (
             <CollectionEditor
               list={{ ...list, comments_enabled: list.comments_enabled ?? true }}
@@ -151,7 +151,7 @@ export default async function MemberCollectionPage({ params, searchParams }: Par
             </a>
           )}
           {list.is_public && <ShareButton item title={list.title} url={`${SITE_URL}${watchlistPath(list)}`} />}
-          {list.is_public && <FeedbackLink about={watchlistPath(list)} label={`Collection: ${list.title}`} />}
+          {list.is_public && <FeedbackLink about={watchlistPath(list)} label={`Watchlist: ${list.title}`} />}
           {canFeature && <FeatureCollection listId={list.id} featured={featured} />}
           {!canEdit && list.is_public && <ReportCollection listId={list.id} />}
         </MoreMenu>
@@ -202,7 +202,7 @@ export default async function MemberCollectionPage({ params, searchParams }: Par
       ) : (
         <div className="empty-state">
           <Icon name="film" className="empty-icon" />
-          <p>This collection is empty for now.</p>
+          <p>This watchlist is empty for now.</p>
           {canEdit && <p className="muted">On any film, press <strong>Watchlist</strong> and tick &ldquo;{list.title}&rdquo; to add it here.</p>}
         </div>
       )}
@@ -220,7 +220,7 @@ export default async function MemberCollectionPage({ params, searchParams }: Par
       )}
       {!canEdit && !viewer && (
         <div className="collection-foot">
-          <p className="label">Make collections of your own: <Link href="/me">sign in and start saving films</Link>.</p>
+          <p className="label">Make watchlists of your own: <Link href="/me">sign in and start saving films</Link>.</p>
         </div>
       )}
     </section>

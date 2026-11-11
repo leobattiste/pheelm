@@ -9,7 +9,7 @@ export const HELP_CATEGORIES: HelpCategory[] = [
       {
         "id": "getting-started-1",
         "question": "What is Pheelm?",
-        "answer": "Pheelm is a platform for discovering films directed or co-directed by Black filmmakers from around the world. Explore films, filmmakers, and collections in one place.",
+        "answer": "Pheelm is a platform for discovering films directed or co-directed by Black filmmakers from around the world. Explore films, filmmakers, and watchlists in one place.",
         "href": "/about"
       },
       {
@@ -27,19 +27,19 @@ export const HELP_CATEGORIES: HelpCategory[] = [
       {
         "id": "getting-started-4",
         "question": "Why do I need an account?",
-        "answer": "An account lets you save films, follow directors and collections, create your own collections, comment and suggest films. Some discovery pages may also require an account during early access.",
+        "answer": "An account lets you save films, follow directors and watchlists, create your own watchlists, comment and suggest films. Some discovery pages may also require an account during early access.",
         "href": "/login"
       },
       {
         "id": "getting-started-5",
         "question": "How do I get started?",
-        "answer": "Sign in with your email, explore Films or Directors, save something to your Watchlist, then browse Collections made by the community.",
+        "answer": "Sign in with your email, explore Films or Directors, save something to your Watchlist, then browse Watchlists made by the community.",
         "href": "/films"
       },
       {
         "id": "getting-started-6",
         "question": "How do I find my way around Pheelm?",
-        "answer": "The main sections are Films, Collections and Directors. Open the menu for Watchlist, Notifications, Settings, About, Help and support links.",
+        "answer": "The main sections are Films, Watchlists and Directors. Open the menu for Watchlist, Notifications, Settings, About, Help and support links.",
         "href": "/films"
       },
       {
@@ -224,121 +224,121 @@ export const HELP_CATEGORIES: HelpCategory[] = [
       },
       {
         "id": "watchlist-and-watched-8",
-        "question": "Can I put a film in a collection too?",
-        "answer": "Yes. Watchlist and collections serve different purposes. Collection controls let you organise films into themed lists.",
+        "question": "Can I put a film in a watchlist too?",
+        "answer": "Yes. Your Watchlist holds everything you save; watchlists are themed lists you make from it. When you press Watchlist on a film, tick any of your watchlists to add the film there too.",
         "href": "/me"
       }
     ]
   },
   {
     "id": "collections",
-    "title": "Collections",
+    "title": "Watchlists",
     "questions": [
       {
         "id": "collections-1",
-        "question": "What are collections?",
-        "answer": "Collections are lists of films grouped by a theme, filmmaker, place, movement or any idea. They can be made by Pheelm or community members.",
+        "question": "What are watchlists?",
+        "answer": "Watchlists are lists of films grouped by a theme, filmmaker, place, movement or any idea. They can be made by Pheelm or community members.",
         "href": "/watchlists"
       },
       {
         "id": "collections-2",
-        "question": "How do I browse collections?",
-        "answer": "Open Collections. Switch between All, Featured and Following, and use Sort to change the order.",
+        "question": "How do I browse watchlists?",
+        "answer": "Open Watchlists. Switch between All, Featured and Following, and use Sort to change the order.",
         "href": "/watchlists"
       },
       {
         "id": "collections-3",
         "question": "What does Featured mean?",
-        "answer": "Featured highlights collections selected by Pheelm.",
+        "answer": "Featured highlights watchlists selected by Pheelm.",
         "href": "/watchlists?feed=featured"
       },
       {
         "id": "collections-4",
-        "question": "How do I create a collection?",
-        "answer": "Sign in, open Watchlist, choose By you, enter a name under New collection and select Create.",
+        "question": "How do I create a watchlist?",
+        "answer": "Sign in, press Watchlist on any film, type a name under New watchlist and select Create. The film is added to it straight away; open the watchlist from your profile to add a description or change who can see it.",
         "href": "/me"
       },
       {
         "id": "collections-5",
-        "question": "How do I add films to a collection?",
-        "answer": "Use the Watchlist or collection controls on a film page, or the available add-film controls within a collection you can edit.",
+        "question": "How do I add films to a watchlist?",
+        "answer": "Use the Watchlist or watchlist controls on a film page, or the available add-film controls within a watchlist you can edit.",
         "href": "/films"
       },
       {
         "id": "collections-6",
-        "question": "How do I edit a collection?",
-        "answer": "Open a collection you own and select Edit to change its title, description, visibility or comment settings.",
+        "question": "How do I edit a watchlist?",
+        "answer": "Open a watchlist you own and select Edit to change its title, description, visibility or comment settings.",
         "href": "/me"
       },
       {
         "id": "collections-7",
-        "question": "Can collections have long descriptions?",
-        "answer": "Yes. Collection descriptions can include longer text; additional paragraphs may appear behind Read more.",
+        "question": "Can watchlists have long descriptions?",
+        "answer": "Yes. Watchlist descriptions can include longer text; additional paragraphs may appear behind Read more.",
         "href": "/me"
       },
       {
         "id": "collections-8",
-        "question": "How do I make a collection private?",
-        "answer": "Open your collection, select Edit, and turn off Public. Private collections are visible to you and any co-curators.",
+        "question": "How do I make a watchlist private?",
+        "answer": "Open your watchlist, select Edit, and turn off Public. Private watchlists are visible to you and any co-curators.",
         "href": "/me"
       },
       {
         "id": "collections-9",
-        "question": "Can I turn comments off on a collection?",
-        "answer": "Yes. Open Edit on a collection you own and turn off Allow comments. Existing comments remain visible, but new comments are disabled.",
+        "question": "Can I turn comments off on a watchlist?",
+        "answer": "Yes. Open Edit on a watchlist you own and turn off Allow comments. Existing comments remain visible, but new comments are disabled.",
         "href": "/me"
       },
       {
         "id": "collections-10",
-        "question": "How do I delete a collection?",
-        "answer": "Open a collection you own, select Edit and then Delete collection. Confirm when prompted. Deletion also removes its comments.",
+        "question": "How do I delete a watchlist?",
+        "answer": "Open a watchlist you own, select Edit and then Delete watchlist. Confirm when prompted. Deletion also removes its comments.",
         "href": "/me"
       },
       {
         "id": "collections-11",
-        "question": "How do I follow a collection?",
-        "answer": "Open a public collection and choose Follow. You can find followed collections under Watchlist → Following.",
+        "question": "How do I follow a watchlist?",
+        "answer": "Open a public watchlist and choose Follow. You can find followed watchlists under Watchlist → Following.",
         "href": "/watchlists"
       },
       {
         "id": "collections-12",
-        "question": "How do I stop following a collection?",
-        "answer": "Open the collection and change its Follow state. It will no longer appear under your followed collections.",
+        "question": "How do I stop following a watchlist?",
+        "answer": "Open the watchlist and change its Follow state. It will no longer appear under your followed watchlists.",
         "href": "/watchlists"
       },
       {
         "id": "collections-13",
-        "question": "How do I share a collection?",
-        "answer": "Open the collection and use its share action or copy the page URL.",
+        "question": "How do I share a watchlist?",
+        "answer": "Open the watchlist and use its share action or copy the page URL.",
         "href": "/watchlists"
       },
       {
         "id": "collections-14",
-        "question": "How do I collaborate on a collection?",
-        "answer": "Where collaboration is enabled, the owner can invite or manage co-curators through the collection’s collaboration controls. Access depends on the invitation and your role.",
+        "question": "How do I collaborate on a watchlist?",
+        "answer": "Where collaboration is enabled, the owner can invite or manage co-curators through the watchlist’s collaboration controls. Access depends on the invitation and your role.",
         "href": "/me"
       },
       {
         "id": "collections-15",
         "question": "What can co-curators change?",
-        "answer": "Co-curators can help maintain an invited collection, but owner-only controls such as its visibility and deletion remain with the owner.",
+        "answer": "Co-curators can help maintain an invited watchlist, but owner-only controls such as its visibility and deletion remain with the owner.",
         "href": "/me"
       },
       {
         "id": "collections-16",
-        "question": "How do I comment on a collection?",
-        "answer": "Open a collection with comments enabled and use the comment area. You may need to sign in.",
+        "question": "How do I comment on a watchlist?",
+        "answer": "Open a watchlist with comments enabled and use the comment area. You may need to sign in.",
         "href": "/watchlists"
       },
       {
         "id": "collections-17",
-        "question": "Can I report a collection or comment?",
+        "question": "Can I report a watchlist or comment?",
         "answer": "Yes. Use its Report action where available, or send feedback with the page URL and details of the issue.",
         "href": "/feedback"
       },
       {
         "id": "collections-18",
-        "question": "Why can’t I see a collection?",
+        "question": "Why can’t I see a watchlist?",
         "answer": "It may be private, deleted, or unavailable to your account. Ask its owner for access if you were invited.",
         "href": "/watchlists"
       }
@@ -393,13 +393,13 @@ export const HELP_CATEGORIES: HelpCategory[] = [
       {
         "id": "directors-and-community-8",
         "question": "How do I interact with other members?",
-        "answer": "You can explore members’ public collections, follow collections, and comment when comments are enabled.",
+        "answer": "You can explore members’ public watchlists, follow watchlists, and comment when comments are enabled.",
         "href": "/watchlists"
       },
       {
         "id": "directors-and-community-9",
         "question": "How do I report abusive behaviour?",
-        "answer": "Use Report on the relevant comment or collection. For other concerns, send feedback with a link and explanation.",
+        "answer": "Use Report on the relevant comment or watchlist. For other concerns, send feedback with a link and explanation.",
         "href": "/feedback"
       },
       {
@@ -411,7 +411,7 @@ export const HELP_CATEGORIES: HelpCategory[] = [
       {
         "id": "directors-and-community-11",
         "question": "What happens if I block someone?",
-        "answer": "Blocked members cannot comment on your collections, co-curate with you or notify you; you also stop seeing their comments.",
+        "answer": "Blocked members cannot comment on your watchlists, co-curate with you or notify you; you also stop seeing their comments.",
         "href": "/account#privacy"
       },
       {

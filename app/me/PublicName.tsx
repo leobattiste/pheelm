@@ -28,7 +28,7 @@ export default function PublicName({ handle, displayName, avatarUrl = null, bio 
       <label className="field">
         Name
         <input name="display_name" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} placeholder="Your name" autoComplete="name" />
-        <span className="hint">Shown on your profile, your collections and your comments.</span>
+        <span className="hint">Shown on your profile, your watchlists and your comments.</span>
       </label>
       <label className="field">
         Handle

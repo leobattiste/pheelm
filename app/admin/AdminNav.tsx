@@ -24,7 +24,7 @@ const groups: {
   { label: "Editorial", href: "/admin/editorial", icon: "pencil", routes: ["/admin/editorial"] },
   { label: "Community", href: "/admin/community", icon: "comment", routes: ["/admin/community", "/admin/submissions"],
     children: [
-      { label: "Collections & reports", href: "/admin/community", icon: "stack" },
+      { label: "Watchlists & reports", href: "/admin/community", icon: "stack" },
       { label: "Submissions", href: "/admin/submissions", icon: "flag" },
     ] },
   { label: "Members", href: "/admin/members", icon: "user", routes: ["/admin/members"] },

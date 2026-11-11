@@ -62,7 +62,7 @@ export default function Welcome({ next, userId, handle, name, people, films, ava
         <div className="welcome-step">
           <header className="page-head">
             <h1>Welcome to Pheelm.</h1>
-            <p className="lead">Choose a name and a handle. They&rsquo;re shown on your profile, your collections and your comments.</p>
+            <p className="lead">Choose a name and a handle. They&rsquo;re shown on your profile, your watchlists and your comments.</p>
           </header>
           <form action={action} className="form welcome-form">
             <ProfilePhotoField photo={avatarUrl ?? null} name={name || handle || "You"} disabled={pending} />
@@ -119,7 +119,7 @@ export default function Welcome({ next, userId, handle, name, people, films, ava
         <div className="welcome-step">
           <header className="page-head">
             <h1>Start your Watchlist.</h1>
-            <p className="lead">Tap the films you want to see. You can sort them into collections later.</p>
+            <p className="lead">Tap the films you want to see. You can sort them into watchlists later.</p>
           </header>
           <ul className="welcome-films">
             {films.map((f) => {

@@ -107,7 +107,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
             <section className="footer-follow" aria-labelledby="footer-follow">
               <h2 id="footer-follow">Get the newsletter</h2>
-              <p>New films and collections, once a month at most.</p>
+              <p>New films and watchlists, once a month at most.</p>
               <NewsletterForm />
               {(INSTAGRAM_URL || THREADS_URL) && (
                 <ul className="footer-social" aria-label="Follow Pheelm">
@@ -144,18 +144,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/contact">Contact</Link>
               <Link className="member-only" href="/submit">Suggest a film</Link>
             </nav>
-            <nav aria-labelledby="footer-you">
+            <nav className="member-only" aria-labelledby="footer-you">
               <h2 id="footer-you">You</h2>
               <Link className="member-only" href="/me">Watchlist</Link>
               <Link className="member-only" href="/profile">Profile</Link>
               <Link className="member-only" href="/account">Settings</Link>
-              <Link href="/newsletter">Newsletter</Link>
               {INSTAGRAM_URL && <a className="footer-social-link platform-link" aria-label="Pheelm on Instagram" title="Instagram" href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer"><Icon name="instagram" /></a>}
               {THREADS_URL && <a className="footer-social-link platform-link" aria-label="Pheelm on Threads" title="Threads" href={THREADS_URL} target="_blank" rel="noopener noreferrer"><Icon name="threads" /></a>}
             </nav>
             <nav aria-labelledby="footer-legal">
               <h2 id="footer-legal">Legal</h2>
-              <Link href="/legal">Legal</Link>
+              <a href="/legal#privacy">Privacy</a>
+              <a href="/legal#terms">Terms</a>
+              <a href="/legal#copyright">Copyright</a>
+              <a href="/legal#community-guidelines">Community guidelines</a>
             </nav>
           </div>
           <div className="footer-bottom">

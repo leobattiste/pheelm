@@ -567,7 +567,7 @@ main { width: 100%; }
 }
 
 .film-card { min-width: 0; }
-.film-card a { display: grid; min-width: 0; gap: var(--space-2); }
+.film-card a, .film-card .card-plain { display: grid; min-width: 0; gap: var(--space-2); }
 .film-card .poster { margin-bottom: var(--space-12); transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease); }
 .film-card a:hover .poster { transform: translateY(-3px); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06), var(--shadow); }
 /* A poster with a measured colour casts a glow of that colour on hover. */
@@ -1810,7 +1810,7 @@ a.person-row-name:hover { text-decoration: underline; text-underline-offset: 0.2
   transform: perspective(1100px) rotateY(var(--rx, 0deg)) rotateX(var(--ry, 0deg)) scale(var(--lift, 1));
   transition: transform 0.6s var(--ease), box-shadow 0.6s var(--ease), filter 0.4s var(--ease);
 }
-.row.is-interactive .film-card a:hover .poster { transform: perspective(1100px) rotateY(var(--rx, 0deg)) rotateX(var(--ry, 0deg)) scale(var(--lift, 1)); }
+.row.is-interactive .film-card :is(a, .card-plain):hover .poster { transform: perspective(1100px) rotateY(var(--rx, 0deg)) rotateX(var(--ry, 0deg)) scale(var(--lift, 1)); }
 .row.is-interactive .film-card.is-active .poster { transition-duration: 0.15s, 0.4s, 0.4s; box-shadow: var(--shadow); }
 .row.is-interactive .film-card .poster::after {
   content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none; opacity: 0;
@@ -2744,8 +2744,7 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 :root :is(.tabs, .profile-tabs, .admin-subtabs) { scrollbar-width: none; }
 :root :is(.tabs, .profile-tabs, .admin-subtabs)::-webkit-scrollbar { display: none; }
 :root .menu-account .menu-logout, :root .menu-account .menu-logout .icon { color: var(--text); }
-.menu-site .menu-links a, .menu-site .menu-legal, .footer-bottom > p,
-.footer-links a:is([href="/about"], [href="/partnerships"], [href="/contact"], [href="/legal"]) { font-size: 12px; }
+.menu-site .menu-links a, .menu-site .menu-legal, .footer-bottom > p { font-size: 12px; }
 .enquiry-page .contact-form { width: 100%; }
 .suggestion-page > .submission-tabs { max-width: 100%; margin-bottom: var(--space-24); }
 .submission-tabs a { gap: var(--space-8); flex: none; }
@@ -3053,3 +3052,66 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 /* Crawlable catalog pages use in-flow links, separate from floating Load more controls. */
 .catalog-page-navigation { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:10px; max-width:100%; margin:var(--space-32) auto 0; }
 .catalog-page-navigation .button { white-space:nowrap; }
+
+/* Keyboard focus is always visible: a ring around whatever has focus (WCAG 2.4.7). Taps never show
+   it (data-focus-input="touch", above), mouse clicks don't trigger :focus-visible, and fields keep
+   their own focus style. */
+:root:not([data-focus-input="touch"]) :focus-visible:not(input):not(textarea):not(select):not(:where(main, div, section, header, h1, h2)[tabindex="-1"]) {
+  outline: 2px solid var(--ink) !important;
+  outline-offset: 2px !important;
+}
+
+/* Cast and crew: names and roles wrap instead of being cut off ("Barry Jen…"), up to two lines each. */
+:root .cast :is(.cast-name, .cast-role) {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2;
+  overflow: hidden; white-space: normal; text-overflow: clip; overflow-wrap: break-word; line-height: 1.3;
+}
+:root .cast .cast-text { min-width: 0; }
+/* Two columns leave names under 100px wide on phones, so they stack in one there. */
+@media (max-width: 559px) { :root .cast { grid-template-columns: minmax(0, 1fr); } }
+
+
+/* The hero carousel fills what the hero text leaves of the first screen. */
+.home-lead > .home-carousel { position: relative; flex: 1; min-height: 420px; }
+.home-carousel .clc-root { position: absolute; inset: 0; height: 100% !important; }
+.home-carousel .clc-title { font-size: clamp(36px, 5.2vw, 72px); }
+.home-carousel .clc-copy { bottom: clamp(20px, 3vw, 36px); }
+@media (max-width: 640px) { .home-carousel .clc-copy { bottom: 88px; } }
+
+/* Home page sections: headings, text and buttons are centred. */
+.home-lead .statement-body, .early-gate .statement-body, .statement.is-cta .statement-body, .faq .statement-body { justify-items: center; text-align: center; }
+.statement .actions { justify-content: center; }
+.statement p { margin-inline: auto; max-width: 60ch; }
+.faq-body { margin-inline: auto; }
+.faq h2 { text-align: center; }
+
+/* Spacing: every home section sits the same distance from the one before; the hero gets the most room. */
+:root { --home-gap: clamp(96px, 13vw, 184px); }
+.home-block { padding-top: var(--home-gap); scroll-snap-align: center; }
+.home-block > .statement, .home-block > .faq { padding: 0 var(--gutter); }
+.home-block > .row { padding-top: var(--space-40); }
+.home-block:last-child { padding-bottom: var(--home-gap); }
+.statement.is-hero { padding-top: clamp(64px, 8vw, 120px); padding-bottom: clamp(32px, 4vw, 56px); }
+html:has(.early-gate) { scroll-snap-type: y proximity; }
+@media (prefers-reduced-motion: reduce) { html:has(.early-gate) { scroll-snap-type: none; } }
+
+/* Questions: one card each, styled like the director cards. Only one is open at a time; the slate opens with it. */
+.faq-body { display: grid; gap: var(--space-24); max-width: 760px; margin-inline: auto; }
+.faq h2 { font-size: var(--t-3xl); text-wrap: wrap; text-align: center; }
+.faq-list { display: grid; gap: var(--space-12); }
+.faq-card, .cta-card {
+  padding: var(--space-16) var(--space-20);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-filter); backdrop-filter: var(--glass-filter);
+}
+.faq-card summary { display: flex; align-items: center; justify-content: space-between; gap: var(--space-16); cursor: pointer; list-style: none; font-weight: 600; }
+.faq-card summary::-webkit-details-marker { display: none; }
+.faq-card .slate { flex: none; display: grid; }
+.slate > * { grid-area: 1 / 1; }
+.slate-open { display: none; }
+.faq-card[open] .slate-closed { display: none; }
+.faq-card[open] .slate-open { display: block; }
+.faq-card p { margin-top: var(--space-12); color: var(--muted); max-width: 64ch; }
+@media (prefers-reduced-motion: reduce) { .statement.is-cta .cta-card { max-width: 760px; width: 100%; margin-inline: auto; padding: calc(var(--space-40) * 3) var(--space-24); }

@@ -59,7 +59,7 @@ export default function WatchlistButton({ filmId, filmTitle, pickerOnly = false,
       db.from("lists").select("id, title, list_films(film_id)").eq("user_id", userId).order("created_at"),
       db.from("list_members").select("lists(id, title, list_films(film_id))").eq("user_id", userId).eq("status", "active"),
     ]);
-    if (own.error || shared.error) { setLists(null); setLoadFailed(true); setError("Your collections couldn't be loaded. Try again."); return; }
+    if (own.error || shared.error) { setLists(null); setLoadFailed(true); setError("Your watchlists couldn't be loaded. Try again."); return; }
     const toList = (l: Row, isShared: boolean): List => ({ id: l.id, title: l.title, count: l.list_films.length, has: l.list_films.some(f => f.film_id === filmId), shared: isShared });
     const sharedLists = ((shared.data ?? []) as unknown as { lists: Row | null }[]).map(r => r.lists).filter((l): l is Row => !!l);
     setLists([...(own.data ?? []).map((l: Row) => toList(l, false)), ...sharedLists.map(l => toList(l, true))]);
@@ -107,7 +107,7 @@ export default function WatchlistButton({ filmId, filmTitle, pickerOnly = false,
     if (!db || !title || busy) return;
     setBusy(true); setError("");
     const { error } = await db.rpc("save_film_to_collection", { fid: filmId, collection_title: title });
-    if (error) setError("The collection couldn't be created. Try again.");
+    if (error) setError("The watchlist couldn't be created. Try again.");
     else { mark(true); setNewTitle(""); await loadLists(); }
     setBusy(false);
   };
@@ -121,7 +121,7 @@ export default function WatchlistButton({ filmId, filmTitle, pickerOnly = false,
   );
   return (
     <>
-      {!pickerOnly && <button type="button" className="pill-button" data-action="watchlist" aria-pressed={status === "on"} aria-haspopup="dialog" onClick={open} aria-label={status === "on" ? "On your watchlist. Change collections" : "Add to watchlist"} title={status === "on" ? "Change collections" : "Add to watchlist"}>{status === "on" ? CHECK : PLUS}Watchlist</button>}
+      {!pickerOnly && <button type="button" className="pill-button" data-action="watchlist" aria-pressed={status === "on"} aria-haspopup="dialog" onClick={open} aria-label={status === "on" ? "On your watchlist. Change watchlists" : "Add to watchlist"} title={status === "on" ? "Change watchlists" : "Add to watchlist"}>{status === "on" ? CHECK : PLUS}Watchlist</button>}
       <dialog ref={sheet} className="modal save-sheet watchlist-picker" aria-labelledby={`${id}-title`} onClose={() => { if (changed.current) { router.refresh(); changed.current = false; } onClose?.(); }} onCancel={e => { if (busy) e.preventDefault(); }} onClick={e => { if (!busy && e.target === sheet.current) sheet.current?.close(); }}>
         <div className="modal-head">
           <span className="sheet-handle" aria-hidden="true" />
@@ -131,9 +131,9 @@ export default function WatchlistButton({ filmId, filmTitle, pickerOnly = false,
         <div className="modal-body" aria-busy={busy}>
           <ul className="save-lists">
             <li><button type="button" className="save-row" role="checkbox" aria-checked={status === "on"} disabled={busy} onClick={toggleAll}><span className={`save-check${status === "on" ? " is-on" : ""}`} aria-hidden="true">{status === "on" && CHECK}</span><span className="save-name">All</span><span className="save-count">Watchlist</span></button></li>
-            {lists === null ? <li className="save-note">{loadFailed ? <button type="button" className="link-button" onClick={() => { setError(""); void loadLists(); }}>Retry loading collections</button> : "Loading your collections…"}</li> : lists.map(l => <li key={l.id}><button type="button" className="save-row" role="checkbox" aria-checked={l.has} disabled={busy} onClick={() => void toggleList(l)}><span className={`save-check${l.has ? " is-on" : ""}`} aria-hidden="true">{l.has && CHECK}</span><span className="save-name">{l.title}{l.shared && <span className="tile-icon" title="Shared"><Icon name="users" label="Shared" /></span>}</span></button></li>)}
+            {lists === null ? <li className="save-note">{loadFailed ? <button type="button" className="link-button" onClick={() => { setError(""); void loadLists(); }}>Retry loading watchlists</button> : "Loading your watchlists…"}</li> : lists.map(l => <li key={l.id}><button type="button" className="save-row" role="checkbox" aria-checked={l.has} disabled={busy} onClick={() => void toggleList(l)}><span className={`save-check${l.has ? " is-on" : ""}`} aria-hidden="true">{l.has && CHECK}</span><span className="save-name">{l.title}{l.shared && <span className="tile-icon" title="Shared"><Icon name="users" label="Shared" /></span>}</span></button></li>)}
           </ul>
-          <form className="save-new" onSubmit={create}><label className="visually-hidden" htmlFor={`${id}-new`}>New collection name</label><input id={`${id}-new`} value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder="New collection, e.g. Date night" maxLength={80} disabled={busy} /><button className="button" type="submit" disabled={busy || !newTitle.trim()}>Create</button></form>
+          <form className="save-new" onSubmit={create}><label className="visually-hidden" htmlFor={`${id}-new`}>New watchlist name</label><input id={`${id}-new`} value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder="New watchlist, e.g. Date night" maxLength={80} disabled={busy} /><button className="button" type="submit" disabled={busy || !newTitle.trim()}>Create</button></form>
           {error && <p className="notice error" role="alert">{error}</p>}
         </div>
         <div className="modal-foot">{status === "on" && <button type="button" className="button ghost" onClick={toggleAll} disabled={busy}>Remove from watchlist</button>}<button type="button" className="button" onClick={() => sheet.current?.close()} disabled={busy}>Done</button></div>

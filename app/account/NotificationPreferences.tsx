@@ -4,13 +4,13 @@ import { useState } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
 
 const GROUPS = [
-  { title: "Films & collections", items: [
+  { title: "Films & watchlists", items: [
     ["new_film", "New films from directors you follow"],
-    ["collection_film", "Films added to collections you follow"],
-    ["featured", "Your collection is featured"],
+    ["collection_film", "Films added to watchlists you follow"],
+    ["featured", "Your watchlist is featured"],
   ] },
   { title: "Community activity", items: [
-    ["comment", "Comments on your collections"],
+    ["comment", "Comments on your watchlists"],
     ["reply", "Replies to your comments"],
     ["mention", "Mentions"],
   ] },
@@ -21,10 +21,10 @@ const GROUPS = [
     ["invite_declined", "Invitations declined"],
     ["request_accepted", "Requests accepted"],
     ["request_declined", "Requests declined"],
-    ["removed", "Removed from a collection"],
+    ["removed", "Removed from a watchlist"],
   ] },
   { title: "Administration", items: [
-    ["report", "Collection reports"],
+    ["report", "Watchlist reports"],
     ["comment_report", "Comment reports"],
     ["submission", "Film suggestions"],
     ["message", "Messages"],

@@ -30,7 +30,7 @@ language plpgsql security invoker set search_path = ''
 as $$
 begin
   if p_actor is null or p_field not in ('comment', 'bio', 'watchlist_description')
-     or p_text is null or char_length(p_text) > 10000 or btrim(p_text) = '' then
+     or p_text is null or char_length(p_text) > 10000 or btrim(p_text, E' \t\r\n') = '' then
     raise exception 'Invalid moderation approval request';
   end if;
   -- Prevent unused receipts from building up when a member abandons a draft.
@@ -63,25 +63,25 @@ begin
     if tg_op = 'UPDATE' then
       if new.body is not distinct from old.body then return new; end if;
     end if;
-    body_text := btrim(new.body);
+    body_text := new.body;
   elsif tg_table_name = 'profiles' then
     field_name := 'bio';
     if tg_op = 'UPDATE' then
       if new.bio is not distinct from old.bio then return new; end if;
     end if;
-    body_text := btrim(coalesce(new.bio, ''));
+    body_text := coalesce(new.bio, '');
   elsif tg_table_name = 'lists' then
     field_name := 'watchlist_description';
     if tg_op = 'UPDATE' then
       if new.description is not distinct from old.description then return new; end if;
     end if;
-    body_text := btrim(coalesce(new.description, ''));
+    body_text := coalesce(new.description, '');
   else
     raise exception 'Unknown moderation target';
   end if;
 
-  -- Clearing text is always permitted.
-  if body_text = '' then return new; end if;
+  -- Clearing text is always permitted. The receipt is for the exact text that will be stored.
+  if btrim(body_text, E' \t\r\n') = '' then return new; end if;
 
   select a.id into approval_id
   from private.moderation_approvals a

@@ -62,7 +62,7 @@ export async function moderateAndApprove(field: ModeratedField, rawText: string,
     if (BLOCK_CATEGORIES.some((category) => categories[category])) return { ok: false, message: REJECTED };
 
     const admin = createClient(SUPABASE_URL, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
-    const { error } = await admin.rpc("record_moderation_approval", { p_actor: actorId, p_field: field, p_text: text });
+    const { error } = await admin.rpc("record_moderation_approval", { p_actor: actorId, p_field: field, p_text: rawText });
     if (error) {
       console.error("Pheelm could not save a moderation receipt", error.code);
       return { ok: false, message: TEMPORARY_FAILURE };

@@ -31,7 +31,7 @@ export default function ReportCollection({ listId }: { listId: string }) {
       <dialog ref={sheet} className="modal" aria-labelledby="report-title" onClick={(e) => { if (e.target === sheet.current) sheet.current?.close(); }}>
         <div className="modal-head">
           <span className="sheet-handle" aria-hidden="true" />
-          <h2 id="report-title">Report this collection</h2>
+          <h2 id="report-title">Report this watchlist</h2>
           <button type="button" className="icon-button" onClick={() => sheet.current?.close()} aria-label="Close">
             <Icon name="close" />
           </button>

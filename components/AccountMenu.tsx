@@ -57,7 +57,7 @@ export default function AccountMenu({ onNavigate, children }: { onNavigate: () =
     return (
       <><nav className="menu-more menu-account" aria-label="Account">
         <button type="button" className="menu-more-button" onClick={() => { onNavigate(); openSignIn(); }}><Icon name="login" />Sign in</button>
-        <p className="menu-note">Save films, make collections and follow directors.</p>
+        <p className="menu-note">Save films, make watchlists and follow directors.</p>
       </nav>{children}</>
     );
   }

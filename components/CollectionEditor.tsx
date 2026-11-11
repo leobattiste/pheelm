@@ -27,7 +27,7 @@ export default function CollectionEditor({ list, isOwner, collaborators = 0 }: P
       <dialog ref={modal} className="modal" aria-labelledby={`edit-${list.id}`} onClick={(e) => { if (e.target === modal.current) close(); }} onClose={() => setConfirming(false)}>
         <div className="modal-head">
           <span className="sheet-handle" aria-hidden="true" />
-          <h2 id={`edit-${list.id}`}>Edit collection</h2>
+          <h2 id={`edit-${list.id}`}>Edit watchlist</h2>
           <button type="button" className="icon-button" onClick={close} aria-label="Close">
             <Icon name="close" />
           </button>
@@ -67,12 +67,12 @@ export default function CollectionEditor({ list, isOwner, collaborators = 0 }: P
                     <>
                       <p>Delete &ldquo;{list.title}&rdquo;{collaborators ? ` for you and ${collaborators} ${collaborators === 1 ? "co-curator" : "co-curators"}` : ""}? Its comments go too. The films stay in everyone&rsquo;s saved films.</p>
                       <div className="actions">
-                        <button className="button danger small" type="submit" formAction={deleteCollection} formNoValidate>Delete collection</button>
+                        <button className="button danger small" type="submit" formAction={deleteCollection} formNoValidate>Delete watchlist</button>
                         <button className="button ghost small" type="button" onClick={() => setConfirming(false)}>Keep it</button>
                       </div>
                     </>
                   ) : (
-                    <button className="button ghost small danger-text" type="button" onClick={() => setConfirming(true)}>Delete collection</button>
+                    <button className="button ghost small danger-text" type="button" onClick={() => setConfirming(true)}>Delete watchlist</button>
                   )}
                 </div>
               </>

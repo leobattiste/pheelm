@@ -10,12 +10,13 @@ import Poster from "./Poster";
 const BADGE_ICONS: Record<string, IconName> = { Private: "lock", Public: "globe", Shared: "users" };
 
 /** A collection: three posters, its title, then its curator and how many films ("@ada • 12 films"). */
-export default function CommunityTile({ c, showOwner = true, badge, filmCount, footer }: { c: CollectionTileData | CommunityCollection; showOwner?: boolean; badge?: string; filmCount?: number; footer?: ReactNode }) {
+export default function CommunityTile({ c, showOwner = true, badge, filmCount, footer, plain }: { c: CollectionTileData | CommunityCollection; showOwner?: boolean; badge?: string; filmCount?: number; footer?: ReactNode; plain?: boolean }) {
+  const Wrap = (plain ? "span" : Link) as React.ElementType;
   const count = `${filmCount ?? c.films.length} ${(filmCount ?? c.films.length) === 1 ? "film" : "films"}`;
   const meta = showOwner && c.owner ? `@${c.owner.handle} • ${count}` : count;
   return (
     <li className={footer ? "admin-managed-card" : undefined}>
-      <Link href={watchlistPath(c)} className="collection-tile" style={tintStyle(c.films.slice(0, 3).find((f) => f.color)?.color)}>
+      <Wrap {...(plain ? {} : { href: watchlistPath(c) })} className="collection-tile" style={tintStyle(c.films.slice(0, 3).find((f) => f.color)?.color)}>
         <span className="collection-fan" aria-hidden="true">
           {[0, 1, 2].map((i) => {
             const f = c.films[i];
@@ -35,7 +36,7 @@ export default function CommunityTile({ c, showOwner = true, badge, filmCount, f
           )}
         </span>
         <span className="collection-desc">{meta}</span>
-      </Link>
+      </Wrap>
       {footer}
     </li>
   );

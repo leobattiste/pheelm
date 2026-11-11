@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 import CommunityTile from "@/components/CommunityTile";
 import DirectorCard from "@/components/DirectorCard";
 import EarlyAccessButton, { EarlyAccessGate } from "@/components/EarlyAccessButton";
-import FilmCard from "@/components/FilmCard";
+import CurvedCarousel from "@/components/CurvedCarousel";
+import Icon from "@/components/Icon";
 import Row from "@/components/Row";
 import { getCommunityCollections } from "@/lib/community";
 import { getDirectors, getFilms, toCard, toDirectorSummary } from "@/lib/data";
@@ -13,14 +14,28 @@ import { SITE_URL } from "@/lib/supabase/config";
 export const revalidate = 300;
 export const metadata: Metadata = publicPageMetadata("/");
 
-const WEEK = 7 * 24 * 60 * 60 * 1000;
+const FAQS: [string, string][] = [
+  ["What is Pheelm?", "Pheelm is a platform to discover films by Black directors from around the world, explore the people behind them, and connect with other film enthusiasts."],
+  ["Why was Pheelm created?", "Black directors have made significant contributions to cinema, yet many of their films remain overlooked or difficult to discover. Pheelm aims to make their work more visible and accessible to audiences everywhere."],
+  ["What can I do on Pheelm?", "You can discover films, explore directors, save your favorites, create watchlists, and connect with a community of film enthusiasts."],
+  ["Is Pheelm a streaming service?", "No. Pheelm is a film discovery platform. We help you find and learn about films, but we don’t host or stream them."],
+  ["Is Pheelm free?", "Yes. Pheelm will be free to explore and use."],
+  ["What is early access?", "Early access gives you the opportunity to explore Pheelm before its public launch, try its features, and share feedback to help us improve the platform."],
+  ["When will Pheelm fully launch?", "We’re still working on Pheelm and don’t have an official public launch date yet."],
+  ["Who can join?", "Anyone interested in cinema is welcome. Whether you’re a casual viewer, a film enthusiast, or a filmmaker, Pheelm is for you."],
+  ["How can I support Pheelm?", "You can support us by joining the early access list, sharing Pheelm with others, and providing feedback as we build the platform."],
+];
 
-/** Rotate a list by a week-based offset, so rows change each week without being random per visit. */
-function rotate<T>(items: T[], week: number, step: number): T[] {
-  if (!items.length) return items;
-  const at = (week * step) % items.length;
-  return [...items.slice(at), ...items.slice(0, at)];
-}
+
+const ICONIC = [
+  "sinners", "moonlight", "get-out", "black-panther", "12-years-a-slave", "do-the-right-thing", "boyz-n-the-hood",
+  "daughters-of-the-dust", "selma", "malcolm-x", "us", "nope", "love-and-basketball", "fruitvale-station",
+];
+
+const FAMOUS = [
+  "spike-lee", "ryan-coogler", "jordan-peele", "barry-jenkins", "ava-duvernay", "steve-mcqueen", "john-singleton",
+  "julie-dash", "gina-prince-bythewood", "kasi-lemmons", "dee-rees", "ousmane-sembene", "melvin-van-peebles", "gordon-parks",
+];
 
 /**
  * The home page tells what Pheelm is in three parts (films, directors, community), each a short
@@ -31,12 +46,16 @@ export default async function Home() {
   const [films, directors, collections] = await Promise.all([
     getFilms(), getDirectors(), getCommunityCollections(),
   ]);
-  const week = Math.floor(Date.now() / WEEK);
 
-  // Essential films: the ones with an editors' note, then the featured ones if there are few.
-  const noted = films.filter((f) => f.note);
-  const essential = rotate(noted.length >= 8 ? noted : films.filter((f) => f.featured), week, 7).slice(0, 16);
-  const toKnow = rotate([...directors].sort((a, b) => b.films.length - a.films.length).slice(0, 80), week, 5).slice(0, 12);
+  // The hero row: iconic films, in this order. Any that aren't in the catalog are skipped.
+  const bySlug = new Map(films.map((f) => [f.slug, f]));
+  const essential = ICONIC.map((slug) => bySlug.get(slug)).filter((f) => !!f);
+  const slides = essential.flatMap((f) => {
+    const c = toCard(f);
+    return c.poster_url ? [{ title: c.title, kicker: `${c.directors.join(" and ")} • ${c.year}`, image: c.poster_url.replace("/w500/", "/w780/"), alt: `Poster for ${c.title}` }] : [];
+  });
+  const dirBySlug = new Map(directors.map((d) => [d.slug, d]));
+  const toKnow = FAMOUS.map((slug) => dirBySlug.get(slug)).filter((d) => !!d);
   const shelf = collections.filter((c) => c.films.length >= 3).slice(0, 12);
 
   // For search engines: the site, with a search box that opens the Films page's search.
@@ -50,6 +69,7 @@ export default async function Home() {
         description: SITE_DESCRIPTION,
         potentialAction: { "@type": "SearchAction", target: `${SITE_URL}/films?q={search_term_string}`, "query-input": "required name=search_term_string" },
       },
+      { "@type": "FAQPage", mainEntity: FAQS.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })) },
       { "@type": "Organization", name: SITE_NAME, url: SITE_URL, logo: `${SITE_URL}/apple-icon` },
     ],
   };
@@ -69,11 +89,12 @@ export default async function Home() {
         </div>
       </section>
 
-      <Row title="Essential films" bare interactive fit>
-        {essential.map((f, i) => <FilmCard key={f.id} film={toCard(f)} priority={i < 4} posterOnly sizes="(min-width: 900px) 34vw, 72vw" />)}
-      </Row>
+      <div className="home-carousel">
+        <CurvedCarousel bare ariaLabel="Essential films" ink="var(--ink)" slides={slides} />
+      </div>
       </div>
 
+      <div className="home-block">
       <section className="statement" aria-labelledby="directors-title">
         <div className="statement-body">
           <h2 id="directors-title">Learn about the people behind your favorite films.</h2>
@@ -82,9 +103,11 @@ export default async function Home() {
       </section>
 
       <Row title="Directors to know" bare>
-        {toKnow.map((d) => <DirectorCard key={d.id} director={toDirectorSummary(d)} />)}
+        {toKnow.map((d) => <DirectorCard key={d.id} director={toDirectorSummary(d)} plain />)}
       </Row>
+      </div>
 
+      <div className="home-block">
       <section className="statement" aria-labelledby="community-title">
         <div className="statement-body">
           <h2 id="community-title">Connect with other film enthusiasts.</h2>
@@ -96,21 +119,46 @@ export default async function Home() {
       </section>
 
       {shelf.length > 0 && (
-        <Row title="Collections" bare>
-          {shelf.map((c) => <CommunityTile key={c.id} c={c} showOwner={!c.staff_pick} />)}
+        <Row title="Watchlists" bare>
+          {shelf.map((c) => <CommunityTile key={c.id} c={c} showOwner={!c.staff_pick} plain />)}
         </Row>
       )}
+      </div>
       </EarlyAccessGate>
 
-      <section className="statement is-cta" aria-labelledby="join-title">
-        <div className="statement-body">
-          <h2 id="join-title">Create your free account.</h2>
-          <p>Save films, create watchlists, follow directors, and make Pheelm your own.</p>
-          <div className="actions">
-            <EarlyAccessButton>Sign up for free</EarlyAccessButton>
+      <div className="home-block">
+      <section className="faq" aria-labelledby="faq-title">
+        <div className="faq-body">
+          <h2 id="faq-title">Frequently Asked Questions</h2>
+          <div className="faq-list">
+            {FAQS.map(([q, a], i) => (
+              <details key={q} name="faq" className="faq-card" open={i === 0}>
+                <summary>
+                  <span>{q}</span>
+                  <span className="slate" aria-hidden="true">
+                    <Icon name="clapperboard" className="slate-closed" />
+                    <Icon name="clapper" className="slate-open" />
+                  </span>
+                </summary>
+                <p>{a}</p>
+              </details>
+            ))}
           </div>
         </div>
       </section>
+      </div>
+
+      <div className="home-block">
+      <section className="statement is-cta" aria-labelledby="join-title">
+        <div className="statement-body cta-card">
+          <h2 id="join-title">Create your free account.</h2>
+          <p>Save films, create watchlists, follow directors, and make Pheelm your own.</p>
+          <div className="actions">
+            <EarlyAccessButton />
+          </div>
+        </div>
+      </section>
+      </div>
 
     </>
   );
