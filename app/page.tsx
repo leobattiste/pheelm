@@ -131,8 +131,8 @@ export default async function Home() {
         <div className="faq-body">
           <h2 id="faq-title">Frequently Asked Questions</h2>
           <div className="faq-list">
-            {FAQS.map(([q, a]) => (
-              <details key={q} name="faq" className="faq-card">
+            {FAQS.map(([q, a], i) => (
+              <details key={q} name="faq" className="faq-card" open={i === 0}>
                 <summary>
                   <span>{q}</span>
                   <span className="slate" aria-hidden="true">
