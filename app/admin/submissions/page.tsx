@@ -26,7 +26,7 @@ export default async function AdminSubmissions({searchParams}:{searchParams:Prom
               <div className="admin-head"><div><h3>{s.title}{s.year ? ` (${s.year})` : ""}</h3><p className="muted">{s.director}</p></div>
                 {s.kind === "own" && <span className="status-pill">Own film</span>}
               </div>
-              <p className="label">Sent {new Date(s.created_at).toLocaleDateString("en-GB")}</p>
+              <p className="label">Sent {new Date(s.created_at).toLocaleDateString("en-US")}</p>
               {match && <p className="notice error">Possible duplicate: <Link href={`/admin/films/${match}`}>Check existing film</Link></p>}
               {s.link && /^https?:\/\//i.test(s.link) && <a className="link-button" href={s.link} target="_blank" rel="noopener noreferrer">View film link</a>}
               {s.note && <p>{s.note}</p>}

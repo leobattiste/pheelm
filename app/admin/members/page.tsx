@@ -8,7 +8,7 @@ type Row={
   id:string;handle:string|null;display_name:string|null;email:string|null;created_at:string;last_seen:string|null;
   is_admin:boolean;is_owner:boolean;is_private:boolean;lists:number;saved:number;comments:number;
 };
-const day=(iso:string|null)=>iso?new Date(iso).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}):"Never";
+const day=(iso:string|null)=>iso?new Date(iso).toLocaleDateString("en-US",{day:"numeric",month:"short",year:"numeric"}):"Never";
 const SIZE=40;
 
 export default async function AdminMembers({searchParams}:{searchParams:Promise<{q?:string;segment?:string;page?:string}>}){

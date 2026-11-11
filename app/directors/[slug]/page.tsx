@@ -1,5 +1,6 @@
 import { pageMetadata, privateMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Portrait } from "@/components/DirectorCard";
 import FollowButton from "@/components/FollowButton";
@@ -44,10 +45,10 @@ export default async function DirectorPage({ params }: { params: Promise<{ slug:
   const theirFilms = all.filter((f) => works.some((w) => w.slug === f.slug)).sort((a, b) => b.year - a.year);
   const roles = Object.fromEntries(theirFilms.map((f) => [f.id, rolesOnFilm(f, director.id)]));
 
-  const years = director.films.map((f) => f.year);
-  const first = Math.min(...years);
-  const last = Math.max(...years);
-  const wins = director.films.reduce((n, f) => n + f.awards.filter((a) => a.result === "won" && a.award !== "National Film Registry").length, 0);
+  // Every award their films won, newest first (the National Film Registry is a preservation, not an award).
+  const awards = director.films
+    .flatMap((f) => f.awards.filter((a) => a.result === "won" && a.award !== "National Film Registry").map((a) => ({ ...a, film: f.title, slug: f.slug, filmYear: f.year })))
+    .sort((a, b) => b.year - a.year || a.award.localeCompare(b.award));
   const born = bornText({ born: director.born ?? null, birth_year: director.birth_year ?? null, birthplace: director.birthplace ?? null });
   const died = diedText({ died: director.died ?? null });
   const bio = director.bio?.split(/\n{2,}/).filter(Boolean) ?? [];
@@ -69,8 +70,21 @@ export default async function DirectorPage({ params }: { params: Promise<{ slug:
             <div><dt>Roles</dt><dd>{rolesWithCommas(works) || "Director"}</dd></div>
             {born && <div><dt>Born</dt><dd>{born}</dd></div>}
             {died && <div><dt>Died</dt><dd>{died}</dd></div>}
-            <div><dt>Films on Pheelm</dt><dd>{first === last ? first : `${first} to ${last}`}</dd></div>
-            {wins > 0 && <div><dt>Major prizes</dt><dd>{wins}</dd></div>}
+            {awards.length > 0 && (
+              <div className="details-wide">
+                <dt>Awards</dt>
+                <dd>
+                  <ul className="about-awards">
+                    {awards.map((a, i) => (
+                      <li key={i}>
+                        <span className="award-name">{a.award}</span>, {a.category}, {a.year}
+                        <span className="muted"> for <Link href={`/films/${a.slug}`}>{a.film}</Link></span>
+                      </li>
+                    ))}
+                  </ul>
+                </dd>
+              </div>
+            )}
             <PersonLinks info={{ name: director.name, imdb_id: director.imdb_id ?? null, instagram: director.instagram ?? null }} />
           </dl>
         </div>

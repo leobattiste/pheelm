@@ -3114,4 +3114,9 @@ html:has(.early-gate) { scroll-snap-type: y proximity; }
 .faq-card[open] .slate-closed { display: none; }
 .faq-card[open] .slate-open { display: block; }
 .faq-card p { margin-top: var(--space-12); color: var(--muted); max-width: 64ch; }
-@media (prefers-reduced-motion: reduce) { .statement.is-cta .cta-card { max-width: 760px; width: 100%; margin-inline: auto; padding: calc(var(--space-40) * 3) var(--space-24); }
+.statement.is-cta .cta-card { max-width: 760px; width: 100%; margin-inline: auto; padding: calc(var(--space-40) * 3) var(--space-24); }
+
+/* Director About: the awards their films won. */
+.details > .details-wide { grid-column: 1 / -1; }
+.about-awards { display: grid; gap: var(--space-8); }
+.about-awards .award-name { font-size: inherit; }

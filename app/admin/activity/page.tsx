@@ -27,7 +27,7 @@ export default async function ActivityPage({searchParams}:{searchParams:Promise<
           {(data ?? []).map(a => <li key={a.id} className="notif"><Icon name="clock" /><div className="notif-main">
             <p className="notif-text"><strong>{a.action}</strong> · {a.target_type}</p>
             <p className="notif-note">{a.details ?? "No additional details"}</p>
-            <p className="notif-time">{a.actor_id ? (names.get(a.actor_id) ? `@${names.get(a.actor_id)}` : "Admin") : "Deleted account"} · {new Date(a.created_at).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}</p>
+            <p className="notif-time">{a.actor_id ? (names.get(a.actor_id) ? `@${names.get(a.actor_id)}` : "Admin") : "Deleted account"} · {new Date(a.created_at).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}</p>
           </div></li>)}
         </ul>
       )}

@@ -67,7 +67,7 @@ export default async function AdminCommunity({ searchParams }: { searchParams: P
               <li key={r.id}>
                 <div className="inbox-head">
                   <Link href={`/c/${r.list_id}`}><strong>{(r.lists as unknown as { title: string } | null)?.title ?? "A watchlist"}</strong></Link>
-                  <span className="muted">{new Date(r.created_at).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}</span>
+                  <span className="muted">{new Date(r.created_at).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}</span>
                 </div>
                 <p className="inbox-body">{r.reason}</p>
                 <div className="actions">
@@ -91,7 +91,7 @@ export default async function AdminCommunity({ searchParams }: { searchParams: P
                 <li key={r.id}>
                   <div className="inbox-head">
                     <Link href={`/c/${r.list_comments!.list_id}#comment-${r.comment_id}`}><strong>On {r.list_comments!.lists?.title ?? "a watchlist"}</strong></Link>
-                    <span className="muted">{new Date(r.created_at).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}</span>
+                    <span className="muted">{new Date(r.created_at).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}</span>
                   </div>
                   <p className="inbox-body">&ldquo;{r.list_comments!.body}&rdquo;</p>
                   <div className="actions">

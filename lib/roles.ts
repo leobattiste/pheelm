@@ -101,15 +101,15 @@ export function personInfo(p: PersonRow, films: Film[], directorIds: Set<string>
   };
 }
 
-const DATE = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+const DATE = new Intl.DateTimeFormat("en-US", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 
-/** When and where someone was born: "20 March 1957, Atlanta, Georgia, USA". Null when unknown. */
+/** When and where someone was born: "March 20, 1957, Atlanta, Georgia, USA". Null when unknown. */
 export function bornText(p: Pick<PersonInfo, "born" | "birth_year" | "birthplace">) {
   const when = p.born ? DATE.format(new Date(p.born)) : p.birth_year ? String(p.birth_year) : null;
   return [when, p.birthplace].filter(Boolean).join(", ") || null;
 }
 
-/** When someone died: "12 December 2019". Null for the living or unknown. */
+/** When someone died: "December 12, 2019". Null for the living or unknown. */
 export function diedText(p: Pick<PersonInfo, "died">) {
   return p.died ? DATE.format(new Date(p.died)) : null;
 }

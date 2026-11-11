@@ -40,7 +40,7 @@ export default async function AdminInbox({ searchParams }: { searchParams: Promi
                     <strong>{m.name || m.email}</strong>
                     {m.organization && <span className="muted">{m.organization}</span>}
                     <span className="status-pill">{TOPICS[m.topic] ?? m.topic}</span>
-                    <span className="muted">{new Date(m.created_at).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}</span>
+                    <span className="muted">{new Date(m.created_at).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}</span>
                   </div>
                   {m.page && (safeInternalPath(m.page)
                     ? <p className="inbox-about">About <Link href={m.page}>{m.page_title || m.page}</Link></p>

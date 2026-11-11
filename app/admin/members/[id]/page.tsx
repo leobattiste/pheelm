@@ -32,8 +32,8 @@ export default async function MemberDetail({params}:{params:Promise<{id:string}>
       </div>
       <section className="fieldset"><h2>Account</h2><dl className="details">
         {owner&&<div><dt>Email</dt><dd>{person.email??"—"}</dd></div>}
-        <div><dt>Joined</dt><dd>{new Date(person.created_at).toLocaleDateString("en-GB")}</dd></div>
-        <div><dt>Last signed in</dt><dd>{person.last_seen?new Date(person.last_seen).toLocaleDateString("en-GB"):"Never"}</dd></div>
+        <div><dt>Joined</dt><dd>{new Date(person.created_at).toLocaleDateString("en-US")}</dd></div>
+        <div><dt>Last signed in</dt><dd>{person.last_seen?new Date(person.last_seen).toLocaleDateString("en-US"):"Never"}</dd></div>
         <div><dt>Role</dt><dd>{person.is_owner?"Owner":person.is_admin?"Admin":"Member"}</dd></div>
         <div><dt>Profile</dt><dd>{person.is_private?"Private":"Public"}</dd></div>
       </dl></section>
@@ -41,10 +41,10 @@ export default async function MemberDetail({params}:{params:Promise<{id:string}>
         {(collections??[]).length?collections!.map(c=><div className="admin-attention-row" key={c.id}><Link href={`/c/${c.id}`}>{c.title}</Link><span className="muted">{c.hidden?"Hidden":c.is_public?"Public":"Private"}</span></div>):<p className="muted">No accessible watchlists.</p>}
       </section>
       <section className="fieldset"><h2>Recent comments</h2>
-        {(comments??[]).length?comments!.map(c=><div className="admin-attention-row" key={c.id}><Link href={`/c/${c.list_id}#comment-${c.id}`}>{c.body.slice(0,120)}</Link><span className="muted">{new Date(c.created_at).toLocaleDateString("en-GB")}</span></div>):<p className="muted">No comments.</p>}
+        {(comments??[]).length?comments!.map(c=><div className="admin-attention-row" key={c.id}><Link href={`/c/${c.list_id}#comment-${c.id}`}>{c.body.slice(0,120)}</Link><span className="muted">{new Date(c.created_at).toLocaleDateString("en-US")}</span></div>):<p className="muted">No comments.</p>}
       </section>
       <section className="fieldset"><h2>Role history</h2>
-        {(history??[]).length?history!.map(h=><div className="admin-attention-row" key={h.id}><span>{h.action}</span><span className="muted">{new Date(h.created_at).toLocaleDateString("en-GB")}</span></div>):<p className="muted">No recorded changes.</p>}
+        {(history??[]).length?history!.map(h=><div className="admin-attention-row" key={h.id}><span>{h.action}</span><span className="muted">{new Date(h.created_at).toLocaleDateString("en-US")}</span></div>):<p className="muted">No recorded changes.</p>}
       </section>
     </>
   );

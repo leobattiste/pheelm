@@ -33,7 +33,7 @@ function ago(iso: string, now: number) {
   if (s < 86400) return `${Math.round(s / 3600)}h`;
   if (s < 7 * 86400) return `${Math.round(s / 86400)}d`;
   const d = new Date(iso);
-  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", ...(d.getFullYear() !== new Date(now).getFullYear() ? { year: "numeric" } : {}) });
+  return d.toLocaleDateString("en-US", { day: "numeric", month: "short", ...(d.getFullYear() !== new Date(now).getFullYear() ? { year: "numeric" } : {}) });
 }
 
 /** The comment's text, with line breaks kept and @handles linked to profiles. */

@@ -62,7 +62,7 @@ export default async function AdminHome() {
           <h2 className="admin-card-title"><Icon name="clock" />Recent admin activity</h2>
           {activity.data?.length?activity.data.map(a=><div className="admin-attention-row" key={a.id}>
             <span>{a.action}<span className="muted"> · {a.target_type}</span></span>
-            <span className="muted">{new Date(a.created_at).toLocaleDateString("en-GB")}</span>
+            <span className="muted">{new Date(a.created_at).toLocaleDateString("en-US")}</span>
           </div>):<p className="muted">Activity will appear as changes are made.</p>}
           <Link href="/admin/activity">View activity log</Link>
         </section>

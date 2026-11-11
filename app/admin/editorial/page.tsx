@@ -28,7 +28,7 @@ export default async function EditorialPage({searchParams}:{searchParams:Promise
         return <FilmCard key={f.id} href={`/admin/editorial/${f.id}`} film={{ id: f.id, slug: f.slug, title: f.title, year: f.year, poster_url: f.poster_url,
           directors: [], type: "feature", countries: [], languages: [], genres: [], runtime: null, wins: 0,
         }} controls={<div className="admin-card-controls"><span className={`status-pill ${editorial?.status ?? ""}`}>{editorial?.status ?? "Not started"}</span>
-          <span className="muted">{editorial?.updated_at ? `Updated ${new Date(editorial.updated_at).toLocaleDateString("en-GB")}` : "Ready for your perspective"}</span>
+          <span className="muted">{editorial?.updated_at ? `Updated ${new Date(editorial.updated_at).toLocaleDateString("en-US")}` : "Ready for your perspective"}</span>
           <Link className="link-button" href={`/admin/editorial/${f.id}`}>Edit essay</Link>
         </div>} />;
       })}

@@ -33,7 +33,7 @@ export default async function EditEditorial({params}:{params:Promise<{id:string}
           <h2>Revision history</h2>
           {(versions ?? []).length ? (versions ?? []).map((v) => (
             <div className="admin-revision" key={v.id}>
-              <span className="muted">{new Date(v.created_at).toLocaleString("en-GB",{dateStyle:"medium",timeStyle:"short"})}</span>
+              <span className="muted">{new Date(v.created_at).toLocaleString("en-US",{dateStyle:"medium",timeStyle:"short"})}</span>
               <span className="status-pill">{v.status}</span>
               <form action={restoreEditorial}><input type="hidden" name="film_id" value={id}/><input type="hidden" name="revision_id" value={v.id}/>
                 <button type="submit" className="button ghost small">Restore</button></form>
