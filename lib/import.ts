@@ -159,7 +159,10 @@ export async function fillPerson(db: SupabaseClient, person: Record<string, any>
     set("instagram", d.instagram);
     patch.details_at = new Date().toISOString();
   }
-  if (Object.keys(patch).length) await db.from("people").update(patch).eq("id", person.id);
+  if (Object.keys(patch).length) {
+    const { error } = await db.from("people").update(patch).eq("id", person.id).select("id").single();
+    if (error) throw new Error(`${person.name || "Director"}: ${error.message}`);
+  }
   return migrated;
 }
 

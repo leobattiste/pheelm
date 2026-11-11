@@ -2,9 +2,10 @@
 
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import Icon from "@/components/Icon";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { importSelectedFromTmdb, type ImportResult } from "./import-selected";
 
-export type BulkOperation = "publish" | "draft" | "delete" | "feature" | "unfeature";
+export type BulkOperation = "publish" | "draft" | "delete" | "feature" | "unfeature" | "import";
 
 function useSelectionState(key: "films" | "people") {
   const storageKey = `pheelm:admin-selection:${key}:v1`;
@@ -72,9 +73,39 @@ export function AdminSelectionBar({ selected, onClear, entity, canDelete, hasFea
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [operation, setOperation] = useState<BulkOperation>("publish");
-  if (!selected.length) return null;
+  const router = useRouter();
+  const [running, setRunning] = useState(false);
+  const [stopping, setStopping] = useState(false);
+  const [total, setTotal] = useState(0);
+  const [results, setResults] = useState<ImportResult[]>([]);
+  const [importError, setImportError] = useState("");
+  const stop = useRef(false);
+  const mounted = useRef(true);
+  const importing = useRef(false);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; stop.current = true; }; }, []);
+  const runImport = async (ids: string[]) => {
+    if (importing.current) return;
+    importing.current = true;
+    const queue = [...ids];
+    stop.current = false;
+    setRunning(true); setStopping(false); setTotal(queue.length); setResults([]); setImportError("");
+    dialog.current?.close();
+    try {
+      for (let i = 0; i < queue.length && !stop.current; i += 3) {
+        const batch = await importSelectedFromTmdb(entity, queue.slice(i, i + 3));
+        if (!mounted.current) return;
+        setResults(previous => [...previous, ...batch]);
+      }
+    } catch (error) {
+      if (mounted.current) setImportError(error instanceof Error ? error.message : "Import stopped. Please try again.");
+    } finally {
+      importing.current = false;
+      if (mounted.current) { setRunning(false); router.refresh(); }
+    }
+  };
+  if (!selected.length && !running) return null;
   const noun = entity === "films" ? (selected.length === 1 ? "film" : "films") : (selected.length === 1 ? "person" : "people");
-  const label = operation === "publish" ? "Publish" : operation === "draft" ? "Move to draft" : operation === "delete" ? "Delete permanently" : operation === "feature" ? "Feature" : "Remove feature";
+  const label = operation === "import" ? "Import from TMDB" : operation === "publish" ? "Publish" : operation === "draft" ? "Move to draft" : operation === "delete" ? "Delete permanently" : operation === "feature" ? "Feature" : "Remove feature";
   const ask = (next: BulkOperation) => { setOperation(next); dialog.current?.showModal(); };
   return (
     <div className="admin-selection-panel" role="region" aria-label="Selected items">
@@ -82,9 +113,10 @@ export function AdminSelectionBar({ selected, onClear, entity, canDelete, hasFea
       <input type="hidden" name="operation" value={operation} />
       <div className="admin-selection-heading">
         <strong>{selected.length.toLocaleString()} {noun} selected</strong>
-        <button type="button" className="link-button" onClick={onClear}>Clear selection</button>
+        <button type="button" className="link-button" disabled={running} onClick={onClear}>Clear selection</button>
       </div>
-      <div className="actions admin-selection-actions">
+      <fieldset className="actions admin-selection-actions" disabled={running || !selected.length} aria-label="Selection actions">
+        <button className="button ghost small" type="button" onClick={() => ask("import")}><Icon name="clapper" />Import from TMDB</button>
         <button className="button ghost small" type="button" onClick={() => ask("publish")}><Icon name="check" />Publish</button>
         <button className="button ghost small" type="button" onClick={() => ask("draft")}><Icon name="pencil" />Draft</button>
         {hasFeatured && <>
@@ -92,11 +124,20 @@ export function AdminSelectionBar({ selected, onClear, entity, canDelete, hasFea
           <button className="button ghost small" type="button" onClick={() => ask("unfeature")}>Unfeature</button>
         </>}
         {canDelete && <button className="button ghost small danger-text" type="button" onClick={() => ask("delete")}><Icon name="close" />Delete</button>}
-      </div>
+      </fieldset>
+      {total > 0 && <div className="admin-import-progress" aria-busy={running}>
+        <p role="status">{running ? "Importing" : results.length < total ? "Import stopped" : "Import complete"}: {results.length} of {total}. {results.filter(result => result.ok).length} succeeded; {results.filter(result => !result.ok).length} failed.</p>
+        {running && <button type="button" className="button ghost small" disabled={stopping} onClick={() => { stop.current = true; setStopping(true); }}>{stopping ? "Stopping after this batch…" : "Stop after this batch"}</button>}
+        {importError && <p className="notice error" role="alert">{importError}</p>}
+        {results.length > 0 && <details><summary>Import results</summary><ul className="import-log">{results.map(result => <li key={result.id} className={result.ok ? "muted" : "notice error"}>{result.message}</li>)}</ul></details>}
+        {!running && results.some(result => !result.ok) && <button type="button" className="button ghost small" onClick={() => runImport(results.filter(result => !result.ok).map(result => result.id))}>Retry failed imports</button>}
+      </div>}
       <dialog ref={dialog} className="modal" aria-label={label} onClick={(e) => { if (e.target === dialog.current) dialog.current?.close(); }}>
         <div className="modal-head"><h2>{label} {selected.length} {noun}?</h2><button type="button" className="icon-button" aria-label="Close confirmation" onClick={() => dialog.current?.close()}><Icon name="close" /></button></div>
         <div className="modal-body">
-          {operation === "delete" ? (
+          {operation === "import" ? (
+            <p>Import TMDB details for all {selected.length} selected {noun}, including selections on other pages. Existing edited fields and publication status stay unchanged. {entity === "people" && "Directors need a TMDB person ID in their editor."} You can stop after any batch and retry failures.</p>
+          ) : operation === "delete" ? (
             <p className="notice error">{entity === "films" ? "This permanently deletes the selected films and their related records. It cannot be undone." : "This permanently deletes the selected people. People with film credits cannot be deleted in bulk; remove those credits first. This cannot be undone."}</p>
           ) : (
             <p>Apply “{label}” to all {selected.length} selected {noun}, including any selected on other pages?</p>
@@ -104,7 +145,7 @@ export function AdminSelectionBar({ selected, onClear, entity, canDelete, hasFea
         </div>
         <div className="modal-foot">
           <button type="button" className="button ghost" onClick={() => dialog.current?.close()}>Cancel</button>
-          <button type="submit" className={operation === "delete" ? "button danger" : "button"}>{label} {selected.length}</button>
+          {operation === "import" ? <button type="button" className="button" onClick={() => runImport(selected)}>Import {selected.length}</button> : <button type="submit" className={operation === "delete" ? "button danger" : "button"}>{label} {selected.length}</button>}
         </div>
       </dialog>
     </div>

@@ -18,7 +18,10 @@
 .admin-managed-card .admin-card-selection { border-top: 1px solid var(--line); }
 .admin-selection-panel { display:grid; gap:var(--space-16); min-width:0; }
 .admin-selection-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-12); }
-.admin-selection-actions { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,120px),1fr)); gap:var(--space-8); }
+.admin-selection-actions { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,120px),1fr)); gap:var(--space-8); min-width:0; margin:0; padding:0; border:0; }
+.admin-import-progress { display:grid; gap:var(--space-12); min-width:0; overflow-wrap:anywhere; }
+.admin-import-progress p { margin:0; }
+.admin-import-progress summary { min-height:44px; display:flex; align-items:center; cursor:pointer; }
 .admin-selection-actions .button { width:100%; min-width:0; white-space:normal; height:auto; min-height:48px; padding:10px 12px; }
 .admin-directory-note { font-size: var(--t-sm); }
 .admin-select-line input[type="checkbox"], .admin-card-selection input[type="checkbox"] { min-width: 20px; min-height: 20px; cursor: pointer; }
