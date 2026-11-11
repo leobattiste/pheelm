@@ -16,4 +16,4 @@ export default function PheelmEmail({title,message,actionUrl,actionLabel,unsubsc
     {postalAddress&&<><br/>{postalAddress}</>}<br/>© 2026 Pheelm. A project by Leo Battiste with the courtesy of TMDB.</Text>
   </Container></Body></Html>;
 }
-PheelmEmail.PreviewProps={title:'Welcome to Pheelm',message:'Discover films, make collections, and follow directors. Your account is ready.',actionUrl:'https://www.pheelm.com/films',actionLabel:'Explore films'} satisfies EmailProps;
+PheelmEmail.PreviewProps={title:'Welcome to Pheelm',message:'Discover films, make watchlists, and follow directors. Your account is ready.',actionUrl:'https://www.pheelm.com/films',actionLabel:'Explore films'} satisfies EmailProps;

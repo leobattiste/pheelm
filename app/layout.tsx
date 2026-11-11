@@ -107,7 +107,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
             <section className="footer-follow" aria-labelledby="footer-follow">
               <h2 id="footer-follow">Get the newsletter</h2>
-              <p>New films and collections, once a month at most.</p>
+              <p>New films and watchlists, once a month at most.</p>
               <NewsletterForm />
               {(INSTAGRAM_URL || THREADS_URL) && (
                 <ul className="footer-social" aria-label="Follow Pheelm">
@@ -155,7 +155,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </nav>
             <nav aria-labelledby="footer-legal">
               <h2 id="footer-legal">Legal</h2>
-              <Link href="/legal">Legal</Link>
+              <a href="/legal#privacy">Privacy</a>
+              <a href="/legal#terms">Terms</a>
+              <a href="/legal#copyright">Copyright</a>
+              <a href="/legal#community-guidelines">Community guidelines</a>
             </nav>
           </div>
           <div className="footer-bottom">

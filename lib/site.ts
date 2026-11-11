@@ -15,7 +15,7 @@ export const PAGE_COPY = {
   about: "Learn more about Pheelm and why we created the platform.",
   submit: "Suggest a film you think we should feature on Pheelm.",
   submitOwn: "Own a film or represent its rights holder? Share the details for its film page. We review submissions before publication. Include the information you want on the film page.",
-  signIn: "Sign in or create an account to save films and make collections.",
+  signIn: "Sign in or create an account to save films and make watchlists.",
   account: "Manage your account and your film submissions.",
   watchlist: "Save films you want to watch later.",
   submissions: "View your film submissions and their status.",

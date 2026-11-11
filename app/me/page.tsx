@@ -103,7 +103,7 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
         <h1>Watchlist</h1>
         <p className="lead">{PAGE_COPY.watchlist}</p>
       </header>
-      {sp.error === "collection" && <p className="notice error">The collection couldn&rsquo;t be created. Try again.</p>}
+      {sp.error === "collection" && <p className="notice error">The watchlist couldn&rsquo;t be created. Try again.</p>}
 
       <Tabs
         tabs={[
@@ -132,7 +132,7 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
                     <span className="new-collection-plus" aria-hidden="true">
                       <Icon name="plus" />
                     </span>
-                    <label className="collection-title" htmlFor="new-collection">New collection</label>
+                    <label className="collection-title" htmlFor="new-collection">New watchlist</label>
                     <span className="new-collection-row">
                       <input id="new-collection" name="title" placeholder="Name it" maxLength={80} required />
                       <button className="button small" type="submit">Create</button>
@@ -153,9 +153,9 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
                 ) : (
                   <div className="empty-state">
                     <Icon name="stack" className="empty-icon" />
-                    <p>You don&rsquo;t follow any collections yet.</p>
-                    <p className="muted">Follow a collection to see it here and hear when a film is added.</p>
-                    <Link className="button ghost small" href="/watchlists">Explore collections</Link>
+                    <p>You don&rsquo;t follow any watchlists yet.</p>
+                    <p className="muted">Follow a watchlist to see it here and hear when a film is added.</p>
+                    <Link className="button ghost small" href="/watchlists">Explore watchlists</Link>
                   </div>
                 )}
                 {followed.length > 0 && (

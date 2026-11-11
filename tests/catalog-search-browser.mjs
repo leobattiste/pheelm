@@ -13,7 +13,9 @@ try{
  for(const label of ['Viewing region','Minimum runtime (minutes)','Maximum runtime (minutes)','Awards','Award or festival'])assert.equal(await modal.getByLabel(label,{exact:true}).count(),0);
  assert.ok((await modal.getByLabel('Country',{exact:true}).locator('option').allTextContents()).every(t=>! /\(\d+\)/.test(t)));
  for(const theme of ['light','dark']){
-  await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);await page.waitForTimeout(1000);
+  await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
+  // Colours animate between themes; wait for the button to finish rather than a fixed time.
+  await until(async()=>(await modal.getByRole('button',{name:'Show films',exact:true}).evaluate(e=>{const s=document.createElement('span');s.style.color='var(--on-ink)';document.body.append(s);const want=getComputedStyle(s).color;s.remove();return getComputedStyle(e).color===want&&!e.getAnimations().length;})),`Show films colour never settled in ${theme} theme`);
   for(const control of [modal.getByRole('button',{name:'Show films',exact:true})]){
    const style=await control.evaluate(e=>({bg:getComputedStyle(e).backgroundColor,color:getComputedStyle(e).color,blur:getComputedStyle(e).backdropFilter}));
    assert.notEqual(style.bg,'rgba(0, 0, 0, 0)');assert.notEqual(style.blur,'none');assert.equal(style.color,await page.evaluate(()=>{const span=document.createElement('span');span.style.color='var(--on-ink)';document.body.append(span);const color=getComputedStyle(span).color;span.remove();return color;}));

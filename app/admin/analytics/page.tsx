@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/admin";
 
 type Stamp={created_at:string};
-const metricTables=[["films","Films"],["profiles","Members"],["lists","Collections"],["list_saves","Collection saves"]] as const;
+const metricTables=[["films","Films"],["profiles","Members"],["lists","Watchlists"],["list_saves","Watchlist saves"]] as const;
 export default async function AnalyticsPage(){
   const {db}=await requireAdmin("/admin/analytics");
   const now=new Date();
@@ -41,7 +41,7 @@ export default async function AnalyticsPage(){
       <section className="account-section">
         <h2>Six-month activity</h2>
         <p className="muted">New records per month, not page views or unique visitors.</p>
-        <div className="admin-chart" role="img" aria-label="Monthly record creation for films, members, collections and collection saves">
+        <div className="admin-chart" role="img" aria-label="Monthly record creation for films, members, watchlists and watchlist saves">
           {timeline.map(month=><div className="admin-chart-group" key={month.key}>
             <div className="admin-chart-bars">{month.values.map((value,i)=><div key={i} className={`admin-chart-bar admin-chart-bar-${i}`} style={{height:`${Math.max(value?6:2,Math.round(value/max*100))}%`}} title={`${metricTables[i][1]}: ${value}`}/>)}</div>
             <span className="muted">{month.label}</span>
@@ -50,10 +50,10 @@ export default async function AnalyticsPage(){
         <div className="admin-chart-legend">{metricTables.map(([,label],i)=><span key={label}><i className={`admin-chart-key admin-chart-bar-${i}`}/>{label}</span>)}</div>
       </section>
       <section className="account-section">
-        <h2>Most-saved community collections</h2>
+        <h2>Most-saved community watchlists</h2>
         {(topSaves.data??[]).length?(topSaves.data??[]).map(s=><div className="admin-attention-row" key={s.list_id}>
-          <Link href={`/c/${s.list_id}`}>{labels.get(s.list_id)??"Collection"}</Link><span className="muted">{s.saves} saves</span>
-        </div>):<p className="muted">No collection saves yet.</p>}
+          <Link href={`/c/${s.list_id}`}>{labels.get(s.list_id)??"Watchlist"}</Link><span className="muted">{s.saves} saves</span>
+        </div>):<p className="muted">No watchlist saves yet.</p>}
       </section>
       <p className="muted">These metrics use content and community records. Traffic, visitor location and page-view analytics are deliberately not collected here.</p>
     </>

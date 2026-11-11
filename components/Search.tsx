@@ -32,7 +32,7 @@ const GROUP_LABELS: Record<Hit["kind"], string> = {
   director: "Directors",
   film: "Films",
   person: "Cast and crew",
-  collection: "Collections",
+  collection: "Watchlists",
 };
 
 const RECENT_KEY = "recent-searches";
@@ -111,10 +111,10 @@ export default function Search() {
           if (films.length) navigate(`/films/${films[Math.floor(Math.random() * films.length)].s}`);
         },
       },
-      { id: "watchlist", label: "Go to my watchlist", hint: "All and your collections", icon: "bookmark", words: "watchlist saved my films account collections", run: () => navigate("/me") },
+      { id: "watchlist", label: "Go to my watchlist", hint: "All and your watchlists", icon: "bookmark", words: "watchlist saved my films account watchlists collections lists", run: () => navigate("/me") },
       { id: "films", label: "Browse all films", hint: "Filter by decade, country, genre", icon: "film", words: "films browse all filter", run: () => navigate("/films") },
       { id: "directors", label: "Browse directors", hint: "By country and film type", icon: "users2", words: "directors map country", run: () => navigate("/directors") },
-      { id: "collections", label: "Browse watchlists", hint: "Movements, themes and more", icon: "stack", words: "collections movements themes", run: () => navigate("/watchlists") },
+      { id: "collections", label: "Browse watchlists", hint: "Movements, themes and more", icon: "stack", words: "watchlists collections lists movements themes", run: () => navigate("/watchlists") },
       {
         id: "theme", label: "Switch light or dark mode", hint: "Theme", icon: "moon",
         words: "theme dark light mode appearance",

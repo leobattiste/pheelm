@@ -26,8 +26,8 @@ export default async function MemberDetail({params}:{params:Promise<{id:string}>
           <button className="button ghost small">{person.is_admin?"Remove admin":"Make admin"}</button></form>}</div>
       </div>
       <div className="stats">
-        <div className="stat"><strong>{person.lists}</strong><span>Collections</span></div>
-        <div className="stat"><strong>{person.saved}</strong><span>Saved collections</span></div>
+        <div className="stat"><strong>{person.lists}</strong><span>Watchlists</span></div>
+        <div className="stat"><strong>{person.saved}</strong><span>Saved watchlists</span></div>
         <div className="stat"><strong>{person.comments}</strong><span>Comments</span></div>
       </div>
       <section className="fieldset"><h2>Account</h2><dl className="details">
@@ -37,8 +37,8 @@ export default async function MemberDetail({params}:{params:Promise<{id:string}>
         <div><dt>Role</dt><dd>{person.is_owner?"Owner":person.is_admin?"Admin":"Member"}</dd></div>
         <div><dt>Profile</dt><dd>{person.is_private?"Private":"Public"}</dd></div>
       </dl></section>
-      <section className="fieldset"><h2>Recent collections</h2>
-        {(collections??[]).length?collections!.map(c=><div className="admin-attention-row" key={c.id}><Link href={`/c/${c.id}`}>{c.title}</Link><span className="muted">{c.hidden?"Hidden":c.is_public?"Public":"Private"}</span></div>):<p className="muted">No accessible collections.</p>}
+      <section className="fieldset"><h2>Recent watchlists</h2>
+        {(collections??[]).length?collections!.map(c=><div className="admin-attention-row" key={c.id}><Link href={`/c/${c.id}`}>{c.title}</Link><span className="muted">{c.hidden?"Hidden":c.is_public?"Public":"Private"}</span></div>):<p className="muted">No accessible watchlists.</p>}
       </section>
       <section className="fieldset"><h2>Recent comments</h2>
         {(comments??[]).length?comments!.map(c=><div className="admin-attention-row" key={c.id}><Link href={`/c/${c.list_id}#comment-${c.id}`}>{c.body.slice(0,120)}</Link><span className="muted">{new Date(c.created_at).toLocaleDateString("en-GB")}</span></div>):<p className="muted">No comments.</p>}

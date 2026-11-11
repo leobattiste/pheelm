@@ -65,8 +65,8 @@ export default async function AccountPage() {
             <h2 id="profile-h">Your profile</h2>
             <p className="muted">
               {p.handle
-                ? <>How you appear on <Link href={`/@${p.handle}`}>pheelm.com/@{p.handle}</Link>, on your public collections and in comments.</>
-                : <>Choose a handle to get a profile page for your public collections.</>}
+                ? <>How you appear on <Link href={`/@${p.handle}`}>pheelm.com/@{p.handle}</Link>, on your public watchlists and in comments.</>
+                : <>Choose a handle to get a profile page for your public watchlists.</>}
             </p>
             <ProfileForm unlimitedBio={canUseUnlimitedBio(p)} links={p} bio={p.bio ?? null} avatarUrl={p.avatar_url ?? null} handle={p.handle ?? null} displayName={p.display_name ?? null} isPrivate={!!p.is_private} country={p.country ?? null} />
           </section>
@@ -124,7 +124,7 @@ export default async function AccountPage() {
           </section>
           <section className="account-section" aria-labelledby="blocked-h">
             <h2 id="blocked-h">Blocked</h2>
-            <p className="muted">People you block can&rsquo;t comment on your collections, co-curate with you or notify you, and you don&rsquo;t see their comments. Block someone from the &#8943; menu on their profile.</p>
+            <p className="muted">People you block can&rsquo;t comment on your watchlists, co-curate with you or notify you, and you don&rsquo;t see their comments. Block someone from the &#8943; menu on their profile.</p>
             {blockRows.error ? null : blockedPeople.length ? (
               <ul className="blocked-list">
                 {blockedPeople.map((b) => (
@@ -170,7 +170,7 @@ export default async function AccountPage() {
         <div className="account-panel">
           <section className="account-section" aria-labelledby="download-h">
             <h2 id="download-h">Download your data</h2>
-            <p className="muted">A file with your profile, Watchlist, collections, who you follow, your comments and the films you suggested.</p>
+            <p className="muted">A file with your profile, Watchlist, watchlists, who you follow, your comments and the films you suggested.</p>
             <div className="actions"><a className="button ghost" href="/account/export" download>Download</a></div>
           </section>
           <section className="account-section" aria-labelledby="privacy-h">
@@ -179,7 +179,7 @@ export default async function AccountPage() {
           </section>
           <section className="account-section" aria-labelledby="delete-h">
             <h2 id="delete-h">Delete your account</h2>
-            <p className="muted">Your profile, Watchlist, collections, follows, comments and notifications are deleted for good. This can&rsquo;t be undone.</p>
+            <p className="muted">Your profile, Watchlist, watchlists, follows, comments and notifications are deleted for good. This can&rsquo;t be undone.</p>
             <DeleteAccount />
           </section>
         </div>

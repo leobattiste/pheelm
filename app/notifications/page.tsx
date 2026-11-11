@@ -27,7 +27,7 @@ function when(iso: string) {
 /** One notification as a sentence: who, what, which collection. */
 function Line({ n }: { n: Notification }) {
   const who = n.actor ? <strong>{n.actor.display_name || `@${n.actor.handle}`}</strong> : <strong>Someone</strong>;
-  const list = n.list ? <strong>{n.list.title}</strong> : "a collection";
+  const list = n.list ? <strong>{n.list.title}</strong> : "a watchlist";
   const quote = n.comment ? <span className="notif-quote">&ldquo;{n.comment.body.length > 140 ? `${n.comment.body.slice(0, 140)}…` : n.comment.body}&rdquo;</span> : null;
   switch (n.type) {
     case "invite": return <>{who} invited you to co-curate {list}</>;
@@ -146,7 +146,7 @@ export default async function NotificationsPage() {
       <header className="page-head">
         <h1>Notifications</h1>
         <p className="lead">
-          {waiting ? `${waiting} waiting for your answer.` : "New films from directors you follow, and invites, requests and comments on your collections."}
+          {waiting ? `${waiting} waiting for your answer.` : "New films from directors you follow, and invites, requests and comments on your watchlists."}
         </p>
         {items.length > 0 && (
           <div className="collection-actions">
@@ -162,8 +162,8 @@ export default async function NotificationsPage() {
         <div className="empty-state">
           <Icon name="bell" className="empty-icon" />
           <p>You&rsquo;re all caught up.</p>
-          <p className="muted">Follow a director to hear when their new films are added. Invites, requests and comments on your collections show up here too.</p>
-          <Link className="button ghost small" href="/watchlists">Browse collections</Link>
+          <p className="muted">Follow a director to hear when their new films are added. Invites, requests and comments on your watchlists show up here too.</p>
+          <Link className="button ghost small" href="/watchlists">Browse watchlists</Link>
         </div>
       ) : (
         <>

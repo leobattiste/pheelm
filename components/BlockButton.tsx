@@ -58,7 +58,7 @@ export default function BlockButton({ memberId, handle, blocked: initial }: { me
           </button>
         </div>
         <div className="modal-body">
-          <p>They won&rsquo;t be able to comment on your collections, co-curate with you or notify you, and you won&rsquo;t see their comments. They aren&rsquo;t told. You can unblock them any time in Settings.</p>
+          <p>They won&rsquo;t be able to comment on your watchlists, co-curate with you or notify you, and you won&rsquo;t see their comments. They aren&rsquo;t told. You can unblock them any time in Settings.</p>
           {error && <p className="notice error" role="alert">{error}</p>}
         </div>
         <div className="modal-foot">

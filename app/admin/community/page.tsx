@@ -25,7 +25,7 @@ export default async function AdminCommunity({ searchParams }: { searchParams: P
     return (
       <>
         <div className="admin-head"><h2 className="admin-section-heading">Community</h2></div>
-        <p className="notice">To manage community collections, run <code>supabase/community.sql</code> in Supabase.</p>
+        <p className="notice">To manage community watchlists, run <code>supabase/community.sql</code> in Supabase.</p>
       </>
     );
   }
@@ -66,12 +66,12 @@ export default async function AdminCommunity({ searchParams }: { searchParams: P
             {reports.data.map((r) => (
               <li key={r.id}>
                 <div className="inbox-head">
-                  <Link href={`/c/${r.list_id}`}><strong>{(r.lists as unknown as { title: string } | null)?.title ?? "A collection"}</strong></Link>
+                  <Link href={`/c/${r.list_id}`}><strong>{(r.lists as unknown as { title: string } | null)?.title ?? "A watchlist"}</strong></Link>
                   <span className="muted">{new Date(r.created_at).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}</span>
                 </div>
                 <p className="inbox-body">{r.reason}</p>
                 <div className="actions">
-                  {flag(r.list_id, "hidden", true, "Hide the collection")}
+                  {flag(r.list_id, "hidden", true, "Hide the watchlist")}
                   <form action={resolveReport}><input type="hidden" name="id" value={r.id} /><button className="button ghost small" type="submit">Dismiss</button></form>
                 </div>
               </li>
@@ -90,7 +90,7 @@ export default async function AdminCommunity({ searchParams }: { searchParams: P
               {reportedComments.map((r) => (
                 <li key={r.id}>
                   <div className="inbox-head">
-                    <Link href={`/c/${r.list_comments!.list_id}#comment-${r.comment_id}`}><strong>On {r.list_comments!.lists?.title ?? "a collection"}</strong></Link>
+                    <Link href={`/c/${r.list_comments!.list_id}#comment-${r.comment_id}`}><strong>On {r.list_comments!.lists?.title ?? "a watchlist"}</strong></Link>
                     <span className="muted">{new Date(r.created_at).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}</span>
                   </div>
                   <p className="inbox-body">&ldquo;{r.list_comments!.body}&rdquo;</p>
@@ -111,8 +111,8 @@ export default async function AdminCommunity({ searchParams }: { searchParams: P
         Public collections appear in the community once they have a title, at least {MIN_FILMS} films and their maker has a public name.
         Staff picks and featured collections show under Featured. Hidden collections disappear for everyone but their maker.
       </p>
-      <AdminBrowserToolbar action="/admin/community" query={q} placeholder="Search collections" filters={[
-        { name: "filter", label: "Collections", value: filter, options: [{ value: "all", label: "All collections" }, { value: "hidden", label: "Hidden" }, { value: "featured", label: "Featured" }, { value: "staff_pick", label: "Staff picks" }] },
+      <AdminBrowserToolbar action="/admin/community" query={q} placeholder="Search watchlists" filters={[
+        { name: "filter", label: "Watchlists", value: filter, options: [{ value: "all", label: "All watchlists" }, { value: "hidden", label: "Hidden" }, { value: "featured", label: "Featured" }, { value: "staff_pick", label: "Staff picks" }] },
       ]} />
       <p className="muted">{lists.count ?? 0} matching public collections.</p>
       <ul className="collection-list">

@@ -2744,8 +2744,7 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 :root :is(.tabs, .profile-tabs, .admin-subtabs) { scrollbar-width: none; }
 :root :is(.tabs, .profile-tabs, .admin-subtabs)::-webkit-scrollbar { display: none; }
 :root .menu-account .menu-logout, :root .menu-account .menu-logout .icon { color: var(--text); }
-.menu-site .menu-links a, .menu-site .menu-legal, .footer-bottom > p,
-.footer-links a:is([href="/about"], [href="/partnerships"], [href="/contact"], [href="/legal"]) { font-size: 12px; }
+.menu-site .menu-links a, .menu-site .menu-legal, .footer-bottom > p { font-size: 12px; }
 .enquiry-page .contact-form { width: 100%; }
 .suggestion-page > .submission-tabs { max-width: 100%; margin-bottom: var(--space-24); }
 .submission-tabs a { gap: var(--space-8); flex: none; }
@@ -3053,3 +3052,20 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 /* Crawlable catalog pages use in-flow links, separate from floating Load more controls. */
 .catalog-page-navigation { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:10px; max-width:100%; margin:var(--space-32) auto 0; }
 .catalog-page-navigation .button { white-space:nowrap; }
+
+/* Keyboard focus is always visible: a ring around whatever has focus (WCAG 2.4.7). Taps never show
+   it (data-focus-input="touch", above), mouse clicks don't trigger :focus-visible, and fields keep
+   their own focus style. */
+:root:not([data-focus-input="touch"]) :focus-visible:not(input):not(textarea):not(select):not(:where(main, div, section, header, h1, h2)[tabindex="-1"]) {
+  outline: 2px solid var(--ink) !important;
+  outline-offset: 2px !important;
+}
+
+/* Cast and crew: names and roles wrap instead of being cut off ("Barry Jen…"), up to two lines each. */
+:root .cast :is(.cast-name, .cast-role) {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2;
+  overflow: hidden; white-space: normal; text-overflow: clip; overflow-wrap: break-word; line-height: 1.3;
+}
+:root .cast .cast-text { min-width: 0; }
+/* Two columns leave names under 100px wide on phones, so they stack in one there. */
+@media (max-width: 559px) { :root .cast { grid-template-columns: minmax(0, 1fr); } }

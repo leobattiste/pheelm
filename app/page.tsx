@@ -96,7 +96,7 @@ export default async function Home() {
       </section>
 
       {shelf.length > 0 && (
-        <Row title="Collections" bare>
+        <Row title="Watchlists" bare>
           {shelf.map((c) => <CommunityTile key={c.id} c={c} showOwner={!c.staff_pick} />)}
         </Row>
       )}

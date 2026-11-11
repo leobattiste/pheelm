@@ -48,7 +48,7 @@ export default async function AdminMembers({searchParams}:{searchParams:Promise<
           <div className="admin-card-controls">
             <div className="admin-tags">{r.is_owner ? <span className="status-pill">Owner</span> : r.is_admin ? <span className="status-pill">Admin</span> : <span className="status-pill">Member</span>}{r.is_private && <span className="status-pill">Private</span>}</div>
             {owner && r.email && <p className="muted">{r.email}</p>}
-            <dl className="admin-member-stats"><div><dt>Collections</dt><dd>{r.lists}</dd></div><div><dt>Saved</dt><dd>{r.saved}</dd></div><div><dt>Comments</dt><dd>{r.comments}</dd></div></dl>
+            <dl className="admin-member-stats"><div><dt>Watchlists</dt><dd>{r.lists}</dd></div><div><dt>Saved</dt><dd>{r.saved}</dd></div><div><dt>Comments</dt><dd>{r.comments}</dd></div></dl>
             <p className="muted">Joined {day(r.created_at)}<br />Last signed in: {day(r.last_seen)}</p>
             <div className="actions"><Link className="link-button" href={`/admin/members/${r.id}`}>View member</Link>
               {owner && !r.is_owner && <form action={setAdmin}><input type="hidden" name="id" value={r.id}/><input type="hidden" name="make" value={r.is_admin ? "false" : "true"}/><button className="button ghost small" type="submit">{r.is_admin ? "Remove admin" : "Make admin"}</button></form>}

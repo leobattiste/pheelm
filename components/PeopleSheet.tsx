@@ -88,7 +88,7 @@ function InviteField({ listId, exclude, full }: { listId: string; exclude: strin
     requestAnimationFrame(() => form.current?.requestSubmit());
   };
 
-  if (full) return <p className="people-note">This collection has the most co-curators it can have.</p>;
+  if (full) return <p className="people-note">This watchlist has the most co-curators it can have.</p>;
 
   return (
     <form ref={form} action={action} className="invite-form" autoComplete="off">
@@ -212,7 +212,7 @@ export default function PeopleSheet({ listId, owner, collaborators, invited, req
                 </li>
               ))}
             </ul>
-            {!collaborators.length && <p className="people-note">{isOwner ? "Just you for now. Invite co-curators to add films and edit this collection with you." : "Just the curator for now."}</p>}
+            {!collaborators.length && <p className="people-note">{isOwner ? "Just you for now. Invite co-curators to add films and edit this watchlist with you." : "Just the curator for now."}</p>}
           </section>
 
           {isOwner && invited.length > 0 && (
@@ -242,14 +242,14 @@ export default function PeopleSheet({ listId, owner, collaborators, invited, req
             <div className="danger-zone">
               {leaving ? (
                 <>
-                  <p>Leave this collection? Films you added stay in it. You&rsquo;d need a new invite to come back.</p>
+                  <p>Leave this watchlist? Films you added stay in it. You&rsquo;d need a new invite to come back.</p>
                   <div className="actions">
-                    <Act action={removeCollaborator} listId={listId} label="Leave collection" kind="danger" back="/me" />
+                    <Act action={removeCollaborator} listId={listId} label="Leave watchlist" kind="danger" back="/me" />
                     <button type="button" className="button ghost small" onClick={() => setLeaving(false)}>Stay</button>
                   </div>
                 </>
               ) : (
-                <button type="button" className="button ghost small danger-text" onClick={() => setLeaving(true)}>Leave collection</button>
+                <button type="button" className="button ghost small danger-text" onClick={() => setLeaving(true)}>Leave watchlist</button>
               )}
             </div>
           )}

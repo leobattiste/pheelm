@@ -60,7 +60,7 @@ export default function QuickSave({ filmId, title }: { filmId: string; title: st
   return (
     <>
       <button type="button" className="quick-save" aria-pressed={state.on} aria-haspopup="dialog" onClick={e => { e.preventDefault(); e.stopPropagation(); setOpen(true); }}
-        aria-label={state.on ? `Change collections for ${title}` : `Save ${title} to your Watchlist`} title="Choose collections">
+        aria-label={state.on ? `Change watchlists for ${title}` : `Save ${title} to your Watchlist`} title="Choose watchlists">
         <Icon name={state.on ? "check" : "plus"} />
       </button>
       {open && <WatchlistButton filmId={filmId} filmTitle={title} pickerOnly initialUserId={state.userId} initialSaved={state.on} onClose={() => setOpen(false)} />}

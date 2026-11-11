@@ -44,7 +44,7 @@ export default function FilmActionBar({ title }: { title: string }) {
         <button type="button" className="pill-button" onClick={() => press("trailer")} aria-label="Trailer" title="Trailer">
           <Icon name="play" className="solid" />
         </button>
-        <button type="button" className="pill-button" aria-pressed={saved} onClick={() => press("watchlist")} aria-label={saved ? "Change collections" : "Add to watchlist"} title={saved ? "Change collections" : "Add to watchlist"}>
+        <button type="button" className="pill-button" aria-pressed={saved} onClick={() => press("watchlist")} aria-label={saved ? "Change watchlists" : "Add to watchlist"} title={saved ? "Change watchlists" : "Add to watchlist"}>
           {saved ? (
             <Icon name="check" />
           ) : (

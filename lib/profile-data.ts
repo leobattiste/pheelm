@@ -35,7 +35,7 @@ async function collectionCards(rows:ListRow[]):Promise<ProfileCollection[]> {
   db.from('member_profiles').select('id,handle').in('id',[...new Set(rows.map(r=>r.user_id))]),
   db.from('list_save_counts').select('list_id,saves').in('list_id',rows.map(r=>r.id)),
  ]);
- if(owners.error||saves.error)throw Error('Could not load profile collection details.');
+ if(owners.error||saves.error)throw Error('Could not load profile watchlist details.');
  const filmsById=new Map(films.map(f=>[f.id,f]));
  const ownersById=new Map((owners.data??[]).map(o=>[o.id,o]));
  const savesById=new Map((saves.data??[]).map(s=>[s.list_id,s.saves as number]));
@@ -49,7 +49,7 @@ async function collectionCards(rows:ListRow[]):Promise<ProfileCollection[]> {
 export async function getProfileCollections(memberId:string):Promise<ProfileCollection[]> {
  const db=publicDb();if(!db)return [];
  const {data,error}=await db.from('lists').select('id,slug,title,staff_pick,created_at,user_id,list_films(film_id,added_at,films!inner(year,status))').eq('is_public',true).eq('list_films.films.status','published').eq('user_id',memberId).order('created_at',{ascending:false});
- if(error)throw Error('Could not load profile collections: '+error.message);
+ if(error)throw Error('Could not load profile watchlists: '+error.message);
  return collectionCards((data??[]) as unknown as ListRow[]);
 }
 
@@ -59,7 +59,7 @@ export async function getProfileCollaborations(memberId:string):Promise<ProfileC
  if(error)throw Error('Could not load profile collaborations: '+error.message);
  if(!memberships?.length)return [];
  const {data,error:listError}=await db.from('lists').select('id,slug,title,staff_pick,created_at,user_id,list_films(film_id,added_at,films!inner(year,status))').eq('is_public',true).eq('list_films.films.status','published').neq('user_id',memberId).in('id',memberships.map(m=>m.list_id));
- if(listError)throw Error('Could not load shared collections: '+listError.message);
+ if(listError)throw Error('Could not load shared watchlists: '+listError.message);
  return collectionCards((data??[]) as unknown as ListRow[]);
 }
 

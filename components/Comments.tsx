@@ -230,7 +230,7 @@ export default function Comments({ listId, ownerId, collaboratorIds = [], pinned
     if (!db || !viewer) return;
     setReporting(null);
     setReported((r) => new Set(r).add(id));
-    const { error: e } = await db.from("comment_reports").insert({ comment_id: id, user_id: viewer.id, reason: "Reported from the collection page" });
+    const { error: e } = await db.from("comment_reports").insert({ comment_id: id, user_id: viewer.id, reason: "Reported from the watchlist page" });
     if (e) {
       setReported((r) => { const n = new Set(r); n.delete(id); return n; });
       fail(reason(e));
@@ -342,11 +342,11 @@ export default function Comments({ listId, ownerId, collaboratorIds = [], pinned
       </div>
 
       {!enabled ? (
-        <p className="comments-gate">Comments are turned off for this collection.</p>
+        <p className="comments-gate">Comments are turned off for this watchlist.</p>
       ) : me ? (
         <div className="comment-new">
           <UserAvatar person={me} className="comment-avatar" />
-          <Composer label="Add a comment" placeholder={isOwner ? "Say something about your collection" : "Add a comment"} submitLabel="Post" busy={busy}
+          <Composer label="Add a comment" placeholder={isOwner ? "Say something about your watchlist" : "Add a comment"} submitLabel="Post" busy={busy}
             onSubmit={(t) => post(t, null)} />
         </div>
       ) : viewer ? (

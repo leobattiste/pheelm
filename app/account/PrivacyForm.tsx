@@ -16,7 +16,7 @@ export default function PrivacyForm({ isPrivate, hideWatched, hideFollowing }: P
       <label className="switch-row">
         <span>
           <span className="switch-label">Private profile</span>
-          <span className="hint">Only you can see your profile, what you&rsquo;ve watched and who you follow. Collections you make public stay in the community.</span>
+          <span className="hint">Only you can see your profile, what you&rsquo;ve watched and who you follow. Watchlists you make public stay in the community.</span>
         </span>
         <input type="checkbox" role="switch" className="switch" disabled={pending} name="is_private" defaultChecked={isPrivate} onChange={save} />
       </label>

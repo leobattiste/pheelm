@@ -46,8 +46,11 @@ const ROLE_ALIASES: Record<string, Role> = {
 
 function parseCredits(text: string) {
   const out: { role: Role; name: string; character: string | null }[] = [];
-  for (const line of text.split("\n")) {
-    const m = line.match(/^\s*([a-z ]+?)\s*:\s*(.+)$/i);
+  // Forms send line breaks as \r\n; split on either, so the "\r" never sticks to a name and every
+  // line (not only the last) is read.
+  for (const raw of text.split(/\r?\n|\r/)) {
+    const line = raw.trim();
+    const m = line.match(/^([a-z ]+?)\s*:\s*(.+)$/i);
     if (!m) continue;
     const role = ROLE_ALIASES[m[1].toLowerCase().trim()];
     if (!role) throw new Error(`Unknown role "${m[1]}". Use director, writer, producer, cinematographer, editor, composer or cast.`);
@@ -58,7 +61,7 @@ function parseCredits(text: string) {
 }
 
 function parseAwards(text: string): Award[] {
-  return text.split("\n").map((l) => l.trim()).filter(Boolean).map((line) => {
+  return text.split(/\r?\n|\r/).map((l) => l.trim()).filter(Boolean).map((line) => {
     const [award, category, result, year] = line.split("|").map((s) => s.trim());
     if (!award || !category || !["won", "nominated"].includes(result) || !/^\d{4}$/.test(year)) {
       throw new Error(`Award lines look like "Cannes Film Festival | Grand Prix | won | 2019". Check: ${line}`);
@@ -68,7 +71,7 @@ function parseAwards(text: string): Award[] {
 }
 
 function parseWatch(text: string): WatchOption[] {
-  return text.split("\n").map((l) => l.trim()).filter(Boolean).map((line) => {
+  return text.split(/\r?\n|\r/).map((l) => l.trim()).filter(Boolean).map((line) => {
     const [provider, url, kind = "stream", region] = line.split("|").map((s) => s.trim());
     if (!provider || !/^https?:\/\//.test(url ?? "") || !["stream", "free", "rent", "buy"].includes(kind)) {
       throw new Error(`Viewing lines look like "Criterion Channel | https://… | stream | US". Check: ${line}`);
@@ -94,7 +97,7 @@ export async function saveFilm(_prev: Result, f: FormData): Promise<Result> {
     const year = int(f, "year");
     if (!title || !year) return { ok: false, message: "Every film needs a title and a year." };
     const credits = parseCredits(str(f, "credits", 20000));
-    if (!credits.some((c) => c.role === "director")) return { ok: false, message: "Add at least one line like  director: Name" };
+    if (!credits.some((c) => c.role === "director")) return { ok: false, message: "Add at least one director in Cast & crew, on its own line, like  director: Name" };
 
     const poster = (await upload(db, f.get("poster_file"), "posters")) ?? nullable(f, "poster_url", 1000);
     // A new poster brings its own colour, unless one was typed in.
@@ -376,7 +379,7 @@ export async function setListFlag(f: FormData) {
   const id = String(f.get("id"));
   const { error } = await db.from("lists").update({ [field]: f.get("value") === "true" }).eq("id", id);
   if (error) throw new Error(error.message);
-  await logAdminActivity(db, "Updated collection", "collection", id, `${field}: ${f.get("value")}`);
+  await logAdminActivity(db, "Updated watchlist", "collection", id, `${field}: ${f.get("value")}`);
   revalidatePath("/admin/community");
   revalidatePath("/watchlists");
   revalidatePath(`/c/${id}`);
@@ -425,6 +428,6 @@ export async function resolveReport(f: FormData) {
   const id = String(f.get("id"));
   const { error } = await db.from("list_reports").update({ resolved: true }).eq("id", id);
   if (error) throw new Error(error.message);
-  await logAdminActivity(db, "Dismissed collection report", "collection", id);
+  await logAdminActivity(db, "Dismissed watchlist report", "collection", id);
   revalidatePath("/admin/community");
 }

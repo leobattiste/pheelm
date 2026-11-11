@@ -55,7 +55,7 @@ export default async function CollectionsPage({ searchParams }: { searchParams: 
           {feed === "following" ? (
             <>
               <p>You don&rsquo;t follow any watchlists yet.</p>
-              <p className="muted">Press Follow in a collection&rsquo;s menu to keep it here and hear when films are added.</p>
+              <p className="muted">Press Follow in a watchlist&rsquo;s menu to keep it here and hear when films are added.</p>
             </>
           ) : (
             <p>No watchlists {film ? "with this film " : ""}yet.</p>

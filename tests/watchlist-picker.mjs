@@ -60,7 +60,7 @@ try {
   await dialog.getByRole('checkbox').filter({ hasText: 'All' }).click();
   await page.waitForFunction(() => document.querySelector('dialog[open] [role=checkbox]')?.getAttribute('aria-checked') === 'false');
   assert.equal(await savedCount(), 0); assert.equal(await membershipCount(), 0);
-  await dialog.getByRole('textbox', { name: 'New collection name' }).fill(createdTitle);
+  await dialog.getByRole('textbox', { name: 'New watchlist name' }).fill(createdTitle);
   await dialog.getByRole('button', { name: 'Create', exact: true }).click();
   await dialog.getByRole('checkbox', { name: createdTitle, exact: true }).waitFor();
   assert.equal(await savedCount(), 1);
