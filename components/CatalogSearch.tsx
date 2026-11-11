@@ -1,5 +1,6 @@
 "use client";
 import Link from 'next/link';
+import FilterSelect from './FilterSelect';
 import type {ReactNode} from 'react';
 import { Suspense, useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -190,7 +191,7 @@ function Browser({ entries, mode }: {
         { saveVisit(); remember(state); } }}>
   <div className="toolbar catalog-toolbar">
    <SearchField mode={mode} value={state.q ?? ''} onChange={q => set('q', q)} results={results} history={history} onClearHistory={clearHistory} onHistory={s => { commit(s); remember(s); }} onSubmit={submit} onVisit={() => { saveVisit(); remember(state); }} proposal={proposal}/>
-   <button type="button" className={"button ghost filter-button" + (active.length ? " has-count" : "")} aria-haspopup="dialog" onClick={() => { setFiltersOpen(true); modal.current?.showModal(); }}><Icon name="filter"/><span className="filter-label">Filters</span>{active.length > 0 && <span className="badge" aria-label={active.length + " active filters"}>{active.length}</span>}</button>
+   <button type="button" className={"button ghost filter-button" + (active.length ? " has-count" : "")} aria-haspopup="dialog" aria-controls={inputId+'-dialog'} aria-expanded={filtersOpen} onClick={() => { setFiltersOpen(true); modal.current?.showModal(); }}><Icon name="filter"/><span className="filter-label">Filters</span>{active.length > 0 && <span className="badge" aria-label={active.length + " active filters"}>{active.length}</span>}</button>
   </div>
   {active.length > 0 && <ul className="chip-list catalog-active-filters" aria-label="Active filters">{active.map(k => <li key={k}><button type="button" className="chip" aria-label={'Remove ' + filterLabel(k, state[k]!)} onClick={() => set(k, '')}>{filterLabel(k, state[k]!)}<Icon name="close" className="x"/></button></li>)}</ul>}
   {(!!state.q?.trim() || active.length > 0) && <div className="result-bar catalog-results-summary" aria-live="polite">
@@ -204,12 +205,12 @@ function Browser({ entries, mode }: {
    {mode === 'films' ? <FilmGrid films={results.slice(0, shown).flatMap(e => e.film ? [e.film] : [])} priority={6}/> : <ul className="director-grid">{results.slice(0, shown).map(e => e.director && <DirectorCard key={e.id} director={e.director}/>)}</ul>}
    {shown < results.length && <div className="pagination-controls"><button type="button" className="button ghost more" onClick={() => setShown(n => n + PAGE)}>Load more</button><BackToTopButton /></div>}
   </> : <div className="empty-state"><Icon name="search" className="empty-icon"/><p>No {mode} match your search.</p><p className="muted">{relaxed ? 'Your search has ' + relaxed + ' matches without these filters.' : 'Check the spelling, try another name or remove a filter.'}</p>{active.length > 0 && <button type="button" className="button ghost" onClick={clearFilters}>Search without filters</button>}<button type="button" className="button ghost" onClick={() => commit({})}>Clear search and filters</button>{mode === 'films' && <Link href="/submit">Suggest a missing film</Link>}</div>}
-  <dialog ref={modal} className="modal catalog-filter-dialog" onClose={() => setFiltersOpen(false)} aria-labelledby={inputId + '-title'} onClick={e => { if (e.target === modal.current)
+  <dialog ref={modal} id={inputId+'-dialog'} className="modal catalog-filter-dialog" onClose={() => setFiltersOpen(false)} aria-labelledby={inputId + '-title'} onClick={e => { if (e.target === modal.current)
         modal.current?.close(); }}>
    <div className="modal-head"><span className="sheet-handle" aria-hidden="true"/><h2 id={inputId + '-title'}>Filters</h2><button type="button" className="icon-button" aria-label="Close filters" onClick={() => modal.current?.close()}><Icon name="close"/></button></div>
-   <div className="modal-body"><label className="field filter-field">Sort by<select aria-label="Sort by" value={state.sort ?? sortDefault} onChange={e => set('sort', e.target.value)}>{SORTS[mode].map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></label>
+   <div className="modal-body"><FilterSelect label="Sort by" value={state.sort ?? sortDefault} onChange={e => set('sort', e.target.value)}>{SORTS[mode].map(([v, l]) => <option key={v} value={v}>{l}</option>)}</FilterSelect>
     {filters.map(k => ['year', 'from', 'to', 'minRuntime', 'maxRuntime'].includes(k) ? <label key={k} className="field filter-field">{titles[k]}<input type="number" inputMode="numeric" min={k === 'minRuntime' || k === 'maxRuntime' ? 1 : 1890} max={k === 'minRuntime' || k === 'maxRuntime' ? 9999 : 2199} key={k + ':' + (state[k] ?? '')} defaultValue={state[k] ?? ''} onBlur={e => set(k, e.target.value)} onKeyDown={e => { if (e.key === 'Enter')
-        e.currentTarget.blur(); }} placeholder="Any"/></label> : <label key={k} className="field filter-field">{titles[k]}<select aria-label={titles[k]} value={state[k] ?? ''} onChange={e => set(k, e.target.value)}><option value="">Any</option>{state[k] && !options(k).some(([v]) => v === state[k]) && <option value={state[k]}>{filterLabel(k, state[k]!)}</option>}{options(k).map(([v, l]) => <option key={v} value={v}>{l}{active.length > 0 ? ` (${countFor(k, v)})` : ''}</option>)}</select></label>)}
+        e.currentTarget.blur(); }} placeholder="Any"/></label> : <FilterSelect key={k} label={titles[k]??k} value={state[k] ?? ''} onChange={e => set(k, e.target.value)}><option value="">Any</option>{state[k] && !options(k).some(([v]) => v === state[k]) && <option value={state[k]}>{filterLabel(k, state[k]!)}</option>}{options(k).map(([v, l]) => <option key={v} value={v}>{l}{active.length > 0 ? ` (${countFor(k, v)})` : ''}</option>)}</FilterSelect>)}
     {mode === 'films' && <p className="muted">Viewing availability varies by region and reflects the links currently in our directory.</p>}{mode === 'directors' && <p className="muted">Film-type filters refer to films listed in this directory.</p>}
    </div><div className="modal-foot"><button type="button" className="button ghost" disabled={!active.length && !state.sort} onClick={() => commit({ q: state.q })}>Reset</button><button type="button" className="button" onClick={() => { remember(state); modal.current?.close(); }}>Show {active.length > 0 || state.q?.trim() ? `${results.length} ` : ''}{mode}</button></div>
   </dialog>

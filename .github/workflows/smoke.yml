@@ -38,6 +38,9 @@ jobs:
       - run: node tests/profile-about-browser.mjs
       - run: node tests/tabs-browser.mjs
       - run: node tests/admin-catalog-toolbar-browser.mjs
+      - run: node tests/admin-catalog-toolbar-browser.mjs
+        env:
+          BROWSER: webkit
       - run: node tests/films-shuffle-browser.mjs
         env:
           BASE_URL: http://localhost:3000
