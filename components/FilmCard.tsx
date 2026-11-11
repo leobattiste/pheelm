@@ -11,11 +11,15 @@ import QuickSave from "./QuickSave";
  * list view, where the extra columns (country, running time) show as a row for scanning.
  */
 /** posterOnly: just the poster, with the title and director as the link's label. */
-export default function FilmCard({ film, priority, sizes, note, extra, posterOnly, href, controls }: { film: Card; priority?: boolean; sizes?: string; note?: string; extra?: string; posterOnly?: boolean; href?: string; controls?: ReactNode }) {
+export default function FilmCard({ film, priority, sizes, note, extra, posterOnly, href, controls, plain }: { film: Card; priority?: boolean; sizes?: string; note?: string; extra?: string; posterOnly?: boolean; href?: string; controls?: ReactNode; plain?: boolean }) {
   const CardLink = href ? Link : FilmLink;
+  const label = posterOnly ? `${film.title}, ${film.directors.join(" and ")}, ${film.year}` : undefined;
+  // Plain: the same card without a link (the home page, before sign-up).
+  const Wrap = (plain ? "span" : CardLink) as React.ElementType;
+  const wrapProps = plain ? { className: "card-plain", role: "img", "aria-label": label ?? `${film.title}, ${film.year}` } : { href: href ?? `/films/${film.slug}`, "aria-label": label };
   return (
     <li className={`film-card${posterOnly ? " is-poster-only" : ""}`} style={tintStyle(film.color)}>
-      <CardLink href={href ?? `/films/${film.slug}`} aria-label={posterOnly ? `${film.title}, ${film.directors.join(" and ")}, ${film.year}` : undefined}>
+      <Wrap {...wrapProps}>
         <Poster title={film.title} year={film.year} directors={film.directors} src={film.poster_url} priority={priority} sizes={sizes} />
         <span className="film-card-title" title={film.title}>{film.title}</span>
         <span className="film-card-meta">
@@ -26,7 +30,7 @@ export default function FilmCard({ film, priority, sizes, note, extra, posterOnl
         <span className="film-card-col film-card-year-col">{film.year}</span>
         <span className="film-card-col film-card-country">{film.countries.map(countryName).join(", ")}</span>
         <span className="film-card-col film-card-runtime">{runtimeLabel(film.runtime) ?? "–"}</span>
-      </CardLink>
+      </Wrap>
       {!posterOnly && !href && <QuickSave filmId={film.id} title={film.title} />}
       {controls}
     </li>

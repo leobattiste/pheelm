@@ -13,6 +13,15 @@ import { SITE_URL } from "@/lib/supabase/config";
 export const revalidate = 300;
 export const metadata: Metadata = publicPageMetadata("/");
 
+const FAQS: [string, string][] = [
+  ["What is Pheelm?", "Pheelm is a platform to discover films directed or co-directed by Black filmmakers from around the world. Explore films, directors and watchlists in one place."],
+  ["Is Pheelm free?", "Yes. Creating an account and using Pheelm costs nothing."],
+  ["Why do I need an account?", "While Pheelm is in early access, an account is how you get in. It also lets you save films, follow directors, create watchlists, comment and suggest films."],
+  ["How do I get early access?", "Select Get Early Access, or sign in if you already have an account, and enter your email. There are no passwords: we send you a link or code."],
+  ["Who is Pheelm for?", "Anyone curious about cinema by Black directors: film fans, filmmakers, researchers and people looking for something new to watch."],
+  ["Where can I watch the films?", "Each film page shows where it is available to stream, rent or buy, depending on your country."],
+];
+
 const WEEK = 7 * 24 * 60 * 60 * 1000;
 
 /** Rotate a list by a week-based offset, so rows change each week without being random per visit. */
@@ -50,6 +59,7 @@ export default async function Home() {
         description: SITE_DESCRIPTION,
         potentialAction: { "@type": "SearchAction", target: `${SITE_URL}/films?q={search_term_string}`, "query-input": "required name=search_term_string" },
       },
+      { "@type": "FAQPage", mainEntity: FAQS.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })) },
       { "@type": "Organization", name: SITE_NAME, url: SITE_URL, logo: `${SITE_URL}/apple-icon` },
     ],
   };
@@ -70,7 +80,7 @@ export default async function Home() {
       </section>
 
       <Row title="Essential films" bare interactive fit>
-        {essential.map((f, i) => <FilmCard key={f.id} film={toCard(f)} priority={i < 4} posterOnly sizes="(min-width: 900px) 34vw, 72vw" />)}
+        {essential.map((f, i) => <FilmCard key={f.id} film={toCard(f)} priority={i < 4} posterOnly plain sizes="(min-width: 900px) 34vw, 72vw" />)}
       </Row>
       </div>
 
@@ -82,7 +92,7 @@ export default async function Home() {
       </section>
 
       <Row title="Directors to know" bare>
-        {toKnow.map((d) => <DirectorCard key={d.id} director={toDirectorSummary(d)} />)}
+        {toKnow.map((d) => <DirectorCard key={d.id} director={toDirectorSummary(d)} plain />)}
       </Row>
 
       <section className="statement" aria-labelledby="community-title">
@@ -97,17 +107,31 @@ export default async function Home() {
 
       {shelf.length > 0 && (
         <Row title="Watchlists" bare>
-          {shelf.map((c) => <CommunityTile key={c.id} c={c} showOwner={!c.staff_pick} />)}
+          {shelf.map((c) => <CommunityTile key={c.id} c={c} showOwner={!c.staff_pick} plain />)}
         </Row>
       )}
       </EarlyAccessGate>
+
+      <section className="faq" aria-labelledby="faq-title">
+        <div className="faq-body">
+          <h2 id="faq-title">Frequently asked questions</h2>
+          <div className="faq-list">
+            {FAQS.map(([q, a]) => (
+              <details key={q}>
+                <summary>{q}</summary>
+                <p>{a}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
 
       <section className="statement is-cta" aria-labelledby="join-title">
         <div className="statement-body">
           <h2 id="join-title">Create your free account.</h2>
           <p>Save films, create watchlists, follow directors, and make Pheelm your own.</p>
           <div className="actions">
-            <EarlyAccessButton>Sign up for free</EarlyAccessButton>
+            <EarlyAccessButton />
           </div>
         </div>
       </section>

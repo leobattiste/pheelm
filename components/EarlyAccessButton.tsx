@@ -5,7 +5,7 @@ import { useEffect, type ReactNode } from "react";
 import { openSignIn } from "./SignInSheet";
 
 /** Opens the "Get early access" sheet (the sign-up sheet), or the sign-in page without it. */
-export default function EarlyAccessButton({ children = "Join Pheelm", className = "button" }: { children?: ReactNode; className?: string }) {
+export default function EarlyAccessButton({ children = "Get Early Access", className = "button" }: { children?: ReactNode; className?: string }) {
   return (
     <Link data-open className={className} href="/login?mode=signup&next=/films" onClick={(e) => { if (openSignIn("signup")) e.preventDefault(); }}>
       {children}

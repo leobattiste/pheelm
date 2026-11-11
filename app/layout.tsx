@@ -149,7 +149,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link className="member-only" href="/me">Watchlist</Link>
               <Link className="member-only" href="/profile">Profile</Link>
               <Link className="member-only" href="/account">Settings</Link>
-              <Link href="/newsletter">Newsletter</Link>
               {INSTAGRAM_URL && <a className="footer-social-link platform-link" aria-label="Pheelm on Instagram" title="Instagram" href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer"><Icon name="instagram" /></a>}
               {THREADS_URL && <a className="footer-social-link platform-link" aria-label="Pheelm on Threads" title="Threads" href={THREADS_URL} target="_blank" rel="noopener noreferrer"><Icon name="threads" /></a>}
             </nav>

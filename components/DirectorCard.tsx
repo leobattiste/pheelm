@@ -23,12 +23,13 @@ export function Portrait({ director, className = "" }: { director: PortraitPerso
  * A director's card, built like a collection card: three of their films side by side (with empty
  * slots when they have fewer), then a small square portrait, their name, country and film count.
  */
-export default function DirectorCard({ director, href, meta, footer, showPreviews = true }: { director: DirectorSummary; href?: string; meta?: string; footer?: ReactNode; showPreviews?: boolean }) {
+export default function DirectorCard({ director, href, meta, footer, showPreviews = true, plain }: { director: DirectorSummary; href?: string; meta?: string; footer?: ReactNode; showPreviews?: boolean; plain?: boolean }) {
   // Best-known film first; empty slots fill the row when there are fewer than three.
+  const Wrap = (plain ? "span" : Link) as React.ElementType;
   const slots = [0, 1, 2].map((i) => director.previews[i]);
   return (
     <li className={`director-card${footer ? " admin-managed-card" : ""}`}>
-      <Link href={href ?? `/directors/${director.slug}`} className="collection-tile" style={tintStyle(director.previews.find((f) => f.color)?.color)}>
+      <Wrap {...(plain ? {} : { href: href ?? `/directors/${director.slug}` })} className="collection-tile" style={tintStyle(director.previews.find((f) => f.color)?.color)}>
         {showPreviews && <span className="collection-fan" aria-hidden="true">
           {slots.map((f, i) =>
             f ? (
@@ -45,7 +46,7 @@ export default function DirectorCard({ director, href, meta, footer, showPreview
             <span className="director-card-meta">{meta ?? [director.country && countryName(director.country)].filter(Boolean).join(" • ")}</span>
           </span>
         </span>
-      </Link>
+      </Wrap>
       {footer}
     </li>
   );
