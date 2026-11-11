@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { GRID_STORAGE_KEY } from "@/lib/grid";
 
 type View = "large" | "small" | "list";
 
@@ -55,7 +56,7 @@ export default function GridToggle() {
     setView(v);
     document.documentElement.dataset.grid = v;
     try {
-      localStorage.setItem("grid", v);
+      localStorage.setItem(GRID_STORAGE_KEY, v);
     } catch {}
     window.dispatchEvent(new Event("gridchange"));
   };
