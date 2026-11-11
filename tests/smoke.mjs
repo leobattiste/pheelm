@@ -23,11 +23,12 @@ const page = await (await browser.newContext({ viewport: { width: 390, height: 8
 const errors = [];
 page.on("pageerror", (e) => errors.push(e.message));
 
-await check("home shows the hero and a row of films", async () => {
+await check("home shows the hero, a row of directors and the questions", async () => {
   const res = await page.goto(BASE + "/", { waitUntil: "networkidle" });
   expect(res?.ok(), `status ${res?.status()}`);
   expect(await page.isVisible("h1"), "no heading");
-  expect((await page.$$(".row .film-card")).length > 0, "no films in the row");
+  expect((await page.$$(".row .director-card")).length > 0, "no directors in the row");
+  expect((await page.$$(".faq-card")).length > 0, "no questions");
 });
 
 await check("films page lists films and filters them", async () => {
