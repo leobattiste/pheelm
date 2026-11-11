@@ -1,4 +1,6 @@
 "use client";
+
+import { safeInternalPath } from "@/lib/safe-navigation";
 import { useSessionEmail } from "@/lib/session-email";
 
 import { PAGE_COPY } from "@/lib/site";
@@ -13,7 +15,7 @@ const googleEnabled = process.env.NEXT_PUBLIC_ENABLE_GOOGLE === "true";
 export type SignInMode = "signin" | "signup";
 
 export function safeNext(value: string | null) {
-  return value && value.startsWith("/") && !value.startsWith("//") && !value.includes("\\") ? value : "/me";
+  return safeInternalPath(value) ?? "/me";
 }
 
 export const LINK_ERRORS: Record<string, string> = {

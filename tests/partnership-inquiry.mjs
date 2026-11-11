@@ -3,10 +3,10 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import ts from 'typescript';
 const compile=file=>ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
-const partnership={},links={};vm.runInNewContext(compile('lib/partnership.ts'),{exports:partnership});vm.runInNewContext(compile('lib/profile-links.ts'),{exports:links,URL});
+const partnership={},links={},navigation={};vm.runInNewContext(compile('lib/partnership.ts'),{exports:partnership});vm.runInNewContext(compile('lib/safe-navigation.ts'),{exports:navigation,URL,decodeURIComponent});vm.runInNewContext(compile('lib/profile-links.ts'),{exports:links,URL});
 let saved=[],failures=0;const db={from:table=>({insert:async row=>{saved.push({table,row});return{error:failures-->0?{code:'PGRST204'}:null};}})};
 const exports={};vm.runInNewContext(compile('app/platform-actions.ts'),{exports,FormData,require:name=>{
- if(name==='@/lib/partnership')return partnership;if(name==='@/lib/profile-links')return links;
+ if(name==='@/lib/partnership')return partnership;if(name==='@/lib/safe-navigation')return navigation;if(name==='@/lib/profile-links')return links;
  if(name==='@/lib/supabase/server')return{getServerClient:async()=>db};if(name==='@/lib/turnstile')return{passesTurnstile:async()=>true};throw Error(name);
 }});
 const form=()=>{const f=new FormData();for(const[k,v]of Object.entries({topic:'partnership',name:'Test Organizer',email:'organizer@example.invalid',organization:'Cinema Project',partnership_type:'Film festival or screening',partnership_url:'https://example.com/project',body:'A screening proposal.'}))f.set(k,v);return f;};

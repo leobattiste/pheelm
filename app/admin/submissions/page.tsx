@@ -28,7 +28,7 @@ export default async function AdminSubmissions({searchParams}:{searchParams:Prom
               </div>
               <p className="label">Sent {new Date(s.created_at).toLocaleDateString("en-GB")}</p>
               {match && <p className="notice error">Possible duplicate: <Link href={`/admin/films/${match}`}>Check existing film</Link></p>}
-              {s.link && <a className="link-button" href={s.link} target="_blank" rel="noopener noreferrer">View film link</a>}
+              {s.link && /^https?:\/\//i.test(s.link) && <a className="link-button" href={s.link} target="_blank" rel="noopener noreferrer">View film link</a>}
               {s.note && <p>{s.note}</p>}
               {s.details && <details><summary>Submitted details</summary><dl className="details">{Object.entries(s.details as Record<string, unknown>).filter(([,v]) => v).map(([k,v]) => <div key={k}><dt>{k.replace(/_/g, " ")}</dt><dd>{String(v)}</dd></div>)}</dl></details>}
               {status === "pending" ? <form action={reviewSubmission} className="settings-form">

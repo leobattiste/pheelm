@@ -4,6 +4,7 @@ import { PARTNERSHIP_TYPES, PARTNERSHIP_SUCCESS } from "@/lib/partnership";
 import { websiteUrl } from "@/lib/profile-links";
 import { getServerClient } from "@/lib/supabase/server";
 import { passesTurnstile } from "@/lib/turnstile";
+import { safeInternalPath } from "@/lib/safe-navigation";
 
 export type FormState = { ok: boolean; message: string } | null;
 
@@ -51,7 +52,7 @@ export async function sendMessage(_prev: FormState, f: FormData): Promise<FormSt
   if (!db) return { ok: false, message: "Messages can't be sent from here yet. Check back soon." };
   // What the message is about: the page (or part of one) it was sent from.
   const pageRaw = String(f.get("page") ?? "").trim();
-  const page = pageRaw.startsWith("/") && !pageRaw.startsWith("//") ? pageRaw.slice(0, 500) : null;
+  const page = pageRaw.length <= 500 ? safeInternalPath(pageRaw) : null;
   const pageTitle = page ? String(f.get("page_title") ?? "").trim().slice(0, 200) || page : null;
   const row: Record<string, string | null> = {
     name: String(f.get("name") ?? "").trim().slice(0, 200) || null,

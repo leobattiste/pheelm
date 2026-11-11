@@ -1,5 +1,6 @@
 "use client";
 
+import { safeInternalPath } from "@/lib/safe-navigation";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import SignInForm, { type SignInMode } from "./SignInForm";
@@ -28,7 +29,7 @@ export default function SignInSheet() {
     const open = (e: Event) => {
       const d = (e as CustomEvent<{ mode?: SignInMode; next?: string }>).detail ?? {};
       setMode(d.mode === "signup" ? "signup" : "signin");
-      setNext(d.next && d.next.startsWith("/") && !d.next.startsWith("//") ? d.next : null);
+      setNext(safeInternalPath(d.next));
       if (!sheet.current?.open) sheet.current?.showModal();
     };
     window.addEventListener("open-signin", open);

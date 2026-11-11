@@ -229,9 +229,18 @@ async function inBatches<T>(items: T[], size: number, task: (item: T) => Promise
 /** The poster's dominant colour as a hex string, or null if the image can't be read. */
 export async function posterColour(url: string): Promise<string | null> {
   try {
-    const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) return null;
-    const { dominant } = await sharp(Buffer.from(await res.arrayBuffer())).resize(48, 72, { fit: "cover" }).stats();
+    // The address is typed in the admin, so it's treated like any outside input: https only, a
+    // public host name (never an IP address, localhost or an internal name), no redirects, 10 MB.
+    const target = new URL(url);
+    const host = target.hostname.toLowerCase();
+    if (target.protocol !== "https:" || target.username || target.password || target.port) return null;
+    if (!host.includes(".") || /^[\d.]+$/.test(host) || host.includes(":") || /(^|\.)(localhost|local|internal|lan|home|corp)$/.test(host)) return null;
+    const res = await fetch(target, { cache: "no-store", redirect: "error", signal: AbortSignal.timeout(8000) });
+    if (!res.ok || !/^image\//i.test(res.headers.get("content-type") ?? "")) return null;
+    if (Number(res.headers.get("content-length") ?? 0) > 10 * 1024 * 1024) return null;
+    const bytes = Buffer.from(await res.arrayBuffer());
+    if (bytes.length > 10 * 1024 * 1024) return null;
+    const { dominant } = await sharp(bytes, { limitInputPixels: 40_000_000 }).resize(48, 72, { fit: "cover" }).stats();
     return "#" + [dominant.r, dominant.g, dominant.b].map((n) => n.toString(16).padStart(2, "0")).join("");
   } catch {
     return null;
