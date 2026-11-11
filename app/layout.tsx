@@ -144,7 +144,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/contact">Contact</Link>
               <Link className="member-only" href="/submit">Suggest a film</Link>
             </nav>
-            <nav aria-labelledby="footer-you">
+            <nav className="member-only" aria-labelledby="footer-you">
               <h2 id="footer-you">You</h2>
               <Link className="member-only" href="/me">Watchlist</Link>
               <Link className="member-only" href="/profile">Profile</Link>

@@ -14,13 +14,17 @@ export const revalidate = 300;
 export const metadata: Metadata = publicPageMetadata("/");
 
 const FAQS: [string, string][] = [
-  ["What is Pheelm?", "Pheelm is a platform to discover films directed or co-directed by Black filmmakers from around the world. Explore films, directors and watchlists in one place."],
-  ["Is Pheelm free?", "Yes. Creating an account and using Pheelm costs nothing."],
-  ["Why do I need an account?", "While Pheelm is in early access, an account is how you get in. It also lets you save films, follow directors, create watchlists, comment and suggest films."],
-  ["How do I get early access?", "Select Get Early Access, or sign in if you already have an account, and enter your email. There are no passwords: we send you a link or code."],
-  ["Who is Pheelm for?", "Anyone curious about cinema by Black directors: film fans, filmmakers, researchers and people looking for something new to watch."],
-  ["Where can I watch the films?", "Each film page shows where it is available to stream, rent or buy, depending on your country."],
+  ["What is Pheelm?", "Pheelm is a platform to discover films by Black directors from around the world, explore the people behind them, and connect with other film enthusiasts."],
+  ["Why was Pheelm created?", "Black directors have made significant contributions to cinema, yet many of their films remain overlooked or difficult to discover. Pheelm aims to make their work more visible and accessible to audiences everywhere."],
+  ["What can I do on Pheelm?", "You can discover films, explore directors, save your favorites, create watchlists, and connect with a community of film enthusiasts."],
+  ["Is Pheelm a streaming service?", "No. Pheelm is a film discovery platform. We help you find and learn about films, but we don’t host or stream them."],
+  ["Is Pheelm free?", "Yes. Pheelm will be free to explore and use."],
+  ["What is early access?", "Early access gives you the opportunity to explore Pheelm before its public launch, try its features, and share feedback to help us improve the platform."],
+  ["When will Pheelm fully launch?", "We’re still working on Pheelm and don’t have an official public launch date yet."],
+  ["Who can join?", "Anyone interested in cinema is welcome. Whether you’re a casual viewer, a film enthusiast, or a filmmaker, Pheelm is for you."],
+  ["How can I support Pheelm?", "You can support us by joining the early access list, sharing Pheelm with others, and providing feedback as we build the platform."],
 ];
+
 
 const ICONIC = [
   "sinners", "moonlight", "get-out", "black-panther", "12-years-a-slave", "do-the-right-thing", "boyz-n-the-hood",
@@ -124,11 +128,20 @@ export default async function Home() {
       <div className="home-block">
       <section className="faq" aria-labelledby="faq-title">
         <div className="faq-body">
-          <h2 id="faq-title">Frequently asked questions</h2>
+          <h2 id="faq-title">Frequently Asked Questions</h2>
           <div className="faq-list">
             {FAQS.map(([q, a]) => (
-              <details key={q}>
-                <summary>{q}</summary>
+              <details key={q} name="faq" className="faq-card">
+                <summary>
+                  <span>{q}</span>
+                  <svg className="slate" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round" aria-hidden="true">
+                    <path d="M3.5 10.5h17V19a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 19z" />
+                    <g className="slate-arm">
+                      <path d="M3.5 10.5V7.8a1 1 0 0 1 1-1h15a1 1 0 0 1 1 1v2.7z" />
+                      <path d="M8 6.8l2.2 3.7M13 6.8l2.2 3.7" />
+                    </g>
+                  </svg>
+                </summary>
                 <p>{a}</p>
               </details>
             ))}
@@ -139,7 +152,7 @@ export default async function Home() {
 
       <div className="home-block">
       <section className="statement is-cta" aria-labelledby="join-title">
-        <div className="statement-body">
+        <div className="statement-body cta-card">
           <h2 id="join-title">Create your free account.</h2>
           <p>Save films, create watchlists, follow directors, and make Pheelm your own.</p>
           <div className="actions">

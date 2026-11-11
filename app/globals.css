@@ -3070,16 +3070,6 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 /* Two columns leave names under 100px wide on phones, so they stack in one there. */
 @media (max-width: 559px) { :root .cast { grid-template-columns: minmax(0, 1fr); } }
 
-/* Home page questions: each opens in place; the answer reads as plain text under it. */
-.faq { padding: clamp(var(--space-64), 9vw, 128px) var(--gutter) 0; }
-.faq-body { display: grid; gap: var(--space-24); max-width: 760px; }
-.faq h2 { font-size: var(--t-3xl); text-wrap: wrap; }
-.faq-list { display: grid; }
-.faq-list summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: var(--space-16); padding: var(--space-16) 0; font-weight: 600; }
-.faq-list summary::-webkit-details-marker { display: none; }
-.faq-list summary::after { content: "+"; font-weight: 400; flex: none; }
-.faq-list details[open] summary::after { content: "\2212"; }
-.faq-list details p { color: var(--muted); padding-bottom: var(--space-16); max-width: 64ch; }
 
 /* The hero carousel fills what the hero text leaves of the first screen. */
 .home-lead > .home-carousel { position: relative; flex: 1; min-height: 420px; }
@@ -3098,11 +3088,33 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 /* Spacing: every home section sits the same distance from the one before; the hero gets the most room. */
 :root { --home-gap: clamp(96px, 13vw, 184px); }
 .home-block { padding-top: var(--home-gap); scroll-snap-align: center; }
-.home-block > .statement, .home-block > .faq { padding: 0; }
+.home-block > .statement, .home-block > .faq { padding: 0 var(--gutter); }
 .home-block > .row { padding-top: var(--space-40); }
 .home-block:last-child { padding-bottom: var(--home-gap); }
 .statement.is-hero { padding-top: clamp(64px, 8vw, 120px); padding-bottom: clamp(32px, 4vw, 56px); }
 .home-lead { scroll-snap-align: start; }
 html:has(.early-gate) { scroll-snap-type: y proximity; }
 @media (prefers-reduced-motion: reduce) { html:has(.early-gate) { scroll-snap-type: none; } }
-.faq-list details p { padding-bottom: var(--space-24); }
+
+/* Questions: one card each, styled like the director cards. Only one is open at a time; the slate opens with it. */
+.faq-body { display: grid; gap: var(--space-24); max-width: 760px; margin-inline: auto; }
+.faq h2 { font-size: var(--t-3xl); text-wrap: wrap; text-align: center; }
+.faq-list { display: grid; gap: var(--space-12); }
+.faq-card, .cta-card {
+  padding: var(--space-16) var(--space-20);
+  border: 1px solid var(--control-border-strong);
+  border-radius: var(--r);
+  background: transparent;
+  transition: background-color 0.2s;
+}
+.faq-card:hover { background: var(--control-hover); }
+.faq-card summary { display: flex; align-items: center; justify-content: space-between; gap: var(--space-16); cursor: pointer; list-style: none; font-weight: 600; }
+.faq-card summary::-webkit-details-marker { display: none; }
+.faq-card .slate { flex: none; }
+.slate-arm { transform-box: view-box; transform-origin: 3.5px 7px; transition: transform 0.3s var(--ease); }
+.faq-card[open] .slate-arm { transform: rotate(-24deg); }
+.faq-card p { margin-top: var(--space-12); color: var(--muted); max-width: 64ch; }
+@media (prefers-reduced-motion: reduce) { .slate-arm { transition: none; } }
+.statement.is-cta .cta-card { max-width: 760px; width: 100%; margin-inline: auto; padding: var(--space-40) var(--space-24); }
+/* Visitors keep the header (Sign in) in reach while they scroll the home page. */
+html:not([data-auth="in"]) body:has(.early-gate) .site-header { position: sticky; top: 0; }
