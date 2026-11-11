@@ -20,7 +20,9 @@ assert.ok((await page.evaluate(()=>window.lastSearch)).includes('limit=80'));
 await page.getByRole('button',{name:'Filters',exact:true}).click();
 // Exercise the real stylesheet in both themes, including short mobile screens.
 for(const theme of ['dark','light'])for(const width of [320,390,768,1440]){
- await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);await page.setViewportSize({width,height:width===320?568:844});await page.waitForTimeout(250);
+ await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);const height=width===320?568:844;await page.setViewportSize({width,height});
+ // WebKit may report the resized viewport before recalculating vw/dvh in an open dialog.
+ await page.waitForFunction(({width,height})=>{const box=document.querySelector('.admin-filter-dialog').getBoundingClientRect();return innerWidth===width&&innerHeight===height&&box.left>=0&&box.right<=width+1&&box.top>=0&&box.bottom<=height;},{width,height},{timeout:5000});
  const geometry=await filters.evaluate(el=>{const rect=el.getBoundingClientRect(),body=el.querySelector('.modal-body'),bar=document.querySelector('.tab-bar').getBoundingClientRect();return{left:rect.left,right:rect.right,top:rect.top,bottom:rect.bottom,barTop:bar.top,scroll:el.scrollWidth,client:el.clientWidth,bodyScroll:body.scrollWidth,bodyClient:body.clientWidth}});
  assert.ok(geometry.left>=0&&geometry.right<=width+1,JSON.stringify({width,theme,...geometry}));assert.ok(geometry.top>=0);assert.ok(geometry.bottom<=geometry.barTop-9,'modal overlaps the main bar');assert.ok(geometry.scroll<=geometry.client+1);assert.ok(geometry.bodyScroll<=geometry.bodyClient+1);
  const primary=filters.getByRole('button',{name:'Show results',exact:true});assert.notEqual(await primary.evaluate(el=>getComputedStyle(el).backgroundColor),'rgba(0, 0, 0, 0)');
