@@ -66,8 +66,8 @@ export function springStep(pos: number, vel: number, target: number, dt: number,
 
 /** Card size in px for a stage of w × h: portrait cards, smaller share of a wide stage. */
 export function cardSize(w: number, h: number): [number, number] {
-  const cw = Math.min(w < 640 ? w * 0.56 : w * 0.22, h * 0.34)
-  return [Math.round(cw), Math.round(cw * 1.25)]
+  const cw = Math.min(w < 640 ? w * 0.5 : w * 0.2, h * 0.3)
+  return [Math.round(cw), Math.round(cw * 1.5)]
 }
 
 /** "01" style counter. */
@@ -99,7 +99,7 @@ const FRAG =
   "void main(){" +
   "float a=uSize.x/uSize.y;vec2 uv=vUv-.5;" +
   "if(uAspect>a)uv.x*=a/uAspect;else uv.y*=uAspect/a;" +
-  "uv=uv/1.12+.5;uv.x+=uShift;" +
+  "uv+=.5;" +
   "float ca=(.0012+.0045*vX*vX)*(1.+abs(uVel)*1.2);" +
   "vec3 c=vec3(texture2D(uTex,uv+vec2(ca,0.)).r,texture2D(uTex,uv).g,texture2D(uTex,uv-vec2(ca,0.)).b);" +
   "c=mix(vec3(.11,.11,.12),c,uReady);" +
@@ -290,6 +290,12 @@ export default function CurvedLensCarousel({
         entry.ready = true
         kick()
       }
+      let retried = false
+      img.onerror = () => {
+        if (disposed || retried) return
+        retried = true
+        img.src = s.image + (s.image.includes("?") ? "&" : "?") + "cors=1"
+      }
       img.src = s.image
       return entry
     })
@@ -335,7 +341,7 @@ export default function CurvedLensCarousel({
         gl.uniform1f(u.uIntro, e)
         gl.uniform1f(u.uAspect, tex[i].aspect)
         gl.uniform1f(u.uReady, tex[i].ready ? 1 : 0)
-        gl.uniform1f(u.uShift, Math.max(-0.05, Math.min(0.05, -d * 0.035)))
+        gl.uniform1f(u.uShift, 0)
         gl.drawArrays(gl.TRIANGLES, 0, mesh.length / 2)
       }
     }
@@ -469,10 +475,10 @@ export default function CurvedLensCarousel({
       aria-label={ariaLabel ?? (typeof label === "string" ? label : "Carousel")}
     >
       <style>{CSS}</style>
-      <div className="clc-glow" aria-hidden="true" />
+      {bare ? null : <div className="clc-glow" aria-hidden="true" />}
       <canvas ref={canvasRef} className="clc-canvas" aria-hidden="true" />
       {noGL ? <img className="clc-fallback" src={slide.image} alt={slide.alt ?? slide.title} /> : null}
-      <div className="clc-grain" aria-hidden="true" />
+      {bare ? null : <div className="clc-grain" aria-hidden="true" />}
       {label ? (
         <div className="clc-top">
           <b>{label}</b>

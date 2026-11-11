@@ -27,14 +27,10 @@ const ICONIC = [
   "daughters-of-the-dust", "selma", "malcolm-x", "us", "nope", "love-and-basketball", "fruitvale-station",
 ];
 
-const WEEK = 7 * 24 * 60 * 60 * 1000;
-
-/** Rotate a list by a week-based offset, so rows change each week without being random per visit. */
-function rotate<T>(items: T[], week: number, step: number): T[] {
-  if (!items.length) return items;
-  const at = (week * step) % items.length;
-  return [...items.slice(at), ...items.slice(0, at)];
-}
+const FAMOUS = [
+  "spike-lee", "ryan-coogler", "jordan-peele", "barry-jenkins", "ava-duvernay", "steve-mcqueen", "john-singleton",
+  "julie-dash", "gina-prince-bythewood", "kasi-lemmons", "dee-rees", "ousmane-sembene", "melvin-van-peebles", "gordon-parks",
+];
 
 /**
  * The home page tells what Pheelm is in three parts (films, directors, community), each a short
@@ -45,16 +41,16 @@ export default async function Home() {
   const [films, directors, collections] = await Promise.all([
     getFilms(), getDirectors(), getCommunityCollections(),
   ]);
-  const week = Math.floor(Date.now() / WEEK);
 
   // The hero row: iconic films, in this order. Any that aren't in the catalog are skipped.
   const bySlug = new Map(films.map((f) => [f.slug, f]));
   const essential = ICONIC.map((slug) => bySlug.get(slug)).filter((f) => !!f);
   const slides = essential.flatMap((f) => {
     const c = toCard(f);
-    return c.poster_url ? [{ title: c.title, kicker: `${c.directors.join(" and ")} • ${c.year}`, image: c.poster_url, alt: `Poster for ${c.title}` }] : [];
+    return c.poster_url ? [{ title: c.title, kicker: `${c.directors.join(" and ")} • ${c.year}`, image: c.poster_url.replace("/w500/", "/w780/"), alt: `Poster for ${c.title}` }] : [];
   });
-  const toKnow = rotate([...directors].sort((a, b) => b.films.length - a.films.length).slice(0, 80), week, 5).slice(0, 12);
+  const dirBySlug = new Map(directors.map((d) => [d.slug, d]));
+  const toKnow = FAMOUS.map((slug) => dirBySlug.get(slug)).filter((d) => !!d);
   const shelf = collections.filter((c) => c.films.length >= 3).slice(0, 12);
 
   // For search engines: the site, with a search box that opens the Films page's search.
@@ -93,6 +89,7 @@ export default async function Home() {
       </div>
       </div>
 
+      <div className="home-block">
       <section className="statement" aria-labelledby="directors-title">
         <div className="statement-body">
           <h2 id="directors-title">Learn about the people behind your favorite films.</h2>
@@ -103,7 +100,9 @@ export default async function Home() {
       <Row title="Directors to know" bare>
         {toKnow.map((d) => <DirectorCard key={d.id} director={toDirectorSummary(d)} plain />)}
       </Row>
+      </div>
 
+      <div className="home-block">
       <section className="statement" aria-labelledby="community-title">
         <div className="statement-body">
           <h2 id="community-title">Connect with other film enthusiasts.</h2>
@@ -119,8 +118,10 @@ export default async function Home() {
           {shelf.map((c) => <CommunityTile key={c.id} c={c} showOwner={!c.staff_pick} plain />)}
         </Row>
       )}
+      </div>
       </EarlyAccessGate>
 
+      <div className="home-block">
       <section className="faq" aria-labelledby="faq-title">
         <div className="faq-body">
           <h2 id="faq-title">Frequently asked questions</h2>
@@ -134,7 +135,9 @@ export default async function Home() {
           </div>
         </div>
       </section>
+      </div>
 
+      <div className="home-block">
       <section className="statement is-cta" aria-labelledby="join-title">
         <div className="statement-body">
           <h2 id="join-title">Create your free account.</h2>
@@ -144,6 +147,7 @@ export default async function Home() {
           </div>
         </div>
       </section>
+      </div>
 
     </>
   );

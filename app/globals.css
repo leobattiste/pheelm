@@ -3075,8 +3075,6 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 .faq-body { display: grid; gap: var(--space-24); max-width: 760px; }
 .faq h2 { font-size: var(--t-3xl); text-wrap: wrap; }
 .faq-list { display: grid; }
-.faq-list details { border-top: 1px solid var(--line); }
-.faq-list details:last-child { border-bottom: 1px solid var(--line); }
 .faq-list summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: var(--space-16); padding: var(--space-16) 0; font-weight: 600; }
 .faq-list summary::-webkit-details-marker { display: none; }
 .faq-list summary::after { content: "+"; font-weight: 400; flex: none; }
@@ -3096,3 +3094,15 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 .statement p { margin-inline: auto; max-width: 60ch; }
 .faq-body { margin-inline: auto; }
 .faq h2 { text-align: center; }
+
+/* Spacing: every home section sits the same distance from the one before; the hero gets the most room. */
+:root { --home-gap: clamp(96px, 13vw, 184px); }
+.home-block { padding-top: var(--home-gap); scroll-snap-align: center; }
+.home-block > .statement, .home-block > .faq { padding: 0; }
+.home-block > .row { padding-top: var(--space-40); }
+.home-block:last-child { padding-bottom: var(--home-gap); }
+.statement.is-hero { padding-top: clamp(64px, 8vw, 120px); padding-bottom: clamp(32px, 4vw, 56px); }
+.home-lead { scroll-snap-align: start; }
+html:has(.early-gate) { scroll-snap-type: y proximity; }
+@media (prefers-reduced-motion: reduce) { html:has(.early-gate) { scroll-snap-type: none; } }
+.faq-list details p { padding-bottom: var(--space-24); }
