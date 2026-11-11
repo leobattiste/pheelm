@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import CommunityTile from "@/components/CommunityTile";
 import DirectorCard from "@/components/DirectorCard";
 import EarlyAccessButton, { EarlyAccessGate } from "@/components/EarlyAccessButton";
-import FilmCard from "@/components/FilmCard";
+import CurvedCarousel from "@/components/CurvedCarousel";
 import Row from "@/components/Row";
 import { getCommunityCollections } from "@/lib/community";
 import { getDirectors, getFilms, toCard, toDirectorSummary } from "@/lib/data";
@@ -50,6 +50,10 @@ export default async function Home() {
   // The hero row: iconic films, in this order. Any that aren't in the catalog are skipped.
   const bySlug = new Map(films.map((f) => [f.slug, f]));
   const essential = ICONIC.map((slug) => bySlug.get(slug)).filter((f) => !!f);
+  const slides = essential.flatMap((f) => {
+    const c = toCard(f);
+    return c.poster_url ? [{ title: c.title, kicker: `${c.directors.join(" and ")} • ${c.year}`, image: c.poster_url, alt: `Poster for ${c.title}` }] : [];
+  });
   const toKnow = rotate([...directors].sort((a, b) => b.films.length - a.films.length).slice(0, 80), week, 5).slice(0, 12);
   const shelf = collections.filter((c) => c.films.length >= 3).slice(0, 12);
 
@@ -84,9 +88,9 @@ export default async function Home() {
         </div>
       </section>
 
-      <Row title="Essential films" bare interactive fit>
-        {essential.map((f, i) => <FilmCard key={f.id} film={toCard(f)} priority={i < 4} posterOnly plain sizes="(min-width: 900px) 34vw, 72vw" />)}
-      </Row>
+      <div className="home-carousel">
+        <CurvedCarousel ariaLabel="Essential films" ink="var(--ink)" slides={slides} />
+      </div>
       </div>
 
       <section className="statement" aria-labelledby="directors-title">

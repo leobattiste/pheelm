@@ -3082,3 +3082,10 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 .faq-list summary::after { content: "+"; font-weight: 400; flex: none; }
 .faq-list details[open] summary::after { content: "\2212"; }
 .faq-list details p { color: var(--muted); padding-bottom: var(--space-16); max-width: 64ch; }
+
+/* The hero carousel fills what the hero text leaves of the first screen. */
+.home-lead > .home-carousel { position: relative; flex: 1; min-height: 420px; }
+.home-carousel .clc-root { position: absolute; inset: 0; height: 100% !important; }
+.home-carousel .clc-title { font-size: clamp(36px, 5.2vw, 72px); }
+.home-carousel .clc-copy { bottom: clamp(20px, 3vw, 36px); }
+@media (max-width: 640px) { .home-carousel .clc-copy { bottom: 88px; } }
