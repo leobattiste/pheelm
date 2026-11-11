@@ -2885,7 +2885,19 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 .catalog-interpretation { display: flex; align-items: center; justify-content: space-between; gap: var(--space-16); padding: var(--space-16); margin-bottom: var(--space-24); border: 1px solid var(--line); border-radius: var(--r); background: var(--glass-bg); -webkit-backdrop-filter: var(--glass-filter); backdrop-filter: var(--glass-filter); }
 :root:root .catalog-interpretation .button { flex: none; background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
 .catalog-correction { margin-bottom: var(--space-16); }
-.catalog-filter-dialog .modal-body { display: grid; gap: var(--space-16); }
+/* Filter sheets share one scrolling body and fixed actions at every viewport size. */
+:root :is(.catalog-filter-dialog, .sort-dialog) .modal-head { gap:var(--space-12); padding:var(--space-16); }
+:root :is(.catalog-filter-dialog, .sort-dialog) .modal-head h2 { min-width:0; overflow-wrap:anywhere; }
+:root :is(.catalog-filter-dialog, .sort-dialog) .modal-head .icon-button { flex:none; padding:0; border:0; background:none; }
+:root :is(.catalog-filter-dialog, .sort-dialog) .modal-body { display:grid; align-content:start; grid-auto-rows:max-content; gap:var(--space-16); padding:var(--space-16); overflow-x:hidden; scrollbar-width:thin; }
+:root .catalog-filter-dialog .modal-foot { display:grid; grid-template-columns:minmax(0,.65fr) minmax(0,1.35fr); gap:var(--space-8); padding:var(--space-16); }
+:root .catalog-filter-dialog .modal-foot > .button { width:100%; min-width:0; height:auto; min-height:var(--bar-height); padding:10px 12px; white-space:normal; overflow-wrap:anywhere; line-height:1.25; }
+.filter-select-control { display:block; position:relative; width:100%; min-width:0; }
+.field.filter-field .filter-select-control select { width:100%; min-width:0; padding-right:var(--space-48); background-image:none; text-overflow:ellipsis; }
+.field.filter-field .filter-select-control select:focus { border-color:var(--ink); box-shadow:none; outline:none; }
+.filter-select-control > svg { position:absolute; right:var(--space-16); top:50%; transform:translateY(-50%); width:var(--control-icon); height:var(--control-icon); pointer-events:none; color:var(--text); }
+.sort-choices.chip-row { display:grid; grid-template-columns:minmax(0,1fr); gap:var(--space-8); }
+.sort-choices.chip-row > .button { justify-content:space-between; width:100%; min-width:0; }
 @media (max-width: 639px) {
  .catalog-interpretation { flex-direction: column; align-items: stretch; }
  .catalog-suggestion-head { align-items: flex-start; flex-wrap: wrap; }
@@ -3017,22 +3029,12 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 :root:root .admin-catalog-tools .catalog-toolbar :is(.admin-add-control, .filter-button) { width: var(--bar-height); min-width: var(--bar-height); height: var(--bar-height); padding: 0; border-radius: 50%; }
 .admin-catalog-tools .filter-button .badge { position: absolute; top: -2px; right: -2px; }
 .admin-catalog-tools .filter-button { position: relative; }
-.admin-filter-content, .admin-add-content { display: grid; gap: var(--space-24); min-width: 0; }
-.admin-filter-content .admin-filter-form { display: grid; gap: var(--space-16); overflow: visible; }
-.admin-filter-content .catalog-active-filters { flex-wrap: wrap; overflow: visible; }
-.admin-filter-selection { display: grid; gap: var(--space-12); padding-top: var(--space-16); border-top: 1px solid var(--line); }
-.admin-filter-selection .admin-selection-panel { margin: 0; }
+.admin-add-content { display:grid; gap:var(--space-24); min-width:0; }
 .admin-add-content .admin-toolbox-body { padding: 0; }
 .admin-add-content :is(.form, .fieldset) { min-width: 0; max-width: 100%; }
 .admin-add-content .form-row { grid-template-columns: minmax(0, 1fr); }
 .admin-add-content .fieldset { padding: 0; border: 0; background: none; }
 
-.admin-filter-selection .admin-selection-panel { display: grid; gap: var(--space-16); min-width: 0; }
-.admin-filter-selection .admin-selection-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-8); }
-.admin-filter-selection .admin-selection-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr)); gap: var(--space-8); }
-.admin-filter-selection .admin-selection-actions .button { width: 100%; }
-.admin-filter-links > .button { flex: 1 1 140px; }
-.admin-filter-links > p { flex: 1 1 100%; }
 
 /* Profile shells paint immediately, with no visible loading copy or font dependency. */
 .profile-skeleton { min-width: 0; pointer-events: none; }

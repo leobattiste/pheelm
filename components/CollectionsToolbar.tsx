@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useRef } from "react";
+import { useId, useRef, useState } from "react";
 import { SORTS, type Sort } from "@/lib/collection-sorts";
 import Icon from "./Icon";
 import { openSignIn } from "./SignInSheet";
@@ -19,6 +19,8 @@ export default function CollectionsToolbar({ signedIn, feed, sort }: { signedIn:
   const path = usePathname();
   const params = useSearchParams();
   const sheet = useRef<HTMLDialogElement>(null);
+  const title=useId();
+  const [sortOpen,setSortOpen]=useState(false);
 
   const go = (next: { feed?: Feed; sort?: Sort }) => {
     const p = new URLSearchParams(params.toString());
@@ -49,23 +51,23 @@ export default function CollectionsToolbar({ signedIn, feed, sort }: { signedIn:
           </button>
         ))}
       </div>
-      <button type="button" className="button ghost filter-button" aria-haspopup="dialog" onClick={() => sheet.current?.showModal()}>
+      <button type="button" className="button ghost filter-button" aria-label="Sort watchlists" aria-haspopup="dialog" aria-controls={title+'-dialog'} aria-expanded={sortOpen} onClick={() => {setSortOpen(true);sheet.current?.showModal();}}>
         <Icon name="sort" />
         <span className="filter-label">{SORTS.find(([v]) => v === sort)?.[1] ?? "Sort"}</span>
       </button>
 
-      <dialog ref={sheet} className="modal" aria-labelledby="csort-title" onClick={(e) => { if (e.target === sheet.current) sheet.current?.close(); }}>
+      <dialog ref={sheet} id={title+'-dialog'} className="modal sort-dialog" aria-labelledby={title} onClose={()=>setSortOpen(false)} onClick={(e) => { if (e.target === sheet.current) sheet.current?.close(); }}>
         <div className="modal-head">
           <span className="sheet-handle" aria-hidden="true" />
-          <h2 id="csort-title">Sort by</h2>
+          <h2 id={title}>Sort by</h2>
           <button type="button" className="icon-button" onClick={() => sheet.current?.close()} aria-label="Close">
             <Icon name="close" />
           </button>
         </div>
         <div className="modal-body">
-          <div className="chip-row" role="group" aria-label="Sort by">
+          <div className="chip-row sort-choices" role="group" aria-label="Sort by">
             {SORTS.map(([v, l]) => (
-              <button key={v} type="button" className="button ghost" aria-pressed={sort === v} onClick={() => { go({ sort: v }); sheet.current?.close(); }}>{sort === v && <Icon name="check" />}{l}</button>
+              <button key={v} type="button" className="button ghost" aria-pressed={sort === v} onClick={() => { go({ sort: v }); sheet.current?.close(); }}><span>{l}</span>{sort === v && <Icon name="check" />}</button>
             ))}
           </div>
         </div>

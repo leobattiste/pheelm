@@ -55,12 +55,14 @@ export function AdminSelectionTools({entity,ids,canDelete,action}:{entity:"films
   const {selected,togglePage,clear}=useAdminSelection(entity);
   const all=ids.length>0&&ids.every(id=>selected.includes(id));
   const some=ids.some(id=>selected.includes(id));
-  return <section className="admin-filter-selection" aria-label="Manage selection">
-    <h3>Selection</h3>
+  return <details className="admin-filter-section admin-filter-selection" aria-label="Manage selection" open={selected.length>0}>
+    <summary>Selection<Icon name="arrowDown"/></summary>
+    <div className="admin-filter-selection-body">
     <label className="check"><input type="checkbox" checked={all} disabled={!ids.length} ref={node=>{if(node)node.indeterminate=some&&!all;}} onChange={event=>togglePage(ids,event.target.checked)}/>Select displayed</label>
     {!selected.length&&<p className="muted">Select individual cards or all displayed items to manage them.</p>}
     <form action={action}><AdminSelectionBar selected={selected} onClear={clear} entity={entity} canDelete={canDelete} hasFeatured={entity==="films"}/></form>
-  </section>;
+    </div>
+  </details>;
 }
 
 /** Contextual bulk actions are shown only after items have been selected. */
