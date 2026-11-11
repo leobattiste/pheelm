@@ -22,6 +22,11 @@ const FAQS: [string, string][] = [
   ["Where can I watch the films?", "Each film page shows where it is available to stream, rent or buy, depending on your country."],
 ];
 
+const ICONIC = [
+  "sinners", "moonlight", "get-out", "black-panther", "12-years-a-slave", "do-the-right-thing", "boyz-n-the-hood",
+  "daughters-of-the-dust", "selma", "malcolm-x", "us", "nope", "love-and-basketball", "fruitvale-station",
+];
+
 const WEEK = 7 * 24 * 60 * 60 * 1000;
 
 /** Rotate a list by a week-based offset, so rows change each week without being random per visit. */
@@ -42,9 +47,9 @@ export default async function Home() {
   ]);
   const week = Math.floor(Date.now() / WEEK);
 
-  // Essential films: the ones with an editors' note, then the featured ones if there are few.
-  const noted = films.filter((f) => f.note);
-  const essential = rotate(noted.length >= 8 ? noted : films.filter((f) => f.featured), week, 7).slice(0, 16);
+  // The hero row: iconic films, in this order. Any that aren't in the catalog are skipped.
+  const bySlug = new Map(films.map((f) => [f.slug, f]));
+  const essential = ICONIC.map((slug) => bySlug.get(slug)).filter((f) => !!f);
   const toKnow = rotate([...directors].sort((a, b) => b.films.length - a.films.length).slice(0, 80), week, 5).slice(0, 12);
   const shelf = collections.filter((c) => c.films.length >= 3).slice(0, 12);
 
