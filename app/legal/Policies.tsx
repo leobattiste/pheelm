@@ -33,6 +33,7 @@ export function PrivacyPolicy() {
       <li><strong>Service operations:</strong> providers that help host the website, maintain accounts, store information and media, and measure aggregate usage receive the information necessary for those functions.</li>
       <li><strong>Communications:</strong> email-delivery providers process recipient addresses, message content and delivery or unsubscribe records so we can send requested communications reliably.</li>
       <li><strong>Safety and reliability:</strong> security and abuse-prevention providers may process technical browser and request information to protect accounts and supported forms.</li>
+      <li><strong>Content moderation:</strong> text submitted as a comment, profile bio or watchlist description is sent to OpenAI for automated safety checks before publication. The text is processed to detect abuse and guideline violations, whether or not it is ultimately published.</li>
       <li><strong>External content:</strong> loading fonts, images or other externally hosted content sends the information normally associated with a browser request to its source.</li>
       <li><strong>Linked services and embedded media:</strong> when you activate a trailer or follow an external link, that service’s own privacy practices apply. An embedded player does not make playback anonymous.</li>
     </ul>

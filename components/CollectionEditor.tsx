@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { deleteCollection, updateCollection } from "@/app/me/actions";
+import { useActionState, useRef, useState } from "react";
+import { deleteCollection, updateCollection, type CollectionUpdateState } from "@/app/me/actions";
 import Icon from "@/components/Icon";
 
 type Props = {
@@ -15,6 +15,7 @@ type Props = {
 export default function CollectionEditor({ list, isOwner, collaborators = 0 }: Props) {
   const modal = useRef<HTMLDialogElement>(null);
   const [confirming, setConfirming] = useState(false);
+  const [state, action, pending] = useActionState<CollectionUpdateState, FormData>(updateCollection, null);
   const close = () => { modal.current?.close(); setConfirming(false); };
 
   return (
@@ -31,7 +32,7 @@ export default function CollectionEditor({ list, isOwner, collaborators = 0 }: P
             <Icon name="close" />
           </button>
         </div>
-        <form action={updateCollection} className="form profile-form">
+        <form action={action} className="form profile-form">
           <input type="hidden" name="id" value={list.id} />
           <div className="modal-body">
             <label className="field">
@@ -77,9 +78,10 @@ export default function CollectionEditor({ list, isOwner, collaborators = 0 }: P
               </>
             ) : null}
           </div>
+          {state && !state.ok && <p className="notice error" role="alert">{state.message}</p>}
           <div className="modal-foot">
             <button type="button" className="button ghost" onClick={close}>Cancel</button>
-            <button type="submit" className="button">Save</button>
+            <button type="submit" className="button" disabled={pending}>{pending ? "Saving…" : "Save"}</button>
           </div>
         </form>
       </dialog>
