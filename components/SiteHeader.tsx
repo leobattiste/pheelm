@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { DONATE_URL, INSTAGRAM_URL, SITE_NAME, THREADS_URL, WORDMARK } from "@/lib/site";
 import AccountMenu from "./AccountMenu";
+import GridToggle from "./GridToggle";
 import FeedbackLink from "./FeedbackLink";
 import Icon, { type IconName } from "./Icon";
 import SignInSheet, { openSignIn } from "./SignInSheet";
@@ -87,6 +88,9 @@ export default function SiteHeader() {
             <Link href="/submit" aria-current={current("/submit")}><Icon name="plus" />Suggest a film</Link>
             <FeedbackLink className="" onNavigate={() => menu.current?.close()}><Icon name="comment" />Give feedback</FeedbackLink>
           </nav>
+          <section className="menu-more menu-display" aria-label="Display preferences">
+            <div className="menu-setting"><span>Grid</span><GridToggle /></div>
+          </section>
           </AccountMenu>
           {/* On pages with the tab bar there's no footer, so what it holds lives here. */}
           <div className="menu-site">
