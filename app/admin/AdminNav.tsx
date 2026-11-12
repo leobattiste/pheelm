@@ -22,7 +22,15 @@ export const ADMIN_GROUPS: Group[] = [
       { label: "Content quality", href: "/admin/quality" },
       { label: "Automation", href: "/admin/automation" },
     ] },
-  { label: "Inbox", href: "/admin/inbox", routes: ["/admin/inbox"], badges: ["inbox"] },
+  { label: "Inbox", href: "/admin/inbox", routes: ["/admin/inbox"], badges: ["inbox"],
+    children: [
+      { label: "All", href: "/admin/inbox", badge: "inbox" },
+      { label: "Contact", href: "/admin/inbox/contact", badge: "contact" },
+      { label: "Feedback", href: "/admin/inbox/feedback", badge: "feedback" },
+      { label: "Partnerships", href: "/admin/inbox/partnerships", badge: "partnerships" },
+      { label: "Press and privacy", href: "/admin/inbox/press", badge: "press" },
+      { label: "Newsletter", href: "/admin/inbox/newsletter" },
+    ] },
   { label: "Community", href: "/admin/community", routes: ["/admin/community", "/admin/submissions"], badges: ["reports", "submissions"],
     children: [
       { label: "Reports and watchlists", href: "/admin/community", badge: "reports" },

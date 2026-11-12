@@ -361,16 +361,6 @@ export async function reviewSubmission(f: FormData) {
   revalidatePath("/admin/submissions");
 }
 
-/** Marks a contact message as answered, or moves it back. */
-export async function setMessageHandled(f: FormData) {
-  const db = await adminClient();
-  const id = String(f.get("id"));
-  const { error } = await db.from("messages").update({ handled: f.get("handled") === "true" }).eq("id", id);
-  if (error) throw new Error(error.message);
-  await logAdminActivity(db, f.get("handled") === "true" ? "Closed message" : "Reopened message", "message", id);
-  revalidatePath("/admin/inbox");
-}
-
 /** Staff-picks, features or hides a member's collection (or undoes it). */
 export async function setListFlag(f: FormData) {
   const db = await adminClient();

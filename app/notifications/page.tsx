@@ -54,7 +54,7 @@ function Line({ n }: { n: Notification }) {
 function href(n: Notification) {
   if (n.type === "report" || n.type === "comment_report") return "/admin/community";
   if (n.type === "submission") return "/admin/submissions";
-  if (n.type === "message") return "/admin/inbox";
+  if (n.type === "message") return n.ref ? `/admin/inbox/message/${n.ref}` : "/admin/inbox";
   if (n.type === "new_member") return n.actor ? `/@${n.actor.handle}` : "/admin/members";
   if (n.type === "new_film" || n.type === "collection_film") return n.film ? `/films/${n.film.slug}` : null;
   if (!n.list || n.type === "removed") return null;

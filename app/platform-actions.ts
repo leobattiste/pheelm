@@ -35,6 +35,8 @@ export async function sendMessage(_prev: FormState, f: FormData): Promise<FormSt
   if (!body) return { ok: false, message: "Write a message first." };
   if (body.length > 5000) return { ok: false, message: "That's a long one. Keep it under 5,000 characters." };
   const name = String(f.get("name") ?? "").trim();
+  // Partnership requests keep their type and link as separate fields too (after admin-inbox.sql).
+  let partnership: { partnership_type: string; website: string | null } | null = null;
   let messageBody = body;
   if (topic === "partnership") {
     const type = String(f.get("partnership_type") ?? "");
@@ -44,6 +46,7 @@ export async function sendMessage(_prev: FormState, f: FormData): Promise<FormSt
     let url: string | null;
     try { url = websiteUrl(String(f.get("partnership_url") ?? "")); }
     catch { return { ok: false, message: "Enter a valid website or social media link." }; }
+    partnership = { partnership_type: type, website: url };
     messageBody = [`Partnership type: ${type}`, url ? `Website or social media: ${url}` : null, "", "Proposal:", body].filter(line => line !== null).join("\n");
     if (messageBody.length > 5000) return { ok: false, message: "Keep your proposal under 4,000 characters." };
   }
@@ -61,7 +64,11 @@ export async function sendMessage(_prev: FormState, f: FormData): Promise<FormSt
     topic: (TOPICS as readonly string[]).includes(topic) ? topic : "general",
     body: messageBody,
   };
-  let { error } = await db.from("messages").insert(page ? { ...row, page, page_title: pageTitle } : row);
+  const full = page ? { ...row, page, page_title: pageTitle } : row;
+  let { error } = partnership
+    ? await db.from("messages").insert({ ...full, ...partnership, body })
+    : await db.from("messages").insert(full);
+  if (error && partnership) ({ error } = await db.from("messages").insert(full));
   // Before feedback-page.sql has run: no "feedback" topic or page columns, so keep both in the message.
   if (error) {
     const note = [row.topic === "feedback" ? "Feedback" : null, page ? `About: ${pageTitle} (${page})` : null].filter(Boolean).join(". ");
