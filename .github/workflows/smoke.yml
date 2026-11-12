@@ -25,6 +25,7 @@ jobs:
       - run: node tests/bulk-import-grid-browser.mjs
       - run: npm run email:preview
       - run: node scripts/export-auth-emails.mjs
+      - run: node tests/auth-email-templates.mjs
       - run: node tests/email-security.mjs
       - run: node tests/film-submissions.mjs
       - run: node tests/catalog-search.mjs

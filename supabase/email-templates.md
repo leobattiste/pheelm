@@ -1,55 +1,76 @@
 # Pheelm authentication emails
 
-## Passwords (Authentication settings)
+Email-and-password sign-in remains available. Signup confirmation, optional code sign-in,
+password recovery and password-change verification use six-digit codes.
 
-Pheelm signs in with **email and password**, confirmed by a six-digit code. Code sign-in stays
-available, and members without a password are asked to choose one.
+## Why requesting a code can still send a magic link
 
-In **Supabase → Authentication**:
+Supabase uses `signInWithOtp` for both magic links and email codes. The **live Supabase
+email template** determines the email's content. Its dashboard section is named **Magic
+Link** even when the template sends a code. Deploying Pheelm or editing a Resend template
+does not update that Supabase setting.
 
-- **Providers → Email:** Email provider on, **Confirm email** on, minimum password length **8**.
-  Turn on **Prevent use of leaked passwords** if your plan includes it.
-- **Emails → Reset password:** paste `supabase/email/reset-password.html`, subject `Reset your Pheelm password`.
-  It must contain `{{ .Token }}`: the app asks for the six-digit code.
-- **Emails → Confirm signup:** paste `supabase/email/confirm-signup.html` (it contains the code too).
-- **Rate limits:** keep the defaults or tighter; they also limit password guessing.
+The default template contains `{{ .ConfirmationURL }}` but no `{{ .Token }}`, so the
+app's code screen receives a link-only email. Pheelm's code templates contain
+`{{ .Token }}` and no authentication links.
 
+## Apply in the dashboard
 
-Paste these templates in **Supabase → Authentication → Email Templates**. The magic link and
-six-digit code should both be offered in the same email. Use the **actual live
-URL** in **Authentication → URL Configuration → Site URL**, and allow the live
-`https://YOUR-DOMAIN/auth/callback` as a redirect URL.
+In the **Pheelm** project (`mvhwfmlairwrngdttzjh`), open **Authentication → Emails →
+Templates** (called **Email Templates** in some dashboard versions). Set and save each:
 
-Using `{{ .RedirectTo }}` preserves the exact login destination, including the
-`next` query parameter. Using `{{ .SiteURL }}` alone silently loses it.
+| Template | Subject | HTML file |
+| --- | --- | --- |
+| Magic Link | Your Pheelm sign-in code | `supabase/email/magic-link.html` |
+| Confirm signup | Confirm your Pheelm email | `supabase/email/confirm-signup.html` |
+| Reset password | Your Pheelm password reset code | `supabase/email/reset-password.html` |
+| Reauthentication | Your Pheelm verification code | `supabase/email/reauthentication.html` |
+| Change email address | Confirm your Pheelm email change | `supabase/email/confirm-email-change.html` |
 
-## Magic Link
-
-Subject: `Sign in to Pheelm`
-
-```html
-<h2>Sign in to Pheelm</h2>
-<p><a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email">Sign in to Pheelm</a></p>
-<p>Or enter this six-digit code on the Pheelm sign-in page: <strong>{{ .Token }}</strong></p>
-<p>Each method works once. If you didn't request this email, you can ignore it.</p>
-```
-
-## Confirm signup
-
-Subject: `Welcome to Pheelm`
+For a minimal immediate fix, replace **Magic Link** with:
 
 ```html
-<h2>Welcome to Pheelm</h2>
-<p><a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email">Confirm your email and sign in</a></p>
-<p>Or enter this six-digit code on the Pheelm sign-in page: <strong>{{ .Token }}</strong></p>
-<p>If you didn't request this email, you can ignore it.</p>
+<h2>Your Pheelm sign-in code</h2>
+<p>Enter this six-digit code on Pheelm:</p>
+<p style="font:32px monospace;letter-spacing:4px">{{ .Token }}</p>
+<p>Never share this code. If you did not request it, ignore this email.</p>
 ```
 
-**Note:** These templates expect the `emailRedirectTo` supplied by
-`app/login/page.tsx` to be `https://YOUR-DOMAIN/auth/callback?next=...`.
-It already has a query parameter, so the template appends `&token_hash=`.
-If you later change the redirect URL, update the template too.
+Use the complete HTML files for the branded version. Changing email addresses still uses
+the existing confirmation-link flow; the app does not have an email-change code screen.
 
-For production, connect custom SMTP in Supabase. The built-in email sender is
-for limited testing and may not deliver to arbitrary visitors. Configure a
-verified sending domain and suitable rate limits before inviting the public.
+## Apply using management access
+
+After making `SUPABASE_ACCESS_TOKEN` available securely in your local environment:
+
+```sh
+node scripts/export-auth-emails.mjs
+node scripts/auth-email-config.mjs
+node scripts/auth-email-config.mjs --check
+```
+
+This updates and verifies only the five templates and subjects. It preserves passwords,
+users, sessions, SMTP credentials, redirect URLs and other Auth settings. Optionally set
+`AUTH_TEMPLATE_BACKUP_PATH` to a new local file to back up the previous template fields.
+The script never prints the management token or SMTP credentials.
+
+Only use `--smtp` with `RESEND_API_KEY` also configured securely if explicitly setting up
+SMTP. Routine template fixes do not require a Resend key. Never commit or paste tokens.
+
+Regenerate with `export-auth-emails.mjs`; do not hand-edit generated HTML. The exporter
+uses the shared React Email layout and keeps the code-only behavior on every run.
+
+## Auth settings and verification
+
+- Keep the Email provider and Confirm email enabled, minimum password length at least
+  eight, and email OTP length **six**, matching the form. Preserve existing rate limits
+  and any stronger password rules.
+- Site URL is `https://www.pheelm.com`; keep the existing `/auth/callback` redirect allowlist.
+- Request a **new** code after saving; already-delivered emails cannot change.
+- Test an existing member's password login and code login, signup confirmation, recovery,
+  and reauthentication. Confirm that codes create a session only after successful verification
+  and that invalid/expired codes show an error. Never record real codes or sessions in logs.
+
+The connected Supabase MCP database tools do not expose Auth-template configuration.
+Management access or a dashboard save is required to activate these templates. A website
+deployment by itself does not fix the live email content.
