@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
 import Icon from "./Icon";
+import { toast } from "./Toast";
 
 /**
  * "Block" in a member's profile menu. Blocking stops them commenting on your collections, asking to
@@ -28,8 +29,9 @@ export default function BlockButton({ memberId, handle, blocked: initial }: { me
       ? await db.from("blocks").insert({ blocker_id: me, blocked_id: memberId })
       : await db.from("blocks").delete().eq("blocker_id", me).eq("blocked_id", memberId);
     setBusy(false);
-    if (e) { setError("That didn't go through. Try again."); return; }
+    if (e) { setError("That didn't go through. Try again."); toast.error("That didn’t go through. Try again."); return; }
     setBlocked(block);
+    toast.success(block ? `Blocked @${handle}` : `Unblocked @${handle}`);
     modal.current?.close();
     router.refresh();
   };

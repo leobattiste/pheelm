@@ -2,9 +2,11 @@
 
 import { useActionState } from "react";
 import { submitFilm, type SubmitState } from "./actions";
+import { useResultToast } from "@/components/Toast";
 
 export default function SubmitForm() {
   const [state, action, pending] = useActionState<SubmitState, FormData>(submitFilm, { ok: false, message: "" });
+  useResultToast(state);
 
   if (state.ok) {
     return (
@@ -39,7 +41,6 @@ export default function SubmitForm() {
         Anything we should know? <span className="hint">Optional. Where to watch it, why it belongs here, a correction.</span>
         <textarea name="note" maxLength={2000} />
       </label>
-      {state.message && <p className="notice error" role="alert">{state.message}</p>}
       <button className="button" type="submit" disabled={pending}>
         {pending ? "Sending…" : "Suggest film"}
       </button>

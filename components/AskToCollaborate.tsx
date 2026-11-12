@@ -5,6 +5,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { removeCollaborator, requestCollaboration, type CollabState } from "@/app/c/actions";
 import { openSignIn } from "./SignInSheet";
 import Icon from "@/components/Icon";
+import { useResultToast } from "@/components/Toast";
 
 type Props = {
   listId: string;
@@ -25,6 +26,7 @@ type Props = {
 export default function AskToCollaborate({ listId, ownerHandle, signedIn, hasProfile, status, againOn }: Props) {
   const modal = useRef<HTMLDialogElement>(null);
   const [state, action, pending] = useActionState<CollabState, FormData>(requestCollaboration, null);
+  useResultToast(state);
   const [sent, setSent] = useState(status === "requested");
   const [note, setNote] = useState("");
 
@@ -81,7 +83,6 @@ export default function AskToCollaborate({ listId, ownerHandle, signedIn, hasPro
                 <textarea name="note" rows={3} maxLength={280} value={note} onChange={(e) => setNote(e.target.value)} placeholder="What would you add? e.g. the 90s films, more documentaries" />
                 <span className="hint">{280 - note.length} characters left</span>
               </label>
-              {state && !state.ok && <p className="notice error" role="status">{state.message}</p>}
             </div>
             <div className="modal-foot">
               <button type="button" className="button ghost" onClick={() => modal.current?.close()}>Cancel</button>

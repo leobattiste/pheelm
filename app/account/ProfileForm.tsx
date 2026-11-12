@@ -8,8 +8,7 @@ import { useActionState, useEffect } from "react";
 import { updatePublicName, type NameState } from "@/app/me/actions";
 import ProfilePhotoField from "@/components/ProfilePhotoField";
 import { COUNTRY_OPTIONS } from "@/lib/countries";
-import { useBannedWordToast } from "@/components/Toast";
-import { isBannedWordMessage } from "@/lib/banned-words";
+import { useResultToast } from "@/components/Toast";
 
 type Props = { handle: string | null; displayName: string | null; isPrivate: boolean; country: string | null; avatarUrl: string | null; bio?: string | null; unlimitedBio?: boolean; links?: ProfileLinks };
 
@@ -17,7 +16,7 @@ type Props = { handle: string | null; displayName: string | null; isPrivate: boo
 export default function ProfileForm({ handle, displayName, isPrivate, country, avatarUrl, bio, unlimitedBio = false, links }: Props) {
   const router = useRouter();
   const [state, action, pending] = useActionState<NameState, FormData>(updatePublicName, null);
-  useBannedWordToast(state);
+  useResultToast(state);
 
   useEffect(() => {
     if (!state?.ok) return;
@@ -47,7 +46,6 @@ export default function ProfileForm({ handle, displayName, isPrivate, country, a
           {COUNTRY_OPTIONS.map(([code, name]) => <option key={code} value={code}>{name}</option>)}
         </select>
       </label>
-      {state && !(!state.ok && isBannedWordMessage(state.message)) && <p className={`notice ${state.ok ? "ok" : "error"}`} role="status">{state.message}</p>}
       <div className="actions">
         <button type="submit" className="button" disabled={pending}>{pending ? "Saving…" : "Save profile"}</button>
       </div>

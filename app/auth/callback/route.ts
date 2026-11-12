@@ -3,6 +3,7 @@ import type { EmailOtpType } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { needsPassword } from "@/lib/password";
+import { withToast } from "@/lib/toast-cookie";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseEnabled } from "@/lib/supabase/config";
 
 export const dynamic = "force-dynamic";
@@ -74,6 +75,8 @@ export async function GET(request: NextRequest) {
     if (type === "recovery") to.searchParams.set("reason", "reset");
     to.searchParams.set("next", next);
     response.headers.set("Location", to.toString());
+  } else {
+    withToast(response, type === "email_change" ? "Email address updated" : "Signed in");
   }
   response.cookies.delete("signin_next");
   return response;

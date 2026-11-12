@@ -6,6 +6,7 @@ import { useActionState, useState } from "react";
 import Poster from "@/components/Poster";
 import type { Award, FilmRow, WatchOption } from "@/lib/types";
 import { deleteFilm, importOne, saveFilm, type Result } from "../../actions";
+import { useResultToast } from "@/components/Toast";
 
 type Props = {
   film: FilmRow;
@@ -21,6 +22,7 @@ const watchLine = (w: WatchOption) => `${w.provider} | ${w.url} | ${w.kind}${w.r
 export default function FilmEditor({ film, creditText, collections, chosen, tmdbEnabled, canDelete = false }: Props & { canDelete?: boolean }) {
   const router = useRouter();
   const [state, action, pending] = useActionState<Result, FormData>(saveFilm, { ok: false, message: "" });
+  useResultToast(state);
   const [importing, setImporting] = useState(false);
   const [importMsg, setImportMsg] = useState<Result | null>(null);
   const [poster, setPoster] = useState(film.poster_url ?? "");
@@ -136,7 +138,6 @@ export default function FilmEditor({ film, creditText, collections, chosen, tmdb
         <label className="field">TMDB id<input name="tmdb_id" inputMode="numeric" defaultValue={film.tmdb_id ?? ""} /></label>
         <Link className="button ghost" href={`/admin/editorial/${film.id}`}>Edit film essay</Link>
         <button className="button" type="submit" disabled={pending}>{pending ? "Saving…" : "Save"}</button>
-        {state.message && <p className={`notice ${state.ok ? "ok" : "error"}`} role="status">{state.message}</p>}
         <button className="button ghost" type="button" onClick={runImport} disabled={!tmdbEnabled || importing}
           title={tmdbEnabled ? "Fill empty fields from TMDB" : "Add TMDB_API_KEY to switch this on"}>
           {importing ? "Importing…" : "Import from TMDB"}

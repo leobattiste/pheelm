@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Icon from "@/components/Icon";
+import { toast } from "./Toast";
 
 /** Opens the phone's share sheet, or copies the link where there isn't one. */
 export default function ShareButton({ title, item = false, url: shareUrl }: { title: string; item?: boolean; url?: string }) {
@@ -21,7 +22,10 @@ export default function ShareButton({ title, item = false, url: shareUrl }: { ti
       await navigator.clipboard.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch {}
+      toast.success("Link copied");
+    } catch {
+      toast.error("Couldn’t copy the link. Copy it from the address bar.");
+    }
   };
 
   if (item) {

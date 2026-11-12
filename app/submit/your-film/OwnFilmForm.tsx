@@ -3,6 +3,7 @@ import EmailInput from "@/components/EmailInput";
 
 import { useActionState } from "react";
 import { submitOwnFilm, type SubmitState } from "../actions";
+import { useResultToast } from "@/components/Toast";
 
 /**
  * A filmmaker's own film, in the order a film page shows it: the film, its story, poster and
@@ -10,6 +11,7 @@ import { submitOwnFilm, type SubmitState } from "../actions";
  */
 export default function OwnFilmForm({ email }: { email: string }) {
   const [state, action, pending] = useActionState<SubmitState, FormData>(submitOwnFilm, { ok: false, message: "" });
+  useResultToast(state);
 
   if (state.ok) {
     return (
@@ -98,7 +100,6 @@ export default function OwnFilmForm({ email }: { email: string }) {
         </label>
       </fieldset>
 
-      {state.message && <p className="notice error" role="alert">{state.message}</p>}
       <button className="button" type="submit" disabled={pending}>{pending ? "Sending…" : "Submit your film"}</button>
     </form>
   );

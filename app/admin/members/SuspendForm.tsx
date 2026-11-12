@@ -2,10 +2,12 @@
 
 import { useActionState } from "react";
 import { restoreMember, suspendMember } from "./actions";
+import { useResultToast } from "@/components/Toast";
 
 /** Suspend with a reason (and optionally hide their watchlists), or lift a suspension. */
 export default function SuspendForm({ id, suspended, name }: { id: string; suspended: boolean; name: string }) {
   const [state, action, pending] = useActionState(suspended ? restoreMember : suspendMember, null);
+  useResultToast(state);
   return (
     <form action={action} className="form">
       <input type="hidden" name="id" value={id} />
@@ -25,7 +27,6 @@ export default function SuspendForm({ id, suspended, name }: { id: string; suspe
           {pending ? "Saving…" : suspended ? "Restore member" : "Suspend member"}
         </button>
       </div>
-      {state && <p role="status" className={state.ok ? "notice ok" : "notice error"}>{state.message}</p>}
     </form>
   );
 }

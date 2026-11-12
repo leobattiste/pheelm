@@ -5,6 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
 import Icon from "./Icon";
+import { toast } from "./Toast";
+import { isBannedWordMessage } from "@/lib/banned-words";
 import { openSignIn } from "./SignInSheet";
 
 type Status = "loading" | "signed-out" | "off" | "on";
@@ -77,29 +79,41 @@ export default function WatchlistButton({ filmId, filmTitle, pickerOnly = false,
     window.dispatchEvent(new CustomEvent("watchlistchange", { detail: { filmId, saved } }));
   };
   const open = () => { setError(""); setLists(null); sheet.current?.showModal(); void loadLists(); };
-  const toggleAll = async () => {
+  const setAll = async (remove: boolean, undo = false) => {
     const db = getBrowserClient();
     if (!db || !userId || busy) return;
     setBusy(true); setError("");
-    const remove = status === "on";
     const result = remove
       ? await db.rpc("remove_film_from_watchlist", { fid: filmId })
       : await db.from("watchlist").upsert({ user_id: userId, film_id: filmId });
-    if (result.error) setError("Your watchlist couldn't be updated. Try again.");
-    else { mark(!remove); if (remove) await loadLists(); }
+    if (result.error) toast.error("Your watchlist couldn’t be updated. Try again.");
+    else {
+      mark(!remove);
+      if (remove) await loadLists();
+      if (!undo) toast.success(remove ? `Removed ${filmTitle} from your Watchlist` : `Added ${filmTitle} to your Watchlist`, { action: { label: "Undo", run: () => { setBusy(false); return setAll(!remove, true); } } });
+      else toast.success("Undone");
+    }
     setBusy(false);
   };
-  const toggleList = async (list: List) => {
+  const toggleAll = () => setAll(status === "on");
+  const setOnList = async (list: List, add: boolean, undo = false) => {
     const db = getBrowserClient();
     if (!db || busy) return;
     setBusy(true); setError("");
-    const result = list.has
-      ? await db.from("list_films").delete().eq("list_id", list.id).eq("film_id", filmId)
-      : await db.rpc("save_film_to_collection", { fid: filmId, lid: list.id });
-    if (result.error) setError("That didn't save. Try again.");
-    else { changed.current = true; if (!list.has && !list.shared) mark(true); await loadLists(); }
+    const result = add
+      ? await db.rpc("save_film_to_collection", { fid: filmId, lid: list.id })
+      : await db.from("list_films").delete().eq("list_id", list.id).eq("film_id", filmId);
+    if (result.error) toast.error("That didn’t save. Try again.");
+    else {
+      changed.current = true;
+      if (add && !list.shared) mark(true);
+      await loadLists();
+      if (!undo) toast.success(add ? `Added to ${list.title}` : `Removed from ${list.title}`, { action: { label: "Undo", run: () => { setBusy(false); return setOnList(list, !add, true); } } });
+      else toast.success("Undone");
+    }
     setBusy(false);
   };
+  const toggleList = (list: List) => setOnList(list, !list.has);
   const create = async (event: React.FormEvent) => {
     event.preventDefault();
     const db = getBrowserClient();
@@ -107,8 +121,8 @@ export default function WatchlistButton({ filmId, filmTitle, pickerOnly = false,
     if (!db || !title || busy) return;
     setBusy(true); setError("");
     const { error } = await db.rpc("save_film_to_collection", { fid: filmId, collection_title: title });
-    if (error) setError("The watchlist couldn't be created. Try again.");
-    else { mark(true); setNewTitle(""); await loadLists(); }
+    if (error) toast.error(isBannedWordMessage(error.message) ? error.message : "The watchlist couldn’t be created. Try again.");
+    else { mark(true); setNewTitle(""); await loadLists(); toast.success(`Created “${title}” and added ${filmTitle}`); }
     setBusy(false);
   };
 

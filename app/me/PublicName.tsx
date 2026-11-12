@@ -7,14 +7,13 @@ import type { ProfileLinks } from "@/lib/profile-links";
 import ProfilePhotoField from "@/components/ProfilePhotoField";
 import ProfileBioField from "@/components/ProfileBioField";
 import { updatePublicName, type NameState } from "./actions";
-import { useBannedWordToast } from "@/components/Toast";
-import { isBannedWordMessage } from "@/lib/banned-words";
+import { useResultToast } from "@/components/Toast";
 
 /** Choosing a name and handle for the first time, with a live preview. Once saved, goes to /@handle. */
 export default function PublicName({ handle, displayName, avatarUrl = null, bio = null, links }: { handle: string | null; displayName: string | null; avatarUrl?: string | null; bio?: string | null; links?: ProfileLinks }) {
   const router = useRouter();
   const [state, action, pending] = useActionState<NameState, FormData>(updatePublicName, null);
-  useBannedWordToast(state);
+  useResultToast(state);
   const [name, setName] = useState(displayName ?? "");
   const [h, setH] = useState(handle ?? "");
 
@@ -40,7 +39,6 @@ export default function PublicName({ handle, displayName, avatarUrl = null, bio 
       </label>
       <ProfileBioField bio={bio} disabled={pending} />
       <ProfileLinksFields links={links} disabled={pending} />
-      {state && !state.ok && !isBannedWordMessage(state.message) && <p className="notice error" role="alert">{state.message}</p>}
       <div className="actions"><button className="button" type="submit" disabled={pending}>{pending ? "Creating…" : "Create profile"}</button></div>
     </form>
   );

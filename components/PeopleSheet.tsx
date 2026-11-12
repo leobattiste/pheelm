@@ -8,6 +8,7 @@ import { inviteCollaborator, removeCollaborator, respondToRequest, type CollabSt
 import type { Member } from "@/lib/community";
 import type { Person } from "@/lib/collab";
 import { getBrowserClient } from "@/lib/supabase/client";
+import { useResultToast } from "@/components/Toast";
 
 type Props = {
   listId: string;
@@ -52,6 +53,7 @@ function Act({ action, listId, userId, extra, label, kind = "ghost", back }: {
 /** Find members to invite by handle or name, as you type. Arrow keys and Enter pick one. */
 function InviteField({ listId, exclude, full }: { listId: string; exclude: string[]; full: boolean }) {
   const [state, action, pending] = useActionState<CollabState, FormData>(inviteCollaborator, null);
+  useResultToast(state);
   const [q, setQ] = useState("");
   const [hits, setHits] = useState<Member[]>([]);
   const [active, setActive] = useState(-1);
@@ -132,7 +134,6 @@ function InviteField({ listId, exclude, full }: { listId: string; exclude: strin
         </div>
         <button type="submit" className="button small" disabled={pending || !q.trim()}>{pending ? "Inviting…" : "Invite"}</button>
       </div>
-      {state && <p className={state.ok ? "people-note ok" : "notice error"} role="status">{state.message}</p>}
     </form>
   );
 }

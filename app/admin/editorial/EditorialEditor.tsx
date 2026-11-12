@@ -2,9 +2,11 @@
 
 import { useActionState } from "react";
 import { saveEditorial, type EditorialResult } from "./actions";
+import { useResultToast } from "@/components/Toast";
 
 export default function EditorialEditor({ filmId, essay, sources, status }: { filmId:string; essay:string; sources:string; status:"draft"|"published" }) {
   const [state, action, pending] = useActionState<EditorialResult, FormData>(saveEditorial,{ok:true,message:""});
+  useResultToast(state);
   return (
     <form action={action} className="fieldset form">
       <input type="hidden" name="film_id" value={filmId} />
@@ -23,7 +25,6 @@ export default function EditorialEditor({ filmId, essay, sources, status }: { fi
         </select>
       </label>
       <div className="actions"><button type="submit" className="button" disabled={pending}>{pending ? "Saving…" : "Save editorial"}</button></div>
-      {state.message && <p className={`notice ${state.ok ? "ok" : "error"}`} role="status">{state.message}</p>}
     </form>
   );
 }

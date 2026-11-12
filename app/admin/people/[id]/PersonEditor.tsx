@@ -3,9 +3,11 @@
 import { useActionState } from "react";
 import type { PersonRow } from "@/lib/types";
 import { savePerson, type Result } from "../../actions";
+import { useResultToast } from "@/components/Toast";
 
 export default function PersonEditor({ person }: { person: PersonRow }) {
   const [state, action, pending] = useActionState<Result, FormData>(savePerson, { ok: false, message: "" });
+  useResultToast(state);
   return (
     <form action={action} className="fieldset form">
       <input type="hidden" name="id" value={person.id} />
@@ -34,7 +36,6 @@ export default function PersonEditor({ person }: { person: PersonRow }) {
       <div className="actions">
         <button className="button" type="submit" disabled={pending}>{pending ? "Saving…" : "Save"}</button>
       </div>
-      {state.message && <p className={`notice ${state.ok ? "ok" : "error"}`} role="status">{state.message}</p>}
     </form>
   );
 }

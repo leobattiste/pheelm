@@ -3,8 +3,7 @@
 import { useActionState, useRef, useState } from "react";
 import { deleteCollection, updateCollection, type CollectionUpdateState } from "@/app/me/actions";
 import Icon from "@/components/Icon";
-import { useBannedWordToast } from "@/components/Toast";
-import { isBannedWordMessage } from "@/lib/banned-words";
+import { useResultToast } from "@/components/Toast";
 
 type Props = {
   list: { id: string; title: string; description: string | null; is_public: boolean; comments_enabled?: boolean };
@@ -18,7 +17,7 @@ export default function CollectionEditor({ list, isOwner, collaborators = 0 }: P
   const modal = useRef<HTMLDialogElement>(null);
   const [confirming, setConfirming] = useState(false);
   const [state, action, pending] = useActionState<CollectionUpdateState, FormData>(updateCollection, null);
-  useBannedWordToast(state);
+  useResultToast(state);
   const close = () => { modal.current?.close(); setConfirming(false); };
 
   return (
@@ -81,7 +80,6 @@ export default function CollectionEditor({ list, isOwner, collaborators = 0 }: P
               </>
             ) : null}
           </div>
-          {state && !state.ok && !isBannedWordMessage(state.message) && <p className="notice error" role="alert">{state.message}</p>}
           <div className="modal-foot">
             <button type="button" className="button ghost" onClick={close}>Cancel</button>
             <button type="submit" className="button" disabled={pending}>{pending ? "Saving…" : "Save"}</button>

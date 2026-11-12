@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
 import Icon from "@/components/Icon";
+import { toast } from "./Toast";
 
 const REASONS = ["Spam or advertising", "Offensive or hateful", "Not about films by Black directors", "Something else"];
 
@@ -20,6 +21,8 @@ export default function ReportCollection({ listId }: { listId: string }) {
     setState("sending");
     const { error } = await db.from("list_reports").insert({ list_id: listId, reason: [reason, detail.trim()].filter(Boolean).join(": ").slice(0, 500) });
     setState(error ? "error" : "sent");
+    if (error) toast.error("That didn’t send. Try again.");
+    else { toast.success("Thanks, we’ll take a look"); sheet.current?.close(); }
   };
 
   return (

@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
 import { openSignIn } from "./SignInSheet";
 import Icon from "@/components/Icon";
+import { toast } from "./Toast";
 
 type Status = "loading" | "signed-out" | "off" | "on" | "own" | "unavailable";
 const PLUS = <Icon name="plus" />;
@@ -44,15 +45,22 @@ export default function SaveCollectionButton({ listId, ownerId }: { listId: stri
     );
   }
 
-  const toggle = async () => {
+  const apply = async (next: "on" | "off", prev: "on" | "off") => {
     const db = getBrowserClient();
-    if (!db || !userId) return;
-    const next = status === "on" ? "off" : "on";
+    if (!db || !userId) return false;
     setStatus(next);
     const { error } = next === "on"
       ? await db.from("list_saves").insert({ list_id: listId, user_id: userId })
       : await db.from("list_saves").delete().eq("list_id", listId).eq("user_id", userId);
-    if (error) setStatus(status);
+    if (error) { setStatus(prev); toast.error("That didn’t save. Try again."); return false; }
+    return true;
+  };
+  const toggle = async () => {
+    const prev = status === "on" ? "on" : "off";
+    const next = prev === "on" ? "off" : "on";
+    if (await apply(next, prev)) {
+      toast.success(next === "on" ? "Following this watchlist" : "Unfollowed this watchlist", { action: { label: "Undo", run: () => void apply(prev, next) } });
+    }
   };
 
   return (

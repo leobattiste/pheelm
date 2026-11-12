@@ -7,6 +7,7 @@ import { useActionState, useState } from "react";
 import Icon from "./Icon";
 import Turnstile from "./Turnstile";
 import { sendMessage, type FormState } from "@/app/platform-actions";
+import { useResultToast } from "@/components/Toast";
 
 const TOPICS: [string, string][] = [
   ["general", "General enquiry"],
@@ -19,6 +20,7 @@ export default function ContactForm({ topic = "general", partnership = false, fe
   const [on, setOn] = useState(true);
   const ref = on ? about : undefined;
   const [state, action, pending] = useActionState<FormState, FormData>(sendMessage, null);
+  useResultToast(state);
 
   if (state?.ok) {
     return <p className="notice ok" role="status">{state.message}</p>;
@@ -60,7 +62,6 @@ export default function ContactForm({ topic = "general", partnership = false, fe
       </label>
       <input name="website" tabIndex={-1} autoComplete="off" className="visually-hidden" aria-hidden="true" />
       <Turnstile />
-      {state && !state.ok && <p className="notice error" role="alert">{state.message}</p>}
       <div className="actions">
         <button className="button" type="submit" disabled={pending}>{pending ? "Sending…" : partnership ? "Submit Inquiry" : feedback ? "Send feedback" : "Send message"}</button>
       </div>

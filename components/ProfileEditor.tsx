@@ -9,8 +9,7 @@ import { updatePublicName, type NameState } from "@/app/me/actions";
 import { COUNTRY_OPTIONS } from "@/lib/countries";
 import ProfilePhotoField from "./ProfilePhotoField";
 import Icon from "@/components/Icon";
-import { useBannedWordToast } from "@/components/Toast";
-import { isBannedWordMessage } from "@/lib/banned-words";
+import { useResultToast } from "@/components/Toast";
 
 type Props = { handle: string; displayName: string | null; isPrivate: boolean; country: string | null; avatarUrl: string | null; bio?: string | null; unlimitedBio?: boolean; links?: ProfileLinks };
 
@@ -23,7 +22,7 @@ export default function ProfileEditor({ handle, displayName, isPrivate, country,
   const [photoVersion, setPhotoVersion] = useState(0);
   const modal = useRef<HTMLDialogElement>(null);
   const [state, action, pending] = useActionState<NameState, FormData>(updatePublicName, null);
-  useBannedWordToast(state);
+  useResultToast(state);
 
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -84,7 +83,6 @@ export default function ProfileEditor({ handle, displayName, isPrivate, country,
               </span>
               <input type="checkbox" role="switch" className="switch" name="is_private" defaultChecked={isPrivate} />
             </label>
-            {state && !state.ok && !isBannedWordMessage(state.message) && <p className="notice error" role="status">{state.message}</p>}
           </div>
           <div className="modal-foot">
             <button type="button" className="button ghost" onClick={() => modal.current?.close()}>Cancel</button>

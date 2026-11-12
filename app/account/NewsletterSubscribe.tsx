@@ -2,9 +2,11 @@
 
 import { useActionState } from "react";
 import { setNewsletterSubscription, type NewsletterState } from "./newsletter-actions";
+import { useResultToast } from "@/components/Toast";
 
 export default function NewsletterSubscribe({ email, initialStatus }: { email: string; initialStatus: "off" | "pending" | "confirmed" }) {
   const [state, action, pending] = useActionState<NewsletterState, FormData>(setNewsletterSubscription, null);
+  useResultToast(state);
   const status = state?.ok ? state.subscribed ? "pending" : "off" : initialStatus;
   const subscribed = status !== "off";
   return (
@@ -15,7 +17,6 @@ export default function NewsletterSubscribe({ email, initialStatus }: { email: s
       <button className="button ghost" type="submit" disabled={pending}>
         {pending ? "Saving…" : status === "pending" ? "Cancel subscription request" : subscribed ? "Unsubscribe" : "Subscribe"}
       </button>
-      {state && <p className={state.ok ? "notice ok" : "notice error"} role="status">{state.message}</p>}
     </form>
   );
 }

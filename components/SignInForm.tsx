@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
 import { supabaseEnabled } from "@/lib/supabase/config";
+import { toast } from "@/components/Toast";
 import { needsPassword, MIN_PASSWORD } from "@/lib/password";
 
 const googleEnabled = process.env.NEXT_PUBLIC_ENABLE_GOOGLE === "true";
@@ -85,6 +86,7 @@ export default function SignInForm({ next, initialError = "", onDone, titleId, m
   function finish() {
     // Members' header and pages show from here on (set before paint on later visits).
     document.documentElement.dataset.auth = "in";
+    toast.success("Signed in");
     onDone?.();
     // From the sheet you stay where you were, except on the home page, which leads to Films.
     if (!onDone || next !== window.location.pathname) router.replace(next);

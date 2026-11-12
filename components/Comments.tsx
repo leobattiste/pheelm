@@ -9,7 +9,6 @@ import { openSignIn } from "./SignInSheet";
 import UserAvatar from "./UserAvatar";
 import Icon from "@/components/Icon";
 import { toast } from "@/components/Toast";
-import { isBannedWordMessage } from "@/lib/banned-words";
 
 type Viewer = { id: string; handle: string | null; name: string | null; avatarUrl?: string | null; isPrivate?: boolean } | null;
 type Props = {
@@ -149,7 +148,6 @@ export default function Comments({ listId, filmId, filmTitle, watchedIds = [], o
   const [confirming, setConfirming] = useState<string | null>(null);
   const [open, setOpen] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const [pinned, setPinned] = useState<string | null>(pinnedId);
   const [reporting, setReporting] = useState<string | null>(null);
@@ -180,12 +178,8 @@ export default function Comments({ listId, filmId, filmTitle, watchedIds = [], o
     return tops.filter((c) => !c.removed_at || replies.get(c.id)?.length).map((c) => ({ c, replies: replies.get(c.id) ?? [] }));
   }, [comments, sort, pinned]);
 
-  const fail = (message: string) => {
-    // A banned word is said in a toast; the text stays in the box to fix.
-    if (isBannedWordMessage(message)) { toast(message); return; }
-    setError(message);
-    setTimeout(() => setError((e) => (e === message ? null : e)), 6000);
-  };
+  // Every problem is said in a toast; a refused comment stays in the box to fix.
+  const fail = (message: string) => { toast.error(message); };
   const reason = (e: { code?: string; message?: string } | null) =>
     e?.message?.includes("very fast") ? "You're commenting very fast. Wait a minute and try again." : "That didn't go through. Check your connection and try again.";
 
@@ -199,6 +193,7 @@ export default function Comments({ listId, filmId, filmTitle, watchedIds = [], o
       setComments((cs) => [...cs, comment]);
       if (parentId) setOpen((o) => new Set(o).add(parentId));
       setReplyTo(null);
+      toast.success(parentId ? "Reply posted" : "Comment posted");
       return true;
     } catch {
       fail("That didn't go through. Please try again.");
@@ -216,6 +211,7 @@ export default function Comments({ listId, filmId, filmTitle, watchedIds = [], o
       setComments((cs) => cs.map((c) =>
         c.id === id ? { ...c, body: result.comment.body, edited_at: result.comment.edited_at, spoiler: result.comment.spoiler ?? c.spoiler } : c));
       setEditing(null);
+      toast.success("Comment updated");
       return true;
     } catch {
       fail("Your comment couldn't be updated. Please try again.");
@@ -243,6 +239,7 @@ export default function Comments({ listId, filmId, filmTitle, watchedIds = [], o
       if (!e) setComments((cs) => cs.filter((c) => c.id !== id && c.parent_id !== id));
     }
     if (e) { setComments(before); fail(reason(e)); }
+    else toast.success("Comment deleted");
   };
 
   const togglePin = async (id: string) => {
@@ -265,7 +262,7 @@ export default function Comments({ listId, filmId, filmTitle, watchedIds = [], o
     if (e) {
       setReported((r) => { const n = new Set(r); n.delete(id); return n; });
       fail(reason(e));
-    }
+    } else toast.success("Thanks, we’ll take a look");
   };
 
   const like = async (c: CommentItem) => {
@@ -395,7 +392,6 @@ export default function Comments({ listId, filmId, filmTitle, watchedIds = [], o
         </button>
       )}
 
-      {error && <p className="notice error" role="alert">{error}</p>}
 
       {threads.length ? (
         <ol className="comment-list">
