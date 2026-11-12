@@ -2,12 +2,13 @@ import Link from "next/link";
 import FilmCard from "@/components/FilmCard";
 import AdminBrowserToolbar from "../AdminBrowserToolbar";
 import { requireAdmin } from "@/lib/admin";
+import { PageHeader, Pager, Stat, Stats, pageNumber } from "../ui";
 
 const PAGE_SIZE=40;
 export default async function EditorialPage({searchParams}:{searchParams:Promise<{q?:string;page?:string}>}) {
   const {db}=await requireAdmin("/admin/editorial");
   const sp=await searchParams;
-  const page=Math.max(1, Math.min(5000,Number.parseInt(sp.page??"1",10)||1));
+  const page=pageNumber(sp.page,5000);
   let query=db.from("films").select("id,title,year,slug,status,poster_url,film_editorials(status,updated_at)",{count:"exact"})
     .order("year",{ascending:false}).range((page-1)*PAGE_SIZE,page*PAGE_SIZE-1);
   if(sp.q) query=query.ilike("title",`%${sp.q.slice(0,100)}%`);
@@ -19,8 +20,8 @@ export default async function EditorialPage({searchParams}:{searchParams:Promise
   const queryString=(p:number)=>`/admin/editorial?page=${p}&q=${encodeURIComponent(sp.q??"")}`;
   return (
     <>
-      <div className="admin-head"><div><h2 className="admin-section-heading">Editorial</h2><p className="muted">Write, review and publish original film perspectives. Synopses stay in the film editor.</p></div><Link className="button ghost small" href="/admin/quality?issue=editorial">Essays needed</Link></div>
-      <div className="stats"><div className="stat"><strong>{published??0}</strong><span>Published essays</span></div><div className="stat"><strong>{drafts??0}</strong><span>Draft essays</span></div><Link className="stat" href="/admin/quality?issue=editorial"><strong>Review</strong><span>Films without a published essay</span></Link></div>
+      <PageHeader title="Editorial" description="Write and publish Pheelm's own essays on films. Synopses are edited with the film." />
+      <Stats><Stat value={published??0} label="Published essays" /><Stat value={drafts??0} label="Drafts" /><Stat value="Find" label="Films without an essay" href="/admin/quality?issue=editorial" /></Stats>
       <AdminBrowserToolbar action="/admin/editorial" query={sp.q ?? ""} placeholder="Find a film to write about" />
       {error ? <p className="notice error">Editorial list could not be loaded.</p> : <ul className="film-grid admin-film-grid">
       {(films ?? []).map(f => {
@@ -33,7 +34,7 @@ export default async function EditorialPage({searchParams}:{searchParams:Promise
         </div>} />;
       })}
       </ul>}
-      <div className="actions admin-pagination">{page>1&&<Link className="button ghost small" href={queryString(page-1)}>Previous</Link>}<span className="muted">Page {page} of {Math.max(1,Math.ceil((count??0)/PAGE_SIZE))}</span>{page*PAGE_SIZE<(count??0)&&<Link className="button ghost small" href={queryString(page+1)}>Next</Link>}</div>
+      <Pager page={page} total={count??0} size={PAGE_SIZE} href={queryString} />
     </>
   );
 }

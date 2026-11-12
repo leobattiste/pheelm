@@ -1,0 +1,264 @@
+/* Admin styles. Loaded only on /admin routes, after globals.css.
+   Cards, rows and controls use the site's glass material and hairlines, like the menu bar. */
+
+/* Shell: title, who you are, and the two rows of tabs ---------------------------------------- */
+.admin { display: block; min-width: 0; padding: 0 var(--gutter) var(--space-48); }
+.admin.account-page { padding-top: 0; }
+.admin.account-page > .page-head { padding-bottom: 0; }
+.admin > .page-head h1 { font-size: var(--t-3xl); }
+.admin-who { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-8) var(--space-16); }
+
+.admin-navigation { min-width: 0; }
+.admin-main-tabs.profile-tabs { position: relative; margin: var(--space-24) 0 0; flex-wrap: nowrap; padding: 2px; border-bottom: 0; scrollbar-width: none; scroll-padding-inline: var(--space-16); }
+.admin-main-tabs.profile-tabs::-webkit-scrollbar { display: none; }
+.admin-main-tabs .chip { display: inline-flex; align-items: center; gap: var(--space-8); min-height: 44px; }
+.admin-main-tabs .chip[aria-current="page"] { background: var(--ink); border-color: transparent; color: var(--on-ink); }
+.admin-main-tabs .chip[aria-current="page"]:hover { background: color-mix(in srgb, var(--ink) 86%, var(--bg)); }
+.admin-subtabs { position: relative; display: flex; gap: var(--space-8); overflow-x: auto; padding: var(--space-12) 2px 2px; scrollbar-width: none; }
+.admin-subtabs a { display: inline-flex; flex: none; align-items: center; gap: var(--space-8); min-height: 44px; padding: var(--space-8) var(--space-12); border-radius: var(--pill); color: var(--muted); font-size: var(--t-sm); text-decoration: none; }
+.admin-subtabs a:hover, .admin-subtabs a[aria-current="page"] { color: var(--ink); background: var(--surface); }
+.admin-subtabs a[aria-current="page"] { box-shadow: inset 0 0 0 1px var(--control-border-strong); }
+
+/* A number waiting for you, on a tab or a row. */
+.admin-count { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: var(--pill); background: var(--error); color: #fff; font-size: 11px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+
+.admin-content { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-32); min-width: 0; padding-top: var(--space-32); }
+.admin-content > *, .admin :is(.fieldset, .form, .form-row, .field, .editor, .editor > *, .actions, .stats, .stat, .account-section) { min-width: 0; }
+
+/* Screen header -------------------------------------------------------------------------------- */
+.admin-page-head, .admin-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--space-16); }
+.admin-page-head > div:first-child, .admin-head > div:first-child { display: grid; gap: var(--space-8); min-width: 0; }
+.admin-page-head h2, .admin-head .admin-section-heading { font-size: var(--t-2xl); line-height: 1.15; overflow-wrap: anywhere; }
+.admin-page-head p, .admin-head p { max-width: 65ch; color: var(--muted); }
+.admin-back { display: inline-flex; align-items: center; gap: var(--space-4); width: fit-content; color: var(--muted); font-size: var(--t-sm); text-decoration: none; }
+.admin-back:hover { color: var(--ink); }
+.admin-back .icon { width: 18px; height: 18px; }
+
+/* Cards and rows ------------------------------------------------------------------------------- */
+.admin-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-16); align-items: start; }
+.admin-panel { display: grid; gap: var(--space-8); min-width: 0; padding: var(--space-20); border: 1px solid var(--line); border-radius: var(--r); background: var(--glass-bg); }
+.admin-panel-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-8) var(--space-16); padding-bottom: var(--space-8); }
+.admin-panel-head h3 { display: flex; align-items: center; gap: var(--space-12); font-size: var(--t-lg); }
+.admin-panel-head h3 .icon { color: var(--muted); }
+.admin-panel-head .link-button { text-decoration: none; }
+.admin-panel-head .link-button:hover { text-decoration: underline; }
+.admin-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-8) var(--space-16); min-height: 52px; padding: var(--space-8) 0; color: var(--text); text-decoration: none; font-size: var(--t-sm); }
+.admin-row + .admin-row { border-top: 1px solid var(--line); }
+a.admin-row:hover .admin-row-title { text-decoration: underline; text-underline-offset: 0.2em; }
+.admin-row-main { display: grid; gap: 2px; min-width: 0; }
+.admin-row-title { color: var(--ink); font-weight: 500; overflow-wrap: anywhere; }
+.admin-row-detail { color: var(--muted); font-size: var(--t-xs); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admin-row-aside { flex: none; display: inline-flex; align-items: center; gap: var(--space-8); font-size: var(--t-xs); }
+.admin-number { display: inline-grid; place-items: center; min-width: 32px; height: 28px; padding: 0 var(--space-8); border-radius: var(--pill); background: var(--surface); font-size: var(--t-sm); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* Older screens still use these rows; they match .admin-row. */
+.admin-attention-row { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: var(--space-8); padding: var(--space-12) 0; border-bottom: 1px solid var(--line); color: var(--text); text-decoration: none; font-size: var(--t-sm); overflow-wrap: anywhere; }
+.admin-attention-row:last-child { border-bottom: 0; }
+.admin-attention-row > :first-child { min-width: 0; flex: 1 1 160px; }
+a.admin-attention-row:hover, .admin-attention-row a:hover { color: var(--ink); }
+
+/* Numbers -------------------------------------------------------------------------------------- */
+.admin .stats { grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); }
+.admin .stat { align-content: start; gap: var(--space-12); padding: var(--space-20); }
+.admin .stat strong { font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.admin .stat span { line-height: 1.5; }
+.admin .stat:not(a):hover { background: transparent; }
+.admin .stat.is-attention strong { color: var(--error); }
+
+/* Status labels: one shape, a few meanings. */
+.admin .status-pill { display: inline-flex; align-items: center; white-space: nowrap; text-decoration: none; }
+.status-pill.tone-ok { color: var(--ok); }
+.status-pill.tone-warn { color: var(--gold); }
+.status-pill.tone-danger { color: var(--error); }
+.status-pill.tone-info { color: var(--ink); box-shadow: inset 0 0 0 1px var(--line-strong); }
+
+/* Switching views of a list: Open / Done, Pending / Approved … */
+.admin-view-tabs { display: flex; flex-wrap: wrap; gap: var(--space-8); }
+.admin-view-tabs .chip { min-height: 40px; }
+.admin-view-tabs .chip[aria-current="page"] { background: var(--ink); border-color: transparent; color: var(--on-ink); }
+.admin-view-tabs .chip[aria-current="page"] .count { color: inherit; opacity: 0.7; }
+
+/* Empty lists and paging */
+.admin-empty { display: grid; justify-items: start; gap: var(--space-8); padding: var(--space-24) 0; color: var(--muted); }
+.admin-panel > .admin-empty { padding: var(--space-12) 0; }
+.admin-empty-title { color: var(--ink); font-weight: 600; }
+.admin-empty .button { margin-top: var(--space-8); }
+.admin-pager { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: var(--space-12); }
+.admin-pager > :last-child { justify-self: end; }
+.admin-pagination { display: flex; align-items: center; justify-content: flex-end; padding: var(--space-12) 0; }
+
+/* Facts about a record */
+.admin-facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: var(--space-16); }
+.admin-facts dt { color: var(--muted); font-size: var(--t-xs); }
+.admin-facts dd { overflow-wrap: anywhere; }
+
+/* Buttons that need a second press. */
+.button.is-armed { background: var(--error); border-color: var(--error); color: #fff; }
+
+/* Forms and editors ---------------------------------------------------------------------------- */
+.admin .fieldset { align-content: start; gap: var(--space-16); padding: clamp(var(--space-16), 2.5vw, var(--space-24)); }
+.admin .fieldset > h2 { padding: 0; color: var(--ink); font-size: var(--t-lg); }
+.admin .fieldset legend { color: var(--ink); }
+.admin :is(input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="hidden"]), select, textarea) { min-width: 0; max-width: 100%; }
+.admin .field > :is(input, select, textarea) { width: 100%; }
+.admin .actions { flex-wrap: wrap; align-items: center; }
+.admin .button { min-height: 44px; height: auto; white-space: normal; text-align: center; overflow-wrap: anywhere; }
+.admin .actions > :is(form, .button) { max-width: 100%; }
+.admin :is(.inbox-head, .inbox-body, .notice, .import-log, .details) { overflow-wrap: anywhere; }
+.admin :is(a, button, input, select, textarea, summary):focus-visible { outline: none; outline-offset: 3px; }
+.admin .editor { grid-template-columns: minmax(0, 1fr); }
+.admin .editor aside { padding: var(--space-20); border: 1px solid var(--control-border-strong); border-radius: var(--r); }
+.admin .editor aside > .poster { max-width: 220px; justify-self: center; width: 100%; }
+.admin .editor .fieldset { padding: 0; border: 0; }
+.admin .editor > .form { gap: var(--space-40); }
+.admin-editorial-layout { display: grid; gap: var(--space-16); align-items: start; }
+.admin-editorial-layout > div { display: grid; gap: var(--space-16); min-width: 0; }
+.admin-revision { display: flex; align-items: center; justify-content: space-between; gap: var(--space-8); flex-wrap: wrap; border-bottom: 1px solid var(--line); padding: var(--space-12) 0; }
+.admin-toolbox-body { display: grid; gap: var(--space-40); padding-top: var(--space-16); }
+.admin-toolbox .fieldset { padding: 0; border: 0; max-width: 760px; }
+.admin-tags { display: flex; flex-wrap: wrap; gap: var(--space-4); }
+
+/* Lists of messages, reports and activity */
+.admin .inbox-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-8) var(--space-16); }
+.admin .inbox li { padding: var(--space-20); }
+.admin-activity-list { max-width: 760px; }
+.admin-submission-list { max-width: 760px; display: grid; gap: var(--space-32); }
+.admin-submission-list > li { padding-bottom: var(--space-24); border-bottom: 1px solid var(--line); }
+
+/* Analytics chart */
+.admin-chart { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--space-12); align-items: end; min-height: 200px; padding: var(--space-16) 0; border-bottom: 1px solid var(--line); }
+.admin-chart-group { display: grid; gap: var(--space-8); min-width: 0; text-align: center; font-size: var(--t-xs); }
+.admin-chart-bars { display: flex; gap: 3px; align-items: end; height: 150px; }
+.admin-chart-bar { flex: 1; min-height: 2px; border-radius: var(--r-sm) var(--r-sm) 0 0; }
+.admin-chart-bar-0 { background: var(--ink); }
+.admin-chart-bar-1 { background: var(--muted); }
+.admin-chart-bar-2 { background: var(--line-strong); }
+.admin-chart-bar-3 { background: var(--hover); border: 1px solid var(--line-strong); }
+.admin-chart-legend { display: flex; flex-wrap: wrap; gap: var(--space-16); font-size: var(--t-xs); color: var(--muted); }
+.admin-chart-legend span { display: inline-flex; align-items: center; gap: var(--space-8); }
+.admin-chart-key { display: inline-block; width: 12px; height: 12px; border-radius: var(--r-sm); }
+
+/* Films, directors, members and watchlists as cards ------------------------------------------- */
+.admin-films { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-24); min-width: 0; }
+.admin-films > *, .admin-browser-tools, .admin-managed-card { min-width: 0; }
+.admin-browser-tools { display: grid; gap: var(--space-16); }
+.admin-browser-tools .toolbar { margin-bottom: 0; }
+.admin-filter-form { display: flex; flex-direction: column; min-height: 0; overflow-y: auto; }
+.admin .modal { max-width: calc(100vw - var(--space-32)); }
+.admin .modal .modal-foot .button { flex: 1; }
+.admin-film-grid .film-card { display: flex; flex-direction: column; min-width: 0; }
+.admin-film-grid .film-card > a { min-width: 0; }
+.admin-film-controls { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-8); margin-top: var(--space-12); font-size: var(--t-xs); }
+.admin-film-controls .check { min-height: 44px; }
+.admin-film-controls .check input { flex: none; }
+.admin-film-grid .film-card > .admin-card-controls { margin-top: var(--space-12); }
+.admin-managed-card { display: flex; flex-direction: column; border: 1px solid var(--control-border-strong); border-radius: var(--r); overflow: hidden; }
+.admin-managed-card .collection-tile { flex: 1; height: auto; border: 0; border-radius: 0; }
+.admin-card-controls { display: grid; justify-items: start; gap: var(--space-12); min-width: 0; font-size: var(--t-sm); overflow-wrap: anywhere; }
+.admin-managed-card > .admin-card-controls { padding: var(--space-16); border-top: 1px solid var(--line); }
+.admin-member-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(64px, 1fr)); gap: var(--space-12); width: 100%; }
+.admin-member-stats dt { font-size: var(--t-xs); color: var(--muted); }
+.admin-member-stats dd { font-size: var(--t-xl); font-variant-numeric: tabular-nums; }
+[data-grid="list"] .admin-film-grid .film-card { display: grid; grid-template-columns: minmax(0, 1fr); }
+[data-grid="list"] .admin-film-grid .admin-film-controls, [data-grid="list"] .admin-film-grid .admin-card-controls { padding: 0 var(--space-8) var(--space-12); }
+[data-grid="list"] .admin-film-grid .admin-card-controls a { display: inline; padding: 0; border: 0; }
+[data-grid="small"] .admin-managed-card > .admin-card-controls { padding: var(--space-12); }
+
+/* Small screens -------------------------------------------------------------------------------- */
+@media (min-width: 1000px) {
+  .admin-editorial-layout { grid-template-columns: minmax(0, 2fr) minmax(240px, 1fr); }
+}
+@media (min-width: 1100px) {
+  .admin .editor { grid-template-columns: minmax(0, 1fr) 280px; align-items: start; }
+}
+@media (max-width: 720px) {
+  .admin-content { gap: var(--space-24); padding-top: var(--space-24); }
+  .admin-grid { grid-template-columns: minmax(0, 1fr); }
+  .admin-main-tabs.profile-tabs .chip { flex: none; }
+  .admin .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin .stat { padding: var(--space-16); }
+  .admin .stat strong { font-size: var(--t-2xl); }
+  .admin .form-row { grid-template-columns: minmax(0, 1fr); }
+  .admin .details { grid-template-columns: minmax(0, 1fr); }
+  .admin .inbox li { padding: var(--space-16); }
+  .admin .editor aside { position: static; }
+  .admin-panel { padding: var(--space-16); }
+  .admin-pagination { justify-content: center; }
+  .admin-chart { gap: var(--space-4); }
+}
+@media (max-width: 639px) {
+  .admin .modal { width: 100vw; max-width: 100vw; }
+  .admin-page-head > .actions, .admin-head > .actions { width: 100%; }
+  .admin-page-head > .actions > .button, .admin-head > .actions > .button { flex: 1; }
+}
+@media (max-width: 359px) {
+  .admin .stats { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Catalog browsers (Films, Directors) ---------------------------------------------------------- */
+.admin-directors { display: grid; gap: var(--space-24); min-width: 0; }
+:root:root .admin-catalog-tools .catalog-toolbar { display: grid; grid-template-columns: minmax(0, 1fr) var(--bar-height) var(--bar-height); align-items: center; gap: var(--space-8); flex-wrap: nowrap; }
+.admin-catalog-tools .catalog-search-control { width: 100%; min-width: 0; }
+:root:root .admin-catalog-tools .catalog-toolbar :is(.admin-add-control, .filter-button) { width: var(--bar-height); min-width: var(--bar-height); height: var(--bar-height); padding: 0; border-radius: 50%; }
+.admin-catalog-tools .filter-button .badge { position: absolute; top: -2px; right: -2px; }
+.admin-catalog-tools .filter-button { position: relative; }
+.admin-add-content { display:grid; gap:var(--space-24); min-width:0; }
+.admin-add-content .admin-toolbox-body { padding: 0; }
+.admin-add-content :is(.form, .fieldset) { min-width: 0; max-width: 100%; }
+.admin-add-content .form-row { grid-template-columns: minmax(0, 1fr); }
+.admin-add-content .fieldset { padding: 0; border: 0; background: none; }
+
+/* Admin Films & Directors reuse the public catalog layout and controls. */
+.admin-directors { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-24); min-width: 0; }
+.admin-directors > *, .admin-films > * { min-width: 0; }
+.admin-browser-tools .catalog-toolbar { width: 100%; display: flex; gap: var(--space-12); align-items: stretch; }
+.admin-browser-tools .catalog-search-control { display: block; flex: 1 1 auto; min-width: 0; }
+.admin-browser-tools .catalog-search-control .search-bar { display: flex; align-items: center; width: 100%; height: var(--bar-height); }
+.admin-browser-tools .catalog-search-control input[type="search"] { flex: 1; min-width: 0; height: 100%; background: transparent; border: none; box-shadow: none; }
+.admin-browser-tools .catalog-search-control input[type="search"]:focus { outline: none; }
+.admin-browser-tools .catalog-active-filters { margin: 0; }
+.admin-view-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-12); min-height: 44px; }
+.admin-view-size { display: inline-flex; align-items: center; gap: var(--space-8); font-size: var(--t-sm); color: var(--muted); }
+.admin-view-size select { appearance: none; min-width: 86px; height: 40px; padding: 0 33px 0 12px; border: 1px solid var(--line); border-radius: var(--pill); background: var(--raised); color: var(--ink); cursor: pointer; }
+.admin-view-size svg { pointer-events: none; margin-left: -32px; margin-right: 12px; }
+.admin-managed-list { display: grid; gap: var(--space-16); min-width: 0; }
+.admin-card-selection .check { display: inline-flex; align-items: center; gap: var(--space-8); cursor: pointer; }
+.admin-card-selection { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: flex-start; gap: var(--space-8); min-width: 0; }
+.admin-managed-card .admin-card-selection { border-top: 1px solid var(--line); }
+.admin-selection-panel { display:grid; gap:var(--space-16); min-width:0; }
+.admin-selection-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-12); }
+.admin-selection-actions { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,120px),1fr)); gap:var(--space-8); min-width:0; margin:0; padding:0; border:0; }
+.admin-import-progress { display:grid; gap:var(--space-12); min-width:0; overflow-wrap:anywhere; }
+.admin-import-progress p { margin:0; }
+.admin-import-progress summary { min-height:44px; display:flex; align-items:center; cursor:pointer; }
+.admin-selection-actions .button { width:100%; min-width:0; white-space:normal; height:auto; min-height:48px; padding:10px 12px; }
+.admin-card-selection input[type="checkbox"] { min-width: 20px; min-height: 20px; cursor: pointer; }
+@media (max-width: 639px) {
+  .admin-view-controls { align-items: center; }
+  .admin-browser-tools .catalog-toolbar { gap: var(--space-8); }
+  .admin-selection-heading strong { font-size: var(--t-sm); }
+  .admin-card-selection { font-size: var(--t-xs); }
+}
+
+/* The modal body owns scrolling; its form must keep its full content height. */
+.admin-filter-content { min-width:0; }
+.admin-filter-content .admin-filter-form { display:grid; align-content:start; grid-auto-rows:max-content; gap:var(--space-16); min-height:auto; overflow:visible; }
+.admin-filter-fields { display:grid; align-content:start; gap:var(--space-16); min-width:0; margin:0; padding:0; border:0; }
+.admin-filter-content .catalog-active-filters { flex-wrap:wrap; overflow:visible; }
+.admin-filter-content .catalog-active-filters li { min-width:0; max-width:100%; }
+.admin-filter-content .catalog-active-filters .chip { max-width:100%; height:auto; min-height:44px; padding:8px 12px; white-space:normal; overflow-wrap:anywhere; }
+.admin-filter-content .catalog-active-filters .chip svg { flex:none; }
+.admin-filter-section { min-width:0; border-top:1px solid var(--line); }
+.admin-filter-section > summary { display:flex; align-items:center; justify-content:space-between; gap:var(--space-8); min-height:48px; padding:var(--space-8) 0; cursor:pointer; list-style:none; font-weight:600; }
+.admin-filter-section > summary::-webkit-details-marker { display:none; }
+.admin-filter-section > summary svg { flex:none; transition:transform .15s; }
+.admin-filter-section[open] > summary svg { transform:rotate(180deg); }
+.admin-filter-section > :not(summary) { margin-top:var(--space-8); }
+.admin-filter-selection-body { display:grid; gap:var(--space-12); }
+.admin-filter-selection-body .check { display:flex; align-items:center; gap:var(--space-8); min-height:44px; cursor:pointer; }
+.admin-filter-selection-body .check input { flex:none; }
+.admin-filter-selection .admin-selection-heading strong { font-size:var(--t-sm); font-weight:600; }
+.admin-filter-count { font-size:var(--t-sm); }
+.admin-filter-links { display:grid; grid-template-columns:minmax(0,1fr); gap:var(--space-12); }
+.admin-filter-links > .button { width:100%; min-width:0; }
+.admin-filter-links > p { font-size:var(--t-sm); }

@@ -3,80 +3,74 @@
 import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { type IconName } from "@/components/Icon";
+import type { AdminCounts } from "@/lib/admin-counts";
+
+type Child = { label: string; href: string; badge?: keyof AdminCounts };
+type Group = { label: string; href: string; routes: string[]; badges?: (keyof AdminCounts)[]; children?: Child[] };
 
 /**
- * Same pill-tab language as Settings. The URL (rather than hidden mounted panels)
- * controls which admin screen is active, preserving browser history and deep links.
+ * Six sections, each with its own pages. The URL decides what's selected, so history and deep
+ * links work. Badges show what's waiting.
  */
-const groups: {
-  label: string; href: string; icon: IconName;
-  routes: string[]; children?: { label: string; href: string; icon: IconName }[];
-}[] = [
-  { label: "Overview", href: "/admin", icon: "stack", routes: ["/admin"] },
-  { label: "Films", href: "/admin/films", icon: "film", routes: ["/admin/films", "/admin/quality", "/admin/automation"],
+export const ADMIN_GROUPS: Group[] = [
+  { label: "Overview", href: "/admin", routes: ["/admin"] },
+  { label: "Catalog", href: "/admin/films", routes: ["/admin/films", "/admin/people", "/admin/editorial", "/admin/quality", "/admin/automation"],
     children: [
-      { label: "All films", href: "/admin/films", icon: "film" },
-      { label: "Content quality", href: "/admin/quality", icon: "check" },
-      { label: "Automation", href: "/admin/automation", icon: "sparkle" },
+      { label: "Films", href: "/admin/films" },
+      { label: "Directors", href: "/admin/people" },
+      { label: "Editorial", href: "/admin/editorial" },
+      { label: "Content quality", href: "/admin/quality" },
+      { label: "Automation", href: "/admin/automation" },
     ] },
-  { label: "Directors", href: "/admin/people", icon: "users2", routes: ["/admin/people"] },
-  { label: "Editorial", href: "/admin/editorial", icon: "pencil", routes: ["/admin/editorial"] },
-  { label: "Community", href: "/admin/community", icon: "comment", routes: ["/admin/community", "/admin/submissions"],
+  { label: "Inbox", href: "/admin/inbox", routes: ["/admin/inbox"], badges: ["inbox"] },
+  { label: "Community", href: "/admin/community", routes: ["/admin/community", "/admin/submissions"], badges: ["reports", "submissions"],
     children: [
-      { label: "Watchlists & reports", href: "/admin/community", icon: "stack" },
-      { label: "Submissions", href: "/admin/submissions", icon: "flag" },
+      { label: "Reports and watchlists", href: "/admin/community", badge: "reports" },
+      { label: "Submissions", href: "/admin/submissions", badge: "submissions" },
     ] },
-  { label: "Members", href: "/admin/members", icon: "user", routes: ["/admin/members"] },
-  { label: "Inbox", href: "/admin/inbox", icon: "mail", routes: ["/admin/inbox"] },
-  { label: "Insights", href: "/admin/analytics", icon: "sort", routes: ["/admin/analytics", "/admin/activity"],
+  { label: "Members", href: "/admin/members", routes: ["/admin/members"] },
+  { label: "Insights", href: "/admin/analytics", routes: ["/admin/analytics", "/admin/activity"],
     children: [
-      { label: "Analytics", href: "/admin/analytics", icon: "sort" },
-      { label: "Activity log", href: "/admin/activity", icon: "clock" },
+      { label: "Analytics", href: "/admin/analytics" },
+      { label: "Activity log", href: "/admin/activity" },
     ] },
 ];
 
 const matches = (path: string, route: string) => path === route || path.startsWith(route + "/");
+const badge = (value: number) => value ? <span className="admin-count" aria-label={`${value} waiting`}>{value > 99 ? "99+" : value}</span> : null;
 
-export default function AdminNav() {
+export default function AdminNav({ counts }: { counts: AdminCounts }) {
   const path = usePathname();
   const main = useRef<HTMLElement>(null);
   const secondary = useRef<HTMLElement>(null);
-  const activeGroup = groups.find((g) => g.routes.some((route) => route === "/admin" ? path === route : matches(path, route)));
+  const activeGroup = ADMIN_GROUPS.find((g) => g.routes.some((route) => route === "/admin" ? path === route : matches(path, route)));
+  const activeChild = activeGroup?.children?.filter((c) => matches(path, c.href)).sort((a, b) => b.href.length - a.href.length)[0];
 
   useEffect(() => {
     for (const nav of [main.current, secondary.current]) {
-      if (!nav) continue;
-      const active = nav.querySelector<HTMLElement>('[aria-current="page"]');
-      if (active) {
-        const target = active.offsetLeft + active.offsetWidth / 2 - nav.clientWidth / 2;
-        nav.scrollLeft = Math.max(0, target);
-      }
+      const active = nav?.querySelector<HTMLElement>('[aria-current="page"]');
+      if (nav && active) nav.scrollLeft = Math.max(0, active.offsetLeft + active.offsetWidth / 2 - nav.clientWidth / 2);
     }
   }, [path]);
 
   return (
     <div className="admin-navigation">
       <nav ref={main} className="profile-tabs admin-nav admin-main-tabs" aria-label="Admin sections">
-        {groups.map((group) => {
-          const active = activeGroup?.href === group.href;
-          return (
-            <Link key={group.href} href={group.href} className="chip" aria-current={active ? "page" : undefined}>
-              <span>{group.label}</span>
-            </Link>
-          );
-        })}
+        {ADMIN_GROUPS.map((group) => (
+          <Link key={group.href} href={group.href} className="chip" aria-current={activeGroup?.href === group.href ? "page" : undefined}>
+            <span>{group.label}</span>
+            {badge((group.badges ?? []).reduce((sum, key) => sum + counts[key], 0))}
+          </Link>
+        ))}
       </nav>
-      {activeGroup?.children && path !== "/admin/films" && (
+      {activeGroup?.children && (
         <nav ref={secondary} className="admin-subtabs" aria-label={activeGroup.label + " pages"}>
-          {activeGroup.children.map((child) => {
-            const active = matches(path, child.href);
-            return (
-              <Link key={child.href} href={child.href} aria-current={active ? "page" : undefined}>
-                <span>{child.label}</span>
-              </Link>
-            );
-          })}
+          {activeGroup.children.map((child) => (
+            <Link key={child.href} href={child.href} aria-current={child === activeChild ? "page" : undefined}>
+              <span>{child.label}</span>
+              {child.badge && badge(counts[child.badge])}
+            </Link>
+          ))}
         </nav>
       )}
     </div>

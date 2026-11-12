@@ -3,6 +3,7 @@ import AdminBrowserToolbar from "../AdminBrowserToolbar";
 import AdminAddPanel from "../AdminAddPanel";
 import { AdminSelectionProvider, AdminSelectionTools } from "../AdminSelectionBar";
 import { requireAdmin } from "@/lib/admin";
+import { PageHeader } from "../ui";
 import { countryName } from "@/lib/format";
 import { createFilm } from "../actions";
 import BulkAdd from "./BulkAdd";
@@ -93,6 +94,7 @@ export default async function AdminFilms({ searchParams }: { searchParams: Promi
 
   return (
     <AdminSelectionProvider key="films" entity="films"><section className="admin-films">
+      <PageHeader title="Films" description="Add, import, edit and publish films. Drafts stay hidden until you publish them." />
       {!!sp.updated && <p className="notice ok" role="status">{sp.updated} films updated.</p>}
       {sp.error === "selection" && <p className="notice error">Select at least one film first.</p>}
       <AdminBrowserToolbar action="/admin/films" query={q} pageSize={size} placeholder="Search films" compact count={count ?? 0} noun="films"

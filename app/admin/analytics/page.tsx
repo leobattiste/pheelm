@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { requireAdmin } from "@/lib/admin";
+import { Empty, PageHeader, Panel, Row, Stat, plural } from "../ui";
 
 type Stamp={created_at:string};
 const metricTables=[["films","Films"],["profiles","Members"],["lists","Watchlists"],["list_saves","Watchlist saves"]] as const;
@@ -33,14 +33,13 @@ export default async function AnalyticsPage(){
   const labels=new Map((topLists??[]).map(l=>[l.id,l.title]));
   return (
     <>
-      <div className="admin-head"><div><h2 className="admin-section-heading">Analytics</h2><p className="muted">Platform activity from first-party records. No visitor tracking is added.</p></div><Link className="button ghost small" href="/admin/activity">Admin activity</Link></div>
+      <PageHeader title="Analytics" description="How the catalog and community grow, counted from Pheelm's own records. Visitors aren't tracked here." />
       <div className="stats">
-        {metricTables.map(([,label],i)=><div className="stat" key={label}><strong>{rows[i].length}</strong><span>{label} in the last six months</span></div>)}
-        <div className="stat"><strong>{watched.count??0}</strong><span>Films marked watched · all time</span></div>
+        {metricTables.map(([,label],i)=><Stat key={label} value={rows[i].length} label={`New ${label.toLowerCase()} in six months`} />)}
+        <Stat value={watched.count??0} label="Films marked watched, all time" />
       </div>
-      <section className="account-section">
-        <h2>Six-month activity</h2>
-        <p className="muted">New records per month, not page views or unique visitors.</p>
+      <Panel title="The last six months" icon="calendar">
+        <p className="muted">New records each month. These aren't page views or visitors.</p>
         <div className="admin-chart" role="img" aria-label="Monthly record creation for films, members, watchlists and watchlist saves">
           {timeline.map(month=><div className="admin-chart-group" key={month.key}>
             <div className="admin-chart-bars">{month.values.map((value,i)=><div key={i} className={`admin-chart-bar admin-chart-bar-${i}`} style={{height:`${Math.max(value?6:2,Math.round(value/max*100))}%`}} title={`${metricTables[i][1]}: ${value}`}/>)}</div>
@@ -48,14 +47,11 @@ export default async function AnalyticsPage(){
           </div>)}
         </div>
         <div className="admin-chart-legend">{metricTables.map(([,label],i)=><span key={label}><i className={`admin-chart-key admin-chart-bar-${i}`}/>{label}</span>)}</div>
-      </section>
-      <section className="account-section">
-        <h2>Most-saved community watchlists</h2>
-        {(topSaves.data??[]).length?(topSaves.data??[]).map(s=><div className="admin-attention-row" key={s.list_id}>
-          <Link href={`/c/${s.list_id}`}>{labels.get(s.list_id)??"Watchlist"}</Link><span className="muted">{s.saves} saves</span>
-        </div>):<p className="muted">No watchlist saves yet.</p>}
-      </section>
-      <p className="muted">These metrics use content and community records. Traffic, visitor location and page-view analytics are deliberately not collected here.</p>
+      </Panel>
+      <Panel title="Most-saved community watchlists" icon="bookmark">
+        {(topSaves.data??[]).length?(topSaves.data??[]).map(s=><Row key={s.list_id} href={`/c/${s.list_id}`} aside={<span className="muted">{plural(s.saves,"save")}</span>}>{labels.get(s.list_id)??"Watchlist"}</Row>)
+          :<Empty title="No saves yet">Watchlists members save appear here.</Empty>}
+      </Panel>
     </>
   );
 }

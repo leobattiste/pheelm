@@ -6,6 +6,7 @@ import AdminAddPanel from "../AdminAddPanel";
 import { AdminSelectionProvider, AdminSelectionTools } from "../AdminSelectionBar";
 import AddPersonForm from "./AddPersonForm";
 import { requireAdmin } from "@/lib/admin";
+import { PageHeader } from "../ui";
 import PeopleBulkControls, { type AdminPersonRow } from "./PeopleBulkControls";
 import { bulkPersonChange } from "./bulk-actions";
 
@@ -76,6 +77,7 @@ export default async function AdminPeople({ searchParams }: { searchParams: Prom
 
   return (
     <AdminSelectionProvider key="people" entity="people"><section className="admin-directors">
+      <PageHeader title="Directors" description="Directors and everyone else credited on a film. A director is listed publicly once they direct a published film." />
       {!!sp.updated && <p className="notice ok" role="status">{sp.updated} people updated.</p>}
       {sp.error === "selection" && <p className="notice error">Select at least one person first.</p>}
       {sp.error === "credits" && <p className="notice error">No one was deleted. Some selected people still have film credits; remove or reassign those credits first.</p>}

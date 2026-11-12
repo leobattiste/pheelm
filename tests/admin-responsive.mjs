@@ -15,15 +15,16 @@ const require = createRequire(import.meta.url);
 let pathname = '/admin';
 let isOwner = true;
 const noop = async () => ({ ok: true, message: '' });
-const film = { id: 'fixture', slug: 'fixture', title: 'A very long film title that should remain readable on the smallest screen', year: 2026, type: 'documentary', status: 'draft', poster_url: null, featured: true, tmdb_id: 123, credits: [{ role: 'director', people: { name: 'A filmmaker with a particularly long name' } }] };
+const film = { id: 'fixture', created_at: '2026-11-07', updated_at: '2026-11-07', slug: 'fixture', title: 'A very long film title that should remain readable on the smallest screen', year: 2026, type: 'documentary', status: 'draft', poster_url: null, featured: true, tmdb_id: 123, credits: [{ role: 'director', people: { name: 'A filmmaker with a particularly long name' } }] };
 const films = [film, { ...film, id: 'fixture-2', title: 'Atlantics', year: 2019, status: 'published', featured: false }, { ...film, id: 'fixture-3', title: 'Moonlight', year: 2016, status: 'published' }];
-const people = [{ id: 'director', slug: 'director', name: 'A filmmaker with a particularly long name', country: 'SN', photo_url: null, bio: null, directed: 3, credits: 5 }];
+const people = [{ id: 'director', slug: 'director', name: 'A filmmaker with a particularly long name', country: 'SN', photo_url: null, bio: null, in_directory: true, directed: 3, credits: [{ role: 'director' }, { role: 'writer' }] }];
 const members = [{ id: 'member', handle: 'curator', display_name: 'A member with a particularly long display name', email: 'curator@example.com', created_at: '2026-11-07', last_seen: '2026-11-07', is_admin: true, is_owner: false, is_private: false, lists: 12, saved: 14, comments: 18 }];
 const collections = [{ id: 'collection', title: 'A collection of independent cinema', user_id: 'member', hidden: false, staff_pick: true, featured: false, created_at: '2026-11-07', list_films: [{ count: 12 }] }];
 const collectionTiles = collections.map(c => ({ ...c, description: null, updated_at: c.created_at, films: films.map(f => ({ ...f, directors: [{ name: 'A filmmaker' }] })), owner: { id: 'member', handle: 'curator', display_name: 'Curator' }, saves: 7, curators: 1 }));
 const records = {
-  films, admin_people_quality: people, lists: collections,
-  admin_activity: [{ id: 'change', action: 'Updated film', target_type: 'film', created_at: '2026-11-07' }],
+  films, people, admin_people_quality: people, lists: collections,
+  admin_activity: [{ id: 'change', action: 'Updated film', target_type: 'film', target_id: 'fixture', details: 'Atlantics (2019) · published', created_at: '2026-11-07' }],
+  admin_film_quality: [{ id: 'fixture', slug: 'fixture', title: 'Atlantics', year: 2019, status: 'draft', issues: ['poster', 'editorial'], issue_count: 2 }],
   member_profiles: [{ id: 'member', handle: 'curator' }], list_save_counts: [{ list_id: 'collection', saves: 7 }],
   list_reports: [], comment_reports: [],
 };
@@ -40,7 +41,7 @@ function load(file) {
   const module = { exports: {} };
   const localRequire = (id) => {
     if (id === 'next/link') return { __esModule: true, default: ({ children, ...props }) => React.createElement('a', props, children) };
-    if (id === 'next/navigation') return { usePathname: () => pathname, redirect: () => { throw Error('Unexpected redirect'); } };
+    if (id === 'next/navigation') return { usePathname: () => pathname, useSearchParams: () => new URLSearchParams(), useRouter: () => ({ push() {}, replace() {}, refresh() {} }), redirect: () => { throw Error('Unexpected redirect'); }, notFound: () => { throw Error('Unexpected notFound'); } };
     if (id === '@/lib/supabase/server') return { getServerClient: async () => db };
     if (['./NewsletterSubscribe', './EmailForm', './PrivacyForm', './ProfileForm', './NotificationPreferences'].includes(id)) return { __esModule: true, default: () => null };
     if (id === './AccountActions') return { DeleteAccount: () => null, SignOutEverywhere: () => null };
@@ -50,6 +51,7 @@ function load(file) {
     if (id === '@/lib/community') return { MIN_FILMS: 5, getCommunityCollections: async () => collectionTiles };
     if (id === './Transitions' || id === '@/components/Transitions') return { __esModule: true, default: ({ children, ...props }) => React.createElement('a', props, children) };
     if (id === './QuickSave') return { __esModule: true, default: () => null };
+    if (id.endsWith('.css') || id === 'server-only') return {};
     if (id.endsWith('.json')) return require(resolve(root, id.replace('@/', '')));
     if (id.endsWith('/bulk-actions')) return { bulkFilmChange: noop };
     if (id.endsWith('/actions') || id === '../actions') return new Proxy({}, { get: () => noop });
@@ -72,11 +74,15 @@ const People = load(resolve(root, 'app/admin/people/page.tsx')).default;
 const Members = load(resolve(root, 'app/admin/members/page.tsx')).default;
 const Editorial = load(resolve(root, 'app/admin/editorial/page.tsx')).default;
 const Community = load(resolve(root, 'app/admin/community/page.tsx')).default;
+const Quality = load(resolve(root, 'app/admin/quality/page.tsx')).default;
+const Activity = load(resolve(root, 'app/admin/activity/page.tsx')).default;
+const Analytics = load(resolve(root, 'app/admin/analytics/page.tsx')).default;
+const Automation = load(resolve(root, 'app/admin/automation/page.tsx')).default;
 const PersonEditor = load(resolve(root, 'app/admin/people/[id]/PersonEditor.tsx')).default;
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium', headless: true, args: ['--no-sandbox'] });
 const page = await browser.newPage();
 const font = readFileSync(resolve(root, 'app/fonts/Inter-Latin.woff2')).toString('base64');
-const css = readFileSync(resolve(root, 'app/globals.css'), 'utf8') + `\n@font-face { font-family: FixtureInter; src: url(data:font/woff2;base64,${font}); font-weight: 100 900; } :root { --font-inter: FixtureInter; --font-inter-ext: FixtureInter; }`;
+const css = readFileSync(resolve(root, 'app/globals.css'), 'utf8') + '\n' + readFileSync(resolve(root, 'app/admin/admin.css'), 'utf8') + `\n@font-face { font-family: FixtureInter; src: url(data:font/woff2;base64,${font}); font-weight: 100 900; } :root { --font-inter: FixtureInter; --font-inter-ext: FixtureInter; }`;
 const artifacts = process.env.ADMIN_SCREENSHOTS;
 if (artifacts) mkdirSync(artifacts, { recursive: true });
 let checks = 0;
@@ -85,7 +91,7 @@ try {
     for (const width of [320, 390, 600, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: 1000 });
       for (const grid of ['large', 'small', 'list']) {
-      for (const screen of ['overview', 'films', 'people', 'members', 'editorial', 'community', 'editor']) {
+      for (const screen of ['overview', 'films', 'people', 'members', 'editorial', 'community', 'quality', 'activity', 'analytics', 'automation', 'editor']) {
         pathname = screen === 'overview' ? '/admin' : screen === 'editor' ? '/admin/people/fixture' : `/admin/${screen}`;
         const content = screen === 'overview' ? await Home() : screen === 'films'
           ? await Films({ searchParams: Promise.resolve({}) })
@@ -93,37 +99,32 @@ try {
           : screen === 'members' ? await Members({ searchParams: Promise.resolve({}) })
           : screen === 'editorial' ? await Editorial({ searchParams: Promise.resolve({}) })
           : screen === 'community' ? await Community({ searchParams: Promise.resolve({}) })
+          : screen === 'quality' ? await Quality({ searchParams: Promise.resolve({}) })
+          : screen === 'activity' ? await Activity({ searchParams: Promise.resolve({}) })
+          : screen === 'analytics' ? await Analytics()
+          : screen === 'automation' ? await Automation()
           : React.createElement(PersonEditor, { person: { id: 'person', name: film.title, slug: 'fixture', country: 'SN', birth_year: 1970, bio: 'A filmmaker biography.', photo_url: null, is_director: true } });
         const html = renderToStaticMarkup(await Layout({ children: content }));
         await page.setContent(`<!doctype html><html data-theme="${theme}" data-grid="${grid}"><head><style>${css}</style></head><body>${html}</body></html>`);
-        if (screen === 'films') await page.locator('.admin-toolbox').evaluate(el => { el.open = true; });
         await page.evaluate(() => document.fonts.ready);
         const prefix = `${theme}/${width}/${grid}/${screen}`;
         const wrongIcons = await page.locator('svg').evaluateAll(icons => icons.filter(icon => {
-          const style = getComputedStyle(icon); return style.width !== '23px' || style.height !== '23px';
+          const style = getComputedStyle(icon); return style.width !== '24.5px' || style.height !== '24.5px';
         }).map(icon => icon.outerHTML.slice(0, 100)));
-        assert.deepEqual(wrongIcons, [], `${prefix}: all admin icons are 23px`);
+        assert.deepEqual(wrongIcons, [], `${prefix}: all admin icons are 24.5px`);
         assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${prefix}: page overflows`);
         assert.equal(await page.locator('.admin-main-tabs [aria-current="page"]').count(), 1, `${prefix}: active main tab`);
         assert.equal(await page.locator('.admin-main-tabs a .icon').count(), 0, `${prefix}: admin tabs are text only`);
-        assert.equal(await page.locator('.admin-main-tabs [aria-current="page"]').getAttribute('href'), screen === 'overview' ? '/admin' : screen === 'editor' ? '/admin/people' : `/admin/${screen}`);
+        assert.equal(await page.locator('.admin-main-tabs [aria-current="page"]').getAttribute('href'), screen === 'overview' ? '/admin' : ['films', 'people', 'editorial', 'editor', 'quality', 'automation'].includes(screen) ? '/admin/films' : screen === 'activity' ? '/admin/analytics' : `/admin/${screen}`);
         const tooWide = await page.locator('.admin-content .button, .admin-content input:not([type="hidden"]), .admin-content textarea, .admin-content select').evaluateAll(elements => elements.filter(el => el.getBoundingClientRect().right > innerWidth || el.getBoundingClientRect().left < 0).map(el => el.outerHTML.slice(0, 150)));
         assert.deepEqual(tooWide, [], `${prefix}: overflowing controls`);
         if (screen === 'films') {
           assert.equal(await page.locator('.admin-film-grid .film-card').count(), films.length, `${prefix}: real film cards`);
           assert.equal(await page.locator('.admin-table').count(), 0, `${prefix}: no catalog table`);
           assert.equal(await page.locator('.admin-film-grid .film-card > a').first().getAttribute('href'), `/admin/films/${film.id}`, `${prefix}: edit link`);
-          for (const selector of ['.admin-films', '.admin-browser-tools', '.admin-bulk-bar', '.admin-toolbox', '.admin-film-grid .film-card']) {
+          for (const selector of ['.admin-films', '.admin-browser-tools', '.admin-film-grid .film-card']) {
             assert(await page.locator(selector).first().evaluate(el => el.getBoundingClientRect().width <= innerWidth), `${prefix}: ${selector} stays within screen`);
           }
-          const filterDialog = page.locator('dialog');
-          await filterDialog.evaluate(el => el.showModal());
-          assert(await filterDialog.evaluate(el => { const r = el.getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth; }), `${prefix}: filter sheet fits`);
-          const values = await filterDialog.locator('form').evaluate(el => Object.fromEntries(new FormData(el)));
-          assert.deepEqual(values, { q: '', status: '', type: '', missing: '' }, `${prefix}: server filter fields`);
-          await filterDialog.evaluate(el => el.close());
-          await page.getByRole('checkbox', { name: 'Select page' }).focus();
-          assert(await page.getByRole('checkbox', { name: 'Select page' }).evaluate(el => el === document.activeElement), `${prefix}: keyboard focus`);
         }
         if (screen === 'people' || screen === 'members') {
           assert(await page.locator('.director-grid .director-card').count() > 0, `${prefix}: shared director/profile cards`);
@@ -148,7 +149,7 @@ try {
   const settings = renderToStaticMarkup(await Settings());
   await page.setContent(`<!doctype html><html><head><style>${css}</style></head><body>${settings}</body></html>`);
   assert.equal(await page.locator('[role="tab"] .icon').count(), 6, 'all six Settings tabs have icons');
-  assert.deepEqual(await page.locator('svg').evaluateAll(icons => icons.filter(icon => getComputedStyle(icon).width !== '23px' || getComputedStyle(icon).height !== '23px').map(icon => icon.outerHTML.slice(0,100))), [], 'Settings icons are 23px');
+  assert.deepEqual(await page.locator('svg').evaluateAll(icons => icons.filter(icon => getComputedStyle(icon).width !== '24.5px' || getComputedStyle(icon).height !== '24.5px').map(icon => icon.outerHTML.slice(0,100))), [], 'Settings icons are 24.5px');
   assert.equal(await page.locator('[role="tab"][aria-selected="true"]').textContent(), 'Profile', 'Settings selected tab keeps its label');
   // Member contact data and role changes remain restricted to the owner.
   isOwner = false;

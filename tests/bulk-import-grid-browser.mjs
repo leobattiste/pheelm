@@ -27,7 +27,7 @@ try {
   await page.route('http://pheelm.test/**',route=>route.fulfill({contentType:'text/html',body:'<html data-theme="dark"><body><div id="root"></div></body></html>'}));
   await page.goto('http://pheelm.test/admin/films');
   await page.evaluate(()=>{localStorage.setItem('grid','list');window.fail=true;});
-  await page.addStyleTag({content:fs.readFileSync('app/globals.css','utf8')+'\n'+fs.readFileSync('app/admin/admin-browser.css','utf8')});
+  await page.addStyleTag({content:fs.readFileSync('app/globals.css','utf8')+'\n'+fs.readFileSync('app/admin/admin.css','utf8')});
   await page.addScriptTag({content:bundle.outputFiles[0].text});
   await page.getByRole('radio',{name:'One per row'}).waitFor();
   assert.equal(await page.locator('html').getAttribute('data-grid'),'large','old preference overrode the new large default');

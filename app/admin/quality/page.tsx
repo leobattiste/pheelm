@@ -2,12 +2,13 @@ import Link from "next/link";
 import FilmCard from "@/components/FilmCard";
 import { getFilms, toCard } from "@/lib/data";
 import { requireAdmin } from "@/lib/admin";
+import { Empty, PageHeader, Pager, Panel, Pill, Row, ViewTabs, pageNumber, plural } from "../ui";
 
 const ISSUES = [
   ["poster", "Missing posters"],
   ["synopsis", "Missing synopses"],
   ["director", "Missing directors"],
-  ["editorial", "Unpublished essays"],
+  ["editorial", "Missing essays"],
   ["duplicate", "Possible duplicates"],
   ["country", "Missing countries"],
   ["language", "Missing languages"],
@@ -20,7 +21,7 @@ export default async function QualityPage({ searchParams }: { searchParams: Prom
   const { db } = await requireAdmin("/admin/quality");
   const sp = await searchParams;
   const issue = ISSUES.some(([id]) => id === sp.issue) ? sp.issue! : "all";
-  const page = Math.max(1, Math.min(5000, Number.parseInt(sp.page ?? "1", 10) || 1));
+  const page = pageNumber(sp.page, 5000);
   const offset = (page - 1) * PER_PAGE;
 
   let query = db.from("admin_film_quality")
@@ -32,60 +33,49 @@ export default async function QualityPage({ searchParams }: { searchParams: Prom
   if (issue !== "all") query = query.contains("issues", [issue]);
   const [{ data: films, count, error }, ...issueQueries] = await Promise.all([
     query,
-    ...ISSUES.slice(0, 5).map(([key]) => db.from("admin_film_quality")
+    ...ISSUES.map(([key]) => db.from("admin_film_quality")
       .select("id", { count: "exact", head: true }).contains("issues", [key])),
   ]);
-  const issueCounts = new Map(ISSUES.slice(0, 5).map(([key], i) => [key, issueQueries[i].count ?? 0]));
+  const issueCounts = new Map(ISSUES.map(([key], i) => [key, issueQueries[i].count ?? 0]));
+  const label = new Map<string, string>(ISSUES);
   const [{ count: noBio }, { count: noPhoto }] = await Promise.all([
     db.from("admin_people_quality").select("id", { count: "exact", head: true }).gt("directed", 0).or("bio.is.null,bio.eq."),
     db.from("admin_people_quality").select("id", { count: "exact", head: true }).gt("directed", 0).or("photo_url.is.null,photo_url.eq."),
   ]);
   const catalog = new Map((await getFilms().catch(() => [])).map(f => [f.id, toCard(f)]));
-  const last = Math.ceil((count ?? 0) / PER_PAGE);
   const href = (p: number) => `/admin/quality?issue=${issue}&page=${p}`;
 
   return (
     <>
-      <div className="admin-head">
-        <div><h2 className="admin-section-heading">Content quality</h2><p className="muted">Find incomplete records and fix them at the source.</p></div>
-        <Link className="button ghost small" href="/admin/automation">Automation</Link>
-      </div>
-      <div className="stats">
-        {ISSUES.slice(0, 5).map(([key, label]) => (
-          <Link className="stat" href={`/admin/quality?issue=${key}`} key={key}>
-            <strong>{issueCounts.get(key) ?? 0}</strong><span>{label}</span>
-          </Link>
-        ))}
-      </div>
-      <section className="account-section">
-        <h2>Directors to complete</h2>
-        <div className="actions">
-          <Link href="/admin/people?missing=bio">Missing biography: {noBio ?? "—"}</Link>
-          <Link href="/admin/people?missing=photo">Missing portrait: {noPhoto ?? "—"}</Link>
-        </div>
-      </section>
-      <div className="actions" aria-label="Filter content issues">
-        <Link className="button ghost small" aria-pressed={issue === "all"} href="/admin/quality">All issues</Link>
-        {ISSUES.map(([key, label]) => <Link key={key} className="button ghost small" aria-pressed={issue === key} href={`/admin/quality?issue=${key}`}>{label}</Link>)}
-      </div>
-      {error ? <p className="notice error">Unable to load content checks. Verify the admin database upgrade.</p> : (
+      <PageHeader title="Content quality" description="Films with missing or doubtful details. Open a film to fix it at the source."
+        actions={<Link className="button ghost small" href="/admin/automation">Fill gaps automatically</Link>} />
+      <ViewTabs label="Filter by issue" items={[
+        { label: "All issues", href: "/admin/quality", active: issue === "all" },
+        ...ISSUES.map(([key, text]) => ({ label: text, href: `/admin/quality?issue=${key}`, active: issue === key, count: issueCounts.get(key) ?? 0 })),
+      ]} />
+      <Panel title="Directors to complete" icon="users2">
+        <Row href="/admin/people?missing=bio" aside={<strong className="admin-number">{noBio ?? 0}</strong>}>Directors without a biography</Row>
+        <Row href="/admin/people?missing=photo" aside={<strong className="admin-number">{noPhoto ?? 0}</strong>}>Directors without a portrait</Row>
+      </Panel>
+      {error ? <p className="notice error">Content checks couldn&apos;t load. Try again in a moment.</p> : (
         <>
-          <p className="muted">{count ?? 0} films need attention. Select a film to edit it. Missing essays can be managed in Editorial.</p>
-          <ul className="film-grid admin-film-grid">
-            {(films ?? []).map(f => <FilmCard key={f.id} href={`/admin/films/${f.id}`} film={catalog.get(f.id) ?? {
+          <p className="muted">{plural(count ?? 0, "film")} {issue === "all" ? "need attention" : `with ${(label.get(issue) ?? "").toLowerCase()}`}.</p>
+          {films?.length ? <ul className="film-grid admin-film-grid">
+            {films.map(f => <FilmCard key={f.id} href={`/admin/films/${f.id}`} film={catalog.get(f.id) ?? {
               id: f.id, slug: f.slug, title: f.title, year: f.year, poster_url: null, directors: [], type: "feature",
               countries: [], languages: [], genres: [], runtime: null, wins: 0,
-            }} controls={<div className="admin-card-controls"><span className={`status-pill ${f.status}`}>{f.status}</span>
-              <div className="admin-tags">{(f.issues as string[]).map(label => <span className="status-pill" key={label}>{label}</span>)}</div>
-              <Link className="link-button" href={`/admin/editorial/${f.id}`}>Edit essay</Link>
+            }} controls={<div className="admin-card-controls">
+              <div className="admin-tags">
+                <Pill tone={f.status === "published" ? "ok" : "warn"}>{f.status === "published" ? "Published" : "Draft"}</Pill>
+                {(f.issues as string[]).map(key => <Pill key={key} tone="danger">{(label.get(key) ?? key).replace(/^Missing /, "No ")}</Pill>)}
+              </div>
+              <div className="actions">
+                <Link className="link-button" href={`/admin/films/${f.id}`}>Edit film</Link>
+                {(f.issues as string[]).includes("editorial") && <Link className="link-button" href={`/admin/editorial/${f.id}`}>Write essay</Link>}
+              </div>
             </div>} />)}
-          </ul>
-          {!films?.length && <p className="empty">No matching issues.</p>}
-          <div className="actions admin-pagination">
-            {page > 1 && <Link className="button ghost small" href={href(page - 1)}>Previous</Link>}
-            <span className="muted">Page {page} of {Math.max(1, last)}</span>
-            {page < last && <Link className="button ghost small" href={href(page + 1)}>Next</Link>}
-          </div>
+          </ul> : <Empty title="Nothing to fix here">Every film passes this check.</Empty>}
+          <Pager page={page} total={count ?? 0} size={PER_PAGE} href={href} />
         </>
       )}
     </>
