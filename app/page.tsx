@@ -2,7 +2,6 @@ import { publicPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import EarlyAccessButton, { EarlyAccessGate } from "@/components/EarlyAccessButton";
 import CurvedCarousel from "@/components/CurvedCarousel";
-import Icon from "@/components/Icon";
 import FeatureSection from "@/components/home/FeatureSection";
 import { getFilms, toCard } from "@/lib/data";
 import { PAGE_COPY, SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
@@ -34,30 +33,30 @@ const FEATURES = [
   { id: "films", shot: "films", title: "Films", intro: "Discover films by Black directors from around the world.",
     alt: "The Films page: a search bar, filters and film posters.",
     features: [
-      { icon: "film" as const, title: "Feed", text: "Discover feature films across genres, generations, and styles." },
-      { icon: "filter" as const, title: "Search & Filter", text: "Find films by type, genre, country, decade, and other details." },
-      { icon: "clapperboard" as const, title: "About", text: "Explore synopses, cast and crew, trailers, and where to watch." },
+      { title: "Feed", text: "Discover feature films across genres, generations, and styles." },
+      { title: "Search & Filter", text: "Find films by type, genre, country, decade, and other details." },
+      { title: "About", text: "Explore synopses, cast and crew, trailers, and where to watch." },
     ] },
   { id: "directors", shot: "directors", title: "Directors", intro: "Learn more about the people behind your favorite films.",
     alt: "The Directors page: cards for directors such as Spike Lee, Charles Burnett and Ousmane Sembène, each with posters of their films.",
     features: [
-      { icon: "users2" as const, title: "Directory", text: "Discover Black filmmakers from around the world." },
-      { icon: "user" as const, title: "Biography", text: "Learn about their backgrounds, careers, and contributions to cinema." },
-      { icon: "film" as const, title: "Filmography", text: "Explore their films and creative work." },
+      { title: "Directory", text: "Discover Black filmmakers from around the world." },
+      { title: "Biography", text: "Learn about their backgrounds, careers, and contributions to cinema." },
+      { title: "Filmography", text: "Explore their films and creative work." },
     ] },
   { id: "watchlists", shot: "watchlists", title: "Watchlists", intro: "Create and share your own watchlists, or explore watchlists made by the community.",
     alt: "The Watchlists page: community watchlists such as The Birth of African Cinema and Nollywood, each with three posters.",
     features: [
-      { icon: "stack" as const, title: "Collection", text: "Organize films into personalized watchlists." },
-      { icon: "bookmark" as const, title: "Following", text: "Discover and follow watchlists created by other film enthusiasts." },
-      { icon: "userPlus" as const, title: "Collaboration", text: "Create watchlists together with other members." },
+      { title: "Collection", text: "Organize films into personalized watchlists." },
+      { title: "Following", text: "Discover and follow watchlists created by other film enthusiasts." },
+      { title: "Collaboration", text: "Create watchlists together with other members." },
     ] },
   { id: "members", shot: "members", title: "Members", intro: "Create your profile, share your love for cinema, and connect with other film enthusiasts.",
     alt: "Leo's profile on Pheelm: his photo, name and handle, and his watchlists.",
     features: [
-      { icon: "userCircle" as const, title: "Profile", text: "Create a personal profile and share your interests with the community." },
-      { icon: "users" as const, title: "Community", text: "Connect with other film enthusiasts who share your passion for cinema." },
-      { icon: "comment" as const, title: "Conversation", text: "Share your thoughts, reply to comments, and join discussions about films." },
+      { title: "Profile", text: "Create a personal profile and share your interests with the community." },
+      { title: "Community", text: "Connect with other film enthusiasts who share your passion for cinema." },
+      { title: "Conversation", text: "Share your thoughts, reply to comments, and join discussions about films." },
     ] },
 ];
 
@@ -128,10 +127,7 @@ export default async function Home() {
               <details key={q} name="faq" className="faq-card" open={i === 0}>
                 <summary>
                   <span>{q}</span>
-                  <span className="slate" aria-hidden="true">
-                    <Icon name="clapperboard" className="slate-closed" />
-                    <Icon name="clapper" className="slate-open" />
-                  </span>
+                  <span className="faq-mark" aria-hidden="true" />
                 </summary>
                 <p>{a}</p>
               </details>

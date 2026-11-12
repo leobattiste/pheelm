@@ -1,6 +1,4 @@
-import Icon, { type IconName } from "@/components/Icon";
-
-export type Feature = { title: string; text: string; icon: IconName };
+export type Feature = { title: string; text: string };
 
 /**
  * One part of Pheelm on the home page: a heading, a square screenshot of the real page
@@ -24,7 +22,6 @@ export default function FeatureSection({ id, title, intro, features, shot, alt }
       <ul className="home-feature-list">
         {features.map((f) => (
           <li key={f.title} className="home-feature-item">
-            <Icon name={f.icon} />
             <h3>{f.title}</h3>
             <p>{f.text}</p>
           </li>

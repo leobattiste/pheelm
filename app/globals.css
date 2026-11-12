@@ -2920,24 +2920,25 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 html:has(.early-gate) { scroll-snap-type: y proximity; }
 @media (prefers-reduced-motion: reduce) { html:has(.early-gate) { scroll-snap-type: none; } }
 
-/* Questions: one card each, styled like the director cards. Only one is open at a time; the slate opens with it. */
+/* Questions: plain rows split by lines. Only one is open at a time; the plus becomes a minus with it. */
 .faq-body { display: grid; gap: var(--space-24); }
 .faq h2 { font-size: var(--t-3xl); text-wrap: wrap; text-align: left; }
-.faq-list { display: grid; gap: var(--space-12); width: 100%; }
-.faq-card, .cta-card {
+.faq-list { display: grid; width: 100%; border-top: 1px solid var(--line); }
+.cta-card {
   padding: var(--space-16) var(--space-20);
   border: 1px solid var(--line);
   border-radius: var(--r);
   background: var(--glass-bg);
   -webkit-backdrop-filter: var(--glass-filter); backdrop-filter: var(--glass-filter);
 }
+.faq-card { padding: var(--space-20) 0; border-bottom: 1px solid var(--line); }
 .faq-card summary { display: flex; align-items: center; justify-content: space-between; gap: var(--space-16); cursor: pointer; list-style: none; font-weight: 600; }
 .faq-card summary::-webkit-details-marker { display: none; }
-.faq-card .slate { flex: none; display: grid; }
-.slate > * { grid-area: 1 / 1; }
-.slate-open { display: none; }
-.faq-card[open] .slate-closed { display: none; }
-.faq-card[open] .slate-open { display: block; }
+.faq-mark { flex: none; position: relative; width: 14px; height: 14px; }
+.faq-mark::before, .faq-mark::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1.5px; margin-top: -0.75px; background: currentColor; transition: transform 0.2s ease; }
+.faq-mark::after { transform: rotate(90deg); }
+.faq-card[open] .faq-mark::after { transform: rotate(0deg); }
+@media (prefers-reduced-motion: reduce) { .faq-mark::before, .faq-mark::after { transition: none; } }
 .faq-card p { margin-top: var(--space-12); color: var(--muted); max-width: 64ch; }
 .statement.is-cta .cta-card { padding: calc(var(--space-40) * 3) clamp(var(--space-24), 4vw, var(--space-48)); }
 
@@ -2952,12 +2953,7 @@ html:has(.early-gate) { scroll-snap-type: y proximity; }
   .home-feature-body { grid-template-columns: minmax(0, 7fr) minmax(280px, 5fr); align-items: start; }
   .home-feature-list { grid-template-columns: minmax(0, 1fr); }
 }
-.home-feature-item {
-  display: grid; align-content: start; justify-items: start; gap: var(--space-8); padding: var(--space-24) var(--space-20);
-  border: 1px solid var(--line); border-radius: var(--r); background: var(--glass-bg); text-align: left;
-  -webkit-backdrop-filter: var(--glass-filter); backdrop-filter: var(--glass-filter);
-}
-.home-feature-item .icon { margin-bottom: var(--space-4); color: var(--ink); }
+.home-feature-item { display: grid; align-content: start; justify-items: start; gap: var(--space-8); text-align: left; }
 .home-feature-item h3 { font-size: var(--t-lg); }
 .home-feature-item p { color: var(--muted); font-size: var(--t-sm); line-height: 1.55; }
 .home-feature-shot {
@@ -2979,7 +2975,6 @@ html:has(.early-gate) { scroll-snap-type: y proximity; }
 }
 @media (max-width: 759px) {
   .home-feature-list { grid-template-columns: minmax(0, 1fr); }
-  .home-feature-item { padding: var(--space-20); }
 }
 
 /* Director About: the awards their films won. */
