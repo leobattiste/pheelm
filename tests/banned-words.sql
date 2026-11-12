@@ -2,7 +2,7 @@
 begin;
 -- Caught, with tricks: case, look-alikes, punctuation between letters, stretched letters, endings.
 do $$declare t text; got text; begin
-  foreach t in array array['what the fuck', 'FUCK this', 'f.u.c.k', 'fuuuuck', 'sh1t', 'this is shitty', 'a b1tch', 'bitches', 'fucking great', 'motherfucker', 'you n1gger', 'faggot', '@sshole'] loop
+  foreach t in array array['what the fuck', 'FUCK this', 'f.u.c.k', 'fuuuuck', 'sh1t', 'this is shitty', 'a b1tch', 'bitches', 'fucking great', 'motherfucker', 'you n1gger', 'faggot', '@sshole', 'porch monkey', 'porchmonkeys', 'porch-monkey', 'jungle  bunny', 'battyman', 'batty boy', 'wankers', 'spaz', 'yids'] loop
     got := private.first_banned_word(t);
     if got is null then raise exception 'Missed: %', t; end if;
   end loop;
@@ -11,7 +11,7 @@ end$$;
 -- Ordinary words and film talk stay allowed.
 do $$declare t text; begin
   foreach t in array array['A film from Niger', 'Nigeria and Senegal', 'Scunthorpe', 'add some spice', 'a raccoon', 'cocoon', 'a class act', 'Shiitake', 'passage', 'assassin',
-                           'cockpit', 'Dick Gregory', 'Pitch Black', 'Spice World', 'Shitamachi', 'Cooney', 'retardant', '', null] loop
+                           'cockpit', 'Dick Gregory', 'Pitch Black', 'Spice World', 'Shitamachi', 'Cooney', 'Yiddish theatre', 'Santiago', 'a monkey on the porch', 'Bugs Bunny', 'batty old man', 'retardant', '', null] loop
     if private.first_banned_word(t) is not null then raise exception 'False positive: % (%)', t, private.first_banned_word(t); end if;
   end loop;
 end$$;
@@ -20,11 +20,13 @@ select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-00000000000b
 set local role authenticated;
 do $$begin
   if public.check_text('comment', 'Loved it') is not null then raise exception 'Clean text refused'; end if;
-  if public.check_text('comment', 'what a sh1t ending') <> 'shit' then raise exception 'Check missed the word'; end if;
+  if public.check_text('comment', 'what a sh1t ending') <> 'the s-word' then raise exception 'Check missed the word'; end if;
+  if public.check_text('bio', 'b1tches') <> 'the b-word' then raise exception 'Wrong gentle name'; end if;
+  if public.check_text('comment', 'porch monkey') <> 'a racist slur' then raise exception 'Phrase missed'; end if;
 end$$;
 -- The backstop refuses banned words in comments, bios and descriptions, with the word in the message.
 do $$begin begin insert into public.list_comments(user_id, body) values (auth.uid(), 'total bullshit'); raise exception 'Comment saved';
-  exception when check_violation then if sqlerrm not like '%bullshit%can''t be used on Pheelm%' then raise; end if; end; end$$;
+  exception when check_violation then if sqlerrm <> 'Pheelm doesn''t allow the s-word. Remove it and try again.' then raise; end if; end; end$$;
 do $$begin begin update public.profiles set bio = 'bitch please' where id = auth.uid(); raise exception 'Bio saved';
   exception when check_violation then null; end; end$$;
 do $$begin begin insert into public.lists(user_id, title, description) values (auth.uid(), 'x', 'f-u-c-k'); raise exception 'Description saved';

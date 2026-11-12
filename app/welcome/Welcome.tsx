@@ -11,6 +11,8 @@ import Icon from "@/components/Icon";
 import Poster from "@/components/Poster";
 import { initials } from "@/lib/format";
 import { getBrowserClient } from "@/lib/supabase/client";
+import { useBannedWordToast } from "@/components/Toast";
+import { isBannedWordMessage } from "@/lib/banned-words";
 
 type Person = { id: string; name: string; place: string | null; photo: string | null };
 type Pick = { id: string; title: string; year: number; poster: string | null; directors: string[] };
@@ -23,6 +25,7 @@ export default function Welcome({ next, userId, handle, name, people, films, ava
   const router = useRouter();
   const [step, setStep] = useState(handle ? 1 : 0);
   const [state, action, pending] = useActionState<NameState, FormData>(updatePublicName, null);
+  useBannedWordToast(state);
   const [followed, setFollowed] = useState<Set<string>>(new Set());
   const [saved, setSaved] = useState<Set<string>>(new Set());
 
@@ -77,7 +80,7 @@ export default function Welcome({ next, userId, handle, name, people, films, ava
             </label>
             <ProfileBioField bio={bio} disabled={pending} />
             <ProfileLinksFields links={links} disabled={pending} />
-            {state && !state.ok && <p className="notice error" role="alert">{state.message}</p>}
+            {state && !state.ok && !isBannedWordMessage(state.message) && <p className="notice error" role="alert">{state.message}</p>}
             <div className="actions">
               <button className="button" type="submit" disabled={pending}>{pending ? "Saving…" : "Continue"}</button>
               <button className="button ghost" type="button" onClick={() => setStep(1)}>Skip for now</button>

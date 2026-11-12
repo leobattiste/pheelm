@@ -8,6 +8,8 @@ import { getBrowserClient } from "@/lib/supabase/client";
 import { openSignIn } from "./SignInSheet";
 import UserAvatar from "./UserAvatar";
 import Icon from "@/components/Icon";
+import { toast } from "@/components/Toast";
+import { isBannedWordMessage } from "@/lib/banned-words";
 
 type Viewer = { id: string; handle: string | null; name: string | null; avatarUrl?: string | null; isPrivate?: boolean } | null;
 type Props = {
@@ -179,6 +181,8 @@ export default function Comments({ listId, filmId, filmTitle, watchedIds = [], o
   }, [comments, sort, pinned]);
 
   const fail = (message: string) => {
+    // A banned word is said in a toast; the text stays in the box to fix.
+    if (isBannedWordMessage(message)) { toast(message); return; }
     setError(message);
     setTimeout(() => setError((e) => (e === message ? null : e)), 6000);
   };

@@ -9,6 +9,7 @@ import NewsletterForm from "@/components/NewsletterForm";
 import Search from "@/components/Search";
 import TabBar from "@/components/TabBar";
 import WelcomeNudge from "@/components/WelcomeNudge";
+import Toaster from "@/components/Toast";
 import SiteHeader from "@/components/SiteHeader";
 import ThemeToggle from "@/components/ThemeToggle";
 import { TransitionWatcher } from "@/components/Transitions";
@@ -173,6 +174,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <BackToTop />
         <InstallBanner />
         <WelcomeNudge />
+        <Toaster />
         <Search />
         <TransitionWatcher />
         <Analytics />
