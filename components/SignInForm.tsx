@@ -238,7 +238,7 @@ export default function SignInForm({ next, initialError = "", onDone, titleId, m
 
       {step === "code" && (
         <>
-          <p className="lead">We sent a six-digit code to <strong>{email}</strong>. Enter it below, or open the link in the email.</p>
+          <p className="lead">We sent a six-digit code to <strong>{email}</strong>. Enter it below to continue.</p>
           <form onSubmit={verify} className="form">
             <label className="field">
               Code from the email
