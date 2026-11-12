@@ -52,7 +52,7 @@ const FEATURES = [
       { icon: "bookmark" as const, title: "Following", text: "Discover and follow watchlists created by other film enthusiasts." },
       { icon: "userPlus" as const, title: "Collaboration", text: "Create watchlists together with other members." },
     ] },
-  { id: "members", shot: "members", height: 1375, title: "Members", intro: "Create your profile, share your love for cinema, and connect with other film enthusiasts.",
+  { id: "members", shot: "members", title: "Members", intro: "Create your profile, share your love for cinema, and connect with other film enthusiasts.",
     alt: "Leo's profile on Pheelm: his photo, name and handle, and his watchlists.",
     features: [
       { icon: "userCircle" as const, title: "Profile", text: "Create a personal profile and share your interests with the community." },

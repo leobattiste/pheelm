@@ -2903,12 +2903,12 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 .home-carousel .clc-copy { bottom: clamp(20px, 3vw, 36px); }
 @media (max-width: 640px) { .home-carousel .clc-copy { bottom: 88px; } }
 
-/* Home page sections: headings, text and buttons are centred. */
-.home-lead .statement-body, .early-gate .statement-body, .statement.is-cta .statement-body, .faq .statement-body { justify-items: center; text-align: center; }
-.statement .actions { justify-content: center; }
-.statement p { margin-inline: auto; max-width: 60ch; }
-.faq-body { margin-inline: auto; }
-.faq h2 { text-align: center; }
+/* Home page sections: headings, text and buttons are left-aligned, in one column as wide as the
+   screenshots, so every section starts on the same edge. */
+:root { --home-width: 1200px; }
+.early-gate .statement-body, .statement.is-cta .statement-body, .faq-body, .home-feature-head { width: 100%; max-width: var(--home-width); margin-inline: auto; justify-items: start; text-align: left; }
+.early-gate .statement .actions, .statement.is-cta .actions { justify-content: flex-start; }
+.early-gate .statement p, .statement.is-cta p { margin-inline: 0; max-width: 60ch; }
 
 /* Spacing: every home section sits the same distance from the one before; the hero gets the most room. */
 :root { --home-gap: clamp(96px, 13vw, 184px); }
@@ -2921,9 +2921,9 @@ html:has(.early-gate) { scroll-snap-type: y proximity; }
 @media (prefers-reduced-motion: reduce) { html:has(.early-gate) { scroll-snap-type: none; } }
 
 /* Questions: one card each, styled like the director cards. Only one is open at a time; the slate opens with it. */
-.faq-body { display: grid; gap: var(--space-24); max-width: 760px; margin-inline: auto; }
-.faq h2 { font-size: var(--t-3xl); text-wrap: wrap; text-align: center; }
-.faq-list { display: grid; gap: var(--space-12); }
+.faq-body { display: grid; gap: var(--space-24); }
+.faq h2 { font-size: var(--t-3xl); text-wrap: wrap; text-align: left; }
+.faq-list { display: grid; gap: var(--space-12); width: 100%; }
 .faq-card, .cta-card {
   padding: var(--space-16) var(--space-20);
   border: 1px solid var(--line);
@@ -2939,28 +2939,32 @@ html:has(.early-gate) { scroll-snap-type: y proximity; }
 .faq-card[open] .slate-closed { display: none; }
 .faq-card[open] .slate-open { display: block; }
 .faq-card p { margin-top: var(--space-12); color: var(--muted); max-width: 64ch; }
-.statement.is-cta .cta-card { max-width: 760px; width: 100%; margin-inline: auto; padding: calc(var(--space-40) * 3) var(--space-24); }
+.statement.is-cta .cta-card { padding: calc(var(--space-40) * 3) clamp(var(--space-24), 4vw, var(--space-48)); }
 
-/* Home features: a heading, three things you can do as glass cards, and a screenshot of the real
-   page in the visitor's theme. The screenshot settles into place as it scrolls into view. */
-.home-feature { display: grid; gap: var(--space-40); padding: 0 var(--gutter); }
-.home-feature-head { justify-items: center; text-align: center; }
+/* Home features: a heading, then a square screenshot of the real page in the visitor's theme with
+   three things you can do as glass cards. The screenshot settles into place as it scrolls in. */
+.home-feature { display: grid; gap: var(--space-32); padding: 0 var(--gutter); }
 .home-feature-head h2 { font-size: var(--t-3xl); text-wrap: wrap; }
-.home-feature-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-16); width: 100%; max-width: 1200px; margin-inline: auto; }
+.home-feature-body { display: grid; gap: var(--space-16); width: 100%; max-width: var(--home-width); margin-inline: auto; }
+.home-feature-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-16); }
+@media (min-width: 1000px) {
+  /* The square screenshot, with the three features stacked beside it. */
+  .home-feature-body { grid-template-columns: minmax(0, 7fr) minmax(280px, 5fr); align-items: start; }
+  .home-feature-list { grid-template-columns: minmax(0, 1fr); }
+}
 .home-feature-item {
-  display: grid; align-content: start; justify-items: center; gap: var(--space-8); padding: var(--space-24) var(--space-20);
-  border: 1px solid var(--line); border-radius: var(--r); background: var(--glass-bg); text-align: center;
+  display: grid; align-content: start; justify-items: start; gap: var(--space-8); padding: var(--space-24) var(--space-20);
+  border: 1px solid var(--line); border-radius: var(--r); background: var(--glass-bg); text-align: left;
   -webkit-backdrop-filter: var(--glass-filter); backdrop-filter: var(--glass-filter);
 }
 .home-feature-item .icon { margin-bottom: var(--space-4); color: var(--ink); }
 .home-feature-item h3 { font-size: var(--t-lg); }
-.home-feature-item p { max-width: 34ch; color: var(--muted); font-size: var(--t-sm); line-height: 1.55; }
+.home-feature-item p { color: var(--muted); font-size: var(--t-sm); line-height: 1.55; }
 .home-feature-shot {
-  width: 100%; max-width: 1200px; margin: 0 auto; overflow: hidden;
+  margin: 0; overflow: hidden; aspect-ratio: 1;
   border: 1px solid var(--line); border-radius: var(--r); background: var(--bg);
-  box-shadow: 0 40px 120px -48px color-mix(in srgb, var(--ink) 35%, transparent);
 }
-.home-feature-shot img { display: block; width: 100%; height: auto; }
+.home-feature-shot img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top left; }
 .home-feature-shot .shot-light { display: none; }
 :root[data-theme="light"] .home-feature-shot .shot-dark { display: none; }
 :root[data-theme="light"] .home-feature-shot .shot-light { display: block; }
@@ -2975,9 +2979,7 @@ html:has(.early-gate) { scroll-snap-type: y proximity; }
 }
 @media (max-width: 759px) {
   .home-feature-list { grid-template-columns: minmax(0, 1fr); }
-  .home-feature-item { grid-template-columns: auto minmax(0, 1fr); justify-items: start; text-align: left; column-gap: var(--space-16); row-gap: var(--space-4); padding: var(--space-16); }
-  .home-feature-item .icon { grid-row: span 2; margin: 2px 0 0; }
-  .home-feature-item p { max-width: none; }
+  .home-feature-item { padding: var(--space-20); }
 }
 
 /* Director About: the awards their films won. */

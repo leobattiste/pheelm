@@ -3,14 +3,12 @@ import Icon, { type IconName } from "@/components/Icon";
 export type Feature = { title: string; text: string; icon: IconName };
 
 /**
- * One part of Pheelm on the home page: a heading, a screenshot of the real page (desktop,
- * signed in, in the visitor's theme), then three things you can do. Screenshots live in public/home and are
+ * One part of Pheelm on the home page: a heading, a square screenshot of the real page
+ * (desktop, in the visitor's theme), and three things you can do. Screenshots live in public/home and are
  * captured from the live site by scripts/capture-home-screenshots.mjs.
  */
-export default function FeatureSection({ id, title, intro, features, shot, alt, height = 1133 }: {
+export default function FeatureSection({ id, title, intro, features, shot, alt }: {
   id: string; title: string; intro: string; features: Feature[]; shot: string; alt: string;
-  /** The screenshot's height at 2400px wide (they're cropped to different heights). */
-  height?: number;
 }) {
   return (
     <section className="home-feature" aria-labelledby={`${id}-title`}>
@@ -18,9 +16,10 @@ export default function FeatureSection({ id, title, intro, features, shot, alt, 
         <h2 id={`${id}-title`}>{title}</h2>
         <p>{intro}</p>
       </div>
+      <div className="home-feature-body">
       <figure className="home-feature-shot">
-        <img className="shot-dark" src={`/home/${shot}-dark.webp`} alt={alt} width={2400} height={height} loading="lazy" decoding="async" />
-        <img className="shot-light" src={`/home/${shot}-light.webp`} alt={alt} width={2400} height={height} loading="lazy" decoding="async" />
+        <img className="shot-dark" src={`/home/${shot}-dark.webp`} alt={alt} width={1600} height={1600} loading="lazy" decoding="async" />
+        <img className="shot-light" src={`/home/${shot}-light.webp`} alt={alt} width={1600} height={1600} loading="lazy" decoding="async" />
       </figure>
       <ul className="home-feature-list">
         {features.map((f) => (
@@ -31,6 +30,7 @@ export default function FeatureSection({ id, title, intro, features, shot, alt, 
           </li>
         ))}
       </ul>
+      </div>
     </section>
   );
 }
