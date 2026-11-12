@@ -50,7 +50,9 @@ export const ADMIN_GROUPS: Group[] = [
 const matches = (path: string, route: string) => path === route || path.startsWith(route + "/");
 const badge = (value: number) => value ? <span className="admin-count" aria-label={`${value} waiting`}>{value > 99 ? "99+" : value}</span> : null;
 
-export default function AdminNav({ counts }: { counts: AdminCounts }) {
+const NONE: AdminCounts = { inbox: 0, reports: 0, submissions: 0, contact: 0, feedback: 0, partnerships: 0, press: 0 };
+
+export default function AdminNav({ counts = NONE }: { counts?: AdminCounts }) {
   const path = usePathname();
   const main = useRef<HTMLElement>(null);
   const secondary = useRef<HTMLElement>(null);
