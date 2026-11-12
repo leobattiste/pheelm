@@ -2941,6 +2941,78 @@ html:has(.early-gate) { scroll-snap-type: y proximity; }
 .faq-card p { margin-top: var(--space-12); color: var(--muted); max-width: 64ch; }
 .statement.is-cta .cta-card { max-width: 760px; width: 100%; margin-inline: auto; padding: calc(var(--space-40) * 3) var(--space-24); }
 
+/* Home features: three things you can do, beside a live miniature of the real page.
+   The tabs and frame use the same glass card as the menu bar, FAQ and director cards. */
+.showcase { display: grid; gap: var(--space-24); width: 100%; max-width: 1280px; margin: var(--space-40) auto 0; padding: 0 var(--gutter); }
+.showcase-tabs { display: grid; gap: var(--space-12); align-content: start; }
+.showcase-tab {
+  display: flex; align-items: flex-start; gap: var(--space-16); width: 100%; padding: var(--space-16) var(--space-20);
+  border: 1px solid var(--line); border-radius: var(--r); background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-filter); backdrop-filter: var(--glass-filter);
+  color: var(--muted); font: inherit; text-align: left; cursor: pointer;
+  transition: border-color 160ms ease, color 160ms ease, background-color 160ms ease;
+}
+.showcase-tab:hover { color: var(--text); border-color: var(--line-strong); }
+.showcase-tab[aria-selected="true"] { color: var(--ink); border-color: var(--ink); }
+.showcase-tab .icon { flex: none; margin-top: 1px; }
+.showcase-tab-text { display: grid; gap: var(--space-4); min-width: 0; }
+.showcase-tab-text strong { color: var(--ink); font-weight: 600; }
+.showcase-tab-text > span { font-size: var(--t-sm); line-height: 1.5; }
+.showcase-frame {
+  display: flex; flex-direction: column; min-width: 0; overflow: hidden;
+  border: 1px solid var(--line); border-radius: var(--r); background: var(--bg);
+  box-shadow: 0 24px 80px -32px color-mix(in srgb, var(--ink) 30%, transparent);
+}
+.showcase-bar {
+  display: flex; align-items: center; justify-content: center; gap: var(--space-8); min-height: 40px; padding: var(--space-8) var(--space-16);
+  border-bottom: 1px solid var(--line); background: var(--glass-bg); color: var(--muted); font-size: var(--t-xs);
+}
+.showcase-bar > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.showcase-viewport { position: relative; aspect-ratio: 16 / 10; overflow: hidden; }
+.showcase-viewport::after { content: ""; position: absolute; inset: auto 0 0; height: 18%; background: linear-gradient(transparent, var(--bg)); pointer-events: none; }
+.showcase-screen { position: absolute; top: 0; left: 0; opacity: 0; transition: opacity 280ms ease; pointer-events: none; user-select: none; }
+.showcase-screen[data-active] { opacity: 1; }
+.showcase-screen .page { padding-top: var(--space-32); }
+/* Bits of the miniatures that the real pages build with their own client components. */
+.showcase-screen .search-bar input { pointer-events: none; }
+.showcase-actions { margin: var(--space-16) 0; }
+.showcase-actions .button { display: inline-flex; align-items: center; gap: var(--space-8); }
+.showcase-film { display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr); gap: var(--space-48); align-items: start; padding: var(--space-48) var(--gutter); }
+.showcase-film-art, .showcase-film-body { min-width: 0; }
+.showcase-film .film-title { font-size: var(--t-3xl); line-height: 1.05; }
+.showcase-film .film-synopsis { max-width: 62ch; margin-bottom: var(--space-24); }
+.showcase-people h2, .showcase-watch h2, .showcase-collab h2, .showcase-subhead { margin: var(--space-32) 0 var(--space-16); font-size: var(--t-lg); }
+.showcase-people ul, .showcase-collab ul { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--space-16); }
+.showcase-people li, .showcase-collab li { display: flex; align-items: center; gap: var(--space-12); }
+.showcase-people li > span:last-child, .showcase-collab li > span:last-child { display: grid; gap: 2px; min-width: 0; font-size: var(--t-sm); }
+.showcase-people .portrait { width: 48px; height: 48px; flex: none; border-radius: 50%; object-fit: cover; font-size: var(--t-sm); }
+.showcase-collab .avatar { width: 48px; height: 48px; flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--surface); }
+.showcase-invite { display: flex; gap: var(--space-12); align-items: center; margin: var(--space-24) 0 var(--space-32); max-width: 520px; }
+.showcase-invite .search-bar { flex: 1; }
+.showcase-list-head { display: grid; gap: var(--space-8); }
+.showcase-list-head p:not(.muted) { max-width: 70ch; }
+.showcase-bio { max-width: 70ch; margin: var(--space-16) 0 var(--space-24); color: var(--muted); }
+.showcase-screen .comment-avatar.portrait-initials { display: grid; place-items: center; background: var(--surface); font-size: var(--t-xs); font-weight: 600; }
+.showcase-screen .composer { margin: var(--space-16) 0; padding: var(--space-16); border: 1px solid var(--line); border-radius: var(--r); }
+@media (min-width: 1000px) {
+  .showcase { grid-template-columns: minmax(260px, 340px) minmax(0, 1fr); align-items: center; gap: var(--space-40); }
+}
+@media (max-width: 999px) and (min-width: 640px) {
+  .showcase-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .showcase-tab { flex-direction: column; gap: var(--space-8); }
+}
+@media (max-width: 639px) {
+  .showcase-viewport { aspect-ratio: 4 / 5; }
+  .showcase-tab { padding: var(--space-12) var(--space-16); }
+  /* On phones only the selected feature shows its description. */
+  .showcase-tab[aria-selected="false"] .showcase-tab-text > span { display: none; }
+  .showcase-film { grid-template-columns: minmax(0, 1fr); gap: var(--space-24); padding: var(--space-24) var(--gutter); }
+  .showcase-film-art { max-width: 240px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .showcase-screen, .showcase-tab { transition: none; }
+}
+
 /* Director About: the awards their films won. */
 .details > .details-wide { grid-column: 1 / -1; }
 .about-awards { display: grid; gap: var(--space-8); }

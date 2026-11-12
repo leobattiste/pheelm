@@ -1,13 +1,12 @@
 import { publicPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
-import CommunityTile from "@/components/CommunityTile";
-import DirectorCard from "@/components/DirectorCard";
 import EarlyAccessButton, { EarlyAccessGate } from "@/components/EarlyAccessButton";
 import CurvedCarousel from "@/components/CurvedCarousel";
 import Icon from "@/components/Icon";
-import Row from "@/components/Row";
-import { getCommunityCollections } from "@/lib/community";
-import { getDirectors, getFilms, toCard, toDirectorSummary } from "@/lib/data";
+import FeatureShowcase from "@/components/home/FeatureShowcase";
+import { DirectorBio, DirectorDirectory, DirectorFilms, FilmAbout, FilmFeed, FilmSearch, MemberCommunity, MemberConversation, MemberProfile, WatchlistCollaboration, WatchlistCollection, WatchlistFollowing } from "@/components/home/screens";
+import { getCommunityCollections, getMember } from "@/lib/community";
+import { getDirectors, getFilms, toCard } from "@/lib/data";
 import { PAGE_COPY, SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
 import { SITE_URL } from "@/lib/supabase/config";
 
@@ -37,6 +36,17 @@ const FAMOUS = [
   "julie-dash", "gina-prince-bythewood", "kasi-lemmons", "dee-rees", "ousmane-sembene", "melvin-van-peebles", "gordon-parks",
 ];
 
+// The Members section shows what a conversation looks like. These are samples, not real members;
+// the preview is labelled "Example".
+const SAMPLE_COMMENTS = [
+  { handle: "amara", name: "Amara", when: "2 days ago", likes: 12,
+    body: "Seeing Black Girl next to Borom Sarret makes so much sense. Sembène was building a whole language for African cinema.",
+    replies: [{ handle: "leo", name: "Leo", when: "2 days ago", likes: 5, leo: true, body: "@amara Exactly why they open the list. Touki Bouki is next on my rewatch." }] },
+  { handle: "kwame", name: "Kwame", when: "Yesterday", likes: 4,
+    body: "Never heard of Sambizanga before this. Where can I watch it?",
+    replies: [{ handle: "nia", name: "Nia", when: "Yesterday", likes: 3, body: "@kwame Open the film and check Where to watch for your region." }] },
+];
+
 /**
  * The home page tells what Pheelm is in three parts (films, directors, community), each a short
  * statement followed by a row that shows it, then a closing call to sign up. While Pheelm is in
@@ -56,7 +66,20 @@ export default async function Home() {
   });
   const dirBySlug = new Map(directors.map((d) => [d.slug, d]));
   const toKnow = FAMOUS.map((slug) => dirBySlug.get(slug)).filter((d) => !!d);
-  const shelf = collections.filter((c) => c.films.length >= 3).slice(0, 12);
+  const withPoster = films.filter((f) => f.poster_url);
+
+  // Films: a feed of well-known films, a real search with filters, and one film's page.
+  const feed = [...essential, ...withPoster.filter((f) => f.featured && !essential.includes(f))].filter((f) => f.poster_url).slice(0, 18);
+  const searched = withPoster.filter((f) => f.type === "feature" && f.genres.includes("Drama") && f.year >= 2010 && f.year < 2020);
+  const about = bySlug.get("moonlight") ?? essential[0];
+  // Directors: the directory, and one director's biography and films.
+  const featured = dirBySlug.get("ryan-coogler") ?? toKnow[0];
+  // Watchlists and members: Leo's profile and public watchlists, and the community's.
+  const leo = await getMember("leo").catch(() => null);
+  const leoLists = (leo?.collections ?? []).filter((c) => c.films.length >= 3);
+  const showcaseList = leoLists.find((c) => c.title === "New Black Cinema") ?? collections.find((c) => c.films.length >= 6);
+  const collabList = leoLists.find((c) => c.title === "The L.A. Rebellion") ?? showcaseList;
+  const conversationList = leoLists.find((c) => c.title === "The Birth of African Cinema") ?? showcaseList;
 
   // For search engines: the site, with a search box that opens the Films page's search.
   const jsonLd = {
@@ -95,35 +118,78 @@ export default async function Home() {
       </div>
 
       <div className="home-block">
-      <section className="statement" aria-labelledby="directors-title">
+      <section className="statement" aria-labelledby="films-title">
         <div className="statement-body">
-          <h2 id="directors-title">Learn about the people behind your favorite films.</h2>
-          <p>Explore directors from around the world and discover the films they&rsquo;ve made.</p>
+          <h2 id="films-title">Films</h2>
+          <p>Discover films by Black directors from around the world.</p>
         </div>
       </section>
-
-      <Row title="Directors to know" bare>
-        {toKnow.map((d) => <DirectorCard key={d.id} director={toDirectorSummary(d)} plain />)}
-      </Row>
+      <FeatureShowcase label="Films" features={[
+        { title: "Feed", icon: "film", path: "/films", text: "Discover feature films across genres, generations, and styles.",
+          screen: <FilmFeed films={feed} total={films.length} /> },
+        { title: "Search & Filter", icon: "filter", path: "/films?type=feature&genre=Drama&decade=2010s", text: "Find films by type, genre, country, decade, and other details.",
+          screen: <FilmSearch films={searched.slice(0, 18)} count={searched.length} chips={["Feature", "Drama", "2010s"]} /> },
+        ...(about ? [{ title: "About", icon: "clapperboard" as const, path: `/films/${about.slug}`, text: "Explore synopses, cast and crew, trailers, and where to watch.",
+          screen: <FilmAbout film={about} /> }] : []),
+      ]} />
       </div>
 
       <div className="home-block">
-      <section className="statement" aria-labelledby="community-title">
+      <section className="statement" aria-labelledby="directors-title">
         <div className="statement-body">
-          <h2 id="community-title">Connect with other film enthusiasts.</h2>
-          <p>
-            Discover community-curated collections, share your favorites, and connect with people who share your love of
-            cinema.
-          </p>
+          <h2 id="directors-title">Directors</h2>
+          <p>Learn more about the people behind your favorite films.</p>
         </div>
       </section>
-
-      {shelf.length > 0 && (
-        <Row title="Watchlists" bare>
-          {shelf.map((c) => <CommunityTile key={c.id} c={c} showOwner={!c.staff_pick} plain />)}
-        </Row>
-      )}
+      <FeatureShowcase label="Directors" features={[
+        { title: "Directory", icon: "users2", path: "/directors", text: "Discover Black filmmakers from around the world.",
+          screen: <DirectorDirectory directors={toKnow.slice(0, 12)} total={directors.length} /> },
+        ...(featured ? [
+          { title: "Biography", icon: "user" as const, path: `/directors/${featured.slug}`, text: "Learn about their backgrounds, careers, and contributions to cinema.",
+            screen: <DirectorBio director={featured} /> },
+          { title: "Filmography", icon: "film" as const, path: `/directors/${featured.slug}`, text: "Explore their films and creative work.",
+            screen: <DirectorFilms director={featured} /> },
+        ] : []),
+      ]} />
       </div>
+
+      {showcaseList && (
+      <div className="home-block">
+      <section className="statement" aria-labelledby="watchlists-title">
+        <div className="statement-body">
+          <h2 id="watchlists-title">Watchlists</h2>
+          <p>Create and share your own watchlists, or explore watchlists made by the community.</p>
+        </div>
+      </section>
+      <FeatureShowcase label="Watchlists" features={[
+        { title: "Collection", icon: "stack", path: `/c/${showcaseList.id}`, text: "Organize films into personalized watchlists.",
+          screen: <WatchlistCollection list={showcaseList} /> },
+        { title: "Following", icon: "bookmark", path: "/watchlists", text: "Discover and follow watchlists created by other film enthusiasts.",
+          screen: <WatchlistFollowing lists={collections.filter((c) => c.films.length >= 3).slice(0, 9)} /> },
+        ...(collabList ? [{ title: "Collaboration", icon: "userPlus" as const, path: `/c/${collabList.id}`, text: "Create watchlists together with other members.",
+          screen: <WatchlistCollaboration list={collabList} owner={leo?.member ?? null} /> }] : []),
+      ]} />
+      </div>
+      )}
+
+      {leo && (
+      <div className="home-block">
+      <section className="statement" aria-labelledby="members-title">
+        <div className="statement-body">
+          <h2 id="members-title">Members</h2>
+          <p>Create your profile, share your love for cinema, and connect with other film enthusiasts.</p>
+        </div>
+      </section>
+      <FeatureShowcase label="Members" features={[
+        { title: "Profile", icon: "userCircle", path: `/@${leo.member.handle}`, text: "Create a personal profile and share your interests with the community.",
+          screen: <MemberProfile member={leo.member} lists={leoLists.slice(0, 9)} /> },
+        { title: "Community", icon: "users", path: `/@${leo.member.handle}`, text: "Connect with other film enthusiasts who share your passion for cinema.",
+          screen: <MemberCommunity member={leo.member} directors={toKnow.slice(0, 4)} lists={leoLists.slice(0, 6)} /> },
+        ...(conversationList ? [{ title: "Conversation", icon: "comment" as const, path: `/c/${conversationList.id}`, example: true, text: "Share your thoughts, reply to comments, and join discussions about films.",
+          screen: <MemberConversation list={conversationList} leo={leo.member} comments={SAMPLE_COMMENTS} /> }] : []),
+      ]} />
+      </div>
+      )}
       </EarlyAccessGate>
 
       <div className="home-block">
