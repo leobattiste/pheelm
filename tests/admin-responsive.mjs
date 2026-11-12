@@ -27,11 +27,22 @@ const records = {
   admin_film_quality: [{ id: 'fixture', slug: 'fixture', title: 'Atlantics', year: 2019, status: 'draft', issues: ['poster', 'editorial'], issue_count: 2 }],
   member_profiles: [{ id: 'member', handle: 'curator' }], list_save_counts: [{ list_id: 'collection', saves: 7 }],
   list_reports: [], comment_reports: [],
+  messages: [
+    { id: '11111111-1111-1111-1111-111111111111', name: 'A programmer at a film festival with a long name', email: 'programmer@festival.example', organization: 'Pan-African Film Festival', topic: 'partnership', status: 'new', stage: 'talking', partnership_type: 'Film festival or screening', website: 'https://festival.example', notes: 'Call on Friday.', body: 'We would love to host a Pheelm night at our festival.\n\nWe can offer a screen and a panel.', created_at: '2026-11-10', replied_at: '2026-11-11', due_at: null, closed_at: null, page: null, page_title: null },
+    { id: '22222222-2222-2222-2222-222222222222', name: null, email: 'reader@example.com', organization: null, topic: 'privacy', status: 'open', stage: null, partnership_type: null, website: null, notes: null, body: 'Please delete my account data.', created_at: '2026-11-01', replied_at: null, due_at: '2026-12-01', closed_at: null, page: '/films/atlantics', page_title: 'Atlantics' },
+  ],
+  message_replies: [{ id: 'r1', body: 'Thanks, let us talk.', via: 'pheelm', created_at: '2026-11-11', author_id: 'member' }],
 };
-const db = { auth: { getUser: async () => ({ data: { user: { id: "member", email: "member@example.com" } } }) }, rpc: async () => ({ data: members, error: null }), from: (table) => {
+const rpcs = {
+  admin_members: members,
+  admin_newsletter_counts: { total: 4, confirmed: 2, pending: 1, unsubscribed: 1, suppressed: 0 },
+  admin_newsletter: [{ email: 'a-reader-with-a-long-address@example.com', source: 'home', created_at: '2026-11-07', state: 'confirmed', confirmed_at: '2026-11-08', unsubscribed_at: null, total: 2 }, { email: 'b@example.com', source: null, created_at: '2026-11-09', state: 'confirmed', confirmed_at: '2026-11-09', unsubscribed_at: null, total: 2 }],
+};
+const db = { auth: { getUser: async () => ({ data: { user: { id: "member", email: "member@example.com" } } }) }, rpc: async (name) => ({ data: rpcs[name] ?? null, error: null }), from: (table) => {
+  let one = false;
   const query = new Proxy({}, { get: (_, key) => key === 'then'
-    ? (fn) => Promise.resolve({ count: 128, data: records[table] ?? [] }).then(fn)
-    : () => query });
+    ? (fn) => Promise.resolve({ count: 128, data: one ? (records[table] ?? [])[0] ?? null : records[table] ?? [] }).then(fn)
+    : (key === 'single' || key === 'maybeSingle') ? () => { one = true; return query; } : () => query });
   return query;
 } };
 const cache = new Map();
@@ -78,6 +89,9 @@ const Quality = load(resolve(root, 'app/admin/quality/page.tsx')).default;
 const Activity = load(resolve(root, 'app/admin/activity/page.tsx')).default;
 const Analytics = load(resolve(root, 'app/admin/analytics/page.tsx')).default;
 const Automation = load(resolve(root, 'app/admin/automation/page.tsx')).default;
+const Inbox = load(resolve(root, 'app/admin/inbox/InboxList.tsx')).default;
+const Message = load(resolve(root, 'app/admin/inbox/message/[id]/page.tsx')).default;
+const Newsletter = load(resolve(root, 'app/admin/inbox/newsletter/page.tsx')).default;
 const PersonEditor = load(resolve(root, 'app/admin/people/[id]/PersonEditor.tsx')).default;
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium', headless: true, args: ['--no-sandbox'] });
 const page = await browser.newPage();
@@ -91,8 +105,8 @@ try {
     for (const width of [320, 390, 600, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: 1000 });
       for (const grid of ['large', 'small', 'list']) {
-      for (const screen of ['overview', 'films', 'people', 'members', 'editorial', 'community', 'quality', 'activity', 'analytics', 'automation', 'editor']) {
-        pathname = screen === 'overview' ? '/admin' : screen === 'editor' ? '/admin/people/fixture' : `/admin/${screen}`;
+      for (const screen of ['overview', 'films', 'people', 'members', 'editorial', 'community', 'quality', 'activity', 'analytics', 'automation', 'inbox', 'partnerships', 'message', 'newsletter', 'editor']) {
+        pathname = screen === 'overview' ? '/admin' : screen === 'editor' ? '/admin/people/fixture' : screen === 'partnerships' ? '/admin/inbox/partnerships' : screen === 'message' ? '/admin/inbox/message/11111111-1111-1111-1111-111111111111' : screen === 'newsletter' ? '/admin/inbox/newsletter' : `/admin/${screen}`;
         const content = screen === 'overview' ? await Home() : screen === 'films'
           ? await Films({ searchParams: Promise.resolve({}) })
           : screen === 'people' ? await People({ searchParams: Promise.resolve({}) })
@@ -103,6 +117,10 @@ try {
           : screen === 'activity' ? await Activity({ searchParams: Promise.resolve({}) })
           : screen === 'analytics' ? await Analytics()
           : screen === 'automation' ? await Automation()
+          : screen === 'inbox' ? await Inbox({ searchParams: Promise.resolve({}) })
+          : screen === 'partnerships' ? await Inbox({ box: 'partnerships', searchParams: Promise.resolve({}) })
+          : screen === 'message' ? await Message({ params: Promise.resolve({ id: '11111111-1111-1111-1111-111111111111' }) })
+          : screen === 'newsletter' ? await Newsletter({ searchParams: Promise.resolve({}) })
           : React.createElement(PersonEditor, { person: { id: 'person', name: film.title, slug: 'fixture', country: 'SN', birth_year: 1970, bio: 'A filmmaker biography.', photo_url: null, is_director: true } });
         const html = renderToStaticMarkup(await Layout({ children: content }));
         await page.setContent(`<!doctype html><html data-theme="${theme}" data-grid="${grid}"><head><style>${css}</style></head><body>${html}</body></html>`);
@@ -115,7 +133,7 @@ try {
         assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${prefix}: page overflows`);
         assert.equal(await page.locator('.admin-main-tabs [aria-current="page"]').count(), 1, `${prefix}: active main tab`);
         assert.equal(await page.locator('.admin-main-tabs a .icon').count(), 0, `${prefix}: admin tabs are text only`);
-        assert.equal(await page.locator('.admin-main-tabs [aria-current="page"]').getAttribute('href'), screen === 'overview' ? '/admin' : ['films', 'people', 'editorial', 'editor', 'quality', 'automation'].includes(screen) ? '/admin/films' : screen === 'activity' ? '/admin/analytics' : `/admin/${screen}`);
+        assert.equal(await page.locator('.admin-main-tabs [aria-current="page"]').getAttribute('href'), screen === 'overview' ? '/admin' : ['films', 'people', 'editorial', 'editor', 'quality', 'automation'].includes(screen) ? '/admin/films' : screen === 'activity' ? '/admin/analytics' : ['inbox', 'partnerships', 'message', 'newsletter'].includes(screen) ? '/admin/inbox' : `/admin/${screen}`);
         const tooWide = await page.locator('.admin-content .button, .admin-content input:not([type="hidden"]), .admin-content textarea, .admin-content select').evaluateAll(elements => elements.filter(el => el.getBoundingClientRect().right > innerWidth || el.getBoundingClientRect().left < 0).map(el => el.outerHTML.slice(0, 150)));
         assert.deepEqual(tooWide, [], `${prefix}: overflowing controls`);
         if (screen === 'films') {

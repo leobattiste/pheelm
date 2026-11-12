@@ -41,9 +41,6 @@ export default async function NewsletterPage({ searchParams }: { searchParams: P
     <>
       <PageHeader title="Newsletter" description="Who signed up, and where they are. Only people who confirmed their email receive the newsletter."
         actions={owner && (counts.confirmed ?? 0) > 0 ? <a className="button ghost small" href="/admin/subscribers.csv" download>Download subscribers (CSV)</a> : null} />
-      <Stats>
-        {STATES.map((s) => <Stat key={s.id} value={counts[s.id] ?? 0} label={s.label} href={`/admin/inbox/newsletter?state=${s.id}`} />)}
-      </Stats>
       {owner ? (
         <>
           <ViewTabs label="Subscribers by status" items={STATES.map((s) => ({ label: s.label, href: `/admin/inbox/newsletter?state=${s.id}`, active: s === state, count: counts[s.id] ?? 0 }))} />
@@ -62,7 +59,10 @@ export default async function NewsletterPage({ searchParams }: { searchParams: P
           ) : <Empty title={q ? "No addresses match" : `No one is ${state.label.toLowerCase()}`} />}
           <Pager page={page} total={total} size={PAGE_SIZE} href={href} />
         </>
-      ) : <p className="muted">Only the owner can see email addresses on the list.</p>}
+      ) : <>
+        <Stats>{STATES.map((s) => <Stat key={s.id} value={counts[s.id] ?? 0} label={s.label} />)}</Stats>
+        <p className="muted">Only the owner can see the email addresses on the list.</p>
+      </>}
     </>
   );
 }
