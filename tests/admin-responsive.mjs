@@ -38,6 +38,8 @@ const records = {
 };
 const rpcs = {
   admin_members: members,
+  admin_monthly_counts: ['2026-06-01', '2026-07-01', '2026-08-01', '2026-09-01', '2026-10-01', '2026-11-01'].map((month, i) => ({ month, films: i * 4, members: i, watchlists: 6 - i, saves: i % 2 })),
+  admin_film_facets: { decades: [2010, 2000], countries: ['SN', 'US'], genres: ['Drama'] },
   admin_moderation_log: [{ id: 1, actor_id: 'member', handle: 'curator', field: 'comment', excerpt: 'A refused comment that was long enough to need wrapping on the narrowest phones we support', reason: 'harassment, hate', created_at: '2026-11-10', total: 1 }],
   admin_newsletter_counts: { total: 4, confirmed: 2, pending: 1, unsubscribed: 1, suppressed: 0 },
   admin_newsletter: [{ email: 'a-reader-with-a-long-address@example.com', source: 'home', created_at: '2026-11-07', state: 'confirmed', confirmed_at: '2026-11-08', unsubscribed_at: null, total: 2 }, { email: 'b@example.com', source: null, created_at: '2026-11-09', state: 'confirmed', confirmed_at: '2026-11-09', unsubscribed_at: null, total: 2 }],
