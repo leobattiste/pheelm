@@ -20,13 +20,16 @@ select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-00000000000b
 set local role authenticated;
 do $$begin
   if public.check_text('comment', 'Loved it') is not null then raise exception 'Clean text refused'; end if;
-  if public.check_text('comment', 'what a sh1t ending') <> 'the s-word' then raise exception 'Check missed the word'; end if;
-  if public.check_text('bio', 'b1tches') <> 'the b-word' then raise exception 'Wrong gentle name'; end if;
-  if public.check_text('comment', 'porch monkey') <> 'a racist slur' then raise exception 'Phrase missed'; end if;
+  if public.check_text('comment', 'what a sh1t ending') <> 'Swearing isn''t allowed on Pheelm. Try “crap” instead.' then raise exception 'Check missed the word'; end if;
+  if public.check_text('bio', 'b1tches') <> 'Swearing isn''t allowed on Pheelm. Try “b-word” instead.' then raise exception 'Wrong suggestion'; end if;
+  if public.check_text('comment', 'porch monkey') <> 'Racial slurs aren''t allowed on Pheelm. Remove it and try again.' then raise exception 'Phrase missed'; end if;
+  if public.check_text('comment', 'that n1gga') <> 'Racial slurs aren''t allowed on Pheelm. Try “n-word” instead.' then raise exception 'Wrong n-word message'; end if;
+  -- The suggested alternatives themselves are allowed.
+  if public.check_text('comment', 'the f-word, b-word, n-word, f-slur, r-word, c-word, crap, nonsense, jerk') is not null then raise exception 'An alternative is banned'; end if;
 end$$;
 -- The backstop refuses banned words in comments, bios and descriptions, with the word in the message.
 do $$begin begin insert into public.list_comments(user_id, body) values (auth.uid(), 'total bullshit'); raise exception 'Comment saved';
-  exception when check_violation then if sqlerrm <> 'Pheelm doesn''t allow the s-word. Remove it and try again.' then raise; end if; end; end$$;
+  exception when check_violation then if sqlerrm <> 'Swearing isn''t allowed on Pheelm. Try “nonsense” instead.' then raise; end if; end; end$$;
 do $$begin begin update public.profiles set bio = 'bitch please' where id = auth.uid(); raise exception 'Bio saved';
   exception when check_violation then null; end; end$$;
 do $$begin begin insert into public.lists(user_id, title, description) values (auth.uid(), 'x', 'f-u-c-k'); raise exception 'Description saved';

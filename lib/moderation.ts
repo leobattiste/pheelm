@@ -6,12 +6,12 @@ import { bannedWordMessage, isBannedWordMessage } from "@/lib/banned-words";
 export type ModeratedField = "comment" | "bio" | "watchlist_description";
 export type ModerationResult = { ok: true } | { ok: false; message: string };
 
-
 /**
  * Called on the SERVER just before a member saves a comment, bio or watchlist description.
  * Checks the text against Pheelm's banned-word list (kept in the database, see
- * supabase/banned-words.sql) and says which word to remove, gently ("the b-word"). The database refuses the same words
- * when saving, so if this check can't run the save is still protected.
+ * supabase/banned-words.sql). The member is told what kind of word it is and, for some words, what
+ * to write instead; never the word itself. The database refuses the same words when saving, so if
+ * this check can't run the save is still protected.
  */
 export async function checkText(field: ModeratedField, rawText: string): Promise<ModerationResult> {
   const text = rawText.trim();

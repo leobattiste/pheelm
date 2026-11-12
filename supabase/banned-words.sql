@@ -7,9 +7,11 @@
 -- dots, dashes, underscores or asterisks between letters, and stretched letters ("fuuuck"),
 -- and catches common endings (s, ed, er, ing…). Whole words only, so "Scunthorpe", "Niger" and
 -- "spice" are fine. A phrase ("porch monkey") also matches without the space. Members are told
--- the gentle name ("Pheelm doesn't allow the b-word"), never the word itself. To add or remove:
---   insert into private.banned_words (word, label) values ('word', 'a racist slur');
+-- what kind of word it is, never the word itself, and for some words what to write instead:
+-- "Swearing isn't allowed on Pheelm. Try “b-word” instead." To add or remove a word:
+--   insert into private.banned_words (word, kind, instead) values ('word', 'racist', null);
 --   delete from private.banned_words where word = 'word';
+-- Kinds: swearing, sexist, racist, antisemitic, homophobic, transphobic, ableist.
 
 create schema if not exists private;
 revoke all on schema private from public, anon, authenticated;
@@ -18,32 +20,35 @@ create table if not exists private.banned_words (
   word text primary key,
   added_at timestamptz not null default now()
 );
-alter table private.banned_words add column if not exists label text;
+alter table private.banned_words drop column if exists label;
+alter table private.banned_words add column if not exists kind text not null default 'swearing';
+alter table private.banned_words add column if not exists instead text;
 alter table private.banned_words drop constraint if exists banned_words_word_check;
 alter table private.banned_words add constraint banned_words_word_check check (word ~ '^[a-z]+( [a-z]+)*$');
+alter table private.banned_words drop constraint if exists banned_words_kind_check;
+alter table private.banned_words add constraint banned_words_kind_check
+  check (kind in ('swearing', 'sexist', 'racist', 'antisemitic', 'homophobic', 'transphobic', 'ableist'));
 revoke all on private.banned_words from public, anon, authenticated;
 
--- Each word with the name members see in its place.
-insert into private.banned_words (word, label) values
-  -- Strong language
-  ('fuck', 'the f-word'), ('motherfuck', 'the f-word'), ('motherfucker', 'the f-word'),
-  ('shit', 'the s-word'), ('bullshit', 'the s-word'), ('bitch', 'the b-word'), ('asshole', 'the a-word'), ('cunt', 'the c-word'),
-  ('twat', 'that insult'), ('whore', 'that insult'), ('slut', 'that insult'),
-  ('dickhead', 'that insult'), ('cocksucker', 'that insult'), ('wanker', 'that insult'),
-  -- Racist and antisemitic slurs
-  ('nigger', 'the n-word'), ('nigga', 'the n-word'), ('sandnigger', 'the n-word'),
-  ('coon', 'a racist slur'), ('jigaboo', 'a racist slur'), ('darkie', 'a racist slur'), ('golliwog', 'a racist slur'),
-  ('porch monkey', 'a racist slur'), ('jungle bunny', 'a racist slur'), ('kaffir', 'a racist slur'),
-  ('spic', 'a racist slur'), ('wetback', 'a racist slur'), ('beaner', 'a racist slur'),
-  ('chink', 'a racist slur'), ('gook', 'a racist slur'), ('zipperhead', 'a racist slur'),
-  ('paki', 'a racist slur'), ('raghead', 'a racist slur'), ('towelhead', 'a racist slur'),
-  ('wop', 'a racist slur'), ('dago', 'a racist slur'), ('redskin', 'a racist slur'),
-  ('kike', 'an antisemitic slur'), ('hymie', 'an antisemitic slur'), ('yid', 'an antisemitic slur'),
-  -- Anti-gay, anti-trans and ableist slurs
-  ('faggot', 'the f-slur'), ('fag', 'the f-slur'), ('batty boy', 'an anti-gay slur'), ('battyman', 'an anti-gay slur'),
-  ('tranny', 'an anti-trans slur'), ('shemale', 'an anti-trans slur'),
-  ('retard', 'the r-word'), ('spaz', 'an ableist slur')
-on conflict (word) do update set label = excluded.label;
+-- Each word, what kind it is, and what to write instead (when there's a natural alternative).
+insert into private.banned_words (word, kind, instead) values
+  ('fuck', 'swearing', 'f-word'), ('motherfuck', 'swearing', 'f-word'), ('motherfucker', 'swearing', 'f-word'),
+  ('shit', 'swearing', 'crap'), ('bullshit', 'swearing', 'nonsense'), ('bitch', 'swearing', 'b-word'),
+  ('asshole', 'swearing', 'jerk'), ('dickhead', 'swearing', 'jerk'), ('wanker', 'swearing', 'jerk'), ('twat', 'swearing', 'jerk'),
+  ('cunt', 'swearing', 'c-word'), ('cocksucker', 'swearing', null),
+  ('whore', 'sexist', null), ('slut', 'sexist', null),
+  ('nigger', 'racist', 'n-word'), ('nigga', 'racist', 'n-word'), ('sandnigger', 'racist', 'n-word'),
+  ('coon', 'racist', null), ('jigaboo', 'racist', null), ('darkie', 'racist', null), ('golliwog', 'racist', null),
+  ('porch monkey', 'racist', null), ('jungle bunny', 'racist', null), ('kaffir', 'racist', null),
+  ('spic', 'racist', null), ('wetback', 'racist', null), ('beaner', 'racist', null),
+  ('chink', 'racist', null), ('gook', 'racist', null), ('zipperhead', 'racist', null),
+  ('paki', 'racist', null), ('raghead', 'racist', null), ('towelhead', 'racist', null),
+  ('wop', 'racist', null), ('dago', 'racist', null), ('redskin', 'racist', null),
+  ('kike', 'antisemitic', null), ('hymie', 'antisemitic', null), ('yid', 'antisemitic', null),
+  ('faggot', 'homophobic', 'f-slur'), ('fag', 'homophobic', 'f-slur'), ('batty boy', 'homophobic', null), ('battyman', 'homophobic', null),
+  ('tranny', 'transphobic', null), ('shemale', 'transphobic', null),
+  ('retard', 'ableist', 'r-word'), ('spaz', 'ableist', null)
+on conflict (word) do update set kind = excluded.kind, instead = excluded.instead;
 
 -- Text as it's compared: lower case, look-alike characters swapped, letters split by punctuation joined.
 create or replace function private.words_for_matching(t text) returns text
@@ -66,14 +71,26 @@ begin
   return null;
 end $$;
 
--- How members see a banned word named: "the b-word", "a racist slur".
-create or replace function private.banned_word_label(w text) returns text
+-- What a member is told about a banned word: what kind it is, and what to write instead if
+-- there's an alternative. "Swearing isn't allowed on Pheelm. Try “b-word” instead."
+drop function if exists private.banned_word_label(text);
+create or replace function private.banned_word_message(w text) returns text
 language sql stable set search_path = '' as $$
-  select coalesce((select b.label from private.banned_words b where b.word = w), 'that word')
+  select case b.kind
+      when 'swearing' then 'Swearing isn''t allowed on Pheelm.'
+      when 'sexist' then 'Sexist slurs aren''t allowed on Pheelm.'
+      when 'racist' then 'Racial slurs aren''t allowed on Pheelm.'
+      when 'antisemitic' then 'Antisemitic slurs aren''t allowed on Pheelm.'
+      when 'homophobic' then 'Homophobic slurs aren''t allowed on Pheelm.'
+      when 'transphobic' then 'Transphobic slurs aren''t allowed on Pheelm.'
+      when 'ableist' then 'Ableist slurs aren''t allowed on Pheelm.'
+      else 'That word isn''t allowed on Pheelm.'
+    end || case when b.instead is not null then ' Try “' || b.instead || '” instead.' else ' Remove it and try again.' end
+  from (select w) x left join private.banned_words b on b.word = x.w
 $$;
 
--- For the site, before saving: the gentle name of the banned word the member used ("the b-word"),
--- or null. Also keeps the attempt, with the actual word, in the admin's Refused text log (90 days).
+-- For the site, before saving: what to tell the member if the text has a banned word, or null.
+-- Also keeps the attempt, with the actual word, in the admin's Refused text log (90 days).
 create or replace function public.check_text(p_field text, p_text text) returns text
 language plpgsql security definer set search_path = '' as $$
 declare w text;
@@ -88,7 +105,7 @@ begin
     insert into private.moderation_refusals (actor_id, field, excerpt, reason)
       values (auth.uid(), p_field, left(btrim(p_text), 300), 'Banned word: ' || w);
   end if;
-  return case when w is null then null else private.banned_word_label(w) end;
+  return case when w is null then null else private.banned_word_message(w) end;
 end $$;
 revoke all on function public.check_text(text, text) from public, anon;
 grant execute on function public.check_text(text, text) to authenticated;
@@ -114,7 +131,7 @@ begin
   end if;
   w := private.first_banned_word(body_text);
   if w is not null then
-    raise exception 'Pheelm doesn''t allow %. Remove it and try again.', private.banned_word_label(w) using errcode = '23514';
+    raise exception '%', private.banned_word_message(w) using errcode = '23514';
   end if;
   return new;
 end $$;

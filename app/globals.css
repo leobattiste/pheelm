@@ -842,10 +842,12 @@ main { width: 100%; }
 @keyframes sheet-up { from { transform: translateY(100%); } }
 @keyframes fade { from { opacity: 0; } }
 
-/* Toast: a short message that slides up from the bottom, like the phone sheets. */
-.toast-region { position: fixed; inset: auto 0 calc(var(--space-24) + env(safe-area-inset-bottom)) 0; z-index: 1000; display: flex; justify-content: center; width: auto; height: auto; margin: 0; padding: 0 var(--space-16); border: 0; background: none; color: inherit; overflow: visible; pointer-events: none; }
+/* Toast: a short message that slides up from the bottom, as wide as the modals and menu bar. It sits above the
+   phone's home bar, or just above anything pinned to the bottom (--toast-lift, measured). */
+.toast-region { position: fixed; inset: auto 0 var(--toast-lift, calc(var(--space-24) + env(safe-area-inset-bottom))) 0; z-index: 1000; display: flex; justify-content: center; width: auto; height: auto; margin: 0; padding: 0; border: 0; background: none; color: inherit; overflow: visible; pointer-events: none; transition: bottom 0.25s var(--ease); }
 .toast-region[popover]:not(:popover-open) { display: none; }
-.toast { pointer-events: auto; display: flex; align-items: center; gap: var(--space-12); max-width: 520px; padding: var(--space-12) var(--space-12) var(--space-12) var(--space-20); border: 1px solid var(--line); border-radius: var(--r); background: var(--raised); color: var(--text); box-shadow: var(--shadow); font-size: var(--t-sm); line-height: 1.45; animation: toast-up 0.32s var(--ease); }
+.toast { pointer-events: auto; display: flex; align-items: center; gap: var(--space-12); width: var(--floating-width, min(560px, calc(100vw - 32px))); max-width: calc(100vw - 32px); padding: var(--space-12) var(--space-12) var(--space-12) var(--space-20); border: 1px solid var(--line); border-radius: var(--r); background: var(--raised); color: var(--text); box-shadow: var(--shadow); font-size: var(--t-sm); line-height: 1.45; animation: toast-up 0.32s var(--ease); }
+.toast > span { flex: 1; min-width: 0; }
 .toast-close { flex: none; display: grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: var(--pill); background: none; color: var(--muted); cursor: pointer; }
 .toast-close:hover { background: var(--hover); color: var(--ink); }
 @keyframes toast-up { from { opacity: 0; transform: translateY(24px); } }

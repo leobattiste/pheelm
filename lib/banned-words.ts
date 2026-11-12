@@ -1,7 +1,13 @@
 /**
- * The message a member sees when their text has a word from Pheelm's banned-word list. The
- * database names the word gently ("the b-word", "a racist slur"); see supabase/banned-words.sql.
- * Shared by the server (to write it) and the browser (to show it as a toast).
+ * Messages for text with a word from Pheelm's banned-word list. The database writes them (see
+ * supabase/banned-words.sql): what kind of word it is, and what to write instead when there's an
+ * alternative, e.g. "Swearing isn't allowed on Pheelm. Try “b-word” instead." Shared by the server
+ * and the browser, which shows them as a toast.
  */
-export const bannedWordMessage = (label: string) => `Pheelm doesn't allow ${label}. Remove it and try again.`;
-export const isBannedWordMessage = (message: string | null | undefined) => !!message?.startsWith("Pheelm doesn't allow ");
+
+/** The database's message, or (from an older database that only names the word gently) one built from that name. */
+export const bannedWordMessage = (fromDatabase: string) =>
+  isBannedWordMessage(fromDatabase) ? fromDatabase : `Pheelm doesn't allow ${fromDatabase}. Remove it and try again.`;
+
+export const isBannedWordMessage = (message: string | null | undefined) =>
+  !!message && (message.includes(" allowed on Pheelm.") || message.startsWith("Pheelm doesn't allow "));
