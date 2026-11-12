@@ -1,6 +1,6 @@
 "use server";
 
-import { moderateAndApprove } from "@/lib/moderation";
+import { bannedWordError, checkText } from "@/lib/moderation";
 import { getServerClient } from "@/lib/supabase/server";
 
 type Written = { id: string; parent_id: string | null; user_id: string; body: string; created_at: string; edited_at: string | null; spoiler?: boolean };
@@ -20,7 +20,7 @@ async function signedIn() {
 // Film comments have a spoiler mark; it's left out for watchlists and before film-comments.sql has run.
 const COLUMNS = "id, parent_id, user_id, body, created_at, edited_at";
 
-/** Posts a comment on a watchlist (listId) or a film (filmId), after the content check. */
+/** Posts a comment on a watchlist (listId) or a film (filmId), after the banned-word check. */
 export async function postModeratedComment(input: {
   listId?: string; filmId?: string; parentId: string | null; body: string; spoiler?: boolean;
 }): Promise<CommentWriteResult> {
@@ -33,7 +33,7 @@ export async function postModeratedComment(input: {
   const body = String(input.body ?? "").trim();
   if (!body || body.length > 1000) return { ok: false, message: "Comments must be between 1 and 1,000 characters." };
 
-  const moderation = await moderateAndApprove("comment", body, session.user.id);
+  const moderation = await checkText("comment", body);
   if (!moderation.ok) return moderation;
 
   // Existing RLS, block rules, rate limits and the reply-depth trigger still apply.
@@ -43,13 +43,14 @@ export async function postModeratedComment(input: {
   const { data, error } = await session.db.from("list_comments").insert(row)
     .select(film ? `${COLUMNS}, spoiler` : COLUMNS).single<Written>();
 
+  if (bannedWordError(error)) return { ok: false, message: bannedWordError(error)! };
   if (error || !data) return { ok: false, message: error?.message?.includes("very fast")
     ? "You're commenting very fast. Wait a minute and try again."
     : "That didn't go through. Please try again." };
   return { ok: true, comment: data };
 }
 
-/** Edits your own comment's text (and, on a film, its spoiler mark), after the content check. */
+/** Edits your own comment's text (and, on a film, its spoiler mark), after the banned-word check. */
 export async function editModeratedComment(input: { id: string; body: string; spoiler?: boolean }): Promise<CommentWriteResult> {
   const session = await signedIn();
   if (!session) return { ok: false, message: "Sign in to edit this comment." };
@@ -66,9 +67,9 @@ export async function editModeratedComment(input: { id: string; body: string; sp
   const spoilerChanged = film && previous.spoiler !== input.spoiler;
   if (previous.body === body && !spoilerChanged) return { ok: true, comment: previous };
 
-  // Only new text needs the content check; flipping the spoiler mark doesn't.
+  // Only new text needs checking; flipping the spoiler mark doesn't.
   if (previous.body !== body) {
-    const moderation = await moderateAndApprove("comment", body, session.user.id);
+    const moderation = await checkText("comment", body);
     if (!moderation.ok) return moderation;
   }
 
@@ -76,6 +77,7 @@ export async function editModeratedComment(input: { id: string; body: string; sp
     .eq("id", input.id).eq("user_id", session.user.id)
     .select(columns).single<Written>();
 
+  if (bannedWordError(error)) return { ok: false, message: bannedWordError(error)! };
   if (error || !data) return { ok: false, message: "Your comment couldn't be updated. Please try again." };
   return { ok: true, comment: data };
 }

@@ -6,7 +6,7 @@ const SIZE = 50;
 const FIELD: Record<string, string> = { comment: "Comment", bio: "Bio", watchlist_description: "Watchlist description" };
 type Refusal = { id: number; actor_id: string | null; handle: string | null; field: string; excerpt: string; reason: string; created_at: string; total: number };
 
-/** Text the content check refused, kept for 90 days, so you can see what's being blocked and spot repeat attempts. */
+/** Text refused for a banned word (see supabase/banned-words.sql), kept for 90 days, so you can see what's being blocked and spot repeat attempts. */
 export default async function ModerationLog({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
   const { db } = await requireAdmin("/admin/community/moderation");
   const page = pageNumber((await searchParams).page, 2000);
@@ -16,7 +16,7 @@ export default async function ModerationLog({ searchParams }: { searchParams: Pr
 
   return (
     <>
-      <PageHeader title="Refused text" description="Comments, bios and watchlist descriptions the content check stopped before they were posted. Kept for 90 days. Nothing here was published." />
+      <PageHeader title="Refused text" description="Comments, bios and watchlist descriptions stopped for a banned word before they were posted. Kept for 90 days. Nothing here was published." />
       {error ? <p className="notice error">The log couldn&apos;t load. If this keeps happening, run <code>supabase/admin-community.sql</code> in Supabase.</p> : rows.length ? (
         <>
           <p className="muted">{plural(total, "refusal")} in the last 90 days.</p>
@@ -31,7 +31,7 @@ export default async function ModerationLog({ searchParams }: { searchParams: Pr
           </Panel>
           <Pager page={page} total={total} size={SIZE} href={(p) => `/admin/community/moderation?page=${p}`} />
         </>
-      ) : <Empty title="Nothing refused">When the content check stops a comment, bio or description, it appears here.</Empty>}
+      ) : <Empty title="Nothing refused">When someone tries to post a banned word in a comment, bio or description, it appears here.</Empty>}
     </>
   );
 }

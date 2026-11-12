@@ -7,7 +7,7 @@ const exports={};const code=ts.transpileModule(fs.readFileSync('app/me/actions.t
 vm.runInNewContext(code,{exports,FormData,File,Buffer,require:name=>{
  if(name==='node:crypto')return{randomUUID:()=> 'test'};
  if(name==='@/lib/profile-photo')return{};
- if(name==='@/lib/moderation')return{moderateAndApprove:async()=>({ok:true})};
+ if(name==='@/lib/moderation')return{checkText:async()=>({ok:true}),bannedWordError:()=>null};
  if(name==='@/lib/watchlist-links')return watchlistLinks;
  if(name==='@/lib/profile-bio')return bioRules;
  if(name==='@/lib/profile-links')return links;

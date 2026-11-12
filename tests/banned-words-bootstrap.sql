@@ -1,0 +1,20 @@
+-- Just enough of Supabase and the existing schema for supabase/banned-words.sql to run against.
+do $$begin create role anon;exception when duplicate_object then null;end$$;
+do $$begin create role authenticated;exception when duplicate_object then null;end$$;
+create schema if not exists auth;
+grant usage on schema auth to anon, authenticated;
+create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
+grant execute on function auth.uid() to anon, authenticated;
+create schema if not exists private;
+create table private.moderation_refusals(id bigint generated always as identity primary key, actor_id uuid, field text, excerpt text, reason text, created_at timestamptz not null default now());
+create table private.moderation_approvals(id bigint);
+create function public.record_moderation_approval(p_actor uuid, p_field text, p_text text) returns void language sql as $$select$$;
+create function public.require_moderated_content() returns trigger language plpgsql as $$begin raise exception 'This text must be checked before saving.'; end$$;
+create table public.profiles(id uuid primary key, handle text, bio text);
+create table public.lists(id uuid primary key default gen_random_uuid(), user_id uuid, title text, description text);
+create table public.list_comments(id uuid primary key default gen_random_uuid(), user_id uuid, body text, removed_at timestamptz);
+insert into public.profiles(id, handle) values ('00000000-0000-0000-0000-00000000000b', 'ama');
+create trigger require_moderation_comments before insert or update on public.list_comments for each row execute function public.require_moderated_content();
+create trigger require_moderation_profiles before insert or update on public.profiles for each row execute function public.require_moderated_content();
+grant usage on schema public to authenticated;
+grant select, insert, update on public.profiles, public.lists, public.list_comments to authenticated;

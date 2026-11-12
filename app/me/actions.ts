@@ -2,7 +2,7 @@
 
 import { watchlistPath } from "@/lib/watchlist-links";
 import { canUseUnlimitedBio } from "@/lib/profile-bio";
-import { moderateAndApprove } from "@/lib/moderation";
+import { bannedWordError, checkText } from "@/lib/moderation";
 import { socialLink, websiteUrl } from "@/lib/profile-links";
 import { randomUUID } from "node:crypto";
 import { prepareProfilePhoto, avatarObjectPath } from "@/lib/profile-photo";
@@ -43,7 +43,7 @@ export async function updateCollection(_previous: CollectionUpdateState, form: F
   const { data: before, error: readError } = await db.from("lists").select("description").eq("id", id).maybeSingle();
   if (readError || !before) return { ok: false, message: "This collection couldn't be loaded. Try again." };
   if (description && description !== (before.description ?? "")) {
-    const moderation = await moderateAndApprove("watchlist_description", description, user.id);
+    const moderation = await checkText("watchlist_description", description);
     if (!moderation.ok) return moderation;
   }
   const changes: Record<string, unknown> = {
@@ -56,11 +56,12 @@ export async function updateCollection(_previous: CollectionUpdateState, form: F
   if (form.has("has_comments")) changes.comments_enabled = form.get("comments_enabled") === "on";
   let { error } = await db.from("lists").update(changes).eq("id", id);
   // Older databases may not have the comments switch.
-  if (error && error.code !== "231514" && "comments_enabled" in changes) {
+  if (error && error.code !== "23514" && "comments_enabled" in changes) {
     delete changes.comments_enabled;
     ({ error } = await db.from("lists").update(changes).eq("id", id));
   }
-  if (error?.code === "231514") return { ok: false, message: "Please check your description and try again." };
+  if (bannedWordError(error)) return { ok: false, message: bannedWordError(error)! };
+  if (error?.code === "23514") return { ok: false, message: "Please check your description and try again." };
   if (error) return { ok: false, message: "Your collection couldn't be saved. Please try again." };
   revalidatePath("/me");
   revalidatePath(`/c/${id}`);
@@ -98,7 +99,7 @@ export async function updatePublicName(_prev: NameState, form: FormData): Promis
     const bio = String(form.get("bio") ?? "").trim();
     if (bio.length > 150 && !(canUseUnlimitedBio(previous) && handle === "leo")) return { ok: false, message: "Keep your bio to 150 characters or fewer." };
     if (bio && bio !== (previous.bio ?? "")) {
-      const moderation = await moderateAndApprove("bio", bio, user.id);
+      const moderation = await checkText("bio", bio);
       if (!moderation.ok) return moderation;
     }
     changes.bio = bio || null;
@@ -143,8 +144,9 @@ export async function updatePublicName(_prev: NameState, form: FormData): Promis
     const oldPath = avatarObjectPath(previous.avatar_url, prefix);
     if (oldPath) await db.storage.from("avatars").remove([oldPath]);
   }
-  if (error?.code === "231505") return { ok: false, message: `@${handle} is taken. Try another.` };
-  if (error?.code === "231514") return { ok: false, message: `@${handle} isn't available. Try another.` };
+  if (bannedWordError(error)) return { ok: false, message: bannedWordError(error)! };
+  if (error?.code === "23505") return { ok: false, message: `@${handle} is taken. Try another.` };
+  if (error?.code === "23514") return { ok: false, message: `@${handle} isn't available. Try another.` };
   if (error) return { ok: false, message: "That didn't save. Try again." };
   revalidatePath("/me");
   revalidatePath("/account");
