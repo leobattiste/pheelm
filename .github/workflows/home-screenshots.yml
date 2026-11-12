@@ -3,6 +3,8 @@ name: Home page screenshots
 on:
   push:
     branches: [home-screenshots]
+permissions:
+  contents: write
 jobs:
   capture:
     runs-on: ubuntu-latest
@@ -15,7 +17,10 @@ jobs:
       - run: npm ci
       - run: npx playwright-core install --with-deps chromium
       - run: node scripts/capture-home-screenshots.mjs
-      - uses: actions/upload-artifact@v4
-        with:
-          name: home-screenshots
-          path: screenshots/
+      - name: Commit the screenshots to this branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add screenshots
+          git commit -m "Captured home page screenshots [skip ci]"
+          git push
