@@ -108,7 +108,7 @@ export default async function Home() {
       </section>
 
       <div className="home-carousel">
-        <CurvedCarousel bare ariaLabel="Essential films" ink="var(--ink)" slides={slides} />
+        <CurvedCarousel bare bend={0} ariaLabel="Essential films" ink="var(--ink)" slides={slides} />
       </div>
       </div>
 
