@@ -22,6 +22,8 @@ jobs:
       - run: node tests/partnership-inquiry.mjs
       - run: node tests/admin-create-person.mjs
       - run: node tests/admin-import-selected.mjs
+      - run: node tests/admin-permissions.mjs
+      - run: node tests/admin-responsive.mjs
       - run: node tests/bulk-import-grid-browser.mjs
       - run: npm run email:preview
       - run: node scripts/export-auth-emails.mjs

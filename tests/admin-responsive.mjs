@@ -104,7 +104,8 @@ const Inbox = load(resolve(root, 'app/admin/inbox/InboxList.tsx')).default;
 const Message = load(resolve(root, 'app/admin/inbox/message/[id]/page.tsx')).default;
 const Newsletter = load(resolve(root, 'app/admin/inbox/newsletter/page.tsx')).default;
 const PersonEditor = load(resolve(root, 'app/admin/people/[id]/PersonEditor.tsx')).default;
-const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium', headless: true, args: ['--no-sandbox'] });
+const executablePath = process.env.CHROMIUM_PATH || (existsSync('/usr/bin/chromium') ? '/usr/bin/chromium' : undefined);
+const browser = await chromium.launch({ executablePath, headless: true, args: ['--no-sandbox'] });
 const page = await browser.newPage();
 const font = readFileSync(resolve(root, 'app/fonts/Inter-Latin.woff2')).toString('base64');
 const css = readFileSync(resolve(root, 'app/globals.css'), 'utf8') + '\n' + readFileSync(resolve(root, 'app/admin/admin.css'), 'utf8') + `\n@font-face { font-family: FixtureInter; src: url(data:font/woff2;base64,${font}); font-weight: 100 900; } :root { --font-inter: FixtureInter; --font-inter-ext: FixtureInter; }`;
@@ -192,6 +193,14 @@ try {
   await page.setContent(restricted);
   assert(!restricted.includes('curator@example.com'), 'non-owner must not see member email');
   assert.equal(await page.getByRole('button', { name: 'Remove admin', exact: true }).count(), 0, 'non-owner has no role action');
+  pathname = '/admin/inbox/newsletter';
+  const newsletter = renderToStaticMarkup(await Layout({ children: await Newsletter({ searchParams: Promise.resolve({}) }) }));
+  assert(!newsletter.includes('a-reader-with-a-long-address'), 'non-owner must not see subscriber addresses');
+  assert(!newsletter.includes('subscribers.csv'), 'non-owner has no CSV download');
+  pathname = '/admin/members/33333333-3333-3333-3333-333333333333';
+  const member = renderToStaticMarkup(await Layout({ children: await Member({ params: Promise.resolve({ id: '33333333-3333-3333-3333-333333333333' }) }) }));
+  assert(!member.includes('gone@example.com'), 'non-owner must not see a member email');
+  assert(!member.includes('Make admin'), 'non-owner has no role action on a member');
   isOwner = true;
   // Deep links keep both the owning group and its child selected.
   for (const [path, parent] of [['/admin/quality', '/admin/films'], ['/admin/automation', '/admin/films'], ['/admin/submissions', '/admin/community'], ['/admin/activity', '/admin/analytics']]) {
