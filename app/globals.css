@@ -1510,6 +1510,12 @@ h1, h2, .empty-state p:first-of-type, .decades a,
 .composer-foot { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-8); padding: 0 var(--space-8) var(--space-8); }
 .composer-count { margin-right: auto; padding-left: var(--space-8); color: var(--muted); font-size: var(--t-xs); font-variant-numeric: tabular-nums; }
 .composer-count.over { color: var(--error); }
+/* Film comments: the spoiler checkbox, and a hidden spoiler until it's asked for. */
+.composer-spoiler { display: inline-flex; align-items: center; gap: var(--space-8); padding-left: var(--space-8); color: var(--muted); font-size: var(--t-sm); cursor: pointer; }
+.composer-spoiler input { width: 16px; height: 16px; margin: 0; accent-color: var(--ink); }
+.comment-spoiler { color: var(--muted); }
+.comment-spoiler .comment-act { padding: 0; text-decoration: underline; text-underline-offset: 0.2em; }
+.film-comments .comments { margin-top: var(--space-48); padding-top: var(--space-24); border-top: 1px solid var(--line); }
 
 .comments-gate { display: flex; align-items: center; gap: var(--space-12); padding: var(--space-12) var(--space-16); border: 1px dashed var(--control-border-strong); border-radius: var(--r); color: var(--muted); }
 .comments-gate a { color: var(--ink); text-decoration: underline; text-underline-offset: 0.2em; }
@@ -2811,6 +2817,13 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 .profile-about-fields dt { color: var(--muted); font-size: var(--t-sm); margin-bottom: var(--space-8); }
 .profile-about-fields dd { margin: 0; overflow-wrap: anywhere; }
 .profile-about-links { display: flex; align-items: center; gap: var(--space-8); }
+/* Activity: one plain line per thing they did, newest first, each linking to it. */
+.profile-activity { display: grid; gap: var(--space-8); margin: 0; padding: 0; list-style: none; }
+.profile-activity li { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-16); }
+.profile-activity a { min-width: 0; color: var(--muted); text-decoration: none; }
+.profile-activity a:hover .profile-activity-title { text-decoration: underline; text-underline-offset: 0.2em; }
+.profile-activity-title { color: var(--text); }
+.profile-activity time { flex: none; color: var(--muted); font-size: var(--t-sm); font-variant-numeric: tabular-nums; }
 .profile-about-link { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; color: var(--text); }
 .watched-count { border: 0; padding: 0; min-width: 44px; min-height: 44px; text-align: left; background: none; color: var(--text); font: inherit; cursor: pointer; text-decoration: underline; text-underline-offset: 5px; }
 .watched-films-dialog .modal-body { padding-top: var(--space-16); }

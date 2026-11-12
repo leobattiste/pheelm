@@ -19,7 +19,7 @@ export async function GET() {
     db.from("lists").select("title, description, is_public, created_at, list_films(added_at, films(title, year, slug))").eq("user_id", user.id),
     db.from("follows").select("created_at, people(name, slug)").eq("user_id", user.id),
     db.from("list_saves").select("created_at, lists(title, id)").eq("user_id", user.id),
-    db.from("list_comments").select("body, created_at, list_id").eq("user_id", user.id),
+    db.from("list_comments").select("body, created_at, list_id, film_id").eq("user_id", user.id),
     db.from("submissions").select("title, director, year, status, created_at").eq("user_id", user.id),
     db.from("watched").select("watched_at, films(title, year, slug)").eq("user_id", user.id).order("watched_at"),
     db.from("blocks").select("created_at, blocked_id").eq("blocker_id", user.id),

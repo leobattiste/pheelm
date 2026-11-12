@@ -168,6 +168,33 @@ jobs:
       - run: psql -v ON_ERROR_STOP=1 -f supabase/admin-community.sql
       - run: psql -v ON_ERROR_STOP=1 -f tests/admin-community.sql
 
+  film-comments-database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: admin-test-only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: admin-test-only
+    steps:
+      - uses: actions/checkout@v4
+      - run: psql -v ON_ERROR_STOP=1 -f tests/film-comments-bootstrap.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/film-comments.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/film-comments.sql
+      - run: psql -v ON_ERROR_STOP=1 -f tests/film-comments.sql
+
   admin-insights-database:
     runs-on: ubuntu-latest
     timeout-minutes: 5

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { commentPlace } from "@/lib/comments";
 import { requireAdmin } from "@/lib/admin";
 import { removeReportedComment, resolveCommentReport, resolveReport, setListFlag } from "../actions";
 import ConfirmButton from "../ConfirmButton";
@@ -6,14 +7,14 @@ import SubmitButton from "../SubmitButton";
 import { Empty, PageHeader, Panel, Row, dayTime } from "../ui";
 
 type ListReport = { id: string; list_id: string; reason: string; created_at: string; lists: { title: string; hidden: boolean } | null };
-type CommentReport = { id: string; created_at: string; reason: string | null; comment_id: string; list_comments: { id: string; body: string; list_id: string; removed_at: string | null; lists: { title: string } | null } | null };
+type CommentReport = { id: string; created_at: string; reason: string | null; comment_id: string; list_comments: { id: string; body: string; list_id: string | null; film_id: string | null; removed_at: string | null; lists: { title: string } | null; films: { title: string; slug: string } | null } | null };
 
 /** Reports from members about watchlists and comments, to act on or dismiss. */
 export default async function AdminReports() {
   const { db } = await requireAdmin("/admin/community");
   const [lists, comments] = await Promise.all([
     db.from("list_reports").select("id, list_id, reason, created_at, lists(title, hidden)").eq("resolved", false).order("created_at", { ascending: false }),
-    db.from("comment_reports").select("id, created_at, reason, comment_id, list_comments(id, body, list_id, removed_at, lists(title))").eq("resolved", false).order("created_at", { ascending: false }),
+    db.from("comment_reports").select("id, created_at, reason, comment_id, list_comments(id, body, list_id, film_id, removed_at, lists(title), films(title, slug))").eq("resolved", false).order("created_at", { ascending: false }),
   ]);
   const listReports = (lists.data ?? []) as unknown as ListReport[];
   const commentReports = ((comments.data ?? []) as unknown as CommentReport[]).filter((r) => r.list_comments && !r.list_comments.removed_at);
@@ -42,7 +43,7 @@ export default async function AdminReports() {
       {!comments.error && (
         <Panel title={`Comments (${commentReports.length})`} icon="comment">
           {commentReports.length ? commentReports.map((r) => (
-            <Row key={r.id} detail={<>On <Link href={`/c/${r.list_comments!.list_id}#comment-${r.comment_id}`}>{r.list_comments!.lists?.title ?? "a watchlist"}</Link>{r.reason ? ` · “${r.reason}”` : ""} · {dayTime(r.created_at)}</>}
+            <Row key={r.id} detail={<>On <Link href={commentPlace(r.list_comments!).href}>{commentPlace(r.list_comments!).title}</Link>{r.reason ? ` · “${r.reason}”` : ""} · {dayTime(r.created_at)}</>}
               aside={<>
                 <form action={removeReportedComment}><input type="hidden" name="id" value={r.id} /><input type="hidden" name="comment_id" value={r.comment_id} /><ConfirmButton className="button small danger" confirm="Remove?">Remove comment</ConfirmButton></form>
                 {dismiss(resolveCommentReport, r.id)}

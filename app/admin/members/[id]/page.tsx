@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { commentPlace } from "@/lib/comments";
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/admin";
 import { setAdmin } from "../../actions";
@@ -19,7 +20,8 @@ export default async function MemberDetail({ params }: { params: Promise<{ id: s
   if (!person) notFound();
   const [{ data: collections }, { data: comments }, { data: history }] = await Promise.all([
     db.from("lists").select("id,title,is_public,hidden,created_at").eq("user_id", id).order("created_at", { ascending: false }).limit(20),
-    db.from("list_comments").select("id,body,list_id,created_at,removed_at").eq("user_id", id).is("removed_at", null).order("created_at", { ascending: false }).limit(20),
+    db.from("list_comments").select("id,body,list_id,film_id,created_at,removed_at,lists(title),films(title,slug)").eq("user_id", id).is("removed_at", null).order("created_at", { ascending: false }).limit(20)
+      .returns<{ id: string; body: string; list_id: string | null; film_id: string | null; created_at: string; lists: { title: string } | null; films: { title: string; slug: string } | null }[]>(),
     db.from("admin_activity").select("id,action,created_at,details").eq("target_type", "member").eq("target_id", id).order("created_at", { ascending: false }).limit(20),
   ]);
   const name = person.display_name || (person.handle ? `@${person.handle}` : "This member");
@@ -55,7 +57,7 @@ export default async function MemberDetail({ params }: { params: Promise<{ id: s
           </Panel>
           <Panel title="Recent comments" icon="comment">
             {comments?.length ? comments.map((c) => (
-              <Row key={c.id} href={undefined} detail={<Link href={`/c/${c.list_id}#comment-${c.id}`}>{dayTime(c.created_at)}</Link>}
+              <Row key={c.id} href={undefined} detail={<>On <Link href={commentPlace(c).href}>{commentPlace(c).title}</Link> · {dayTime(c.created_at)}</>}
                 aside={<form action={removeComment}><input type="hidden" name="id" value={c.id} /><input type="hidden" name="back" value={`/admin/members/${id}`} /><ConfirmButton confirm="Remove?">Remove</ConfirmButton></form>}>
                 {c.body}
               </Row>

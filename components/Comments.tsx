@@ -11,8 +11,14 @@ import Icon from "@/components/Icon";
 
 type Viewer = { id: string; handle: string | null; name: string | null; avatarUrl?: string | null; isPrivate?: boolean } | null;
 type Props = {
-  listId: string;
-  ownerId: string;
+  /** The watchlist the conversation is on; or filmId for a film. */
+  listId?: string;
+  filmId?: string;
+  /** On a film page: its title, for the prompt. */
+  filmTitle?: string;
+  /** Members who've marked the film watched (and don't keep that private). */
+  watchedIds?: string[];
+  ownerId?: string;
   collaboratorIds?: string[];
   pinnedId?: string | null;
   enabled?: boolean;
@@ -36,6 +42,17 @@ function ago(iso: string, now: number) {
   return d.toLocaleDateString("en-US", { day: "numeric", month: "short", ...(d.getFullYear() !== new Date(now).getFullYear() ? { year: "numeric" } : {}) });
 }
 
+/** A comment marked as containing spoilers stays hidden until the reader asks to see it. */
+function SpoilerBody({ text }: { text: string }) {
+  const [shown, setShown] = useState(false);
+  if (shown) return <Body text={text} />;
+  return (
+    <p className="comment-body comment-spoiler">
+      <button type="button" className="comment-act" onClick={() => setShown(true)}>Contains spoilers. Show comment</button>
+    </p>
+  );
+}
+
 /** The comment's text, with line breaks kept and @handles linked to profiles. */
 function Body({ text }: { text: string }) {
   const parts = text.split(/(@[a-z0-9_]{3,24})\b/gi);
@@ -50,12 +67,15 @@ function Body({ text }: { text: string }) {
 
 /** A text box that grows with what's typed. Cmd/Ctrl+Enter sends; Escape cancels. */
 function Composer({
-  label, placeholder, initial = "", submitLabel, busy, autoFocus, onSubmit, onCancel,
+  label, placeholder, initial = "", submitLabel, busy, autoFocus, onSubmit, onCancel, spoilers = false, initialSpoiler = false,
 }: {
   label: string; placeholder: string; initial?: string; submitLabel: string; busy: boolean; autoFocus?: boolean;
-  onSubmit: (text: string) => Promise<boolean>; onCancel?: () => void;
+  onSubmit: (text: string, spoiler: boolean) => Promise<boolean>; onCancel?: () => void;
+  /** Show the "Contains spoilers" checkbox (film comments). */
+  spoilers?: boolean; initialSpoiler?: boolean;
 }) {
   const [text, setText] = useState(initial);
+  const [spoiler, setSpoiler] = useState(initialSpoiler);
   const box = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -76,7 +96,7 @@ function Composer({
   const ready = text.trim().length > 0 && left >= 0 && !busy;
   const send = async () => {
     if (!ready) return;
-    if (await onSubmit(text.trim())) setText("");
+    if (await onSubmit(text.trim(), spoiler)) { setText(""); setSpoiler(false); }
   };
 
   return (
@@ -96,6 +116,12 @@ function Composer({
         }}
       />
       <div className="composer-foot">
+        {spoilers && (
+          <label className="composer-spoiler">
+            <input type="checkbox" checked={spoiler} onChange={(e) => setSpoiler(e.target.checked)} />
+            Contains spoilers
+          </label>
+        )}
         <span className={`composer-count${left < 0 ? " over" : ""}`} aria-live="polite">{left < 100 ? `${left} left` : ""}</span>
         {onCancel && <button type="button" className="button quiet small" onClick={onCancel}>Cancel</button>}
         <button type="button" className="button small" disabled={!ready} onClick={send}>{busy ? "Posting…" : submitLabel}</button>
@@ -105,13 +131,15 @@ function Composer({
 }
 
 /**
- * The conversation on a member's public collection: comments with one level of replies, likes,
+ * The conversation on a member's public collection or a film: comments with one level of replies, likes,
  * editing and deleting, @mentions, and Top or Newest order. The owner can pin one comment and
  * turn comments off; the owner and collaborators can remove any comment (one with replies stays
  * as "Comment removed" so the thread reads); anyone signed in can report one. Changes show
  * straight away and are saved in the background; if saving fails, the change is undone.
  */
-export default function Comments({ listId, ownerId, collaboratorIds = [], pinnedId = null, enabled = true, initial, viewer }: Props) {
+export default function Comments({ listId, filmId, filmTitle, watchedIds = [], ownerId = "", collaboratorIds = [], pinnedId = null, enabled = true, initial, viewer }: Props) {
+  const isFilm = !!filmId;
+  const watched = useMemo(() => new Set(watchedIds), [watchedIds]);
   const [comments, setComments] = useState<CommentItem[]>(initial);
   const [sort, setSort] = useState<Sort>("top");
   const [replyTo, setReplyTo] = useState<string | null>(null);
@@ -157,11 +185,11 @@ export default function Comments({ listId, ownerId, collaboratorIds = [], pinned
   const reason = (e: { code?: string; message?: string } | null) =>
     e?.message?.includes("very fast") ? "You're commenting very fast. Wait a minute and try again." : "That didn't go through. Check your connection and try again.";
 
-  const post = async (body: string, parentId: string | null) => {
+  const post = async (body: string, parentId: string | null, spoiler = false) => {
     if (!viewer || !me) return false;
     setBusy(true);
     try {
-      const result = await postModeratedComment({ listId, parentId, body });
+      const result = await postModeratedComment(isFilm ? { filmId, parentId, body, spoiler } : { listId, parentId, body });
       if (!result.ok) { fail(result.message); return false; }
       const comment: CommentItem = { ...result.comment, likes: 0, liked: false, author: me };
       setComments((cs) => [...cs, comment]);
@@ -176,13 +204,13 @@ export default function Comments({ listId, ownerId, collaboratorIds = [], pinned
     }
   };
 
-  const save = async (id: string, body: string) => {
+  const save = async (id: string, body: string, spoiler: boolean) => {
     setBusy(true);
     try {
-      const result = await editModeratedComment({ id, body });
+      const result = await editModeratedComment(isFilm ? { id, body, spoiler } : { id, body });
       if (!result.ok) { fail(result.message); return false; }
       setComments((cs) => cs.map((c) =>
-        c.id === id ? { ...c, body: result.comment.body, edited_at: result.comment.edited_at } : c));
+        c.id === id ? { ...c, body: result.comment.body, edited_at: result.comment.edited_at, spoiler: result.comment.spoiler ?? c.spoiler } : c));
       setEditing(null);
       return true;
     } catch {
@@ -215,7 +243,7 @@ export default function Comments({ listId, ownerId, collaboratorIds = [], pinned
 
   const togglePin = async (id: string) => {
     const db = getBrowserClient();
-    if (!db) return;
+    if (!db || !listId) return;
     const next = pinned === id ? null : id;
     const before = pinned;
     setPinned(next);
@@ -229,7 +257,7 @@ export default function Comments({ listId, ownerId, collaboratorIds = [], pinned
     if (!db || !viewer) return;
     setReporting(null);
     setReported((r) => new Set(r).add(id));
-    const { error: e } = await db.from("comment_reports").insert({ comment_id: id, user_id: viewer.id, reason: "Reported from the watchlist page" });
+    const { error: e } = await db.from("comment_reports").insert({ comment_id: id, user_id: viewer.id, reason: isFilm ? "Reported from the film page" : "Reported from the watchlist page" });
     if (e) {
       setReported((r) => { const n = new Set(r); n.delete(id); return n; });
       fail(reason(e));
@@ -276,6 +304,7 @@ export default function Comments({ listId, ownerId, collaboratorIds = [], pinned
             {a && !a.is_private ? <Link href={`/@${a.handle}`} className="comment-name">{name}</Link> : <span className="comment-name">{name}</span>}
             {c.user_id === ownerId && <span className="comment-badge">Owner</span>}
             {c.user_id !== ownerId && crew.has(c.user_id) && <span className="comment-badge">Co-curator</span>}
+            {isFilm && watched.has(c.user_id) && <span className="comment-badge">Watched</span>}
             {isPinned && <span className="comment-pinned">{PIN}Pinned</span>}
             <time className="comment-time" dateTime={c.created_at} title={new Date(c.created_at).toLocaleString()}>{pending ? "Posting…" : ago(c.created_at, now)}</time>
             {c.edited_at && <span className="comment-time">• edited</span>}
@@ -283,7 +312,9 @@ export default function Comments({ listId, ownerId, collaboratorIds = [], pinned
 
           {editing === c.id ? (
             <Composer label={`Edit comment ${c.id}`} placeholder="Edit your comment" initial={c.body} submitLabel="Save" busy={busy} autoFocus
-              onSubmit={(t) => save(c.id, t)} onCancel={() => setEditing(null)} />
+              spoilers={isFilm} initialSpoiler={!!c.spoiler} onSubmit={(t, s) => save(c.id, t, s)} onCancel={() => setEditing(null)} />
+          ) : c.spoiler && !mine ? (
+            <SpoilerBody text={c.body} />
           ) : (
             <Body text={c.body} />
           )}
@@ -345,8 +376,9 @@ export default function Comments({ listId, ownerId, collaboratorIds = [], pinned
       ) : me ? (
         <div className="comment-new">
           <UserAvatar person={me} className="comment-avatar" />
-          <Composer label="Add a comment" placeholder={isOwner ? "Say something about your watchlist" : "Add a comment"} submitLabel="Post" busy={busy}
-            onSubmit={(t) => post(t, null)} />
+          <Composer label="Add a comment" submitLabel="Post" busy={busy} spoilers={isFilm}
+            placeholder={isFilm ? `What did you think of ${filmTitle ?? "this film"}?` : isOwner ? "Say something about your watchlist" : "Add a comment"}
+            onSubmit={(t, s) => post(t, null, s)} />
         </div>
       ) : viewer ? (
         <p className="comments-gate">
@@ -355,7 +387,7 @@ export default function Comments({ listId, ownerId, collaboratorIds = [], pinned
       ) : (
         <button type="button" className="comments-gate as-button" onClick={() => openSignIn()}>
           <span className="comment-avatar" aria-hidden="true">?</span>
-          <span>Sign in to join the conversation</span>
+          <span>{isFilm ? "Sign in to say what you thought" : "Sign in to join the conversation"}</span>
         </button>
       )}
 
@@ -383,8 +415,8 @@ export default function Comments({ listId, ownerId, collaboratorIds = [], pinned
                       <li className="comment-new is-reply">
                         <UserAvatar person={me} className="comment-avatar" />
                         <Composer label={`Reply to ${c.id}`} placeholder={`Reply to ${c.author?.display_name || "this comment"}`} submitLabel="Reply" busy={busy} autoFocus
-                          initial={c.author && c.user_id !== viewer?.id ? `@${c.author.handle} ` : ""}
-                          onSubmit={(t) => post(t, c.id)} onCancel={() => setReplyTo(null)} />
+                          initial={c.author && c.user_id !== viewer?.id ? `@${c.author.handle} ` : ""} spoilers={isFilm}
+                          onSubmit={(t, s) => post(t, c.id, s)} onCancel={() => setReplyTo(null)} />
                       </li>
                     )}
                   </ol>
@@ -394,7 +426,7 @@ export default function Comments({ listId, ownerId, collaboratorIds = [], pinned
           })}
         </ol>
       ) : (
-        <p className="comments-empty">No comments yet. Start the conversation.</p>
+        <p className="comments-empty">{isFilm ? "No comments yet. Seen it? Say what you thought." : "No comments yet. Start the conversation."}</p>
       )}
     </section>
   );

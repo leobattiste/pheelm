@@ -27,7 +27,8 @@ function when(iso: string) {
 /** One notification as a sentence: who, what, which collection. */
 function Line({ n }: { n: Notification }) {
   const who = n.actor ? <strong>{n.actor.display_name || `@${n.actor.handle}`}</strong> : <strong>Someone</strong>;
-  const list = n.list ? <strong>{n.list.title}</strong> : "a watchlist";
+  // Comments on a film carry the film instead of a watchlist.
+  const list = n.list ? <strong>{n.list.title}</strong> : n.film && n.comment ? <strong>{n.film.title}</strong> : "a watchlist";
   const quote = n.comment ? <span className="notif-quote">&ldquo;{n.comment.body.length > 140 ? `${n.comment.body.slice(0, 140)}…` : n.comment.body}&rdquo;</span> : null;
   switch (n.type) {
     case "invite": return <>{who} invited you to co-curate {list}</>;
@@ -57,6 +58,7 @@ function href(n: Notification) {
   if (n.type === "message") return n.ref ? `/admin/inbox/message/${n.ref}` : "/admin/inbox";
   if (n.type === "new_member") return n.actor ? `/@${n.actor.handle}` : "/admin/members";
   if (n.type === "new_film" || n.type === "collection_film") return n.film ? `/films/${n.film.slug}` : null;
+  if (n.film && !n.list && n.comment) return `/films/${n.film.slug}#comment-${n.comment.id}`;
   if (!n.list || n.type === "removed") return null;
   if (n.comment) return `${watchlistPath(n.list)}#comment-${n.comment.id}`;
   if (n.type === "request") return `${watchlistPath(n.list)}?people`;

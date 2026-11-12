@@ -6,6 +6,7 @@ import Icon from '@/components/Icon';
 import {getProfileCollections,getProfileCollaborations,getProfileDirectorCards,getProfileFilmCards} from '@/lib/profile-data';
 import type {SupabaseClient} from '@supabase/supabase-js';
 import type {Member} from '@/lib/community';
+import {getProfileActivity} from '@/lib/profile-activity';
 
 type ProfileProps={member:Member;own:boolean;db:SupabaseClient|null};
 
@@ -35,14 +36,16 @@ export async function ProfileFollowing({member,own,db}:ProfileProps) {
 }
 
 export async function ProfileDetails({member,own,db}:ProfileProps) {
+ // Activity loads alongside the watched films; if it fails the field is left out.
+ const activity=getProfileActivity(db,member.id).catch(error=>{console.error('Profile activity failed to load.',error instanceof Error?error.message:'Unknown error');return null;});
  try{
-  if(!db)return <ProfileAbout member={member} watched={null}/>;
-  if(!own){const {data,error}=await db.rpc('shows_watched',{uid:member.id});if(error)return <ProfileAbout member={member} watched={null}/>;if(!data)return <ProfileAbout member={member} watched={null} watchedHidden/>;}
+  if(!db)return <ProfileAbout member={member} watched={null} activity={await activity}/>;
+  if(!own){const {data,error}=await db.rpc('shows_watched',{uid:member.id});if(error)return <ProfileAbout member={member} watched={null} activity={await activity}/>;if(!data)return <ProfileAbout member={member} watched={null} watchedHidden activity={await activity}/>;}
   const {data,error}=await db.from('watched').select('film_id').eq('user_id',member.id).order('watched_at',{ascending:false});
-  if(error)return <ProfileAbout member={member} watched={null}/>;
+  if(error)return <ProfileAbout member={member} watched={null} activity={await activity}/>;
   const watched=await getProfileFilmCards((data??[]).map(row=>row.film_id));
-  return <ProfileAbout member={member} watched={watched}/>;
- }catch(error){console.error('Profile watched films failed to load.',error instanceof Error?error.message:'Unknown error');return <ProfileAbout member={member} watched={null}/>;}
+  return <ProfileAbout member={member} watched={watched} activity={await activity}/>;
+ }catch(error){console.error('Profile watched films failed to load.',error instanceof Error?error.message:'Unknown error');return <ProfileAbout member={member} watched={null} activity={await activity}/>;}
 }
 
 export async function ProfileBlockAction({member,viewerId,db}:{member:Member;viewerId:string;db:SupabaseClient|null}) {

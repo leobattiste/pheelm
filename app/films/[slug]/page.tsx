@@ -14,6 +14,7 @@ import FilmMenu from "@/components/FilmMenu";
 import TrailerButton from "@/components/TrailerButton";
 import WatchSection from "@/components/WatchSection";
 import WatchlistButton from "@/components/WatchlistButton";
+import FilmComments from "@/components/FilmComments";
 import { getCommunityCollections } from "@/lib/community";
 import { getDirectors, getFilm, getFilms, toCard } from "@/lib/data";
 import { personInfo, roleLabel, sentence } from "@/lib/roles";
@@ -270,10 +271,13 @@ export default async function FilmPage({ params }: Params) {
             <WatchSection watch={film.watch} title={film.title} slug={film.slug} />
           </section>
 
+          {/* 6. What members thought. */}
+          <FilmComments filmId={film.id} filmTitle={film.title} />
+
         </div>
       </article>
 
-      {/* 6. Keep exploring. */}
+      {/* 7. Keep exploring. */}
       {community.length > 0 && (
         <section className="related" aria-labelledby="in-collections-h">
           <div className="section-head">
