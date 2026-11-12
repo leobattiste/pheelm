@@ -20,6 +20,7 @@ vm.runInNewContext(compile('app/[member]/ProfilePanels.tsx'),{exports:panels,con
  if(name==='react/jsx-runtime')return requireJsx;
  if(name==='@/lib/profile-data')return{getProfileFilmCards:async()=>{cardReads++;return[];},getProfileDirectorCards:async()=>{cardReads++;return[];}};
  if(name==='@/components/ProfileAbout')return{default:about};
+ if(name==='@/lib/profile-activity')return{getProfileActivity:async()=>[]};
  return{default:()=>null};
 }});
 const privateDb={rpc:async()=>({data:false,error:null}),from:()=>{activityReads++;throw Error('Private activity must not be queried');}};
@@ -45,3 +46,22 @@ const pageExports={};vm.runInNewContext(compile('app/[member]/page.tsx'),{export
 const privatePage=renderToStaticMarkup(await pageExports.default({params:Promise.resolve({member:'@member'})}));assert.match(privatePage,/This profile is private/);assert.equal(privatePage.includes('PRIVATE BIO'),false);
 viewer={id:'member'};await pageExports.default({params:Promise.resolve({member:'@member'})});assert.equal(hiddenMember.display_name,null,'owner rendering must not mutate the object shared with metadata');assert.equal(hiddenMember.bio,'PRIVATE BIO');
 console.log('PASS: private profiles reveal no details to visitors and owner rendering does not mutate shared metadata.');
+
+// Activity: newest first across watchlists, comments, watched films and follows; comments on
+// something the visitor can't see (it comes back without its film or watchlist) are left out.
+const activityRows={
+ lists:[{id:'l1',slug:'black-futures',title:'Black Futures',created_at:'2026-11-03'}],
+ list_comments:[{id:'c1',list_id:null,film_id:'f1',created_at:'2026-11-05',lists:null,films:{title:'Atlantics',slug:'atlantics'}},{id:'c2',list_id:'hidden',film_id:null,created_at:'2026-11-06',lists:null,films:null}],
+ watched:[{film_id:'f2',watched_at:'2026-11-04',films:{title:'Moonlight',slug:'moonlight'}}],
+ follows:[{person_id:'p1',created_at:'2026-11-01',people:{name:'Mati Diop',slug:'mati-diop',in_directory:true}}],
+};
+const activityDb={from(table){const b={select(){return b;},eq(){return b;},is(){return b;},order(){return b;},limit(){return b;},then(ok,no){return Promise.resolve({data:activityRows[table]??[],error:null}).then(ok,no);}};return b;}};
+const activityLib={},commentsLib={},linksLib={};
+vm.runInNewContext(compile('lib/watchlist-links.ts'),{exports:linksLib});
+vm.runInNewContext(compile('lib/comments.ts'),{exports:commentsLib,require:()=>({})});
+vm.runInNewContext(compile('lib/profile-activity.ts'),{exports:activityLib,require:name=>name==='./comments'?commentsLib:name==='./watchlist-links'?linksLib:{}});
+const activity=await activityLib.getProfileActivity(activityDb,'member');
+assert.deepEqual(Array.from(activity,a=>`${a.verb} ${a.title}`),['Commented on Atlantics','Watched Moonlight','Created Black Futures','Followed Mati Diop']);
+assert.equal(activity[0].href,'/films/atlantics#comment-c1');assert.equal(activity[3].href,'/directors/mati-diop');
+assert.equal((await activityLib.getProfileActivity(null,'member')).length,0);
+console.log('PASS: profile activity is newest first, links to each thing, and leaves out comments the visitor cannot see.');
