@@ -33,7 +33,7 @@ revoke all on private.banned_words from public, anon, authenticated;
 -- Each word, what kind it is, and what to write instead (when there's a natural alternative).
 insert into private.banned_words (word, kind, instead) values
   ('fuck', 'swearing', 'f-word'), ('motherfuck', 'swearing', 'f-word'), ('motherfucker', 'swearing', 'f-word'),
-  ('shit', 'swearing', 'crap'), ('bullshit', 'swearing', 'nonsense'), ('bitch', 'swearing', 'b-word'),
+  ('bitch', 'swearing', 'b-word'),
   ('asshole', 'swearing', 'jerk'), ('dickhead', 'swearing', 'jerk'), ('wanker', 'swearing', 'jerk'), ('twat', 'swearing', 'jerk'),
   ('cunt', 'swearing', 'c-word'), ('cocksucker', 'swearing', null),
   ('whore', 'sexist', null), ('slut', 'sexist', null),
@@ -49,6 +49,8 @@ insert into private.banned_words (word, kind, instead) values
   ('tranny', 'transphobic', null), ('shemale', 'transphobic', null),
   ('retard', 'ableist', 'r-word'), ('spaz', 'ableist', null)
 on conflict (word) do update set kind = excluded.kind, instead = excluded.instead;
+-- Mild enough to allow.
+delete from private.banned_words where word in ('shit', 'bullshit');
 
 -- Text as it's compared: lower case, look-alike characters swapped, letters split by punctuation joined.
 create or replace function private.words_for_matching(t text) returns text
