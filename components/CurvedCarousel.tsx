@@ -84,7 +84,6 @@ const VERT =
   "varying vec2 vUv;varying float vX;" +
   "void main(){" +
   "vec2 p=vec2(uX+(aPos.x-.5)*uSize.x,(aPos.y-.5)*uSize.y);" +
-  "p.y-=(1.-uIntro)*uSize.y*.9;" +
   "vec2 n=p/(uRes*.5);" +
   "float x=clamp(n.x,-1.4,1.4);" +
   "n.y*=1.+uBend*x*x;" +
