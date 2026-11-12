@@ -3,10 +3,8 @@ import type { Metadata } from "next";
 import EarlyAccessButton, { EarlyAccessGate } from "@/components/EarlyAccessButton";
 import CurvedCarousel from "@/components/CurvedCarousel";
 import Icon from "@/components/Icon";
-import FeatureShowcase from "@/components/home/FeatureShowcase";
-import { DirectorBio, DirectorDirectory, DirectorFilms, FilmAbout, FilmFeed, FilmSearch, MemberCommunity, MemberConversation, MemberProfile, WatchlistCollaboration, WatchlistCollection, WatchlistFollowing } from "@/components/home/screens";
-import { getCommunityCollections, getMember } from "@/lib/community";
-import { getDirectors, getFilms, toCard } from "@/lib/data";
+import FeatureSection from "@/components/home/FeatureSection";
+import { getFilms, toCard } from "@/lib/data";
 import { PAGE_COPY, SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
 import { SITE_URL } from "@/lib/supabase/config";
 
@@ -31,20 +29,36 @@ const ICONIC = [
   "daughters-of-the-dust", "selma", "malcolm-x", "us", "nope", "love-and-basketball", "fruitvale-station",
 ];
 
-const FAMOUS = [
-  "spike-lee", "ryan-coogler", "jordan-peele", "barry-jenkins", "ava-duvernay", "steve-mcqueen", "john-singleton",
-  "julie-dash", "gina-prince-bythewood", "kasi-lemmons", "dee-rees", "ousmane-sembene", "melvin-van-peebles", "gordon-parks",
-];
-
-// The Members section shows what a conversation looks like. These are samples, not real members;
-// the preview is labelled "Example".
-const SAMPLE_COMMENTS = [
-  { handle: "amara", name: "Amara", when: "2 days ago", likes: 12,
-    body: "Seeing Black Girl next to Borom Sarret makes so much sense. Sembène was building a whole language for African cinema.",
-    replies: [{ handle: "leo", name: "Leo", when: "2 days ago", likes: 5, leo: true, body: "@amara Exactly why they open the list. Touki Bouki is next on my rewatch." }] },
-  { handle: "kwame", name: "Kwame", when: "Yesterday", likes: 4,
-    body: "Never heard of Sambizanga before this. Where can I watch it?",
-    replies: [{ handle: "nia", name: "Nia", when: "Yesterday", likes: 3, body: "@kwame Open the film and check Where to watch for your region." }] },
+// The four parts of Pheelm, each with a screenshot of its real page (public/home).
+const FEATURES = [
+  { id: "films", shot: "films", title: "Films", intro: "Discover films by Black directors from around the world.",
+    alt: "The Films page: a search bar, filters and a grid of film posters.",
+    features: [
+      { icon: "film" as const, title: "Feed", text: "Discover feature films across genres, generations, and styles." },
+      { icon: "filter" as const, title: "Search & Filter", text: "Find films by type, genre, country, decade, and other details." },
+      { icon: "clapperboard" as const, title: "About", text: "Explore synopses, cast and crew, trailers, and where to watch." },
+    ] },
+  { id: "directors", shot: "directors", title: "Directors", intro: "Learn more about the people behind your favorite films.",
+    alt: "The Directors page: cards for directors such as Spike Lee, Charles Burnett and Ousmane Sembène, each with posters of their films.",
+    features: [
+      { icon: "users2" as const, title: "Directory", text: "Discover Black filmmakers from around the world." },
+      { icon: "user" as const, title: "Biography", text: "Learn about their backgrounds, careers, and contributions to cinema." },
+      { icon: "film" as const, title: "Filmography", text: "Explore their films and creative work." },
+    ] },
+  { id: "watchlists", shot: "watchlists", title: "Watchlists", intro: "Create and share your own watchlists, or explore watchlists made by the community.",
+    alt: "The Watchlists page: community watchlists such as The Birth of African Cinema and Nollywood, each with three posters.",
+    features: [
+      { icon: "stack" as const, title: "Collection", text: "Organize films into personalized watchlists." },
+      { icon: "bookmark" as const, title: "Following", text: "Discover and follow watchlists created by other film enthusiasts." },
+      { icon: "userPlus" as const, title: "Collaboration", text: "Create watchlists together with other members." },
+    ] },
+  { id: "members", shot: "members", title: "Members", intro: "Create your profile, share your love for cinema, and connect with other film enthusiasts.",
+    alt: "Leo's profile on Pheelm: his photo, name and handle, and his watchlists.",
+    features: [
+      { icon: "userCircle" as const, title: "Profile", text: "Create a personal profile and share your interests with the community." },
+      { icon: "users" as const, title: "Community", text: "Connect with other film enthusiasts who share your passion for cinema." },
+      { icon: "comment" as const, title: "Conversation", text: "Share your thoughts, reply to comments, and join discussions about films." },
+    ] },
 ];
 
 /**
@@ -53,9 +67,7 @@ const SAMPLE_COMMENTS = [
  * early access, every film, director and collection on it opens the sign-up sheet.
  */
 export default async function Home() {
-  const [films, directors, collections] = await Promise.all([
-    getFilms(), getDirectors(), getCommunityCollections(),
-  ]);
+  const films = await getFilms();
 
   // The hero row: iconic films, in this order. Any that aren't in the catalog are skipped.
   const bySlug = new Map(films.map((f) => [f.slug, f]));
@@ -64,23 +76,6 @@ export default async function Home() {
     const c = toCard(f);
     return c.poster_url ? [{ title: c.title, kicker: `${c.directors.join(" and ")} • ${c.year}`, image: c.poster_url.replace("/w500/", "/w780/"), alt: `Poster for ${c.title}` }] : [];
   });
-  const dirBySlug = new Map(directors.map((d) => [d.slug, d]));
-  const toKnow = FAMOUS.map((slug) => dirBySlug.get(slug)).filter((d) => !!d);
-  const withPoster = films.filter((f) => f.poster_url);
-
-  // Films: a feed of well-known films, a real search with filters, and one film's page.
-  const feed = [...essential, ...withPoster.filter((f) => f.featured && !essential.includes(f))].filter((f) => f.poster_url).slice(0, 18);
-  const searched = withPoster.filter((f) => f.type === "feature" && f.genres.includes("Drama") && f.year >= 2010 && f.year < 2020);
-  const about = bySlug.get("moonlight") ?? essential[0];
-  // Directors: the directory, and one director's biography and films.
-  const featured = dirBySlug.get("ryan-coogler") ?? toKnow[0];
-  // Watchlists and members: Leo's profile and public watchlists, and the community's.
-  const leo = await getMember("leo").catch(() => null);
-  const leoLists = (leo?.collections ?? []).filter((c) => c.films.length >= 3);
-  const showcaseList = leoLists.find((c) => c.title === "New Black Cinema") ?? collections.find((c) => c.films.length >= 6);
-  const collabList = leoLists.find((c) => c.title === "The L.A. Rebellion") ?? showcaseList;
-  const conversationList = leoLists.find((c) => c.title === "The Birth of African Cinema") ?? showcaseList;
-
   // For search engines: the site, with a search box that opens the Films page's search.
   const jsonLd = {
     "@context": "https://schema.org",
@@ -117,79 +112,11 @@ export default async function Home() {
       </div>
       </div>
 
-      <div className="home-block">
-      <section className="statement" aria-labelledby="films-title">
-        <div className="statement-body">
-          <h2 id="films-title">Films</h2>
-          <p>Discover films by Black directors from around the world.</p>
+      {FEATURES.map((f) => (
+        <div className="home-block" key={f.id}>
+          <FeatureSection {...f} />
         </div>
-      </section>
-      <FeatureShowcase label="Films" features={[
-        { title: "Feed", icon: "film", path: "/films", text: "Discover feature films across genres, generations, and styles.",
-          screen: <FilmFeed films={feed} total={films.length} /> },
-        { title: "Search & Filter", icon: "filter", path: "/films?type=feature&genre=Drama&decade=2010s", text: "Find films by type, genre, country, decade, and other details.",
-          screen: <FilmSearch films={searched.slice(0, 18)} count={searched.length} chips={["Feature", "Drama", "2010s"]} /> },
-        ...(about ? [{ title: "About", icon: "clapperboard" as const, path: `/films/${about.slug}`, text: "Explore synopses, cast and crew, trailers, and where to watch.",
-          screen: <FilmAbout film={about} /> }] : []),
-      ]} />
-      </div>
-
-      <div className="home-block">
-      <section className="statement" aria-labelledby="directors-title">
-        <div className="statement-body">
-          <h2 id="directors-title">Directors</h2>
-          <p>Learn more about the people behind your favorite films.</p>
-        </div>
-      </section>
-      <FeatureShowcase label="Directors" features={[
-        { title: "Directory", icon: "users2", path: "/directors", text: "Discover Black filmmakers from around the world.",
-          screen: <DirectorDirectory directors={toKnow.slice(0, 12)} total={directors.length} /> },
-        ...(featured ? [
-          { title: "Biography", icon: "user" as const, path: `/directors/${featured.slug}`, text: "Learn about their backgrounds, careers, and contributions to cinema.",
-            screen: <DirectorBio director={featured} /> },
-          { title: "Filmography", icon: "film" as const, path: `/directors/${featured.slug}`, text: "Explore their films and creative work.",
-            screen: <DirectorFilms director={featured} /> },
-        ] : []),
-      ]} />
-      </div>
-
-      {showcaseList && (
-      <div className="home-block">
-      <section className="statement" aria-labelledby="watchlists-title">
-        <div className="statement-body">
-          <h2 id="watchlists-title">Watchlists</h2>
-          <p>Create and share your own watchlists, or explore watchlists made by the community.</p>
-        </div>
-      </section>
-      <FeatureShowcase label="Watchlists" features={[
-        { title: "Collection", icon: "stack", path: `/c/${showcaseList.id}`, text: "Organize films into personalized watchlists.",
-          screen: <WatchlistCollection list={showcaseList} /> },
-        { title: "Following", icon: "bookmark", path: "/watchlists", text: "Discover and follow watchlists created by other film enthusiasts.",
-          screen: <WatchlistFollowing lists={collections.filter((c) => c.films.length >= 3).slice(0, 9)} /> },
-        ...(collabList ? [{ title: "Collaboration", icon: "userPlus" as const, path: `/c/${collabList.id}`, text: "Create watchlists together with other members.",
-          screen: <WatchlistCollaboration list={collabList} owner={leo?.member ?? null} /> }] : []),
-      ]} />
-      </div>
-      )}
-
-      {leo && (
-      <div className="home-block">
-      <section className="statement" aria-labelledby="members-title">
-        <div className="statement-body">
-          <h2 id="members-title">Members</h2>
-          <p>Create your profile, share your love for cinema, and connect with other film enthusiasts.</p>
-        </div>
-      </section>
-      <FeatureShowcase label="Members" features={[
-        { title: "Profile", icon: "userCircle", path: `/@${leo.member.handle}`, text: "Create a personal profile and share your interests with the community.",
-          screen: <MemberProfile member={leo.member} lists={leoLists.slice(0, 9)} /> },
-        { title: "Community", icon: "users", path: `/@${leo.member.handle}`, text: "Connect with other film enthusiasts who share your passion for cinema.",
-          screen: <MemberCommunity member={leo.member} directors={toKnow.slice(0, 4)} lists={leoLists.slice(0, 6)} /> },
-        ...(conversationList ? [{ title: "Conversation", icon: "comment" as const, path: `/c/${conversationList.id}`, example: true, text: "Share your thoughts, reply to comments, and join discussions about films.",
-          screen: <MemberConversation list={conversationList} leo={leo.member} comments={SAMPLE_COMMENTS} /> }] : []),
-      ]} />
-      </div>
-      )}
+      ))}
       </EarlyAccessGate>
 
       <div className="home-block">

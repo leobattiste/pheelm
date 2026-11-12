@@ -1,0 +1,26 @@
+name: Home page screenshots
+# One-off: captures the live pages for the home page. Runs only on the home-screenshots branch.
+on:
+  push:
+    branches: [home-screenshots]
+permissions:
+  contents: write
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci
+      - run: npx playwright-core install --with-deps chromium
+      - run: node scripts/capture-home-screenshots.mjs
+      - name: Commit the screenshots to this branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add screenshots
+          git commit -m "Captured home page screenshots [skip ci]"
+          git push

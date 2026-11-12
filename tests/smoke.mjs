@@ -23,17 +23,15 @@ const page = await (await browser.newContext({ viewport: { width: 390, height: 8
 const errors = [];
 page.on("pageerror", (e) => errors.push(e.message));
 
-await check("home shows the hero, the feature previews and the questions", async () => {
+await check("home shows the hero, the four feature sections and the questions", async () => {
   const res = await page.goto(BASE + "/", { waitUntil: "networkidle" });
   expect(res?.ok(), `status ${res?.status()}`);
   expect(await page.isVisible("h1"), "no heading");
-  // Films and Directors always show; Watchlists and Members need the database.
-  expect((await page.$$(".showcase")).length >= 2, "no feature previews");
-  expect((await page.$$(".showcase .director-card")).length > 0, "no directors in the preview");
-  expect((await page.$$(".showcase a")).length === 0, "the previews should not link anywhere");
-  const second = page.locator(".showcase").first().locator("[role=tab]").nth(1);
-  await second.click();
-  expect(await second.getAttribute("aria-selected") === "true", "choosing a feature doesn't select it");
+  expect((await page.$$(".home-feature")).length === 4, "expected four feature sections");
+  expect((await page.$$(".home-feature-item")).length === 12, "expected three features in each section");
+  expect((await page.$$(".home-feature a")).length === 0, "the feature sections should not link anywhere");
+  const shots = await page.$$eval(".home-feature-shot img", (imgs) => imgs.map((img) => img.getAttribute("src")));
+  for (const src of shots) expect((await page.request.get(BASE + src)).ok(), `missing screenshot ${src}`);
   expect((await page.$$(".faq-card")).length > 0, "no questions");
 });
 
