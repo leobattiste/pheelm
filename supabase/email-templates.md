@@ -1,5 +1,20 @@
 # Pheelm authentication emails
 
+## Passwords (Authentication settings)
+
+Pheelm signs in with **email and password**, confirmed by a six-digit code. Code sign-in stays
+available, and members without a password are asked to choose one.
+
+In **Supabase → Authentication**:
+
+- **Providers → Email:** Email provider on, **Confirm email** on, minimum password length **8**.
+  Turn on **Prevent use of leaked passwords** if your plan includes it.
+- **Emails → Reset password:** paste `supabase/email/reset-password.html`, subject `Reset your Pheelm password`.
+  It must contain `{{ .Token }}`: the app asks for the six-digit code.
+- **Emails → Confirm signup:** paste `supabase/email/confirm-signup.html` (it contains the code too).
+- **Rate limits:** keep the defaults or tighter; they also limit password guessing.
+
+
 Paste these templates in **Supabase → Authentication → Email Templates**. The magic link and
 six-digit code should both be offered in the same email. Use the **actual live
 URL** in **Authentication → URL Configuration → Site URL**, and allow the live

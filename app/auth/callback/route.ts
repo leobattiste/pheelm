@@ -2,6 +2,7 @@ import { safeInternalPath } from "@/lib/safe-navigation";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { needsPassword } from "@/lib/password";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseEnabled } from "@/lib/supabase/config";
 
 export const dynamic = "force-dynamic";
@@ -51,16 +52,29 @@ export async function GET(request: NextRequest) {
   const code = url.searchParams.get("code");
 
   let error: { message: string } | null;
+  let user: Parameters<typeof needsPassword>[0] = null;
   if (tokenHash && type && OTP_TYPES.has(type as EmailOtpType)) {
-    ({ error } = await db.auth.verifyOtp({ token_hash: tokenHash, type: type as EmailOtpType }));
+    let data;
+    ({ data, error } = await db.auth.verifyOtp({ token_hash: tokenHash, type: type as EmailOtpType }));
+    user = data?.user ?? null;
   } else if (code) {
-    ({ error } = await db.auth.exchangeCodeForSession(code));
+    let data;
+    ({ data, error } = await db.auth.exchangeCodeForSession(code));
+    user = data?.user ?? null;
     if (error && /verifier|code challenge/i.test(error.message)) return fail("browser");
   } else {
     return fail("link");
   }
 
   if (error) return fail(/expired|invalid/i.test(error.message) ? "expired" : "link");
+  // A reset link, or a member without a password, goes on to choose one before carrying on.
+  if (type === "recovery" || needsPassword(user)) {
+    const to = new URL("/login", url.origin);
+    to.searchParams.set("step", "new-password");
+    if (type === "recovery") to.searchParams.set("reason", "reset");
+    to.searchParams.set("next", next);
+    response.headers.set("Location", to.toString());
+  }
   response.cookies.delete("signin_next");
   return response;
 }

@@ -3122,3 +3122,10 @@ html:has(.early-gate) { scroll-snap-type: y proximity; }
 .details > .details-wide { grid-column: 1 / -1; }
 .about-awards { display: grid; gap: var(--space-8); }
 .about-awards .award-name { font-size: inherit; }
+
+/* Sign-in: a password with its Show button, and the small links under the form. */
+.password-field { position: relative; display: block; }
+.password-field input { width: 100%; padding-right: 64px; }
+.password-field .link-button { position: absolute; right: var(--space-12); top: 50%; transform: translateY(-50%); text-decoration: none; }
+.field-hint { color: var(--muted); font-size: var(--t-xs); font-weight: 400; }
+.signin-links { display: flex; flex-wrap: wrap; gap: var(--space-8) var(--space-16); }

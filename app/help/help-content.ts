@@ -429,13 +429,13 @@ export const HELP_CATEGORIES: HelpCategory[] = [
       {
         "id": "account-and-settings-1",
         "question": "How do I sign in?",
-        "answer": "Choose Sign in and enter your email. Pheelm sends a link or code; use it to complete sign-in. You do not need a password.",
+        "answer": "Choose Sign in and enter your email and password. You can also choose Email me a code instead and enter the six-digit code we send you.",
         "href": "/login"
       },
       {
         "id": "account-and-settings-2",
         "question": "Do I need to set a password?",
-        "answer": "No. Pheelm uses a sign-in link or code sent to your email address.",
+        "answer": "Yes. New accounts choose a password and confirm their email with a six-digit code. If you joined before passwords, you'll be asked to choose one the next time you sign in with a code. You can change it in Settings → Account → Password.",
         "href": "/login"
       },
       {
@@ -446,8 +446,8 @@ export const HELP_CATEGORIES: HelpCategory[] = [
       },
       {
         "id": "account-and-settings-4",
-        "question": "My sign-in link expired. What do I do?",
-        "answer": "Return to Sign in and request a new email link or code.",
+        "question": "I forgot my password. What do I do?",
+        "answer": "On Sign in, choose Forgot password? and enter your email. Enter the six-digit code we send you, then choose a new password. Codes expire, so use the latest email.",
         "href": "/login"
       },
       {

@@ -11,6 +11,8 @@ import ThemeToggle from "@/components/ThemeToggle";
 import { getServerClient } from "@/lib/supabase/server";
 import { DeleteAccount, SignOutEverywhere } from "./AccountActions";
 import EmailForm from "./EmailForm";
+import PasswordForm from "./PasswordForm";
+import { needsPassword } from "@/lib/password";
 import PrivacyForm from "./PrivacyForm";
 import ProfileForm from "./ProfileForm";
 import NotificationPreferences from "./NotificationPreferences";
@@ -81,8 +83,12 @@ export default async function AccountPage() {
         <div className="account-panel">
           <section className="account-section" aria-labelledby="signin-h">
             <h2 id="signin-h">Sign-in email</h2>
-            <p className="muted">You sign in with a link or code sent to this address. No password needed.</p>
+            <p className="muted">You sign in with this address and your password, or a code we email to it.</p>
             <EmailForm email={user.email ?? ""} />
+          </section>
+          <section className="account-section" aria-labelledby="password-h">
+            <h2 id="password-h">Password</h2>
+            <PasswordForm hasPassword={!needsPassword(user)} />
           </section>
           <section className="account-section" aria-labelledby="signout-h">
             <h2 id="signout-h">Sign out</h2>
