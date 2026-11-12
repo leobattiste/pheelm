@@ -1,0 +1,21 @@
+name: Home page screenshots
+# One-off: captures the live pages for the home page. Runs only on the home-screenshots branch.
+on:
+  push:
+    branches: [home-screenshots]
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci
+      - run: npx playwright-core install --with-deps chromium
+      - run: node scripts/capture-home-screenshots.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: home-screenshots
+          path: screenshots/
