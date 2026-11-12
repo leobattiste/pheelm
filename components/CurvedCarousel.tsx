@@ -28,6 +28,8 @@ export type CurvedLensCarouselProps = {
   bare?: boolean
   /** How hard the lens bends the outer cards. 0 is flat. */
   bend?: number
+  /** Drift speed in cards per second. 0 or unset keeps the carousel still until moved. Pauses while hovered or dragged, and with reduced motion. */
+  auto?: number
   /** Stage colour behind the cards. */
   background?: string
   /** Text colour on the stage. */
@@ -220,6 +222,7 @@ export default function CurvedLensCarousel({
   ariaLabel,
   bare,
   bend = 0.55,
+  auto = 0,
   background = "transparent",
   ink = "#f3ede4",
   height = "100svh",
@@ -307,6 +310,8 @@ export default function CurvedLensCarousel({
     let introStart = -1
     let dragging = false, dragX = 0, dragPos = 0, lastX = 0, lastT = 0, flick = 0
     let raf = 0, last = 0, visible = true, current = 0
+    let hovering = false, pausedUntil = 0
+    const drifting = () => auto > 0 && !reduced.matches
 
     const resize = (w: number, h: number) => {
       W = Math.max(1, w)
@@ -355,6 +360,7 @@ export default function CurvedLensCarousel({
         intro = Math.min(1.5, (now - introStart) / 1100)
         if (intro >= 1.5) intro = 1
       }
+      if (drifting() && !dragging && !hovering && now > pausedUntil && intro >= 1) target += auto * dt
       if (!dragging) {
         if (reduced.matches) {
           pos = target
@@ -368,7 +374,7 @@ export default function CurvedLensCarousel({
         onChangeRef.current?.(idx)
       }
       draw()
-      const settled = !dragging && Math.abs(target - pos) < 0.0005 && Math.abs(vel) < 0.001 && (intro >= 1 || reduced.matches)
+      const settled = !drifting() && !dragging && Math.abs(target - pos) < 0.0005 && Math.abs(vel) < 0.001 && (intro >= 1 || reduced.matches)
       if (settled) {
         pos = target
         draw()
@@ -381,6 +387,7 @@ export default function CurvedLensCarousel({
     }
 
     api.current.go = (dir: number) => {
+      pausedUntil = performance.now() + 2500
       target = Math.round(target) + dir
       kick()
     }
@@ -410,6 +417,7 @@ export default function CurvedLensCarousel({
     const onUp = () => {
       if (!dragging) return
       dragging = false
+      pausedUntil = performance.now() + 2500
       target = restFor(pos, flick)
       vel = flick
       kick()
@@ -421,11 +429,15 @@ export default function CurvedLensCarousel({
       e.preventDefault()
     }
     const onMotion = () => kick()
+    const onEnter = (e: PointerEvent) => { if (e.pointerType === "mouse") hovering = true }
+    const onLeave = () => { hovering = false; pausedUntil = performance.now() + 600; kick() }
 
     canvas.addEventListener("pointerdown", onDown)
     canvas.addEventListener("pointermove", onMove)
     canvas.addEventListener("pointerup", onUp)
     canvas.addEventListener("pointercancel", onUp)
+    root.addEventListener("pointerenter", onEnter)
+    root.addEventListener("pointerleave", onLeave)
     root.addEventListener("keydown", onKey)
     reduced.addEventListener("change", onMotion)
 
@@ -452,13 +464,15 @@ export default function CurvedLensCarousel({
       canvas.removeEventListener("pointermove", onMove)
       canvas.removeEventListener("pointerup", onUp)
       canvas.removeEventListener("pointercancel", onUp)
+      root.removeEventListener("pointerenter", onEnter)
+      root.removeEventListener("pointerleave", onLeave)
       root.removeEventListener("keydown", onKey)
       reduced.removeEventListener("change", onMotion)
       for (const t of tex) gl.deleteTexture(t.t)
       gl.deleteBuffer(buf)
       gl.deleteProgram(prog)
     }
-  }, [n, slides, bend])
+  }, [n, slides, bend, auto])
 
   const slide = slides[index] ?? slides[0]
   if (!slide) return null
