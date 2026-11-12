@@ -7,8 +7,10 @@ export type Feature = { title: string; text: string; icon: IconName };
  * signed in, in the visitor's theme), then three things you can do. Screenshots live in public/home and are
  * captured from the live site by scripts/capture-home-screenshots.mjs.
  */
-export default function FeatureSection({ id, title, intro, features, shot, alt }: {
+export default function FeatureSection({ id, title, intro, features, shot, alt, height = 1133 }: {
   id: string; title: string; intro: string; features: Feature[]; shot: string; alt: string;
+  /** The screenshot's height at 2400px wide (they're cropped to different heights). */
+  height?: number;
 }) {
   return (
     <section className="home-feature" aria-labelledby={`${id}-title`}>
@@ -17,8 +19,8 @@ export default function FeatureSection({ id, title, intro, features, shot, alt }
         <p>{intro}</p>
       </div>
       <figure className="home-feature-shot">
-        <img className="shot-dark" src={`/home/${shot}-dark.webp`} alt={alt} width={2400} height={1500} loading="lazy" decoding="async" />
-        <img className="shot-light" src={`/home/${shot}-light.webp`} alt={alt} width={2400} height={1500} loading="lazy" decoding="async" />
+        <img className="shot-dark" src={`/home/${shot}-dark.webp`} alt={alt} width={2400} height={height} loading="lazy" decoding="async" />
+        <img className="shot-light" src={`/home/${shot}-light.webp`} alt={alt} width={2400} height={height} loading="lazy" decoding="async" />
       </figure>
       <ul className="home-feature-list">
         {features.map((f) => (
