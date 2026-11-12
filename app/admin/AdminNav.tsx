@@ -33,8 +33,11 @@ export const ADMIN_GROUPS: Group[] = [
     ] },
   { label: "Community", href: "/admin/community", routes: ["/admin/community", "/admin/submissions"], badges: ["reports", "submissions"],
     children: [
-      { label: "Reports and watchlists", href: "/admin/community", badge: "reports" },
+      { label: "Reports", href: "/admin/community", badge: "reports" },
+      { label: "Comments", href: "/admin/community/comments" },
+      { label: "Watchlists", href: "/admin/community/watchlists" },
       { label: "Submissions", href: "/admin/submissions", badge: "submissions" },
+      { label: "Refused text", href: "/admin/community/moderation" },
     ] },
   { label: "Members", href: "/admin/members", routes: ["/admin/members"] },
   { label: "Insights", href: "/admin/analytics", routes: ["/admin/analytics", "/admin/activity"],

@@ -344,7 +344,7 @@ export async function reviewSubmission(f: FormData) {
     }
     const { error: updateError } = await db.from("submissions").update({
       status: "approved", reviewed_at: new Date().toISOString(),
-      review_note: reviewNote, reviewed_by: reviewer?.id ?? null,
+      review_note: reviewNote, reviewed_by: reviewer?.id ?? null, film_id: film.id,
     }).eq("id", id);
     if (updateError) throw new Error(updateError.message);
     await logAdminActivity(db, "Approved submission", "submission", id, s.title);

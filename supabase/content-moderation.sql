@@ -62,6 +62,8 @@ begin
     field_name := 'comment';
     if tg_op = 'UPDATE' then
       if new.body is not distinct from old.body then return new; end if;
+      -- Removing a comment that has replies replaces its text; that needs no check.
+      if new.removed_at is not null then return new; end if;
     end if;
     body_text := new.body;
   elsif tg_table_name = 'profiles' then
