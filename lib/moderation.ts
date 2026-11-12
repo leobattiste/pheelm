@@ -29,6 +29,18 @@ type ResponseResult = {
  * A short-lived, single-use database receipt prevents bypassing this check with
  * a direct browser request to Supabase. Never expose the two keys to the client.
  */
+/** Keeps a short record of refused text for the admin moderation log. Never blocks the reply. */
+async function recordRefusal(serviceKey: string | undefined, actorId: string, field: ModeratedField, text: string, reason: string) {
+  if (!serviceKey) return;
+  try {
+    const admin = createClient(SUPABASE_URL, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
+    const { error } = await admin.rpc("record_moderation_refusal", { p_actor: actorId, p_field: field, p_text: text, p_reason: reason });
+    if (error && error.code !== "PGRST202") console.error("Pheelm could not log a moderation refusal", error.code);
+  } catch {
+    // The log is a convenience; the refusal itself already happened.
+  }
+}
+
 export async function moderateAndApprove(field: ModeratedField, rawText: string, actorId: string): Promise<ModerationResult> {
   const text = rawText.trim();
   if (!text) return { ok: true };
@@ -41,6 +53,7 @@ export async function moderateAndApprove(field: ModeratedField, rawText: string,
   }
 
   if (STRONG_LANGUAGE.test(text)) {
+    await recordRefusal(serviceKey, actorId, field, text, "Strong language");
     return { ok: false, message: "Please remove strong language before posting." };
   }
 
@@ -59,7 +72,11 @@ export async function moderateAndApprove(field: ModeratedField, rawText: string,
     const payload = (await response.json()) as ResponseResult;
     const categories = payload.results?.[0]?.categories;
     if (!categories || typeof categories !== "object") return { ok: false, message: TEMPORARY_FAILURE };
-    if (BLOCK_CATEGORIES.some((category) => categories[category])) return { ok: false, message: REJECTED };
+    const flagged = BLOCK_CATEGORIES.filter((category) => categories[category]);
+    if (flagged.length) {
+      await recordRefusal(serviceKey, actorId, field, text, flagged.join(", "));
+      return { ok: false, message: REJECTED };
+    }
 
     const admin = createClient(SUPABASE_URL, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
     const { error } = await admin.rpc("record_moderation_approval", { p_actor: actorId, p_field: field, p_text: rawText });

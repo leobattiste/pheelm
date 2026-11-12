@@ -18,7 +18,7 @@ const noop = async () => ({ ok: true, message: '' });
 const film = { id: 'fixture', created_at: '2026-11-07', updated_at: '2026-11-07', slug: 'fixture', title: 'A very long film title that should remain readable on the smallest screen', year: 2026, type: 'documentary', status: 'draft', poster_url: null, featured: true, tmdb_id: 123, credits: [{ role: 'director', people: { name: 'A filmmaker with a particularly long name' } }] };
 const films = [film, { ...film, id: 'fixture-2', title: 'Atlantics', year: 2019, status: 'published', featured: false }, { ...film, id: 'fixture-3', title: 'Moonlight', year: 2016, status: 'published' }];
 const people = [{ id: 'director', slug: 'director', name: 'A filmmaker with a particularly long name', country: 'SN', photo_url: null, bio: null, in_directory: true, directed: 3, credits: [{ role: 'director' }, { role: 'writer' }] }];
-const members = [{ id: 'member', handle: 'curator', display_name: 'A member with a particularly long display name', email: 'curator@example.com', created_at: '2026-11-07', last_seen: '2026-11-07', is_admin: true, is_owner: false, is_private: false, lists: 12, saved: 14, comments: 18 }];
+const members = [{ id: '33333333-3333-3333-3333-333333333333', handle: 'suspended', display_name: 'A suspended member', email: 'gone@example.com', created_at: '2026-10-01', last_seen: '2026-10-02', is_admin: false, is_owner: false, is_private: false, lists: 1, saved: 2, comments: 3, suspended_at: '2026-11-01', suspended_reason: 'Spam links in comments' }, { id: 'member', handle: 'curator', display_name: 'A member with a particularly long display name', email: 'curator@example.com', created_at: '2026-11-07', last_seen: '2026-11-07', is_admin: true, is_owner: false, is_private: false, lists: 12, saved: 14, comments: 18 }];
 const collections = [{ id: 'collection', title: 'A collection of independent cinema', user_id: 'member', hidden: false, staff_pick: true, featured: false, created_at: '2026-11-07', list_films: [{ count: 12 }] }];
 const collectionTiles = collections.map(c => ({ ...c, description: null, updated_at: c.created_at, films: films.map(f => ({ ...f, directors: [{ name: 'A filmmaker' }] })), owner: { id: 'member', handle: 'curator', display_name: 'Curator' }, saves: 7, curators: 1 }));
 const records = {
@@ -26,12 +26,29 @@ const records = {
   admin_activity: [{ id: 'change', action: 'Updated film', target_type: 'film', target_id: 'fixture', details: 'Atlantics (2019) · published', created_at: '2026-11-07' }],
   admin_film_quality: [{ id: 'fixture', slug: 'fixture', title: 'Atlantics', year: 2019, status: 'draft', issues: ['poster', 'editorial'], issue_count: 2 }],
   member_profiles: [{ id: 'member', handle: 'curator' }], list_save_counts: [{ list_id: 'collection', saves: 7 }],
-  list_reports: [], comment_reports: [],
+  list_reports: [{ id: 'lr', list_id: 'collection', reason: 'Spam in the description', created_at: '2026-11-09', lists: { title: 'A collection of independent cinema', hidden: false } }],
+  comment_reports: [{ id: 'cr', created_at: '2026-11-09', reason: 'Rude', comment_id: 'c1', list_comments: { id: 'c1', body: 'A rude comment', list_id: 'collection', removed_at: null, lists: { title: 'A collection' } } }],
+  list_comments: [{ id: 'c1', body: 'What a great selection, thank you for putting it together.', list_id: 'collection', user_id: 'member', created_at: '2026-11-09', edited_at: null, removed_at: null, lists: { title: 'A collection of independent cinema' } }],
+  submissions: [{ id: 's1', user_id: 'member', title: 'Atlantics', director: 'Mati Diop', year: 2019, link: 'https://example.com/atlantics', note: null, status: 'pending', film_id: null, created_at: '2026-11-08', reviewed_at: null, review_note: null, kind: 'own', details: { submitted_by: 'Mati', email: 'mati@example.com', type: 'feature', synopsis: 'A love story on the coast of Dakar.' } }],
+  messages: [
+    { id: '11111111-1111-1111-1111-111111111111', name: 'A programmer at a film festival with a long name', email: 'programmer@festival.example', organization: 'Pan-African Film Festival', topic: 'partnership', status: 'new', stage: 'talking', partnership_type: 'Film festival or screening', website: 'https://festival.example', notes: 'Call on Friday.', body: 'We would love to host a Pheelm night at our festival.\n\nWe can offer a screen and a panel.', created_at: '2026-11-10', replied_at: '2026-11-11', due_at: null, closed_at: null, page: null, page_title: null },
+    { id: '22222222-2222-2222-2222-222222222222', name: null, email: 'reader@example.com', organization: null, topic: 'privacy', status: 'open', stage: null, partnership_type: null, website: null, notes: null, body: 'Please delete my account data.', created_at: '2026-11-01', replied_at: null, due_at: '2026-12-01', closed_at: null, page: '/films/atlantics', page_title: 'Atlantics' },
+  ],
+  message_replies: [{ id: 'r1', body: 'Thanks, let us talk.', via: 'pheelm', created_at: '2026-11-11', author_id: 'member' }],
 };
-const db = { auth: { getUser: async () => ({ data: { user: { id: "member", email: "member@example.com" } } }) }, rpc: async () => ({ data: members, error: null }), from: (table) => {
+const rpcs = {
+  admin_members: members,
+  admin_monthly_counts: ['2026-06-01', '2026-07-01', '2026-08-01', '2026-09-01', '2026-10-01', '2026-11-01'].map((month, i) => ({ month, films: i * 4, members: i, watchlists: 6 - i, saves: i % 2 })),
+  admin_film_facets: { decades: [2010, 2000], countries: ['SN', 'US'], genres: ['Drama'] },
+  admin_moderation_log: [{ id: 1, actor_id: 'member', handle: 'curator', field: 'comment', excerpt: 'A refused comment that was long enough to need wrapping on the narrowest phones we support', reason: 'harassment, hate', created_at: '2026-11-10', total: 1 }],
+  admin_newsletter_counts: { total: 4, confirmed: 2, pending: 1, unsubscribed: 1, suppressed: 0 },
+  admin_newsletter: [{ email: 'a-reader-with-a-long-address@example.com', source: 'home', created_at: '2026-11-07', state: 'confirmed', confirmed_at: '2026-11-08', unsubscribed_at: null, total: 2 }, { email: 'b@example.com', source: null, created_at: '2026-11-09', state: 'confirmed', confirmed_at: '2026-11-09', unsubscribed_at: null, total: 2 }],
+};
+const db = { auth: { getUser: async () => ({ data: { user: { id: "member", email: "member@example.com" } } }) }, rpc: async (name) => ({ data: rpcs[name] ?? null, error: null }), from: (table) => {
+  let one = false;
   const query = new Proxy({}, { get: (_, key) => key === 'then'
-    ? (fn) => Promise.resolve({ count: 128, data: records[table] ?? [] }).then(fn)
-    : () => query });
+    ? (fn) => Promise.resolve({ count: 128, data: one ? (records[table] ?? [])[0] ?? null : records[table] ?? [] }).then(fn)
+    : (key === 'single' || key === 'maybeSingle') ? () => { one = true; return query; } : () => query });
   return query;
 } };
 const cache = new Map();
@@ -73,13 +90,22 @@ const Films = load(resolve(root, 'app/admin/films/page.tsx')).default;
 const People = load(resolve(root, 'app/admin/people/page.tsx')).default;
 const Members = load(resolve(root, 'app/admin/members/page.tsx')).default;
 const Editorial = load(resolve(root, 'app/admin/editorial/page.tsx')).default;
-const Community = load(resolve(root, 'app/admin/community/page.tsx')).default;
+const Community = load(resolve(root, 'app/admin/community/watchlists/page.tsx')).default;
+const Reports = load(resolve(root, 'app/admin/community/page.tsx')).default;
+const Comments = load(resolve(root, 'app/admin/community/comments/page.tsx')).default;
+const Refused = load(resolve(root, 'app/admin/community/moderation/page.tsx')).default;
+const Submissions = load(resolve(root, 'app/admin/submissions/page.tsx')).default;
+const Member = load(resolve(root, 'app/admin/members/[id]/page.tsx')).default;
 const Quality = load(resolve(root, 'app/admin/quality/page.tsx')).default;
 const Activity = load(resolve(root, 'app/admin/activity/page.tsx')).default;
 const Analytics = load(resolve(root, 'app/admin/analytics/page.tsx')).default;
 const Automation = load(resolve(root, 'app/admin/automation/page.tsx')).default;
+const Inbox = load(resolve(root, 'app/admin/inbox/InboxList.tsx')).default;
+const Message = load(resolve(root, 'app/admin/inbox/message/[id]/page.tsx')).default;
+const Newsletter = load(resolve(root, 'app/admin/inbox/newsletter/page.tsx')).default;
 const PersonEditor = load(resolve(root, 'app/admin/people/[id]/PersonEditor.tsx')).default;
-const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium', headless: true, args: ['--no-sandbox'] });
+const executablePath = process.env.CHROMIUM_PATH || (existsSync('/usr/bin/chromium') ? '/usr/bin/chromium' : undefined);
+const browser = await chromium.launch({ executablePath, headless: true, args: ['--no-sandbox'] });
 const page = await browser.newPage();
 const font = readFileSync(resolve(root, 'app/fonts/Inter-Latin.woff2')).toString('base64');
 const css = readFileSync(resolve(root, 'app/globals.css'), 'utf8') + '\n' + readFileSync(resolve(root, 'app/admin/admin.css'), 'utf8') + `\n@font-face { font-family: FixtureInter; src: url(data:font/woff2;base64,${font}); font-weight: 100 900; } :root { --font-inter: FixtureInter; --font-inter-ext: FixtureInter; }`;
@@ -91,8 +117,8 @@ try {
     for (const width of [320, 390, 600, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: 1000 });
       for (const grid of ['large', 'small', 'list']) {
-      for (const screen of ['overview', 'films', 'people', 'members', 'editorial', 'community', 'quality', 'activity', 'analytics', 'automation', 'editor']) {
-        pathname = screen === 'overview' ? '/admin' : screen === 'editor' ? '/admin/people/fixture' : `/admin/${screen}`;
+      for (const screen of ['overview', 'films', 'people', 'members', 'editorial', 'community', 'quality', 'activity', 'analytics', 'automation', 'inbox', 'partnerships', 'message', 'newsletter', 'reports', 'comments', 'refused', 'submissions', 'member', 'editor']) {
+        pathname = screen === 'overview' ? '/admin' : screen === 'editor' ? '/admin/people/fixture' : screen === 'partnerships' ? '/admin/inbox/partnerships' : screen === 'message' ? '/admin/inbox/message/11111111-1111-1111-1111-111111111111' : screen === 'newsletter' ? '/admin/inbox/newsletter' : screen === 'community' ? '/admin/community/watchlists' : screen === 'reports' ? '/admin/community' : screen === 'comments' ? '/admin/community/comments' : screen === 'refused' ? '/admin/community/moderation' : screen === 'member' ? '/admin/members/33333333-3333-3333-3333-333333333333' : `/admin/${screen}`;
         const content = screen === 'overview' ? await Home() : screen === 'films'
           ? await Films({ searchParams: Promise.resolve({}) })
           : screen === 'people' ? await People({ searchParams: Promise.resolve({}) })
@@ -103,6 +129,15 @@ try {
           : screen === 'activity' ? await Activity({ searchParams: Promise.resolve({}) })
           : screen === 'analytics' ? await Analytics()
           : screen === 'automation' ? await Automation()
+          : screen === 'reports' ? await Reports()
+          : screen === 'comments' ? await Comments({ searchParams: Promise.resolve({}) })
+          : screen === 'refused' ? await Refused({ searchParams: Promise.resolve({}) })
+          : screen === 'submissions' ? await Submissions({ searchParams: Promise.resolve({}) })
+          : screen === 'member' ? await Member({ params: Promise.resolve({ id: '33333333-3333-3333-3333-333333333333' }) })
+          : screen === 'inbox' ? await Inbox({ searchParams: Promise.resolve({}) })
+          : screen === 'partnerships' ? await Inbox({ box: 'partnerships', searchParams: Promise.resolve({}) })
+          : screen === 'message' ? await Message({ params: Promise.resolve({ id: '11111111-1111-1111-1111-111111111111' }) })
+          : screen === 'newsletter' ? await Newsletter({ searchParams: Promise.resolve({}) })
           : React.createElement(PersonEditor, { person: { id: 'person', name: film.title, slug: 'fixture', country: 'SN', birth_year: 1970, bio: 'A filmmaker biography.', photo_url: null, is_director: true } });
         const html = renderToStaticMarkup(await Layout({ children: content }));
         await page.setContent(`<!doctype html><html data-theme="${theme}" data-grid="${grid}"><head><style>${css}</style></head><body>${html}</body></html>`);
@@ -115,7 +150,7 @@ try {
         assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${prefix}: page overflows`);
         assert.equal(await page.locator('.admin-main-tabs [aria-current="page"]').count(), 1, `${prefix}: active main tab`);
         assert.equal(await page.locator('.admin-main-tabs a .icon').count(), 0, `${prefix}: admin tabs are text only`);
-        assert.equal(await page.locator('.admin-main-tabs [aria-current="page"]').getAttribute('href'), screen === 'overview' ? '/admin' : ['films', 'people', 'editorial', 'editor', 'quality', 'automation'].includes(screen) ? '/admin/films' : screen === 'activity' ? '/admin/analytics' : `/admin/${screen}`);
+        assert.equal(await page.locator('.admin-main-tabs [aria-current="page"]').getAttribute('href'), screen === 'overview' ? '/admin' : ['films', 'people', 'editorial', 'editor', 'quality', 'automation'].includes(screen) ? '/admin/films' : screen === 'activity' ? '/admin/analytics' : ['inbox', 'partnerships', 'message', 'newsletter'].includes(screen) ? '/admin/inbox' : ['reports', 'comments', 'refused', 'submissions'].includes(screen) ? '/admin/community' : screen === 'member' ? '/admin/members' : `/admin/${screen}`);
         const tooWide = await page.locator('.admin-content .button, .admin-content input:not([type="hidden"]), .admin-content textarea, .admin-content select').evaluateAll(elements => elements.filter(el => el.getBoundingClientRect().right > innerWidth || el.getBoundingClientRect().left < 0).map(el => el.outerHTML.slice(0, 150)));
         assert.deepEqual(tooWide, [], `${prefix}: overflowing controls`);
         if (screen === 'films') {
@@ -158,6 +193,14 @@ try {
   await page.setContent(restricted);
   assert(!restricted.includes('curator@example.com'), 'non-owner must not see member email');
   assert.equal(await page.getByRole('button', { name: 'Remove admin', exact: true }).count(), 0, 'non-owner has no role action');
+  pathname = '/admin/inbox/newsletter';
+  const newsletter = renderToStaticMarkup(await Layout({ children: await Newsletter({ searchParams: Promise.resolve({}) }) }));
+  assert(!newsletter.includes('a-reader-with-a-long-address'), 'non-owner must not see subscriber addresses');
+  assert(!newsletter.includes('subscribers.csv'), 'non-owner has no CSV download');
+  pathname = '/admin/members/33333333-3333-3333-3333-333333333333';
+  const member = renderToStaticMarkup(await Layout({ children: await Member({ params: Promise.resolve({ id: '33333333-3333-3333-3333-333333333333' }) }) }));
+  assert(!member.includes('gone@example.com'), 'non-owner must not see a member email');
+  assert(!member.includes('Make admin'), 'non-owner has no role action on a member');
   isOwner = true;
   // Deep links keep both the owning group and its child selected.
   for (const [path, parent] of [['/admin/quality', '/admin/films'], ['/admin/automation', '/admin/films'], ['/admin/submissions', '/admin/community'], ['/admin/activity', '/admin/analytics']]) {

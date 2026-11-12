@@ -23,9 +23,11 @@ export type Notification = {
   note: string | null;
   /** For admin notifications: a short summary (the report's reason, the film suggested, the message). */
   detail: string | null;
+  /** For admin notifications: the record it's about (a message id, for messages). */
+  ref: string | null;
 };
 
-type Row = { id: string; type: NotificationType; created_at: string; read_at: string | null; actor_id: string | null; list_id: string | null; comment_id: string | null; user_id: string; film_id?: string | null; person_id?: string | null; detail?: string | null };
+type Row = { id: string; type: NotificationType; created_at: string; read_at: string | null; actor_id: string | null; list_id: string | null; comment_id: string | null; user_id: string; film_id?: string | null; person_id?: string | null; detail?: string | null; ref_id?: string | null };
 
 /**
  * The signed-in member's latest notifications, with who did it, which collection, the comment it's
@@ -33,7 +35,8 @@ type Row = { id: string; type: NotificationType; created_at: string; read_at: st
  */
 export async function getNotifications(db: SupabaseClient, userId: string, limit = 60): Promise<{ available: boolean; items: Notification[] }> {
   const query = (cols: string) => db.from("notifications").select(cols).eq("user_id", userId).order("created_at", { ascending: false }).limit(limit);
-  let { data, error } = await query("id, type, created_at, read_at, actor_id, list_id, comment_id, user_id, film_id, person_id, detail");
+  let { data, error } = await query("id, type, created_at, read_at, actor_id, list_id, comment_id, user_id, film_id, person_id, detail, ref_id");
+  if (error) ({ data, error } = await query("id, type, created_at, read_at, actor_id, list_id, comment_id, user_id, film_id, person_id, detail"));
   // Before admins-watched-blocks.sql has run there's no detail.
   if (error) ({ data, error } = await query("id, type, created_at, read_at, actor_id, list_id, comment_id, user_id, film_id, person_id"));
   // Before follow-notifications.sql has run there are no film columns.
@@ -81,6 +84,7 @@ export async function getNotifications(db: SupabaseClient, userId: string, limit
         open: r.type === "invite" ? m?.status === "invited" : r.type === "request" ? m?.status === "requested" : false,
         note: r.type === "request" ? m?.note ?? null : null,
         detail: r.detail ?? null,
+        ref: r.ref_id ?? null,
       };
     }),
   };

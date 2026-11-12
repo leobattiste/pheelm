@@ -32,7 +32,6 @@
 .admin-page-head p, .admin-head p { max-width: 65ch; color: var(--muted); }
 .admin-back { display: inline-flex; align-items: center; gap: var(--space-4); width: fit-content; color: var(--muted); font-size: var(--t-sm); text-decoration: none; }
 .admin-back:hover { color: var(--ink); }
-.admin-back .icon { width: 18px; height: 18px; }
 
 /* Cards and rows ------------------------------------------------------------------------------- */
 .admin-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-16); align-items: start; }
@@ -45,10 +44,11 @@
 .admin-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-8) var(--space-16); min-height: 52px; padding: var(--space-8) 0; color: var(--text); text-decoration: none; font-size: var(--t-sm); }
 .admin-row + .admin-row { border-top: 1px solid var(--line); }
 a.admin-row:hover .admin-row-title { text-decoration: underline; text-underline-offset: 0.2em; }
-.admin-row-main { display: grid; gap: 2px; min-width: 0; }
+.admin-row { flex-wrap: wrap; }
+.admin-row-main { display: grid; gap: 2px; min-width: 0; flex: 1 1 220px; }
 .admin-row-title { color: var(--ink); font-weight: 500; overflow-wrap: anywhere; }
 .admin-row-detail { color: var(--muted); font-size: var(--t-xs); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.admin-row-aside { flex: none; display: inline-flex; align-items: center; gap: var(--space-8); font-size: var(--t-xs); }
+.admin-row-aside { display: inline-flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--space-8); max-width: 100%; font-size: var(--t-xs); }
 .admin-number { display: inline-grid; place-items: center; min-width: 32px; height: 28px; padding: 0 var(--space-8); border-radius: var(--pill); background: var(--surface); font-size: var(--t-sm); font-weight: 600; font-variant-numeric: tabular-nums; }
 
 /* Older screens still use these rows; they match .admin-row. */
@@ -124,6 +124,20 @@ a.admin-attention-row:hover, .admin-attention-row a:hover { color: var(--ink); }
 .admin-activity-list { max-width: 760px; }
 .admin-submission-list { max-width: 760px; display: grid; gap: var(--space-32); }
 .admin-submission-list > li { padding-bottom: var(--space-24); border-bottom: 1px solid var(--line); }
+
+/* One message: what they wrote and the replies on the left; who, stage and notes on the right. */
+.admin-message-layout { display: grid; gap: var(--space-16); align-items: start; }
+.admin-message-main, .admin-message-side { display: grid; gap: var(--space-16); min-width: 0; }
+.admin-message-body { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 72ch; }
+.admin-reply-sent { display: grid; gap: var(--space-8); padding: var(--space-12) 0; border-bottom: 1px solid var(--line); }
+.admin-reply-sent .muted { font-size: var(--t-xs); }
+.admin-reply { gap: var(--space-16); padding-top: var(--space-8); }
+.admin-templates, .admin-stages { display: flex; flex-wrap: wrap; gap: var(--space-8); }
+.admin-stages .chip[aria-pressed="true"] { background: var(--ink); color: var(--on-ink); border-color: transparent; }
+.admin .check { display: inline-flex; align-items: center; gap: var(--space-8); min-height: 44px; font-size: var(--t-sm); cursor: pointer; }
+@media (min-width: 1000px) {
+  .admin-message-layout { grid-template-columns: minmax(0, 1fr) minmax(280px, 360px); }
+}
 
 /* Analytics chart */
 .admin-chart { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--space-12); align-items: end; min-height: 200px; padding: var(--space-16) 0; border-bottom: 1px solid var(--line); }

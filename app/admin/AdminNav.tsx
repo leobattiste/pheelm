@@ -22,11 +22,22 @@ export const ADMIN_GROUPS: Group[] = [
       { label: "Content quality", href: "/admin/quality" },
       { label: "Automation", href: "/admin/automation" },
     ] },
-  { label: "Inbox", href: "/admin/inbox", routes: ["/admin/inbox"], badges: ["inbox"] },
+  { label: "Inbox", href: "/admin/inbox", routes: ["/admin/inbox"], badges: ["inbox"],
+    children: [
+      { label: "All", href: "/admin/inbox", badge: "inbox" },
+      { label: "Contact", href: "/admin/inbox/contact", badge: "contact" },
+      { label: "Feedback", href: "/admin/inbox/feedback", badge: "feedback" },
+      { label: "Partnerships", href: "/admin/inbox/partnerships", badge: "partnerships" },
+      { label: "Press and privacy", href: "/admin/inbox/press", badge: "press" },
+      { label: "Newsletter", href: "/admin/inbox/newsletter" },
+    ] },
   { label: "Community", href: "/admin/community", routes: ["/admin/community", "/admin/submissions"], badges: ["reports", "submissions"],
     children: [
-      { label: "Reports and watchlists", href: "/admin/community", badge: "reports" },
+      { label: "Reports", href: "/admin/community", badge: "reports" },
+      { label: "Comments", href: "/admin/community/comments" },
+      { label: "Watchlists", href: "/admin/community/watchlists" },
       { label: "Submissions", href: "/admin/submissions", badge: "submissions" },
+      { label: "Refused text", href: "/admin/community/moderation" },
     ] },
   { label: "Members", href: "/admin/members", routes: ["/admin/members"] },
   { label: "Insights", href: "/admin/analytics", routes: ["/admin/analytics", "/admin/activity"],
@@ -39,7 +50,7 @@ export const ADMIN_GROUPS: Group[] = [
 const matches = (path: string, route: string) => path === route || path.startsWith(route + "/");
 const badge = (value: number) => value ? <span className="admin-count" aria-label={`${value} waiting`}>{value > 99 ? "99+" : value}</span> : null;
 
-const NONE: AdminCounts = { inbox: 0, reports: 0, submissions: 0 };
+const NONE: AdminCounts = { inbox: 0, reports: 0, submissions: 0, contact: 0, feedback: 0, partnerships: 0, press: 0 };
 
 export default function AdminNav({ counts = NONE }: { counts?: AdminCounts }) {
   const path = usePathname();

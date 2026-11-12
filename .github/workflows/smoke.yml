@@ -22,6 +22,8 @@ jobs:
       - run: node tests/partnership-inquiry.mjs
       - run: node tests/admin-create-person.mjs
       - run: node tests/admin-import-selected.mjs
+      - run: node tests/admin-permissions.mjs
+      - run: node tests/admin-responsive.mjs
       - run: node tests/bulk-import-grid-browser.mjs
       - run: npm run email:preview
       - run: node scripts/export-auth-emails.mjs
@@ -111,3 +113,84 @@ jobs:
       - run: psql -v ON_ERROR_STOP=1 -f supabase/watchlist-slugs.sql
       - run: psql -v ON_ERROR_STOP=1 -f supabase/watchlist-slug-normalization.sql
       - run: psql -v ON_ERROR_STOP=1 -f tests/watchlist-slugs.sql
+
+  admin-database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: admin-test-only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: admin-test-only
+    steps:
+      - uses: actions/checkout@v4
+      - run: psql -v ON_ERROR_STOP=1 -f tests/admin-inbox-bootstrap.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/admin-inbox.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/admin-inbox.sql
+      - run: psql -v ON_ERROR_STOP=1 -f tests/admin-inbox.sql
+
+  admin-community-database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: admin-test-only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: admin-test-only
+    steps:
+      - uses: actions/checkout@v4
+      - run: psql -v ON_ERROR_STOP=1 -f tests/admin-community-bootstrap.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/admin-community.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/admin-community.sql
+      - run: psql -v ON_ERROR_STOP=1 -f tests/admin-community.sql
+
+  admin-insights-database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: admin-test-only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: admin-test-only
+    steps:
+      - uses: actions/checkout@v4
+      - run: psql -v ON_ERROR_STOP=1 -f tests/admin-insights-bootstrap.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/admin-insights.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/admin-insights.sql
+      - run: psql -v ON_ERROR_STOP=1 -f tests/admin-insights.sql

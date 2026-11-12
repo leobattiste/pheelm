@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { ownerClient } from "@/lib/admin";
+import { logAdminActivity } from "@/lib/admin-activity";
 
 // A cell starting with = + - @ (or a tab/return) runs as a formula in Excel and Sheets; a leading
 // apostrophe makes it plain text.
@@ -20,6 +21,7 @@ export async function GET() {
     rows.push(...((data ?? []) as { email: string; source: string | null; created_at: string }[]));
     if (!data || data.length < 1000) break;
   }
+  await logAdminActivity(db, "Downloaded newsletter list", "subscriber", null, `${rows.length} addresses`);
   const csv = ["email,source,signed_up", ...rows.map((r) => [r.email, r.source ?? "", r.created_at].map((v) => `"${cell(String(v)).replace(/"/g, '""')}"`).join(","))].join("\n");
   return new NextResponse(csv, {
     headers: { "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": `attachment; filename="pheelm-newsletter.csv"` },

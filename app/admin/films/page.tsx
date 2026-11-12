@@ -74,7 +74,7 @@ export default async function AdminFilms({ searchParams }: { searchParams: Promi
     load(),
     db.from("lists").select("id,title").eq("user_id", user.id).order("created_at", { ascending: false }),
     page === 1 && !q ? db.from("films").select("title,year").limit(5000) : Promise.resolve({ data: [] as { title: string; year: number }[] }),
-    db.from("films").select("year,countries,genres").limit(5000),
+    db.rpc("admin_film_facets"),
   ]);
   const { data: films, count, error } = result;
   const all = allResult.data ?? [];
@@ -83,10 +83,11 @@ export default async function AdminFilms({ searchParams }: { searchParams: Promi
   for (const film of all) have.set(plain(film.title), [...(have.get(plain(film.title)) ?? []), film.year]);
   const waiting = (queue as { t: string; y: number; d: string[]; n?: string }[])
     .filter((item) => !(have.get(plain(item.t)) ?? []).some((year) => Math.abs(year - item.y) <= 1));
-  const facetFilms = facetsResult.data ?? [];
-  const countries = [...new Set(facetFilms.flatMap((film) => film.countries ?? []))].sort();
-  const genres = [...new Set(facetFilms.flatMap((film) => film.genres ?? []))].sort();
-  const decades = [...new Set(facetFilms.map((film) => Math.floor(film.year / 10) * 10))].sort((a, b) => b - a);
+  // Every decade, country and genre in the catalog, worked out in the database.
+  const facets = (facetsResult.data ?? {}) as { decades?: number[]; countries?: string[]; genres?: string[] };
+  const countries = facets.countries ?? [];
+  const genres = facets.genres ?? [];
+  const decades = facets.decades ?? [];
   const baseParams = new URLSearchParams();
   for (const [key, value] of Object.entries(sp)) if (!["page", "updated", "error"].includes(key) && value) baseParams.set(key, value);
   const href = (next: number) => { const p = new URLSearchParams(baseParams); p.set("page", String(next)); return `/admin/films?${p.toString()}`; };

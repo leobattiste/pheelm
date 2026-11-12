@@ -210,6 +210,7 @@ export async function fillPeople(): Promise<Result & { remaining: number }> {
     const { data, error } = await db.from("people").select("*").not("tmdb_id", "is", null).is("details_at", null).limit(20);
     if (error) return { ok: false, message: "Run supabase/people-details.sql in Supabase first, then try again.", remaining: 0 };
     await Promise.all((data ?? []).map((p) => fillPerson(db, p)));
+    if (data?.length) await logAdminActivity(db, "Filled people from TMDB", "person", null, `${data.length} people`);
     const { count } = await db.from("people").select("*", { count: "exact", head: true }).not("tmdb_id", "is", null).is("details_at", null);
     refresh();
     return { ok: true, message: `Filled ${data?.length ?? 0} people.`, remaining: count ?? 0 };
@@ -234,7 +235,10 @@ export async function refreshWatch(offset: number): Promise<Result & { next: num
       await db.from("films").update({ watch: [...manual, ...fresh], updated_at: new Date().toISOString() }).eq("id", f.id);
     }));
     const next = offset + (data?.length ?? 0);
-    if (next >= (count ?? 0)) refresh();
+    if (next >= (count ?? 0)) {
+      await logAdminActivity(db, "Refreshed where to watch", "film", null, `${count ?? 0} films`);
+      refresh();
+    }
     return { ok: true, message: `Refreshed ${next} of ${count ?? 0}.`, next, total: count ?? 0 };
   } catch (e) {
     return { ...fail(e), next: offset, total: 0 };
@@ -259,7 +263,10 @@ export async function addQueued(items: { t: string; y: number; d: string[]; n?: 
       if (!tmdbEnabled) return { status: "not-found" as const, message: "Add TMDB_API_KEY in Vercel to switch on adding films from TMDB." };
       const db = await adminClient();
       const r = await addFilmByTitle(db, i.t, i.y, { publish: true, directors: i.d, directorName: i.n });
-      if (r.status === "added") refresh();
+      if (r.status === "added") {
+        await logAdminActivity(db, "Added film from the queue", "film", r.id ?? null, `${i.t} (${i.y})`);
+        refresh();
+      }
       return r;
     } catch (e) {
       return { status: "not-found" as const, message: `${i.t}: ${e instanceof Error ? e.message : "something went wrong."}` };
@@ -278,7 +285,10 @@ export async function addOne(title: string, year: number | null, publish: boolea
     if (!tmdbEnabled) return { status: "not-found", message: "Add TMDB_API_KEY in Vercel to switch on adding films from TMDB." };
     const db = await adminClient();
     const r = await addFilmByTitle(db, title.slice(0, 300), year, { publish, collectionId });
-    if (r.status === "added") refresh();
+    if (r.status === "added") {
+      await logAdminActivity(db, publish ? "Added and published film from TMDB" : "Added film draft from TMDB", "film", r.id ?? null, `${title.slice(0, 200)}${year ? ` (${year})` : ""}`);
+      refresh();
+    }
     return r;
   } catch (e) {
     return { status: "not-found", message: `${title}: ${e instanceof Error ? e.message : "something went wrong."}` };
@@ -344,7 +354,7 @@ export async function reviewSubmission(f: FormData) {
     }
     const { error: updateError } = await db.from("submissions").update({
       status: "approved", reviewed_at: new Date().toISOString(),
-      review_note: reviewNote, reviewed_by: reviewer?.id ?? null,
+      review_note: reviewNote, reviewed_by: reviewer?.id ?? null, film_id: film.id,
     }).eq("id", id);
     if (updateError) throw new Error(updateError.message);
     await logAdminActivity(db, "Approved submission", "submission", id, s.title);
@@ -359,16 +369,6 @@ export async function reviewSubmission(f: FormData) {
   if (updateError) throw new Error(updateError.message);
   await logAdminActivity(db, "Rejected submission", "submission", id, s.title);
   revalidatePath("/admin/submissions");
-}
-
-/** Marks a contact message as answered, or moves it back. */
-export async function setMessageHandled(f: FormData) {
-  const db = await adminClient();
-  const id = String(f.get("id"));
-  const { error } = await db.from("messages").update({ handled: f.get("handled") === "true" }).eq("id", id);
-  if (error) throw new Error(error.message);
-  await logAdminActivity(db, f.get("handled") === "true" ? "Closed message" : "Reopened message", "message", id);
-  revalidatePath("/admin/inbox");
 }
 
 /** Staff-picks, features or hides a member's collection (or undoes it). */
