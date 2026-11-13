@@ -12,9 +12,13 @@ try {
   const line = page.locator('.tab-bar > .nav-progress');
   assert.equal(await line.count(), 1, 'the menu bar has a loading line');
   assert.equal(await line.evaluate(el => getComputedStyle(el).opacity), '0', 'hidden while nothing loads');
-  const ring = await line.evaluate(el => { const s = getComputedStyle(el), bar = getComputedStyle(el.parentElement); return { pad: s.paddingTop, bar: bar.borderTopWidth, inset: s.top }; });
-  assert.equal(ring.pad, ring.bar, 'the stroke has the same weight as the bar border');
-  assert.equal(ring.inset, `-${ring.bar}`, 'and sits exactly over it');
+  const fit = await line.evaluate(el => {
+    const l = el.getBoundingClientRect(), b = el.parentElement.getBoundingClientRect(), s = getComputedStyle(el.parentElement);
+    return { height: l.height, border: parseFloat(s.borderTopWidth), top: l.top - b.top, startsAfterCurve: Math.round(l.left - b.left), endsBeforeCurve: Math.round(b.right - l.right), radius: Math.round(b.height / 2) };
+  });
+  assert.equal(fit.height, fit.border, 'the line has the same weight as the bar border');
+  assert.equal(fit.top, 0, 'and sits on its top edge');
+  assert(Math.abs(fit.startsAfterCurve - fit.radius) <= 2 && Math.abs(fit.endsBeforeCurve - fit.radius) <= 2, `straight top only, end to end ${JSON.stringify(fit)}`);
 
   // Tapping a link to another page starts the line; the new page clears it.
   await page.evaluate(() => {
@@ -31,10 +35,10 @@ try {
   // While loading, the line shows and grows from the left.
   await page.evaluate(() => { document.documentElement.dataset.nav = 'loading'; });
   await page.waitForTimeout(800);
-  const loading = await line.evaluate(el => { const s = getComputedStyle(el); return { opacity: s.opacity, clip: s.clipPath }; });
+  const loading = await line.evaluate(el => { const s = getComputedStyle(el); return { opacity: s.opacity, p: parseFloat(s.getPropertyValue('--nav-p')), image: s.backgroundImage }; });
   assert.equal(loading.opacity, '1', 'visible while loading');
-  const right = Number(/inset\(0px ([\d.]+)%/.exec(loading.clip)?.[1]);
-  assert(right > 8 && right < 100, `filled from the left, partway (${loading.clip})`);
+  assert(loading.p > 0 && loading.p < 88, `filled from the left, partway (${loading.p}%)`);
+  assert.match(loading.image, /transparent|rgba\(0, 0, 0, 0\)/, 'soft ends, not a hard cut');
   if (process.env.NAV_SCREENSHOT) await page.screenshot({ path: process.env.NAV_SCREENSHOT });
   await page.evaluate(() => { delete document.documentElement.dataset.nav; });
 

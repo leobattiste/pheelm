@@ -3029,22 +3029,22 @@ html:has(.early-gate) { scroll-snap-type: y proximity; }
 .field-hint { color: var(--muted); font-size: var(--t-xs); font-weight: 400; }
 .signin-links { display: flex; flex-wrap: wrap; gap: var(--space-8) var(--space-16); }
 
-/* Loading: the top edge of the menu bar fills from left to right, same weight as its border.
+/* Loading: a white line runs along the menu bar's top edge, straight, from where one rounded end
+   begins to where the other does, at the border's weight. It fades in from the left end and its
+   leading tip is soft, so it reads as part of the bar's border rather than a strip laid on top.
    Set by NavProgress on <html data-nav>. Where there's no bar (the landing page, and the admin on
    wide screens), the same line runs along the top of the screen. */
+@property --nav-p { syntax: "<percentage>"; inherits: false; initial-value: 0%; }
 .nav-progress {
-  /* A ring exactly over the bar's 1px border, painted only on its top half, so the stroke keeps
-     the same weight around the rounded ends and fully covers the grey border underneath. */
-  position: absolute; z-index: 2; inset: -1px; padding: 1px; border: 0; border-radius: inherit;
-  background: linear-gradient(var(--ink), var(--ink)) top left / 100% 50% no-repeat;
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-  pointer-events: none; opacity: 0; clip-path: inset(0 100% 0 0);
+  --nav-p: 0%;
+  position: absolute; z-index: 2; top: -1px; left: calc(var(--tab-h, 0px) / 2); right: calc(var(--tab-h, 0px) / 2); height: 1px;
+  background: linear-gradient(to right, transparent 0, var(--ink) 18px, var(--ink) max(18px, calc(var(--nav-p) - 28px)), transparent var(--nav-p));
+  pointer-events: none; opacity: 0;
 }
-.nav-progress.is-top { position: fixed; z-index: 1000; inset: 0 0 auto 0; height: 1px; padding: 0; border: 0; border-radius: 0; background: var(--ink); -webkit-mask: none; mask: none; display: none; }
+.nav-progress.is-top { position: fixed; z-index: 1000; inset: 0 0 auto 0; left: 0; right: 0; display: none; }
 html[data-chrome="site"] .nav-progress.is-top { display: block; }
-html[data-nav="loading"] .nav-progress { opacity: 1; clip-path: inset(0 8% 0 0); transition: clip-path 12s cubic-bezier(0.05, 0.75, 0.15, 1), opacity 0.15s; }
-html[data-nav="done"] .nav-progress { opacity: 0; clip-path: inset(0 0 0 0); transition: clip-path 0.25s ease-out, opacity 0.3s 0.25s; }
+html[data-nav="loading"] .nav-progress { --nav-p: 88%; opacity: 1; transition: --nav-p 12s cubic-bezier(0.05, 0.75, 0.15, 1), opacity 0.2s; }
+html[data-nav="done"] .nav-progress { --nav-p: 100%; opacity: 0; transition: --nav-p 0.25s ease-out, opacity 0.35s 0.2s; }
 @media (prefers-reduced-motion: reduce) {
-  html[data-nav="loading"] .nav-progress { transition: opacity 0.15s; clip-path: inset(0 0 0 0); }
+  html[data-nav="loading"] .nav-progress { --nav-p: 100%; transition: opacity 0.2s; }
 }
