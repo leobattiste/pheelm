@@ -2931,10 +2931,14 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 .home-carousel .clc-title { font-size: clamp(36px, 5.2vw, 72px); }
 .home-carousel .clc-copy { bottom: clamp(20px, 3vw, 36px); }
 @media (max-width: 640px) { .home-carousel .clc-copy { bottom: 88px; } }
+/* Desktop: the posters are about twice their old size, so the stage is taller than the first screen. */
+@media (min-width: 1024px) {
+  .home-lead > .home-carousel { min-height: max(760px, 92svh); }
+}
 
 /* Home page sections: headings, text and buttons are left-aligned, in one column as wide as the
    screenshots, so every section starts on the same edge. */
-:root { --home-width: 1200px; }
+:root { --home-width: none; }
 .early-gate .statement-body, .statement.is-cta .statement-body, .faq-body, .home-feature-head { width: 100%; max-width: var(--home-width); margin-inline: auto; justify-items: start; text-align: left; }
 .early-gate .statement .actions, .statement.is-cta .actions { justify-content: flex-start; }
 .early-gate .statement p, .statement.is-cta p { margin-inline: 0; max-width: 60ch; }

@@ -68,7 +68,8 @@ export function springStep(pos: number, vel: number, target: number, dt: number,
 
 /** Card size in px for a stage of w × h: portrait cards, smaller share of a wide stage. */
 export function cardSize(w: number, h: number): [number, number] {
-  const cw = Math.min(w < 640 ? w * 0.65 : w * 0.26, h * 0.39)
+  // Desktop stages are wide and tall: the posters are about twice the size they are on a tablet.
+  const cw = w >= 1024 ? Math.min(w * 0.36, h * 0.55) : Math.min(w < 640 ? w * 0.65 : w * 0.26, h * 0.39)
   return [Math.round(cw), Math.round(cw * 1.5)]
 }
 
