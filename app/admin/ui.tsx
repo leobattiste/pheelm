@@ -47,12 +47,12 @@ export function PageHeader({ title, description, actions, back }: {
 }) {
   return (
     <header className="admin-page-head">
-      <div>
-        {back && <Link className="admin-back" href={back.href}><Icon name="arrowLeft" />{back.label}</Link>}
+      {back && <Link className="admin-back" href={back.href}><Icon name="arrowLeft" />{back.label}</Link>}
+      <div className="admin-title-row">
         <h1>{title}</h1>
-        {description && <p>{description}</p>}
+        {actions && <div className="actions">{actions}</div>}
       </div>
-      {actions && <div className="actions">{actions}</div>}
+      {description && <p>{description}</p>}
     </header>
   );
 }

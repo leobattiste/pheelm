@@ -53,6 +53,8 @@
 
 /* A menu of less-used actions behind ⋯, so each page shows one main button. */
 .admin-menu { position: relative; }
+/* An open menu sits above the search bar and the cards that come after it. */
+.admin-menu[open] { z-index: 60; }
 .admin-menu > summary { list-style: none; }
 .admin-menu > summary::-webkit-details-marker { display: none; }
 .admin-menu-list {
@@ -69,10 +71,17 @@
 .admin-content > *, .admin :is(.fieldset, .form, .form-row, .field, .editor, .editor > *, .actions, .stats, .stat, .account-section) { min-width: 0; }
 
 /* Screen header -------------------------------------------------------------------------------- */
-.admin-page-head, .admin-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-16); }
-.admin-page-head > div:first-child, .admin-head > div:first-child { display: grid; gap: var(--space-8); min-width: 0; }
-.admin-page-head h1, .admin-page-head h2, .admin-head .admin-section-heading { font-size: var(--t-3xl); font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; overflow-wrap: anywhere; }
-.admin-page-head p, .admin-head p { max-width: 62ch; color: var(--muted); font-size: var(--t-sm); }
+/* Back link, then the title with the page's actions on the same line, then what the page is for. */
+.admin-page-head { display: grid; gap: var(--space-8); min-width: 0; }
+.admin-title-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-12); min-width: 0; }
+.admin-title-row > h1 { min-width: 0; font-size: var(--t-3xl); font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; overflow-wrap: anywhere; }
+.admin-title-row > .actions { display: flex; flex-wrap: nowrap; align-items: center; gap: var(--space-8); margin-left: auto; }
+.admin-title-row > .actions > .button { flex: none; }
+.admin-page-head > p { max-width: 62ch; color: var(--muted); font-size: var(--t-sm); }
+.admin-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--space-16); }
+.admin-head > div:first-child { display: grid; gap: var(--space-8); min-width: 0; }
+.admin-head .admin-section-heading { font-size: var(--t-2xl); line-height: 1.15; overflow-wrap: anywhere; }
+.admin-head p { max-width: 65ch; color: var(--muted); }
 .admin-back { display: inline-flex; align-items: center; gap: var(--space-4); width: fit-content; color: var(--muted); font-size: var(--t-sm); text-decoration: none; }
 .admin-back:hover { color: var(--ink); }
 
@@ -230,7 +239,7 @@ a.admin-attention-row:hover, .admin-attention-row a:hover { color: var(--ink); }
 }
 @media (max-width: 720px) {
   .admin-content { gap: var(--space-20); }
-  .admin-page-head h1, .admin-page-head h2 { font-size: var(--t-2xl); }
+  .admin-title-row > h1 { font-size: var(--t-2xl); }
   .admin-grid { grid-template-columns: minmax(0, 1fr); }
   .admin .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .admin .stat { padding: var(--space-16); }
@@ -245,8 +254,8 @@ a.admin-attention-row:hover, .admin-attention-row a:hover { color: var(--ink); }
 }
 @media (max-width: 639px) {
   .admin .modal { width: 100vw; max-width: 100vw; }
-  .admin-page-head > .actions, .admin-head > .actions { width: 100%; }
-  .admin-page-head > .actions > .button, .admin-head > .actions > .button { flex: 1; }
+  .admin-head > .actions { width: 100%; }
+  .admin-head > .actions > .button { flex: 1; }
 }
 @media (max-width: 359px) {
   .admin .stats { grid-template-columns: minmax(0, 1fr); }
@@ -254,7 +263,7 @@ a.admin-attention-row:hover, .admin-attention-row a:hover { color: var(--ink); }
 
 /* Catalog browsers (Films, Directors) ---------------------------------------------------------- */
 .admin-directors { display: grid; gap: var(--space-24); min-width: 0; }
-:root:root .admin-catalog-tools .catalog-toolbar { display: grid; grid-template-columns: minmax(0, 1fr) var(--bar-height) var(--bar-height); align-items: center; gap: var(--space-8); flex-wrap: nowrap; }
+:root:root .admin-catalog-tools .catalog-toolbar { display: grid; grid-template-columns: minmax(0, 1fr); grid-auto-flow: column; grid-auto-columns: var(--bar-height); align-items: center; gap: var(--space-8); flex-wrap: nowrap; }
 .admin-catalog-tools .catalog-search-control { width: 100%; min-width: 0; }
 :root:root .admin-catalog-tools .catalog-toolbar :is(.admin-add-control, .filter-button) { width: var(--bar-height); min-width: var(--bar-height); height: var(--bar-height); padding: 0; border-radius: 50%; }
 .admin-catalog-tools .filter-button .badge { position: absolute; top: -2px; right: -2px; }
@@ -378,6 +387,32 @@ a.admin-attention-row:hover, .admin-attention-row a:hover { color: var(--ink); }
 .admin-menu .count, .admin-menu-list .count { color: var(--muted); font-size: var(--t-xs); font-variant-numeric: tabular-nums; }
 .admin-view-filter { display: flex; }
 
-.admin-page-head > .actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-8); }
 .admin-filter-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-12); }
 .admin-filter-row > .admin-browser-tools { flex: 1 1 260px; min-width: 0; }
+
+/* On phones a menu opens as a sheet above the section bar, so it never runs off the screen. */
+@media (max-width: 720px) {
+  .admin-menu[open]::before { content: ""; position: fixed; inset: 0; z-index: 70; background: rgb(0 0 0 / 0.45); }
+  .admin-menu-list, .admin-menu.is-left .admin-menu-list {
+    position: fixed; z-index: 71; left: var(--space-12); right: var(--space-12); top: auto;
+    bottom: calc(76px + env(safe-area-inset-bottom)); min-width: 0; max-height: 60vh; overflow: auto; padding: 8px;
+  }
+  .admin-menu-list a, .admin-menu-list button { min-height: 50px; font-size: var(--t-md); }
+}
+
+/* The site's toolbar bleeds to the screen edges; in admin it lines up with the page instead. */
+:root .admin-browser-tools .catalog-toolbar { margin: 0; padding: 0; width: 100%; }
+/* Inbox: the two dropdowns share a row on phones, then search below. */
+@media (max-width: 720px) {
+  .admin-filter-row > :is(.admin-menu, .admin-view-filter) { flex: 1 1 0; min-width: 0; }
+  .admin-filter-row > .admin-view-filter > .admin-menu { flex: 1; min-width: 0; }
+  .admin-filter-row .admin-menu > summary { width: 100%; justify-content: space-between; padding-inline: var(--space-16); }
+  .admin-filter-row .admin-menu > summary > :not(.icon) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .admin-filter-row > .admin-browser-tools { flex-basis: 100%; }
+}
+.admin-menu-text { display: inline-flex; align-items: baseline; gap: var(--space-8); min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.add-queue li > .icon-button { flex: none; }
+@media (max-width: 720px) {
+  /* The count is in the list; the button keeps just the label so it fits on one line. */
+  .admin-filter-row .admin-menu-text .count { display: none; }
+}

@@ -183,6 +183,31 @@ try {
         }
         if (screen === 'editorial') assert.equal(await page.locator('.film-grid .film-card').count(), films.length, `${prefix}: editorial poster cards`);
         if (screen === 'community') assert.equal(await page.locator('.collection-list .collection-tile').count(), collections.length, `${prefix}: shared collection tiles`);
+        // The search bar lines up with the page's edges.
+        for (const bar of await page.locator('.admin-browser-tools .catalog-toolbar').all()) {
+          const gap = await bar.evaluate(el => { const r = el.getBoundingClientRect(), p = el.closest('.admin-content').getBoundingClientRect(); const pad = parseFloat(getComputedStyle(el.closest('.admin-content')).paddingLeft); return [Math.round(r.left - p.left - pad), Math.round(p.right - parseFloat(getComputedStyle(el.closest('.admin-content')).paddingRight) - r.right)]; });
+          assert(Math.abs(gap[1]) <= 1 && gap[0] >= -1, `${prefix}: toolbar doesn't line up with the page edges ${gap}`);
+        }
+        // Every menu opens fully on screen and on top of whatever is under it.
+        for (const menu of await page.locator('.admin-menu').all()) {
+          await menu.scrollIntoViewIfNeeded();
+          await menu.evaluate(el => { el.open = true; });
+          const box = await menu.locator('.admin-menu-list').evaluate(el => {
+            const r = el.getBoundingClientRect();
+            const points = [[r.left + 12, r.top + 12], [r.right - 12, r.top + 12], [r.left + r.width / 2, r.bottom - 12]];
+            return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, vw: innerWidth, vh: innerHeight,
+              covered: points.filter(([x, y]) => !el.contains(document.elementFromPoint(x, y))).length };
+          });
+          assert(box.left >= 0 && box.right <= box.vw && box.top >= 0 && box.bottom <= box.vh, `${prefix}: menu off screen ${JSON.stringify(box)}`);
+          assert.equal(box.covered, 0, `${prefix}: menu is covered by something else ${JSON.stringify(box)}`);
+          if (artifacts && grid === 'large' && theme === 'dark' && [390, 1440].includes(width)) await page.screenshot({ path: resolve(artifacts, `menu-${width}-${screen}.png`) });
+          await menu.evaluate(el => { el.open = false; });
+        }
+        // The title and its actions share a line; the main button keeps its own size.
+        for (const button of await page.locator('.admin-title-row > .actions > .button').all()) {
+          const grow = await button.evaluate(el => getComputedStyle(el).flexGrow);
+          assert.equal(grow, '0', `${prefix}: header button stretches to fill the row`);
+        }
         if (screen === 'add') assert.equal(await page.locator('.add-method').count(), 3, `${prefix}: three ways to add films`);
         if (screen !== 'editor') assert.equal(await page.locator('.admin-content h1').count(), 1, `${prefix}: one page title`);
         if (artifacts && grid === 'large' && [390, 1440].includes(width)) await page.screenshot({ path: resolve(artifacts, `${theme}-${width}-${screen}.png`), fullPage: true });

@@ -25,7 +25,7 @@ export default function AdminMenu({ label = "More actions", text, align = "right
   return (
     <details ref={menu} className={`admin-menu is-${align}`}>
       <summary className={text ? "button ghost" : "button ghost icon-only"} aria-label={label} title={label}>
-        {text ?? <Icon name="more" />}{text && <Icon name="arrowDown" />}
+        {text ? <span className="admin-menu-text">{text}</span> : <Icon name="more" />}{text && <Icon name="arrowDown" />}
       </summary>
       <div className="admin-menu-list" onClick={(e) => { if ((e.target as HTMLElement).closest("a")) menu.current!.open = false; }}>{children}</div>
     </details>
