@@ -42,8 +42,7 @@ export default function FeatureTabs({ features }: { features: HomeFeature[] }) {
               id={`hf-tab-${f.id}`} aria-selected={i === active} aria-controls={`hf-panel-${f.id}`} tabIndex={i === active ? 0 : -1}
               onClick={() => setActive(i)}
             >
-              <span className="hf-tab-title">{f.title}</span>
-              <span className="hf-tab-intro">{f.intro}</span>
+              {f.title}
             </button>
           ))}
         </div>
