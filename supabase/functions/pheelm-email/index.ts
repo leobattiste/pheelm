@@ -39,7 +39,7 @@ Deno.serve(async req=>{try{const url=new URL(req.url);const action=url.searchPar
   let message=job.message,layoutHtml=template.html,layoutText=template.text,digestHtmlPart='',digestTextPart='';
   if(job.template==='activity-digest'){
    const data=await rpc('email_digest_items',{job_id:job.id,lease_id:job.lease});
-   if(!data||!(data.films||data.directors||data.watchlists)){await rpc('email_complete',{job_id:job.id,lease_id:job.lease,failure:'No public additions remain',retryable:false});continue;}
+   if(!data||![data.films,data.directors,data.watchlists].some(s=>Array.isArray(s?.items)&&s.items.length)){await rpc('email_complete',{job_id:job.id,lease_id:job.lease,failure:'No public additions remain',retryable:false});continue;}
    message=digestIntro(data.frequency);digestHtmlPart=digestHtml(data);digestTextPart=digestText(data);
    layoutHtml=layoutHtml.replace('[[MESSAGE]]</p>','[[MESSAGE]]</p>[[DIGEST]]');layoutText=layoutText.replace('[[MESSAGE]]','[[MESSAGE]]\n\n[[DIGEST]]');
   }

@@ -55,9 +55,9 @@ language sql stable security definer set search_path='' as $$
  watchlists as (select jsonb_build_object('total', max(i.total), 'items', jsonb_agg(jsonb_build_object('title', left(i.title, 100), 'path', i.path) order by i.n)) j
   from items i where i.kind = 'collection' and i.n <= 4)
  select case when exists (select 1 from items) then jsonb_strip_nulls(jsonb_build_object(
-  'films', (select j from films where j->'items' is not null),
-  'directors', (select j from directors where j->'items' is not null),
-  'watchlists', (select j from watchlists where j->'items' is not null))) end;
+  'films', (select j from films where jsonb_typeof(j->'items') = 'array'),
+  'directors', (select j from directors where jsonb_typeof(j->'items') = 'array'),
+  'watchlists', (select j from watchlists where jsonb_typeof(j->'items') = 'array'))) end;
 $$;
 revoke all on function pheelm_email.digest_items(timestamptz, timestamptz) from public, anon, authenticated;
 

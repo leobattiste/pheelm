@@ -44,14 +44,15 @@ function lists(section) {
 
 /** The HTML that goes under the opening line of a Digest. */
 export function digestHtml(data) {
-  const parts = [data.films && films(data.films), data.directors && people(data.directors), data.watchlists && lists(data.watchlists)].filter(Boolean);
+  const has = (s) => Array.isArray(s?.items) && s.items.length > 0;
+  const parts = [has(data.films) && films(data.films), has(data.directors) && people(data.directors), has(data.watchlists) && lists(data.watchlists)].filter(Boolean);
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:4px">${parts.join('')}</table>`;
 }
 
 /** The same list for the plain-text version. */
 export function digestText(data) {
   const out = [];
-  const section = (label, s, line) => { if (!s) return; out.push(`${label} (${s.total} new)`); for (const i of s.items) out.push(line(i)); out.push(''); };
+  const section = (label, s, line) => { if (!Array.isArray(s?.items) || !s.items.length) return; out.push(`${label} (${s.total} new)`); for (const i of s.items) out.push(line(i)); out.push(''); };
   section('Films', data.films, (f) => `${f.title}${f.year ? ` (${f.year})` : ''}: ${link(f.path)}`);
   section('Directors', data.directors, (p) => `${p.title}: ${link(p.path)}`);
   section('Watchlists', data.watchlists, (l) => `${l.title}: ${link(l.path)}`);
