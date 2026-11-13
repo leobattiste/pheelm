@@ -3025,3 +3025,18 @@ html:has(.early-gate) { scroll-snap-type: y proximity; }
 .password-field .link-button { position: absolute; right: var(--space-12); top: 50%; transform: translateY(-50%); text-decoration: none; }
 .field-hint { color: var(--muted); font-size: var(--t-xs); font-weight: 400; }
 .signin-links { display: flex; flex-wrap: wrap; gap: var(--space-8) var(--space-16); }
+
+/* Loading: the top edge of the menu bar fills from left to right, same weight as its border.
+   Set by NavProgress on <html data-nav>. Where there's no bar (the landing page, and the admin on
+   wide screens), the same line runs along the top of the screen. */
+.nav-progress {
+  position: absolute; z-index: 2; inset: -1px; border: 1px solid transparent; border-top-color: var(--ink); border-radius: inherit;
+  pointer-events: none; opacity: 0; clip-path: inset(0 100% 0 0);
+}
+.nav-progress.is-top { position: fixed; z-index: 1000; inset: 0 0 auto 0; height: 1px; border: 0; border-radius: 0; background: var(--ink); display: none; }
+html[data-chrome="site"] .nav-progress.is-top { display: block; }
+html[data-nav="loading"] .nav-progress { opacity: 1; clip-path: inset(0 8% 0 0); transition: clip-path 12s cubic-bezier(0.05, 0.75, 0.15, 1), opacity 0.15s; }
+html[data-nav="done"] .nav-progress { opacity: 0; clip-path: inset(0 0 0 0); transition: clip-path 0.25s ease-out, opacity 0.3s 0.25s; }
+@media (prefers-reduced-motion: reduce) {
+  html[data-nav="loading"] .nav-progress { transition: opacity 0.15s; clip-path: inset(0 0 0 0); }
+}

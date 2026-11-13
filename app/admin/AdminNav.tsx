@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Icon, { type IconName } from "@/components/Icon";
 import type { AdminCounts } from "@/lib/admin-counts";
+import NavProgressLine from "@/components/NavProgressLine";
 
 type Section = { label: string; href: string; icon: IconName; badges?: (keyof AdminCounts)[]; routes: string[] };
 
@@ -44,6 +45,7 @@ export default function AdminSidebar({ counts = NONE, who, owner }: { counts?: A
   const section = sectionFor(usePathname());
   return (
     <aside className="admin-sidebar">
+      <NavProgressLine />
       <Link href="/admin" className="admin-brand" aria-label="Pheelm admin, dashboard"><span className="wordmark-type">pheelm</span><span className="admin-brand-tag">Admin</span></Link>
       <nav className="admin-sections" aria-label="Admin sections">
         {ADMIN_SECTIONS.map((s) => (

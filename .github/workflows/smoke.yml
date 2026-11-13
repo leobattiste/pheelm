@@ -48,6 +48,9 @@ jobs:
       - run: node tests/films-shuffle-browser.mjs
         env:
           BASE_URL: http://localhost:3000
+      - run: node tests/nav-progress-browser.mjs
+        env:
+          BASE_URL: http://localhost:3000
       - run: node tests/catalog-search-browser.mjs
         env:
           BASE_URL: http://localhost:3000

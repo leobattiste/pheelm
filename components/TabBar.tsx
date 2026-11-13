@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import Icon, { type IconName } from "./Icon";
 import { chromeFor } from "@/lib/chrome";
 import { openSignIn } from "./SignInSheet";
+import NavProgressLine from "./NavProgressLine";
 
 type Me = { handle: string | null; unread: number };
 
@@ -41,6 +42,7 @@ export default function TabBar() {
 
   return (
     <nav className="tab-bar" aria-label="Sections">
+      <NavProgressLine />
       {tabs.map((t) => (
         <Link key={t.label} href={t.href} className={t.only ? `tab ${t.only}` : "tab"} aria-current={t.on ? "page" : undefined} aria-label={t.label} title={t.label}>
           <Icon name={t.icon} />

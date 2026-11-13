@@ -14,6 +14,8 @@ import NotificationToasts from "@/components/NotificationToasts";
 import SiteHeader from "@/components/SiteHeader";
 import ThemeToggle from "@/components/ThemeToggle";
 import { TransitionWatcher } from "@/components/Transitions";
+import NavProgress from "@/components/NavProgress";
+import NavProgressLine from "@/components/NavProgressLine";
 import Icon from "@/components/Icon";
 import { WORDMARK, INSTAGRAM_URL, SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE, THREADS_URL } from "@/lib/site";
 import { SITE_URL } from "@/lib/supabase/config";
@@ -179,6 +181,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <NotificationToasts />
         <Search />
         <TransitionWatcher />
+        <NavProgress />
+        <NavProgressLine top />
         <Analytics />
       </body>
     </html>

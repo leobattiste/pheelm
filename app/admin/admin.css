@@ -416,3 +416,10 @@ a.admin-attention-row:hover, .admin-attention-row a:hover { color: var(--ink); }
   /* The count is in the list; the button keeps just the label so it fits on one line. */
   .admin-filter-row .admin-menu-text .count { display: none; }
 }
+
+/* The loading line: along the top of the screen beside the sidebar, along the top edge of the bar on phones. */
+.admin-sidebar > .nav-progress { display: none; }
+@media (min-width: 900px) { html[data-chrome="admin"] .nav-progress.is-top { display: block; } }
+@media (max-width: 899px) {
+  .admin-sidebar > .nav-progress { display: block; inset: -1px 0 auto 0; height: 1px; border: 0; border-radius: 0; background: var(--ink); }
+}
