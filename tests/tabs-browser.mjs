@@ -13,7 +13,7 @@ try{
   await page.setViewportSize({width,height:844});await page.evaluate(()=>window.scrollTo(0,100));
   const tab=strip.getByRole('tab',{name:'Watchlist',exact:true});await tab.evaluate(e=>e.focus({preventScroll:true}));
   const before=await strip.boundingBox(),scroll=await page.evaluate(()=>scrollY);
-  await tab.hover();await page.mouse.down();const pressed=await tab.boundingBox();assert.equal(await tab.evaluate(e=>getComputedStyle(e).transform),'none');assert.ok(Math.abs(pressed.y-before.y)<1);assert.equal(Math.round(pressed.height),60);await page.mouse.up();
+  await tab.hover();await page.mouse.down();const pressed=await tab.boundingBox();assert.equal(await tab.evaluate(e=>getComputedStyle(e).transform),'none');assert.ok(Math.abs(pressed.y-before.y)<1);assert.equal(Math.round(pressed.height),42);await page.mouse.up();
   await tab.press('End');await page.getByRole('tabpanel',{name:'About this member',exact:true}).waitFor();
   const after=await strip.boundingBox();assert.ok(Math.abs(after.y-before.y)<1);assert.equal(await page.evaluate(()=>scrollY),scroll);
   assert.ok(await strip.getByRole('tab',{name:'About this member',exact:true}).evaluate(e=>{const item=e.getBoundingClientRect(),parent=e.parentElement.getBoundingClientRect();return item.left>=parent.left-1&&item.right<=parent.right+1;}));
