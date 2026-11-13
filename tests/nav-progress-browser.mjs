@@ -12,8 +12,9 @@ try {
   const line = page.locator('.tab-bar > .nav-progress');
   assert.equal(await line.count(), 1, 'the menu bar has a loading line');
   assert.equal(await line.evaluate(el => getComputedStyle(el).opacity), '0', 'hidden while nothing loads');
-  const edge = await line.evaluate(el => { const s = getComputedStyle(el); return [s.borderTopWidth, s.borderBottomColor]; });
-  assert.equal(edge[0], '1px', 'same weight as the bar border');
+  const ring = await line.evaluate(el => { const s = getComputedStyle(el), bar = getComputedStyle(el.parentElement); return { pad: s.paddingTop, bar: bar.borderTopWidth, inset: s.top }; });
+  assert.equal(ring.pad, ring.bar, 'the stroke has the same weight as the bar border');
+  assert.equal(ring.inset, `-${ring.bar}`, 'and sits exactly over it');
 
   // Tapping a link to another page starts the line; the new page clears it.
   await page.evaluate(() => {
