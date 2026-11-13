@@ -8,13 +8,14 @@
 - Messages use `Pheelm <notifications@pheelm.com>` and reply to `hey@pheelm.com`.
 - Resend delivery/bounce/complaint webhooks require Svix signature verification and a five-minute timestamp window. Event IDs are deduplicated. Bounced and complained recipients are suppressed.
 - Queue jobs use deterministic Resend idempotency keys, row-lock claims, leases, bounded retries and a twelve-hour expiry. Email content is retained for fourteen days.
-- The deployed worker sends the rendered HTML/plain-text snapshots in `supabase/functions/pheelm-email/templates.json`, packed into `templates.compact.json` (two shared layouts plus each email’s words; `unpack.mjs` rebuilds them exactly, and `npm run email:preview` refuses to pack if it wouldn’t). The source is `emails/PheelmEmail.tsx` and `emails/catalog.json`. Deploy `index.ts`, `security.ts`, `unpack.mjs`, `templates.compact.json` and `deno.json`.
+- The deployed worker sends the rendered HTML/plain-text layouts in `supabase/functions/pheelm-email/templates.compact.json`: two shared layouts (with and without the unsubscribe footer) plus each email's words. `unpack.mjs` fills the words in; the worker fills `[[MESSAGE]]`, `[[ACTION_URL]]`, `[[UNSUBSCRIBE_URL]]`, `[[POSTAL_ADDRESS]]` and `[[YEAR]]` when it sends. The design is `emails/PheelmEmail.tsx`; the words (title, subject, button, preheader, three good-to-know rows, a closing note) are in `emails/catalog.json`. After changing either, run `npm run email:preview` and deploy `index.ts`, `security.ts`, `unpack.mjs`, `templates.compact.json` and `deno.json`. The wordmark in the header is `public/brand/pheelm-wordmark-email.png`, served from pheelm.com.
 - Production copies are published in Resend under `pheelm-live-*`. Editable original designs are preserved under `pheelm-*` as drafts. Dashboard edits do not automatically update the deployed snapshots: regenerate and deploy the worker after changing the source.
 
 ## Templates and event coverage
 
 | Template | Trigger |
 | --- | --- |
+| reset-password | Supabase Auth password reset; same SMTP configuration and template paste as the others |
 | confirm-signup | Supabase Auth confirmation; SMTP configuration below is required |
 | sign-in | Supabase Auth magic link + one-time code; SMTP configuration below is required |
 | confirm-email-change | Supabase Auth secure email change; SMTP configuration below is required |
@@ -57,6 +58,9 @@ Paste the generated files into the matching Supabase Auth email templates:
 - Confirm signup: `supabase/email/confirm-signup.html`
 - Magic link: `supabase/email/magic-link.html`
 - Change email: `supabase/email/confirm-email-change.html`
+- Reset password: `supabase/email/reset-password.html`
+
+These carry the copyright year of the day `npm run email:preview` was run, so run it and paste them again each January.
 
 Keep secure email change, email confirmation, current OTP expiry and redirect allowlists enabled. These templates preserve `next` through `RedirectTo`, which must contain the callback query string as the current sign-in form supplies it. Never enable click tracking on authentication mail.
 
@@ -64,9 +68,8 @@ Alternatively, use `NODE_USE_ENV_PROXY=1 node scripts/auth-email-config.mjs` in 
 
 ## Development and verification
 
-- `npm run email:preview`: generates twenty HTML and plain-text previews plus deployment snapshots.
-- `node scripts/export-auth-emails.mjs`: generates Supabase Auth template files.
-- `node tests/email-security.mjs`: verifies escaping, trusted destinations, signature authentication, replay window and all rendered templates.
+- `npm run email:preview`: generates the HTML and plain-text previews, the worker's templates and the four Supabase Auth templates.
+- `node tests/email-security.mjs`: verifies escaping, trusted destinations, signature authentication, replay window, that every email's footer says only “© year Pheelm”, and all rendered templates.
 - PostgreSQL tests: apply `tests/email-bootstrap.sql` to a disposable PostgreSQL database, then `supabase/email-system.sql`, then `tests/email-system.sql`. Never apply the bootstrap to production.
 - `npm run build`: verifies the website and email preference/admin components.
 
@@ -81,3 +84,7 @@ Inspect queue state and retry errors in the private schema using the SQL editor.
 ## Catalog Digest
 
 `supabase/catalog-digest.sql` records newly discoverable items on the five-minute delivery schedule. Existing catalog entries are baselined without announcements. Daily and weekly subscriptions accumulate additions from their preference selection time. Eligibility is checked again immediately before sending, excluding drafts, hidden directors, private collections/profiles, and collections below the public discovery threshold. Changing frequency resets the accumulation window; Off stops future digests.
+
+## Wording
+
+Emails say “watchlist”, like the site. `supabase/email-wording.sql` updates the queued messages in the three database functions that still said “collection” (welcome, collaboration, digest heading); the same words are fixed in `email-system.sql`, `activity-emails.sql` and `catalog-digest.sql`.

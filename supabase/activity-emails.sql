@@ -42,5 +42,5 @@ begin
  end if;
  if collaboration is false then return new; end if;
  perform pheelm_email.enqueue('notification:'||new.id,new.user_id,address,case when new.type='invite' then 'collection-invitation' else 'collaboration-update' end,
- case new.type when 'invite' then 'You have been invited to help curate a collection. Sign in to review and accept or decline.' when 'request' then 'A member requested to help curate your collection. Sign in to review the request.' when 'removed' then 'Your membership of a collection changed. Sign in to review the update.' else 'There is an update on your collection collaboration. Sign in to review it.' end,'/notifications','collaboration');return new;
+ case new.type when 'invite' then 'You have been invited to help curate a watchlist. Sign in to review and accept or decline.' when 'request' then 'A member requested to help curate your watchlist. Sign in to review the request.' when 'removed' then 'Your membership of a watchlist changed. Sign in to review the update.' else 'There is an update on your watchlist collaboration. Sign in to review it.' end,'/notifications','collaboration');return new;
 end $$;

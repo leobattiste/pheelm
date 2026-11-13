@@ -60,7 +60,7 @@ begin
   return old;
  end if;
  if new.email_confirmed_at is not null and (TG_OP='INSERT' or old.email_confirmed_at is null) then
-  perform pheelm_email.enqueue('welcome:'||new.id,new.id,new.email,'welcome','Discover films, make collections, and follow directors. Your Pheelm account is ready.','/films');
+  perform pheelm_email.enqueue('welcome:'||new.id,new.id,new.email,'welcome','Discover films, make watchlists, and follow directors. Your Pheelm account is ready.','/films');
  end if;
  if TG_OP='UPDATE' and new.email is distinct from old.email and old.email_confirmed_at is not null then
   perform pheelm_email.enqueue('email-change-old:'||new.id||':'||new.updated_at,new.id,old.email,'security-notice','The sign-in email on your Pheelm account changed. If this was not you, contact Pheelm immediately.','/contact');
@@ -98,7 +98,7 @@ begin
  if exists(select 1 from public.notification_preferences where user_id=new.user_id and new.type=any(disabled_types)) then return new; end if;
  insert into public.email_preferences(user_id) values(new.user_id) on conflict do nothing;
  perform pheelm_email.enqueue('notification:'||new.id,new.user_id,address,case when new.type='invite' then 'collection-invitation' else 'collaboration-update' end,
- case new.type when 'invite' then 'You have been invited to help curate a collection. Sign in to review and accept or decline.' when 'request' then 'A member requested to help curate your collection. Sign in to review the request.' when 'removed' then 'Your membership of a collection changed. Sign in to review the update.' else 'There is an update on your collection collaboration. Sign in to review it.' end,'/notifications','collaboration');return new;
+ case new.type when 'invite' then 'You have been invited to help curate a watchlist. Sign in to review and accept or decline.' when 'request' then 'A member requested to help curate your watchlist. Sign in to review the request.' when 'removed' then 'Your membership of a watchlist changed. Sign in to review the update.' else 'There is an update on your watchlist collaboration. Sign in to review it.' end,'/notifications','collaboration');return new;
 end $$;
 create trigger pheelm_email_notification after insert on public.notifications for each row execute function pheelm_email.notification_event();
 

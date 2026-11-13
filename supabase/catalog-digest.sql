@@ -20,7 +20,7 @@ revoke all on function pheelm_email.reset_digest_cursor() from public,anon,authe
 create function pheelm_email.digest_message(since_time timestamptz,until_time timestamptz) returns text language sql stable security definer set search_path='' as $$
  with items as (select c.*,row_number() over(partition by c.kind order by a.added_at desc,c.entity_id) n,count(*) over(partition by c.kind) total from pheelm_email.discoverable_catalog c join pheelm_email.catalog_additions a using(kind,entity_id) where a.added_at>since_time and a.added_at<=until_time),
  sections as (select kind,max(total) total,string_agg(left(title,100)||case when length(title)>100 then '…' else '' end||E'\nhttps://www.pheelm.com'||path,E'\n\n' order by n) body from items where n<=4 group by kind)
- select E'New on Pheelm\n\n'||string_agg(case kind when 'film' then 'Films' when 'director' then 'Directors' else 'Collections' end||' ('||total||E')\n'||body||case when total>4 then E'\nMore on Pheelm.' else '' end,E'\n\n' order by case kind when 'film' then 1 when 'director' then 2 else 3 end) from sections;
+ select E'New on Pheelm\n\n'||string_agg(case kind when 'film' then 'Films' when 'director' then 'Directors' else 'Watchlists' end||' ('||total||E')\n'||body||case when total>4 then E'\nMore on Pheelm.' else '' end,E'\n\n' order by case kind when 'film' then 1 when 'director' then 2 else 3 end) from sections;
 $$;
 revoke all on function pheelm_email.digest_message(timestamptz,timestamptz) from public,anon,authenticated;
 create or replace function public.email_prepare_digests() returns void language plpgsql security definer set search_path='' as $$

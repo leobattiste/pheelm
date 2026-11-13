@@ -1,23 +1,534 @@
 [
- {"id":"confirm-signup","title":"Confirm your email","subject":"Confirm your Pheelm email","button":"Confirm email","message":"Confirm your email to finish creating your Pheelm account.","category":"auth"},
- {"id":"sign-in","title":"Sign in to Pheelm","subject":"Your Pheelm sign-in link","button":"Sign in","message":"Use this one-time link to sign in. If you did not request it, you can ignore this email.","category":"auth"},
- {"id":"confirm-email-change","title":"Confirm your new email","subject":"Confirm your Pheelm email change","button":"Confirm email change","message":"Confirm this change to the email address used for your Pheelm account. If you did not request it, contact support.","category":"auth"},
- {"id":"security-notice","title":"Your account was updated","subject":"Your Pheelm account email changed","button":"Review your account","message":"Your sign-in email changed. If this was not you, contact Pheelm immediately.","category":"transactional"},
- {"id":"welcome","title":"Welcome to Pheelm","subject":"Welcome to Pheelm","button":"Explore films","message":"Discover films, make collections, and follow directors. Your account is ready.","category":"transactional"},
- {"id":"account-deleted","title":"Your account has been deleted","subject":"Your Pheelm account has been deleted","button":"Visit Pheelm","message":"Your Pheelm account has been deleted. Contact us if you did not request this.","category":"transactional"},
- {"id":"submission-received","title":"We received your film submission","subject":"Your film submission is with Pheelm","button":"View your submissions","message":"Thank you for helping build the catalog. Your submission is awaiting review; this does not mean it has been published.","category":"transactional"},
- {"id":"submission-update","title":"An update on your submission","subject":"An update on your Pheelm submission","button":"View your submissions","message":"There is an update on your film submission. Sign in to review its status and any notes.","category":"transactional"},
- {"id":"contact-received","title":"We received your message","subject":"Pheelm received your message","button":"Contact Pheelm","message":"Thank you for contacting Pheelm. We received your message. Keep this email for your reference.","category":"transactional"},
- {"id":"support-response","title":"A reply from Pheelm","subject":"A reply to your Pheelm message","button":"Contact Pheelm","message":"There is a reply to your message.","category":"transactional"},
- {"id":"collection-invitation","title":"You’re invited to curate","subject":"You’re invited to curate a Pheelm collection","button":"Review invitation","message":"A Pheelm member invited you to help curate a collection. Sign in to accept or decline.","category":"transactional"},
- {"id":"collaboration-update","title":"An update on your collaboration","subject":"Your Pheelm collection collaboration","button":"View notification","message":"There is an update on a collection invitation, request, or membership.","category":"transactional"},
- {"id":"newsletter-confirmation","title":"Confirm your subscription","subject":"Confirm your Pheelm newsletter subscription","button":"Confirm subscription","message":"You asked to receive the Pheelm newsletter. Confirm below to subscribe. If this was not you, ignore this email; you will not be subscribed.","category":"confirmation"},
- {"id":"newsletter","title":"From Pheelm","subject":"Discoveries from Pheelm","button":"Explore Pheelm","message":"Films, directors, and collections selected by Pheelm.","category":"marketing"},
- {"id":"activity-update","title":"New activity on Pheelm","subject":"New activity on Pheelm","button":"View notifications","message":"Someone replied to your comment, mentioned you or commented on your watchlist, or a director you follow has a new film.","category":"optional"},
- {"id":"activity-digest","title":"Your Pheelm Digest","subject":"New on Pheelm","button":"Discover what’s new","message":"Discover new films, directors, and collections added to Pheelm.","category":"optional"},
- {"id":"report-update","title":"An update on your report","subject":"Your report to Pheelm","button":"Contact Pheelm","message":"We received your report. We review reports against our community guidelines and may be unable to share private moderation details.","category":"transactional"},
- {"id":"moderation-notice","title":"An update about your content","subject":"An important update from Pheelm","button":"Contact Pheelm","message":"There is a moderation decision affecting your account or content. You may contact us to ask for a review.","category":"transactional"},
- {"id":"service-notice","title":"An important Pheelm update","subject":"An important update about your Pheelm account","button":"Read the update","message":"An important service change affects your use of Pheelm.","category":"transactional"},
- {"id":"data-export-ready","title":"Your export is ready","subject":"Your Pheelm data export is ready","button":"Download your data","message":"The data export you requested is ready. Use your secure download link before it expires.","category":"transactional"},
- {"id":"admin-digest","title":"Your Pheelm review queue","subject":"Pheelm needs your review","button":"Open admin","message":"Review pending film submissions, reports, and messages in Pheelm.","category":"optional"}
+ {
+  "id": "confirm-signup",
+  "title": "Confirm your email",
+  "subject": "Confirm your Pheelm email",
+  "button": "Confirm email",
+  "message": "Welcome to Pheelm. Confirm your email address to finish creating your account.",
+  "category": "auth",
+  "preheader": "One quick step to finish creating your Pheelm account.",
+  "rows": [
+   [
+    "Use the button or the code",
+    "Select the button, or type the six-digit code on the sign-in page. Either one works."
+   ],
+   [
+    "It expires soon",
+    "The link and code work once and stop working after a short time. If they expire, ask for a new one from the sign-in page."
+   ],
+   [
+    "Keep the code private",
+    "Pheelm will never ask you for it by email, message or phone."
+   ]
+  ],
+  "note": "Didn’t create an account? You can ignore this email. Nothing happens unless the address is confirmed.",
+  "authMessage": "Welcome to Pheelm. Confirm your email address to finish creating your account. Select the button, or enter the code below on the sign-in page."
+ },
+ {
+  "id": "sign-in",
+  "title": "Sign in to Pheelm",
+  "subject": "Your Pheelm sign-in link",
+  "button": "Sign in",
+  "message": "Use the button, or enter the six-digit code, to sign in to Pheelm.",
+  "category": "auth",
+  "preheader": "Your one-time sign-in link and code.",
+  "rows": [
+   [
+    "Open it where you want to sign in",
+    "Select the button on the device you’re signing in on, or type the code on the sign-in page."
+   ],
+   [
+    "One use only",
+    "Once you’re signed in, this link and code stop working. They also expire after a short time."
+   ],
+   [
+    "Keep it private",
+    "Don’t forward this email or share the code. Pheelm will never ask for it."
+   ]
+  ],
+  "note": "Didn’t ask to sign in? Ignore this email and your account stays exactly as it is. If these keep arriving, write to hey@pheelm.com.",
+  "authMessage": "Use the button, or enter the code below on the sign-in page, to sign in to Pheelm. Never share this code."
+ },
+ {
+  "id": "reset-password",
+  "title": "Reset your password",
+  "subject": "Reset your Pheelm password",
+  "button": "Choose a new password",
+  "message": "We received a request to reset the password for your Pheelm account.",
+  "category": "auth",
+  "preheader": "Choose a new password for your Pheelm account.",
+  "rows": [
+   [
+    "Choose something new",
+    "Pick a password you don’t use anywhere else, at least 8 characters long."
+   ],
+   [
+    "It expires soon",
+    "The link and code work once and stop working after a short time. You can ask for another from the sign-in page."
+   ],
+   [
+    "Your account is safe",
+    "Until you use this link, your current password keeps working."
+   ]
+  ],
+  "note": "Didn’t ask for a reset? Ignore this email and your password stays the same.",
+  "authMessage": "We received a request to reset the password for your Pheelm account. Select the button, or enter the code below on the sign-in page, to choose a new one."
+ },
+ {
+  "id": "confirm-email-change",
+  "title": "Confirm your new email",
+  "subject": "Confirm your Pheelm email change",
+  "button": "Confirm new email",
+  "message": "Confirm this change to the email address you use to sign in to Pheelm.",
+  "category": "auth",
+  "preheader": "Confirm the new email address for your Pheelm account.",
+  "rows": [
+   [
+    "What changes",
+    "Once confirmed, you’ll sign in with this address and Pheelm will email you here."
+   ],
+   [
+    "Everything else stays",
+    "Your watchlists, followed directors, comments and settings are not affected."
+   ],
+   [
+    "We’ll tell both addresses",
+    "For your security, the old and the new address each get a notice when the change is complete."
+   ]
+  ],
+  "note": "Didn’t ask for this? Don’t select the button, and write to hey@pheelm.com so we can help you secure your account.",
+  "authMessage": "Confirm this change to the email address you use to sign in to Pheelm."
+ },
+ {
+  "id": "security-notice",
+  "title": "Your sign-in email changed",
+  "subject": "Your Pheelm account email changed",
+  "button": "Review this change",
+  "message": "The sign-in email on your Pheelm account changed. If this wasn’t you, contact Pheelm straight away.",
+  "category": "transactional",
+  "preheader": "The email address on your Pheelm account was changed.",
+  "rows": [
+   [
+    "What changed",
+    "The email address used to sign in to your account was updated. The old and the new address both receive this notice."
+   ],
+   [
+    "If it was you",
+    "Nothing more to do. Use the new address to sign in from now on."
+   ],
+   [
+    "If it wasn’t you",
+    "Write to hey@pheelm.com right away with “Account security” in the subject, and we’ll help you recover your account."
+   ]
+  ],
+  "note": "Pheelm never asks for your password or sign-in code. We only email you about changes like this one."
+ },
+ {
+  "id": "welcome",
+  "title": "Welcome to Pheelm",
+  "subject": "Welcome to Pheelm",
+  "button": "Explore films",
+  "message": "Discover films, make watchlists and follow directors. Your Pheelm account is ready.",
+  "category": "transactional",
+  "preheader": "Your account is ready. Here’s where to start.",
+  "rows": [
+   [
+    "Build watchlists",
+    "Save films into watchlists, keep them private or share them, and invite others to curate with you."
+   ],
+   [
+    "Follow directors",
+    "Follow the directors you love and hear when a new film from them is added."
+   ],
+   [
+    "Make it yours",
+    "Add a photo and a short bio, and choose which emails you get, in your account settings."
+   ]
+  ],
+  "note": "Questions? Visit the Help page or write to hey@pheelm.com."
+ },
+ {
+  "id": "account-deleted",
+  "title": "Your account has been deleted",
+  "subject": "Your Pheelm account has been deleted",
+  "button": "Contact us",
+  "message": "Your Pheelm account has been deleted. If you didn’t request this, contact Pheelm.",
+  "category": "transactional",
+  "preheader": "Your Pheelm account is gone. Here’s what that means.",
+  "rows": [
+   [
+    "What was removed",
+    "Your profile, watchlists, follows, comments, notifications and profile photo were deleted along with your account."
+   ],
+   [
+    "Emails stop",
+    "You won’t receive further account emails. This is the last one unless you contact us."
+   ],
+   [
+    "Want to come back?",
+    "You’re welcome to create a new account any time. Deleted content can’t be restored."
+   ]
+  ],
+  "note": "Didn’t delete your account? Write to hey@pheelm.com straight away so we can look into it."
+ },
+ {
+  "id": "submission-received",
+  "title": "We’ve received your film",
+  "subject": "Your film submission is with Pheelm",
+  "button": "View your submissions",
+  "message": "Thank you for helping build the catalog. Your submission is awaiting review; it hasn’t been published.",
+  "category": "transactional",
+  "preheader": "Your film submission is in. It’s waiting for review.",
+  "rows": [
+   [
+    "What happens next",
+    "We check each film’s details before adding it. You’ll get an email when the status changes."
+   ],
+   [
+    "Not published yet",
+    "Your film doesn’t appear on Pheelm until it has been reviewed and approved."
+   ],
+   [
+    "Keep your reference",
+    "The reference above identifies this submission if you ever need to write to us."
+   ]
+  ],
+  "note": "Spotted a mistake in what you sent? Reply to this email and tell us what to fix."
+ },
+ {
+  "id": "submission-update",
+  "title": "An update on your submission",
+  "subject": "An update on your Pheelm submission",
+  "button": "See the update",
+  "message": "There’s an update on your film submission. Sign in to see its status and any notes.",
+  "category": "transactional",
+  "preheader": "The review of your film submission has changed.",
+  "rows": [
+   [
+    "Where to look",
+    "Open your account and go to Submissions to see the current status and any notes from the team."
+   ],
+   [
+    "Approved means reviewed",
+    "An approved submission has been accepted; it may take a little while to appear in the catalog."
+   ],
+   [
+    "Not accepted?",
+    "You can send a corrected version, or write to hey@pheelm.com and we’ll explain."
+   ]
+  ],
+  "note": "Thank you for helping improve the catalog."
+ },
+ {
+  "id": "contact-received",
+  "title": "We’ve got your message",
+  "subject": "Pheelm received your message",
+  "button": "Visit the Help page",
+  "message": "Thank you for contacting Pheelm. We received your message.",
+  "category": "transactional",
+  "preheader": "We’ve got your message. Keep this email for your reference.",
+  "rows": [
+   [
+    "What happens next",
+    "Someone at Pheelm reads each message and replies when a reply is needed."
+   ],
+   [
+    "How we reply",
+    "Replies come from Pheelm to this address, and you can reply to them directly."
+   ],
+   [
+    "Keep your reference",
+    "Quote the reference above if you write to us again about this."
+   ]
+  ],
+  "note": "We can’t promise a specific response time. For quick answers, the Help page covers the most common questions."
+ },
+ {
+  "id": "support-response",
+  "title": "A reply from Pheelm",
+  "subject": "A reply to your Pheelm message",
+  "button": "Open Pheelm",
+  "message": "There’s a reply to your message.",
+  "category": "transactional",
+  "preheader": "Pheelm has replied to your message.",
+  "rows": [
+   [
+    "Reply to this email",
+    "Just answer this email to continue the conversation. It goes straight to the team."
+   ],
+   [
+    "Your reference",
+    "Keep the reference at the end of the message in case you need to mention it later."
+   ],
+   [
+    "Need something else?",
+    "For a different question, use the contact page so it reaches the right person."
+   ]
+  ],
+  "note": "This message was sent because you wrote to Pheelm. If that wasn’t you, you can ignore it."
+ },
+ {
+  "id": "collection-invitation",
+  "title": "You’re invited to curate a watchlist",
+  "subject": "You’re invited to curate a Pheelm watchlist",
+  "button": "Review the invitation",
+  "message": "A Pheelm member invited you to help curate a watchlist. Sign in to accept or decline.",
+  "category": "transactional",
+  "preheader": "You’ve been asked to help curate a watchlist.",
+  "rows": [
+   [
+    "What it means",
+    "Curators can add films to the watchlist alongside its owner."
+   ],
+   [
+    "You decide",
+    "Open your notifications to accept or decline. Nothing changes until you answer."
+   ],
+   [
+    "Change your mind",
+    "If you accept, you can leave the watchlist later from its page."
+   ]
+  ],
+  "note": "You’re getting this because collaboration emails are on. You can switch them off in your account settings."
+ },
+ {
+  "id": "collaboration-update",
+  "title": "Watchlist collaboration update",
+  "subject": "Your Pheelm watchlist collaboration",
+  "button": "See the update",
+  "message": "There’s an update on a watchlist invitation, request or membership.",
+  "category": "transactional",
+  "preheader": "Something changed on a watchlist you collaborate on.",
+  "rows": [
+   [
+    "What changed",
+    "An invitation, request or membership on a watchlist was updated. The details are in your notifications."
+   ],
+   [
+    "Where to see it",
+    "Open your notifications, where you can respond to anything that needs an answer."
+   ],
+   [
+    "You’re in control",
+    "Owners decide who curates their watchlist, and members can leave whenever they like."
+   ]
+  ],
+  "note": "You’re getting this because collaboration emails are on. You can switch them off in your account settings."
+ },
+ {
+  "id": "newsletter-confirmation",
+  "title": "Confirm your subscription",
+  "subject": "Confirm your Pheelm newsletter subscription",
+  "button": "Confirm subscription",
+  "message": "You asked to receive the Pheelm newsletter. Confirm below to subscribe.",
+  "category": "confirmation",
+  "preheader": "One tap to confirm your Pheelm newsletter subscription.",
+  "rows": [
+   [
+    "Nothing is sent yet",
+    "You’re not subscribed until you confirm. If you don’t, we won’t email you."
+   ],
+   [
+    "What you’ll get",
+    "Occasional notes on films, directors and watchlists chosen by Pheelm. Never your data, never spam."
+   ],
+   [
+    "Leave any time",
+    "Every newsletter includes a link to unsubscribe in one step."
+   ]
+  ],
+  "note": "Didn’t sign up? Ignore this email. You won’t be subscribed, and this link expires on its own."
+ },
+ {
+  "id": "newsletter",
+  "title": "Discoveries from Pheelm",
+  "subject": "Discoveries from Pheelm",
+  "button": "Explore Pheelm",
+  "message": "Films, directors and watchlists selected by Pheelm.",
+  "category": "marketing",
+  "preheader": "This week’s films, directors and watchlists from Pheelm.",
+  "rows": [
+   [
+    "Films",
+    "New and noteworthy films added to the catalog."
+   ],
+   [
+    "Directors",
+    "Filmmakers worth knowing, with the films to start with."
+   ],
+   [
+    "Watchlists",
+    "Public watchlists from the community worth a look."
+   ]
+  ],
+  "note": "You’re receiving this because you subscribed to the Pheelm newsletter."
+ },
+ {
+  "id": "activity-update",
+  "title": "New activity on Pheelm",
+  "subject": "New activity on Pheelm",
+  "button": "See what’s new",
+  "message": "Someone replied to your comment or mentioned you, a watchlist of yours has a new comment, or a director you follow has a new film.",
+  "category": "optional",
+  "preheader": "There’s something new waiting for you on Pheelm.",
+  "rows": [
+   [
+    "What happened",
+    "A reply, a mention, a comment on your watchlist, or a new film from a director you follow."
+   ],
+   [
+    "Who and what",
+    "For your privacy we don’t put names or comments in emails. Sign in to read them."
+   ],
+   [
+    "Never a flood",
+    "We send no more than five of these an hour, however busy it gets."
+   ]
+  ],
+  "note": "You can turn these emails off at any time under Email notifications in your account settings."
+ },
+ {
+  "id": "activity-digest",
+  "title": "New on Pheelm",
+  "subject": "New on Pheelm",
+  "button": "See what’s new",
+  "message": "Discover new films, directors and watchlists added to Pheelm.",
+  "category": "optional",
+  "preheader": "Your Pheelm digest: what’s new in the catalog.",
+  "rows": [
+   [
+    "What’s inside",
+    "New films, directors and public watchlists added since your last digest."
+   ],
+   [
+    "Only the public",
+    "Private watchlists and drafts never appear in a digest."
+   ],
+   [
+    "Your schedule",
+    "You chose daily or weekly. Empty periods send nothing."
+   ]
+  ],
+  "note": "Change how often you get this, or turn it off, under Email notifications in your account settings."
+ },
+ {
+  "id": "report-update",
+  "title": "Your report to Pheelm",
+  "subject": "Your report to Pheelm",
+  "button": "Visit the Help page",
+  "message": "We received your report. Thank you for helping keep Pheelm respectful.",
+  "category": "transactional",
+  "preheader": "We’ve received your report.",
+  "rows": [
+   [
+    "What happens next",
+    "A person on the team reviews each report against the community guidelines."
+   ],
+   [
+    "Privacy",
+    "We may not be able to share the details of moderation decisions that involve other members."
+   ],
+   [
+    "Add more details",
+    "If you remember anything else that helps, reply to this email."
+   ]
+  ],
+  "note": "You can read the community guidelines in the Terms any time."
+ },
+ {
+  "id": "moderation-notice",
+  "title": "An important update from Pheelm",
+  "subject": "An important update from Pheelm",
+  "button": "Contact Pheelm",
+  "message": "There’s a moderation decision affecting your account or content.",
+  "category": "transactional",
+  "preheader": "A moderation decision affects your account or content.",
+  "rows": [
+   [
+    "What it covers",
+    "The message above explains what was changed and why."
+   ],
+   [
+    "You can ask for a review",
+    "If you think we got it wrong, reply to this email and explain. A person will look again."
+   ],
+   [
+    "Community guidelines",
+    "The rules we apply are in the Terms, which everyone on Pheelm follows."
+   ]
+  ],
+  "note": "We send this only when a moderator has taken a specific action. It’s not an automated warning."
+ },
+ {
+  "id": "service-notice",
+  "title": "An important update about your account",
+  "subject": "An important update about your Pheelm account",
+  "button": "Read the details",
+  "message": "An important change affects how you use Pheelm.",
+  "category": "transactional",
+  "preheader": "A change affects how you use Pheelm.",
+  "rows": [
+   [
+    "What’s changing",
+    "The message above explains what is changing and when it takes effect."
+   ],
+   [
+    "What you need to do",
+    "If anything is needed from you, it’s explained above. Otherwise, nothing."
+   ],
+   [
+    "Questions",
+    "Write to hey@pheelm.com and we’ll help."
+   ]
+  ],
+  "note": "We only send service notices when something truly affects your account."
+ },
+ {
+  "id": "data-export-ready",
+  "title": "Your data export is ready",
+  "subject": "Your Pheelm data export is ready",
+  "button": "Download your data",
+  "message": "The data export you asked for is ready. Download it before the link expires.",
+  "category": "transactional",
+  "preheader": "Your Pheelm data export is ready to download.",
+  "rows": [
+   [
+    "Sign in to download",
+    "The download is private to your account, so you’ll need to be signed in."
+   ],
+   [
+    "It expires",
+    "Use the link soon; after it expires you can ask for a new export."
+   ],
+   [
+    "Keep it safe",
+    "Your export contains personal information. Store it somewhere you trust."
+   ]
+  ],
+  "note": "Didn’t ask for an export? Write to hey@pheelm.com straight away."
+ },
+ {
+  "id": "admin-digest",
+  "title": "Pheelm needs your review",
+  "subject": "Pheelm needs your review",
+  "button": "Open the admin",
+  "message": "Review pending film submissions, reports and messages in Pheelm.",
+  "category": "optional",
+  "preheader": "Items are waiting for your review.",
+  "rows": [
+   [
+    "Submissions",
+    "Films waiting to be approved or sent back."
+   ],
+   [
+    "Reports",
+    "Comments and watchlists flagged by members."
+   ],
+   [
+    "Inbox",
+    "Messages from members that need a reply."
+   ]
+  ],
+  "note": "You’re getting this because you’re a Pheelm admin."
+ }
 ]
