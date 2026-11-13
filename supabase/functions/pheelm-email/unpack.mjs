@@ -10,7 +10,7 @@ export function unpack(packed) {
     const l = packed.layouts[t.layout];
     // Filler after the inbox preview line so a client doesn't continue into the body (about 150 characters in all).
     const pad = FILLER.repeat(Math.max(0, Math.ceil((150 - t.fields.PREHEADER.length) / FILLER.length)));
-    const fill = (s, html) => FIELDS.reduce((acc, f) => acc.split(`[[${f}]]`).join(html ? escape(t.fields[f]) : t.fields[f]), s.split('[[PAD]]').join(html ? pad : ''));
+    const fill = (s, html) => FIELDS.reduce((acc, f) => acc.split(`[[${f}]]`).join(html ? escape(t.fields[f] ?? '') : (t.fields[f] ?? '')), s.split('[[PAD]]').join(html ? pad : ''));
     out[id] = { subject: t.subject, category: t.category, html: fill(l.html, true), text: fill(l.text, false) };
   }
   return out;

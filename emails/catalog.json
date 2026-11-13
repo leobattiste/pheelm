@@ -395,20 +395,7 @@
   "message": "Here’s what was added to Pheelm this week.",
   "category": "optional",
   "preheader": "Your Pheelm digest: what’s new in the catalog.",
-  "rows": [
-   [
-    "What’s inside",
-    "New films, directors and public watchlists added since your last digest."
-   ],
-   [
-    "Only the public",
-    "Private watchlists and drafts never appear in a digest."
-   ],
-   [
-    "Your schedule",
-    "Daily Digests arrive at 4 pm Eastern; weekly ones on Fridays at 4 pm. If nothing new was added, we don’t send one."
-   ]
-  ],
+  "rows": [],
   "note": "Change how often you get this, or turn it off, under Email notifications in your account settings."
  },
  {

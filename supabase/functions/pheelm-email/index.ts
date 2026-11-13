@@ -41,7 +41,7 @@ Deno.serve(async req=>{try{const url=new URL(req.url);const action=url.searchPar
    const data=await rpc('email_digest_items',{job_id:job.id,lease_id:job.lease});
    if(!data||![data.films,data.directors,data.watchlists].some(s=>Array.isArray(s?.items)&&s.items.length)){await rpc('email_complete',{job_id:job.id,lease_id:job.lease,failure:'No public additions remain',retryable:false});continue;}
    message=digestIntro(data.frequency);digestHtmlPart=digestHtml(data);digestTextPart=digestText(data);
-   layoutHtml=layoutHtml.replace('[[MESSAGE]]</p>','[[MESSAGE]]</p>[[DIGEST]]');layoutText=layoutText.replace('[[MESSAGE]]','[[MESSAGE]]\n\n[[DIGEST]]');
+   layoutHtml=layoutHtml.replace(/\[\[MESSAGE\]\](?:<\/span>)*<\/p>/,(m)=>m+'[[DIGEST]]');layoutText=layoutText.replace('[[MESSAGE]]','[[MESSAGE]]\n\n[[DIGEST]]');
   }
   const postal=config.pheelm_postal_address??'';if(!postal){layoutHtml=layoutHtml.replace('[[POSTAL_ADDRESS]]<br/>','');layoutText=layoutText.replace('[[POSTAL_ADDRESS]]\n','');}
   const values:Record<string,string>={MESSAGE:message,YEAR:String(new Date().getFullYear()),ACTION_URL:actionUrl(job.action_path,BASE,endpoint),UNSUBSCRIBE_URL:unsub,POSTAL_ADDRESS:postal};
