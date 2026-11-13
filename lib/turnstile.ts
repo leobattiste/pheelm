@@ -18,7 +18,8 @@ export async function passesTurnstile(f: FormData) {
     });
     return !!((await res.json()) as { success?: boolean }).success;
   } catch {
-    // If Cloudflare can't be reached, don't turn people away.
-    return true;
+    // If Cloudflare can't be reached, the form asks the visitor to try again rather than letting
+    // everything through: the forms are saved with the server's own key.
+    return false;
   }
 }

@@ -4,10 +4,11 @@ import { useRef, useState } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
 import Icon from "@/components/Icon";
 import { toast } from "./Toast";
+import { openSignIn } from "./SignInSheet";
 
 const REASONS = ["Spam or advertising", "Offensive or hateful", "Not about films by Black directors", "Something else"];
 
-/** A quiet "Report" link that lets anyone flag a community collection for the admins. */
+/** A quiet "Report" link that lets members flag a community collection for the admins. */
 export default function ReportCollection({ listId }: { listId: string }) {
   const sheet = useRef<HTMLDialogElement>(null);
   const [reason, setReason] = useState(REASONS[0]);
@@ -18,6 +19,9 @@ export default function ReportCollection({ listId }: { listId: string }) {
     e.preventDefault();
     const db = getBrowserClient();
     if (!db) return setState("error");
+    // Reports come from members, so one person can't flood the admins.
+    const { data: { session } } = await db.auth.getSession();
+    if (!session) { sheet.current?.close(); toast("Sign in to report a watchlist."); openSignIn("signin"); return; }
     setState("sending");
     const { error } = await db.from("list_reports").insert({ list_id: listId, reason: [reason, detail.trim()].filter(Boolean).join(": ").slice(0, 500) });
     setState(error ? "error" : "sent");

@@ -2,7 +2,7 @@
 
 import { PARTNERSHIP_TYPES, PARTNERSHIP_SUCCESS } from "@/lib/partnership";
 import { websiteUrl } from "@/lib/profile-links";
-import { getServerClient } from "@/lib/supabase/server";
+import { serviceClient } from "@/lib/supabase/service";
 import { passesTurnstile } from "@/lib/turnstile";
 import { safeInternalPath } from "@/lib/safe-navigation";
 
@@ -17,7 +17,8 @@ export async function subscribe(_prev: FormState, f: FormData): Promise<FormStat
   const email = String(f.get("email") ?? "").trim().toLowerCase();
   if (!EMAIL.test(email)) return { ok: false, message: "Enter an email address, like you@example.com." };
   if (!(await passesTurnstile(f))) return { ok: false, message: "We couldn't check you're not a bot. Try again in a moment." };
-  const db = await getServerClient();
+  // Saved by the server after the bot check: browsers can't add subscribers directly.
+  const db = serviceClient();
   if (!db) return { ok: false, message: "The newsletter isn't open yet. Check back soon." };
   const { error } = await db.from("subscribers").insert({ email, source: String(f.get("source") ?? "site").slice(0, 40) });
   if (error?.code === "23505") return { ok: true, message: "Your subscription request is already recorded. Check your inbox for confirmation." };
@@ -51,7 +52,8 @@ export async function sendMessage(_prev: FormState, f: FormData): Promise<FormSt
     if (messageBody.length > 5000) return { ok: false, message: "Keep your proposal under 4,000 characters." };
   }
   if (!(await passesTurnstile(f))) return { ok: false, message: "We couldn't check you're not a bot. Try again in a moment." };
-  const db = await getServerClient();
+  // Saved by the server after the bot check: browsers can't add messages directly.
+  const db = serviceClient();
   if (!db) return { ok: false, message: "Messages can't be sent from here yet. Check back soon." };
   // What the message is about: the page (or part of one) it was sent from.
   const pageRaw = String(f.get("page") ?? "").trim();

@@ -7,7 +7,7 @@ const partnership={},links={},navigation={};vm.runInNewContext(compile('lib/part
 let saved=[],failures=0;const db={from:table=>({insert:async row=>{saved.push({table,row});return{error:failures-->0?{code:'PGRST204'}:null};}})};
 const exports={};vm.runInNewContext(compile('app/platform-actions.ts'),{exports,FormData,require:name=>{
  if(name==='@/lib/partnership')return partnership;if(name==='@/lib/safe-navigation')return navigation;if(name==='@/lib/profile-links')return links;
- if(name==='@/lib/supabase/server')return{getServerClient:async()=>db};if(name==='@/lib/turnstile')return{passesTurnstile:async()=>true};throw Error(name);
+ if(name==='@/lib/supabase/service')return{serviceClient:()=>db};if(name==='@/lib/turnstile')return{passesTurnstile:async()=>true};throw Error(name);
 }});
 const form=()=>{const f=new FormData();for(const[k,v]of Object.entries({topic:'partnership',name:'Test Organizer',email:'organizer@example.invalid',organization:'Cinema Project',partnership_type:'Film festival or screening',partnership_url:'https://example.com/project',body:'A screening proposal.'}))f.set(k,v);return f;};
 for(const[field,value]of [['name',''],['partnership_type','Unknown'],['partnership_url','javascript:alert(1)'],['body','x'.repeat(4001)]]){const f=form();f.set(field,value);saved=[];assert.equal((await exports.sendMessage(null,f)).ok,false);assert.equal(saved.length,0);}

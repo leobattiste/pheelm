@@ -6,11 +6,10 @@ import { getServerClient } from "./supabase/server";
  * owner can also make or remove admins, delete films and export the newsletter list.
  */
 async function me(db: NonNullable<Awaited<ReturnType<typeof getServerClient>>>, id: string) {
-  const full = await db.from("profiles").select("is_admin, is_owner").eq("id", id).maybeSingle();
-  if (!full.error) return full.data as { is_admin: boolean; is_owner: boolean } | null;
-  // Before admins-watched-blocks.sql has run, every admin is the owner.
-  const { data } = await db.from("profiles").select("is_admin").eq("id", id).maybeSingle();
-  return data ? { is_admin: !!data.is_admin, is_owner: !!data.is_admin } : null;
+  // A failed read gives no role, never a higher one.
+  const { data, error } = await db.from("profiles").select("is_admin, is_owner").eq("id", id).maybeSingle();
+  if (error || !data) return null;
+  return { is_admin: !!data.is_admin, is_owner: !!data.is_owner };
 }
 
 /** For admin pages: sends visitors to sign in, and hides the page from anyone who isn't an admin. */

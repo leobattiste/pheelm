@@ -20,15 +20,19 @@ export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const home = path === "/";
   const hasSession = request.cookies.getAll().some((c) => /^sb-.*-auth-token(\.0)?$/.test(c.name));
-
-  if (!hasSession) {
-    if (path === "/api/og" || home || OPEN.test(path) || MEMBER_PAGE.test(path) || SHARE_IMAGE.test(path)) return response;
+  // The internal workers bring their own secret, so they're never sent to the sign-up sheet.
+  const open = path === "/api/og" || path.startsWith("/api/internal/") || home || OPEN.test(path) || MEMBER_PAGE.test(path) || SHARE_IMAGE.test(path);
+  const toJoin = () => {
     const to = request.nextUrl.clone();
     to.pathname = "/";
     to.search = `?join=1&next=${encodeURIComponent(path + request.nextUrl.search)}`;
     return NextResponse.redirect(to);
-  }
-  if (!home && !SESSION.test(path)) return response;
+  };
+
+  if (!hasSession) return open ? response : toJoin();
+  // Members-only pages check the session itself, so a made-up cookie doesn't get past the gate.
+  const gated = !open;
+  if (!home && !SESSION.test(path) && !gated) return response;
 
   const supabase = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     cookies: {
@@ -48,6 +52,12 @@ export async function proxy(request: NextRequest) {
     },
   });
 
+  if (gated && !SESSION.test(path)) {
+    // A signed JWT is checked locally where the project's keys allow it, so this stays quick.
+    const { data, error } = await supabase.auth.getClaims();
+    if (error || !data?.claims?.sub) return toJoin();
+    return response;
+  }
   const { data: { user } } = await supabase.auth.getUser();
   // Home is for visitors: members start on Films.
   if (home && user) {

@@ -229,6 +229,47 @@ async function inBatches<T>(items: T[], size: number, task: (item: T) => Promise
   for (let i = 0; i < items.length; i += size) await Promise.all(items.slice(i, i + size).map(task));
 }
 
+const MAX_POSTER = 10 * 1024 * 1024;
+
+/** Whether every address a host name resolves to is public (not private, local or link-local). */
+async function publicHost(host: string) {
+  try {
+    const { lookup } = await import("node:dns/promises");
+    const { isIP } = await import("node:net");
+    const found = await lookup(host, { all: true, verbatim: true });
+    return found.length > 0 && found.every(({ address }) => isIP(address) && !privateAddress(address));
+  } catch {
+    return false;
+  }
+}
+
+function privateAddress(ip: string) {
+  const v4 = ip.replace(/^::ffff:/i, "");
+  if (/^\d+\.\d+\.\d+\.\d+$/.test(v4)) {
+    const [a, b] = v4.split(".").map(Number);
+    return a === 0 || a === 10 || a === 127 || (a === 100 && b >= 64 && b <= 127) || (a === 169 && b === 254)
+      || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 198 && (b === 18 || b === 19)) || a >= 224;
+  }
+  const v6 = ip.toLowerCase();
+  return v6 === "::" || v6 === "::1" || v6.startsWith("fc") || v6.startsWith("fd") || v6.startsWith("fe80") || v6.startsWith("ff");
+}
+
+/** The response body, or null once it passes the limit (stops reading there). */
+async function readCapped(res: Response, limit: number) {
+  const reader = res.body?.getReader();
+  if (!reader) return null;
+  const chunks: Uint8Array[] = [];
+  let length = 0;
+  for (;;) {
+    const part = await reader.read();
+    if (part.done) break;
+    length += part.value.length;
+    if (length > limit) { await reader.cancel(); return null; }
+    chunks.push(part.value);
+  }
+  return Buffer.concat(chunks);
+}
+
 /** The poster's dominant colour as a hex string, or null if the image can't be read. */
 export async function posterColour(url: string): Promise<string | null> {
   try {
@@ -238,11 +279,13 @@ export async function posterColour(url: string): Promise<string | null> {
     const host = target.hostname.toLowerCase();
     if (target.protocol !== "https:" || target.username || target.password || target.port) return null;
     if (!host.includes(".") || /^[\d.]+$/.test(host) || host.includes(":") || /(^|\.)(localhost|local|internal|lan|home|corp)$/.test(host)) return null;
+    // The name must not point at a private or local address (checked after the DNS lookup).
+    if (!(await publicHost(host))) return null;
     const res = await fetch(target, { cache: "no-store", redirect: "error", signal: AbortSignal.timeout(8000) });
     if (!res.ok || !/^image\//i.test(res.headers.get("content-type") ?? "")) return null;
-    if (Number(res.headers.get("content-length") ?? 0) > 10 * 1024 * 1024) return null;
-    const bytes = Buffer.from(await res.arrayBuffer());
-    if (bytes.length > 10 * 1024 * 1024) return null;
+    if (Number(res.headers.get("content-length") ?? 0) > MAX_POSTER) return null;
+    const bytes = await readCapped(res, MAX_POSTER);
+    if (!bytes) return null;
     const { dominant } = await sharp(bytes, { limitInputPixels: 40_000_000 }).resize(48, 72, { fit: "cover" }).stats();
     return "#" + [dominant.r, dominant.g, dominant.b].map((n) => n.toString(16).padStart(2, "0")).join("");
   } catch {

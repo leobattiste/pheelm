@@ -192,26 +192,16 @@ export async function POST(request: NextRequest) {
     const confirmed = response.verification === "confirmed" &&
       validBiography(biography) && sourceUrls.length >= 2 && sourceHosts.size >= 2;
 
-    if (!confirmed) {
-      await finish({
-        status: "review", draft_bio: validBiography(biography) ? biography : null,
-        source_urls: sourceUrls, evidence: response.evidence.slice(0, 4000),
-        reason: (response.concerns || "Identity, film credits, or source coverage require verification").slice(0, 1000),
-      });
-      return json({ ok: true, processed: 1, result: "review" });
-    }
-
-    // Optimistic guard: never overwrite a biography that an editor changed while research ran.
-    let update = db.from("people").update({ bio: biography }).eq("id", person.id).eq("in_directory", true);
-    update = person.bio === null ? update.is("bio", null) : update.eq("bio", person.bio);
-    const { data: changed, error: writeError } = await update.select("id").maybeSingle();
-    if (writeError) throw new Error("bio_save_failed");
+    // Every biography waits for an editor: web pages the model reads could steer what it writes,
+    // so nothing it produces is published on its own.
     await finish({
-      status: changed ? "done" : "skipped", source_urls: sourceUrls,
-      evidence: response.evidence.slice(0, 4000),
-      reason: changed ? null : "Biography was edited during research",
+      status: "review", draft_bio: validBiography(biography) ? biography : null,
+      source_urls: sourceUrls, evidence: response.evidence.slice(0, 4000),
+      reason: confirmed
+        ? "Ready for an editor to check and publish"
+        : (response.concerns || "Identity, film credits, or source coverage require verification").slice(0, 1000),
     });
-    return json({ ok: true, processed: 1, result: changed ? "saved" : "skipped" });
+    return json({ ok: true, processed: 1, result: "review" });
   } catch (error) {
     const code = error instanceof Error ? error.message : "worker_error";
     const knownCode = /^[a-z_]+(?:_[0-9]{3})?$/.test(code) ? code : "worker_error";

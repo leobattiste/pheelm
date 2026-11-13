@@ -17,7 +17,7 @@ export async function GET() {
   const rows: { email: string; source: string | null; created_at: string }[] = [];
   for (let from = 0; ; from += 1000) {
     const { data, error } = await db.rpc("email_confirmed_subscribers").range(from, from + 999);
-    if (error) return new NextResponse(error.message, { status: 500 });
+    if (error) return new NextResponse("The list couldn't be loaded. Try again.", { status: 500 });
     rows.push(...((data ?? []) as { email: string; source: string | null; created_at: string }[]));
     if (!data || data.length < 1000) break;
   }
