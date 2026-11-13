@@ -137,8 +137,8 @@ svg { flex-shrink: 0; }
 
 /* Controls ----------------------------------------------------------------------------
    One system for everything you press or type into.
-   Sizes: --control (44px) for buttons, fields, search bars and icon buttons;
-          --control-sm (36px) only for the segments inside a switch; every button, chip and tab is --control.
+   Sizes: --control (42px, border included) for buttons, fields, search bars, tabs and icon buttons;
+          --control-sm (34px) only for the segments inside a switch; every button, chip and tab is --control.
    Shape: anything one line tall is a pill; taller things (text areas) get the 18px corners.
    Looks: .button (primary, solid ink) · .button.ghost (secondary, outlined) ·
           .button.quiet / .icon-button (no border until hovered) · .pill-button / .round-button
@@ -146,9 +146,9 @@ svg { flex-shrink: 0; }
    States are the same everywhere: hover fill, press to 97%, one focus ring, 45% when disabled. */
 
 :root {
-  --bar-height: 60px;
-  --control: 44px;
-  --control-sm: 36px;
+  --bar-height: 42px;
+  --control: 42px;
+  --control-sm: 34px;
   --control-pad: var(--space-20);
   --control-pad-sm: var(--space-16);
   --control-gap: var(--space-8);
@@ -261,7 +261,7 @@ svg { flex-shrink: 0; }
   font-weight: 700;
 }
 
-/* Switches (poster view, Light/Dark): a 44px pill holding 36px segments. */
+/* Switches (poster view, Light/Dark): a 42px pill holding 34px segments. */
 .segmented, .theme-toggle {
   display: inline-flex;
   gap: var(--space-2);
@@ -279,7 +279,7 @@ svg { flex-shrink: 0; }
   background: none;
   color: var(--muted);
 }
-.segmented button { padding: 0; width: 40px; }
+.segmented button { padding: 0; width: 38px; }
 .segmented button:hover, .theme-toggle button:hover { color: var(--ink); }
 :is(.segmented, .theme-toggle) button[aria-checked="true"] { background: var(--raised); color: var(--ink); }
 .segmented svg { width: var(--control-icon); height: var(--control-icon); fill: currentColor; }
@@ -855,7 +855,7 @@ main { width: 100%; }
 .toast-icon { flex: none; display: grid; place-items: center; }
 .toast-success .toast-icon { color: var(--ok); }
 .toast-error .toast-icon { color: var(--error); }
-.toast-action { flex: none; min-height: 32px; padding: 0 var(--space-12); border: 0; border-radius: var(--pill); background: var(--hover); color: var(--ink); font: inherit; font-weight: 700; cursor: pointer; }
+.toast-action { flex: none; min-height: 32px; padding: 0 var(--space-12); border: 0; border-radius: var(--pill); background: var(--hover); color: var(--ink); font: inherit; font-weight: 400; cursor: pointer; }
 .toast-action:hover { background: var(--line); }
 .toast-close { flex: none; display: grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: var(--pill); background: none; color: var(--muted); cursor: pointer; }
 .toast-close:hover { background: var(--hover); color: var(--ink); }
@@ -902,7 +902,7 @@ main:has(.feature) { margin-top: calc(var(--header) * -1); }
 .film-byline a { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
 .film-byline a:hover { text-decoration-thickness: 2px; }
 
-.film-actions { display: flex; flex-wrap: wrap; gap: var(--space-12); margin-top: var(--space-24); min-height: 44px; }
+.film-actions { display: flex; flex-wrap: wrap; gap: var(--space-12); margin-top: var(--space-24); min-height: var(--control); }
 /* The "on colour" look: outlined in the film's own ink so it sits on any poster colour. */
 .round-button, .pill-button {
   width: var(--control);
@@ -918,7 +918,7 @@ main:has(.feature) { margin-top: calc(var(--header) * -1); }
 .round-button[aria-pressed="true"] svg path[d^="m5"] { fill: none; }
 .round-button.is-loading { border-color: var(--line); }
 /* Trailer, Watchlist and Share: three labelled pills. On phones they share the row evenly. */
-.pill-button { width: auto; padding: 0 var(--control-pad) 0 var(--space-16); font-weight: 700; }
+.pill-button { width: auto; padding: 0 var(--control-pad) 0 var(--space-16); font-weight: 400; }
 .pill-button svg.solid { fill: currentColor; stroke: none; }
 .pill-button[aria-pressed="true"] { background: var(--ink); border-color: transparent; color: var(--bg); }
 .pill-button[aria-pressed="true"] svg { animation: pop 0.26s var(--ease); }
@@ -927,7 +927,7 @@ main:has(.feature) { margin-top: calc(var(--header) * -1); }
 @keyframes saved { from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ink) 55%, transparent); } to { box-shadow: 0 0 0 14px transparent; } }
 .pill-button[aria-busy="true"] { opacity: 0.7; }
 @media (max-width: 639px) {
-  .film-actions { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 44px; gap: var(--space-8); }
+  .film-actions { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) var(--control); gap: var(--space-8); }
   .film-actions .pill-button { justify-content: center; padding: 0 var(--space-12); font-size: var(--t-sm); }
 }
 @keyframes pop { 50% { transform: scale(1.25); } }
@@ -1364,7 +1364,7 @@ h1, h2, .empty-state p:first-of-type, .decades a,
 /* Tabs look like the buttons: outlined, with the selected one solid. Full width on phones. */
 .profile-tabs { display: flex; gap: var(--control-gap); margin-top: var(--space-48); overflow-x: auto; scrollbar-width: none; }
 .profile-tabs::-webkit-scrollbar { display: none; }
-.profile-tabs .chip { flex: none; justify-content: center; height: var(--control); padding: 0 var(--control-pad); border-color: var(--control-border-strong); background: transparent; color: var(--ink); font-weight: 700; }
+.profile-tabs .chip { flex: none; justify-content: center; height: var(--control); padding: 0 var(--control-pad); border-color: var(--control-border-strong); background: transparent; color: var(--ink); font-weight: 400; }
 .profile-tabs .chip:hover { background: var(--control-hover); }
 .profile-tabs .chip[aria-selected="true"] { border-color: transparent; background: var(--ink); color: var(--on-ink); }
 .profile-tabs .chip[aria-selected="true"]:hover { background: color-mix(in srgb, var(--ink) 86%, var(--bg)); }
@@ -1529,7 +1529,7 @@ h1, h2, .empty-state p:first-of-type, .decades a,
 
 .composer { display: grid; border: 1px solid var(--control-border); border-radius: var(--r); background: var(--control-fill); transition: border-color 0.15s, box-shadow 0.15s; }
 .composer:focus-within { border-color: var(--control-border-strong); box-shadow: var(--control-ring); }
-.composer textarea { width: 100%; min-height: 44px; max-height: 320px; padding: var(--space-12) var(--space-16) var(--space-4); border: 0; background: none; color: var(--text); font: inherit; line-height: var(--lh-body); resize: none; outline: none; overflow-y: auto; }
+.composer textarea { width: 100%; min-height: var(--control); max-height: 320px; padding: var(--space-12) var(--space-16) var(--space-4); border: 0; background: none; color: var(--text); font: inherit; line-height: var(--lh-body); resize: none; outline: none; overflow-y: auto; }
 .composer textarea::placeholder { color: var(--muted); }
 .composer-foot { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-8); padding: 0 var(--space-8) var(--space-8); }
 .composer-count { margin-right: auto; padding-left: var(--space-8); color: var(--muted); font-size: var(--t-xs); font-variant-numeric: tabular-nums; }
@@ -2224,7 +2224,7 @@ html[data-chrome="app"] .film-bar { inset: auto auto var(--floating-bottom) 50%;
   color: var(--text);
 }
 :root :is(.modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .film-card, .collection-tile, .admin-managed-card, .fieldset:not(:where(.admin .editor .fieldset, .admin-toolbox .fieldset)), .public-name, .person-head, :where(.ways li, .inbox li)) :is(.button, .pill-button, .round-button, .icon-button, .chip, .segmented button, .theme-toggle button):hover:not(:disabled) { border-color: transparent; }
-:root :is(.modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .film-card, .collection-tile, .admin-managed-card, .fieldset:not(:where(.admin .editor .fieldset, .admin-toolbox .fieldset)), .public-name, .person-head, :where(.ways li, .inbox li)) :is(.button, .pill-button, .round-button, .icon-button, .chip, .segmented button, .theme-toggle button):is([aria-pressed="true"], [aria-selected="true"], [aria-checked="true"]) { border-color: transparent; font-weight: 700; }
+:root :is(.modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .film-card, .collection-tile, .admin-managed-card, .fieldset:not(:where(.admin .editor .fieldset, .admin-toolbox .fieldset)), .public-name, .person-head, :where(.ways li, .inbox li)) :is(.button, .pill-button, .round-button, .icon-button, .chip, .segmented button, .theme-toggle button):is([aria-pressed="true"], [aria-selected="true"], [aria-checked="true"]) { border-color: transparent; font-weight: 400; }
 :root :is(.modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .film-card, .collection-tile, .admin-managed-card, .fieldset:not(:where(.admin .editor .fieldset, .admin-toolbox .fieldset)), .public-name, .person-head, :where(.ways li, .inbox li)) :is(.button, .pill-button, .round-button, .icon-button, .chip, .segmented button, .theme-toggle button):focus-visible { box-shadow: var(--control-ring); }
 :root :is(.modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .film-card, .collection-tile, .admin-managed-card, .fieldset:not(:where(.admin .editor .fieldset, .admin-toolbox .fieldset)), .public-name, .person-head, :where(.ways li, .inbox li)) :is(.button.danger, .danger-text) { color: var(--error); border-color: var(--error); }
 :root :is(.modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .film-card, .collection-tile, .admin-managed-card, .fieldset:not(:where(.admin .editor .fieldset, .admin-toolbox .fieldset)), .public-name, .person-head, :where(.ways li, .inbox li)) :where(.field input:not([type="checkbox"]):not([type="radio"]):not([type="color"]), .field select, .field textarea, .search-input, .search-bar input, .save-new input, .newsletter-row input, .invite-combo input, .composer) {
@@ -2448,8 +2448,8 @@ html[data-chrome="app"] body:has(dialog:modal) .tab-bar { z-index: 1001; }
   bottom: var(--floating-bottom);
   display: grid;
   place-items: center;
-  width: var(--tab-h, 60px);
-  height: var(--tab-h, 60px);
+  width: var(--tab-h, var(--bar-height));
+  height: var(--tab-h, var(--bar-height));
   padding: 0;
   border: 1px solid var(--line);
   border-radius: var(--pill);
@@ -2487,7 +2487,7 @@ body:has(dialog:modal) .back-to-top { visibility: hidden; }
 }
 :root :is(.floating-controls, .pagination-controls) > .back-to-top {
   position: static;
-  flex: 0 0 var(--tab-h, 60px);
+  flex: 0 0 var(--tab-h, var(--bar-height));
   animation: none;
 }
 :root .floating-controls > .film-bar.film-bar,
@@ -2501,7 +2501,7 @@ body:has(dialog:modal) .back-to-top { visibility: hidden; }
   gap: 0;
   min-width: 0;
   width: auto;
-  height: var(--tab-h, 60px);
+  height: var(--tab-h, var(--bar-height));
   padding: 0;
   margin: 0;
   border: 1px solid var(--line);
@@ -2663,8 +2663,8 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
   :root:root .filter-button { width: var(--bar-height); }
 }
 
-/* Tab navigation is 60px in total, including its existing padding and borders.
-   Child tabs fit inside the strip instead of each adding a separate 60px box. */
+/* Tab navigation is 42px in total, including its existing padding and borders.
+   Child tabs fit inside the strip instead of each adding a separate 42px box. */
 :root:root :is(.tabs, .profile-tabs, .admin-subtabs, .feed-tabs, .segmented, .theme-toggle) {
   box-sizing: border-box;
   height: var(--bar-height);
@@ -2684,7 +2684,7 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
   border-radius: 50%;
 }
 
-/* Tabs stay within their 60px scroll area during hover and keyboard focus. */
+/* Tabs stay within their 42px scroll area during hover and keyboard focus. */
 :root :is(.tabs, .profile-tabs, .admin-subtabs, .feed-tabs) > :is(a, button):hover {
   transform: none;
 }
@@ -2727,7 +2727,7 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 /* Controls and navigation never draw a browser or custom focus outline. */
 :focus { outline: none !important; }
 
-/* Catalog search retains the existing 60px controls and glass material. */
+/* Catalog search uses the same 42px controls and glass material. */
 .catalog-toolbar { position: relative; z-index: 40; background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
 .catalog-search-control { position: relative; flex: 1; min-width: 0; }
 .catalog-search-control .search-bar { width: 100%; max-width: none; }
@@ -3007,7 +3007,7 @@ html:has(.early-gate) { scroll-snap-type: y proximity; }
 .hf-tab {
   flex: none; display: inline-flex; align-items: center; height: var(--control); padding: 0 var(--control-pad);
   border: 1px solid var(--control-border-strong); border-radius: var(--pill); background: transparent;
-  color: var(--ink); font: inherit; font-size: var(--t-sm); font-weight: 700; line-height: 1; white-space: nowrap; cursor: pointer;
+  color: var(--ink); font: inherit; font-size: var(--t-sm); font-weight: 400; line-height: 1; white-space: nowrap; cursor: pointer;
   transition: var(--control-motion);
 }
 .hf-tab:hover { background: var(--control-hover); }
