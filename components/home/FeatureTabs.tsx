@@ -35,10 +35,10 @@ export default function FeatureTabs({ features }: { features: HomeFeature[] }) {
         <p>Four ways to discover, save and share films by Black directors.</p>
       </div>
       <div className="hf-grid">
-        <div className="hf-tabs" role="tablist" aria-label="Parts of Pheelm" onKeyDown={onKey}>
+        <div className="hf-tabs profile-tabs" role="tablist" aria-label="Parts of Pheelm" onKeyDown={onKey}>
           {features.map((f, i) => (
             <button
-              key={f.id} ref={(el) => { tabs.current[i] = el; }} type="button" role="tab" className="hf-tab"
+              key={f.id} ref={(el) => { tabs.current[i] = el; }} type="button" role="tab" className="chip hf-tab"
               id={`hf-tab-${f.id}`} aria-selected={i === active} aria-controls={`hf-panel-${f.id}`} tabIndex={i === active ? 0 : -1}
               onClick={() => setActive(i)}
             >

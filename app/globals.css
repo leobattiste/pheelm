@@ -3003,17 +3003,8 @@ html:has(.early-gate) { scroll-snap-type: y proximity; }
   margin-inline: calc(var(--gutter) * -1); padding: 2px var(--gutter);
 }
 .hf-tabs::-webkit-scrollbar { display: none; }
-/* Tabs are buttons: the open one is primary, the others secondary (as .button and .button.ghost). */
-.hf-tab {
-  flex: none; display: inline-flex; align-items: center; height: var(--control); padding: 0 var(--control-pad);
-  border: 1px solid var(--control-border-strong); border-radius: var(--pill); background: transparent;
-  color: var(--ink); font: inherit; font-size: var(--t-sm); font-weight: 400; line-height: 1; white-space: nowrap; cursor: pointer;
-  transition: var(--control-motion);
-}
-.hf-tab:hover { background: var(--control-hover); }
-.hf-tab[aria-selected="true"] { background: var(--ink); border-color: transparent; color: var(--on-ink); }
-.hf-tab[aria-selected="true"]:hover { background: color-mix(in srgb, var(--ink) 86%, var(--bg)); }
-.hf-tab:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+/* The tabs are the profile page's tabs (.profile-tabs and .chip), so they look and behave the same. */
+.hf-tabs.profile-tabs { margin-top: 0; }
 
 .hf-panels { display: grid; }
 .hf-panel { grid-area: 1 / 1; display: grid; gap: var(--space-24); align-content: start; transition: opacity 0.35s ease, visibility 0.35s; }
@@ -3048,11 +3039,12 @@ html:has(.early-gate) { scroll-snap-type: y proximity; }
 
 @media (min-width: 1000px) {
   .hf-grid { grid-template-columns: minmax(260px, 4fr) minmax(0, 8fr); gap: var(--space-48); align-items: start; }
-  .hf-tabs { flex-direction: column; align-items: flex-start; overflow: visible; margin: 0; padding: 0; }
+  :root:root .hf-tabs.profile-tabs { flex-direction: column; align-items: flex-start; height: auto; overflow: visible; margin: 0; padding: 0; }
+  :root:root .hf-tabs.profile-tabs > .chip { flex: none; align-self: flex-start; margin: 0; height: var(--bar-height); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hf-tab, .hf-panel, .hf-stage img { transition: none; }
+  .hf-panel, .hf-stage img { transition: none; }
   .hf-panel[hidden] .hf-stage img { transform: none; }
 }
 
