@@ -15,7 +15,7 @@ export default async function AutomationPage() {
   ]);
   return (
     <>
-      <PageHeader title="Automation" description="Fill missing details from TMDB in batches. Imports only fill empty fields, so nothing you wrote is overwritten. Check results before publishing."
+      <PageHeader back={{ href: "/admin/films", label: "Films" }} title="Automation" description="Fill missing details from TMDB in batches. Imports only fill empty fields, so nothing you wrote is overwritten. Check results before publishing."
         actions={<Link className="button ghost small" href="/admin/quality">Content quality</Link>} />
       {!tmdbEnabled && <p className="notice error">TMDB isn&apos;t connected, so these can&apos;t run. Add TMDB_API_KEY in Vercel.</p>}
       <Panel title="Fill missing posters" icon="camera">

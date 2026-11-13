@@ -47,7 +47,7 @@ export default async function QualityPage({ searchParams }: { searchParams: Prom
 
   return (
     <>
-      <PageHeader title="Content quality" description="Films with missing or doubtful details. Open a film to fix it at the source."
+      <PageHeader back={{ href: "/admin/films", label: "Films" }} title="Content quality" description="Films with missing or doubtful details. Open a film to fix it at the source."
         actions={<Link className="button ghost small" href="/admin/automation">Fill gaps automatically</Link>} />
       <ViewTabs label="Filter by issue" items={[
         { label: "All issues", href: "/admin/quality", active: issue === "all" },

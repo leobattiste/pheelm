@@ -32,14 +32,14 @@ export default async function NewsletterPage({ searchParams }: { searchParams: P
 
   if (countError) {
     return <>
-      <PageHeader title="Newsletter" />
+      <PageHeader back={{ href: "/admin/inbox", label: "Inbox" }} title="Newsletter" />
       <p className="notice error">The newsletter list couldn&apos;t load. If this keeps happening, run <code>supabase/admin-inbox.sql</code> in Supabase.</p>
     </>;
   }
 
   return (
     <>
-      <PageHeader title="Newsletter" description="Who signed up, and where they are. Only people who confirmed their email receive the newsletter."
+      <PageHeader back={{ href: "/admin/inbox", label: "Inbox" }} title="Newsletter" description="Who signed up, and where they are. Only people who confirmed their email receive the newsletter."
         actions={owner && (counts.confirmed ?? 0) > 0 ? <a className="button ghost small" href="/admin/subscribers.csv" download>Download subscribers (CSV)</a> : null} />
       {owner ? (
         <>

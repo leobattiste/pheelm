@@ -37,7 +37,7 @@ export default async function EditorialPage({ searchParams }: { searchParams: Pr
 
   return (
     <>
-      <PageHeader title="Editorial" description="Write and publish Pheelm's own essays on films. Synopses are edited with the film." />
+      <PageHeader back={{ href: "/admin/films", label: "Films" }} title="Editorial" description="Write and publish Pheelm's own essays on films. Synopses are edited with the film." />
       <Stats>
         <Stat value={published ?? 0} label="Published essays" href="/admin/editorial?status=published" />
         <Stat value={drafts ?? 0} label="Drafts" href="/admin/editorial?status=draft" />

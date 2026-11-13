@@ -1,92 +1,63 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Icon, { type IconName } from "@/components/Icon";
 import type { AdminCounts } from "@/lib/admin-counts";
 
-type Child = { label: string; href: string; badge?: keyof AdminCounts };
-type Group = { label: string; href: string; routes: string[]; badges?: (keyof AdminCounts)[]; children?: Child[] };
+type Section = { label: string; href: string; icon: IconName; badges?: (keyof AdminCounts)[]; routes: string[] };
 
 /**
- * Six sections, each with its own pages. The URL decides what's selected, so history and deep
- * links work. Badges show what's waiting.
+ * One level of navigation, like a social app's professional dashboard: a sidebar on wide screens
+ * and a bar of icons at the bottom on phones. Each section is one page; anything else a section
+ * needs (adding films, reports, logs) is a button or menu on that page, never a second row of tabs.
+ * `routes` lists the other pages that belong to a section, so it stays selected on them.
  */
-export const ADMIN_GROUPS: Group[] = [
-  { label: "Overview", href: "/admin", routes: ["/admin"] },
-  { label: "Catalog", href: "/admin/films", routes: ["/admin/films", "/admin/people", "/admin/editorial", "/admin/quality", "/admin/automation"],
-    children: [
-      { label: "Films", href: "/admin/films" },
-      { label: "Directors", href: "/admin/people" },
-      { label: "Editorial", href: "/admin/editorial" },
-      { label: "Content quality", href: "/admin/quality" },
-      { label: "Automation", href: "/admin/automation" },
-    ] },
-  { label: "Inbox", href: "/admin/inbox", routes: ["/admin/inbox"], badges: ["inbox"],
-    children: [
-      { label: "All", href: "/admin/inbox", badge: "inbox" },
-      { label: "Contact", href: "/admin/inbox/contact", badge: "contact" },
-      { label: "Feedback", href: "/admin/inbox/feedback", badge: "feedback" },
-      { label: "Partnerships", href: "/admin/inbox/partnerships", badge: "partnerships" },
-      { label: "Press and privacy", href: "/admin/inbox/press", badge: "press" },
-      { label: "Newsletter", href: "/admin/inbox/newsletter" },
-    ] },
-  { label: "Community", href: "/admin/community", routes: ["/admin/community", "/admin/submissions"], badges: ["reports", "submissions"],
-    children: [
-      { label: "Reports", href: "/admin/community", badge: "reports" },
-      { label: "Comments", href: "/admin/community/comments" },
-      { label: "Watchlists", href: "/admin/community/watchlists" },
-      { label: "Submissions", href: "/admin/submissions", badge: "submissions" },
-      { label: "Refused text", href: "/admin/community/moderation" },
-      { label: "Banned words", href: "/admin/community/banned-words" },
-    ] },
-  { label: "Members", href: "/admin/members", routes: ["/admin/members"] },
-  { label: "Insights", href: "/admin/analytics", routes: ["/admin/analytics", "/admin/activity"],
-    children: [
-      { label: "Analytics", href: "/admin/analytics" },
-      { label: "Activity log", href: "/admin/activity" },
-    ] },
+export const ADMIN_SECTIONS: Section[] = [
+  { label: "Dashboard", href: "/admin", icon: "dashboardSettings", routes: ["/admin/analytics"] },
+  { label: "Films", href: "/admin/films", icon: "film", badges: ["submissions"], routes: ["/admin/submissions", "/admin/quality", "/admin/automation", "/admin/editorial"] },
+  { label: "Directors", href: "/admin/people", icon: "users", routes: [] },
+  { label: "Watchlists", href: "/admin/community/watchlists", icon: "stack", badges: ["reports"], routes: ["/admin/community/comments"] },
+  { label: "Members", href: "/admin/members", icon: "user", routes: [] },
+  { label: "Inbox", href: "/admin/inbox", icon: "mail", badges: ["inbox"], routes: [] },
+  { label: "Settings", href: "/admin/settings", icon: "gear", routes: ["/admin/community/banned-words", "/admin/community/moderation", "/admin/activity"] },
 ];
 
-const matches = (path: string, route: string) => path === route || path.startsWith(route + "/");
-const badge = (value: number) => value ? <span className="admin-count" aria-label={`${value} waiting`}>{value > 99 ? "99+" : value}</span> : null;
-
 const NONE: AdminCounts = { inbox: 0, reports: 0, submissions: 0, contact: 0, feedback: 0, partnerships: 0, press: 0 };
+const under = (path: string, href: string) => href === "/admin" ? path === "/admin" : path === href || path.startsWith(href + "/");
 
-export default function AdminNav({ counts = NONE }: { counts?: AdminCounts }) {
-  const path = usePathname();
-  const main = useRef<HTMLElement>(null);
-  const secondary = useRef<HTMLElement>(null);
-  const activeGroup = ADMIN_GROUPS.find((g) => g.routes.some((route) => route === "/admin" ? path === route : matches(path, route)));
-  const activeChild = activeGroup?.children?.filter((c) => matches(path, c.href)).sort((a, b) => b.href.length - a.href.length)[0];
-
-  useEffect(() => {
-    for (const nav of [main.current, secondary.current]) {
-      const active = nav?.querySelector<HTMLElement>('[aria-current="page"]');
-      if (nav && active) nav.scrollLeft = Math.max(0, active.offsetLeft + active.offsetWidth / 2 - nav.clientWidth / 2);
+/** The section a page belongs to: the address that matches most of the path. Reports (/admin/community) belong to Watchlists. */
+export function sectionFor(path: string) {
+  let best: { section: Section; length: number } | null = null;
+  for (const section of ADMIN_SECTIONS) {
+    for (const href of [section.href, ...section.routes, ...(section.label === "Watchlists" ? ["/admin/community"] : [])]) {
+      if (under(path, href) && (!best || href.length > best.length)) best = { section, length: href.length };
     }
-  }, [path]);
+  }
+  return best?.section ?? ADMIN_SECTIONS[0];
+}
 
+const count = (value: number) => value ? <span className="admin-count" aria-label={`${value} waiting`}>{value > 99 ? "99+" : value}</span> : null;
+
+/** The sidebar, or the bottom bar on phones: one entry per section. */
+export default function AdminSidebar({ counts = NONE, who, owner }: { counts?: AdminCounts; who: string; owner: boolean }) {
+  const section = sectionFor(usePathname());
   return (
-    <div className="admin-navigation">
-      <nav ref={main} className="profile-tabs admin-nav admin-main-tabs" aria-label="Admin sections">
-        {ADMIN_GROUPS.map((group) => (
-          <Link key={group.href} href={group.href} className="chip" aria-current={activeGroup?.href === group.href ? "page" : undefined}>
-            <span>{group.label}</span>
-            {badge((group.badges ?? []).reduce((sum, key) => sum + counts[key], 0))}
+    <aside className="admin-sidebar">
+      <Link href="/admin" className="admin-brand" aria-label="Pheelm admin, dashboard"><span className="wordmark-type">pheelm</span><span className="admin-brand-tag">Admin</span></Link>
+      <nav className="admin-sections" aria-label="Admin sections">
+        {ADMIN_SECTIONS.map((s) => (
+          <Link key={s.href} href={s.href} className={`admin-section-link${s.label === "Settings" ? " is-settings" : ""}`} aria-current={s === section ? "page" : undefined} title={s.label}>
+            <Icon name={s.icon} />
+            <span className="admin-section-label">{s.label}</span>
+            {count((s.badges ?? []).reduce((sum, key) => sum + counts[key], 0))}
           </Link>
         ))}
       </nav>
-      {activeGroup?.children && (
-        <nav ref={secondary} className="admin-subtabs" aria-label={activeGroup.label + " pages"}>
-          {activeGroup.children.map((child) => (
-            <Link key={child.href} href={child.href} aria-current={child === activeChild ? "page" : undefined}>
-              <span>{child.label}</span>
-              {child.badge && badge(counts[child.badge])}
-            </Link>
-          ))}
-        </nav>
-      )}
-    </div>
+      <div className="admin-sidebar-foot">
+        <Link href="/" className="admin-foot-link"><Icon name="external" />View site</Link>
+        <p className="admin-who"><span className="admin-who-email">{who}</span><span className="admin-role">{owner ? "Owner" : "Admin"}</span></p>
+      </div>
+    </aside>
   );
 }

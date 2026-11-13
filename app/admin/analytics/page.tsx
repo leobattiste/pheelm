@@ -23,7 +23,7 @@ export default async function AnalyticsPage() {
 
   return (
     <>
-      <PageHeader title="Analytics" description="How the catalog and community grow, counted from Pheelm's own records. Visitors aren't tracked here." />
+      <PageHeader back={{ href: "/admin", label: "Dashboard" }} title="Analytics" description="How the catalog and community grow, counted from Pheelm's own records. Visitors aren't tracked here." />
       <Stats>
         <Stat value={members.count ?? 0} label={`Members, ${sums.members} in six months`} />
         <Stat value={watchlists.count ?? 0} label={`Watchlists, ${sums.watchlists} in six months`} />

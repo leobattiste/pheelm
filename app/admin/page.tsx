@@ -14,7 +14,7 @@ export default async function AdminHome() {
     return result.count ?? 0;
   };
   const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
-  const [waiting, films, drafts, people, members, newMembers, missingPosters, missingDirectors, missingEssays, recent, activity] = await Promise.all([
+  const [waiting, films, drafts, people, members, newMembers, missingPosters, missingDirectors, queued, recent, activity] = await Promise.all([
     adminCounts(db),
     count("films", (q) => q.eq("status", "published")),
     count("films", (q) => q.eq("status", "draft")),
@@ -23,7 +23,7 @@ export default async function AdminHome() {
     count("profiles", (q) => q.gte("created_at", weekAgo)),
     count("admin_film_quality", (q) => q.contains("issues", ["poster"])),
     count("admin_film_quality", (q) => q.contains("issues", ["director"])),
-    count("admin_film_quality", (q) => q.contains("issues", ["editorial"])),
+    count("film_queue"),
     db.from("films").select("id,title,year,status,updated_at").order("updated_at", { ascending: false }).limit(6),
     db.from("admin_activity").select("id,action,target_type,details,created_at").order("created_at", { ascending: false }).limit(6),
   ]);
@@ -37,16 +37,16 @@ export default async function AdminHome() {
     { name: "Film drafts", count: drafts, href: "/admin/films?status=draft" },
     { name: "Films without posters", count: missingPosters, href: "/admin/quality?issue=poster" },
     { name: "Films without directors", count: missingDirectors, href: "/admin/quality?issue=director" },
-    { name: "Films without an essay", count: missingEssays, href: "/admin/quality?issue=editorial" },
+    { name: "Films in the queue", count: queued, href: "/admin/films/add?method=queue" },
   ];
   const waitingTotal = fromPeople.reduce((sum, t) => sum + t.count, 0);
 
   return (
     <>
       <PageHeader
-        title="Overview"
+        title="Dashboard"
         description={waitingTotal ? `${plural(waitingTotal, "thing")} waiting for you.` : "Nothing is waiting for you. Here's how the catalog stands."}
-        actions={<><Link className="button ghost small" href="/admin/films">Manage films</Link><Link className="button ghost small" href="/admin/inbox">Open inbox</Link></>}
+        actions={<Link className="button ghost" href="/admin/analytics">Analytics</Link>}
       />
       <Stats>
         <Stat value={films} label="Published films" href="/admin/films?status=published" />

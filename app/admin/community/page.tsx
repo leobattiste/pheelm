@@ -24,7 +24,7 @@ export default async function AdminReports() {
 
   return (
     <>
-      <PageHeader title="Reports" description="What members reported. Act on it, or dismiss it if nothing is wrong. Dismissing doesn't tell the person who reported it." />
+      <PageHeader back={{ href: "/admin/community/watchlists", label: "Watchlists" }} title="Reports" description="What members reported. Act on it, or dismiss it if nothing is wrong. Dismissing doesn't tell the person who reported it." />
       {lists.error ? <p className="notice error">Reports couldn&apos;t load. Try again in a moment.</p> : (
         <Panel title={`Watchlists (${listReports.length})`} icon="stack">
           {listReports.length ? listReports.map((r) => (

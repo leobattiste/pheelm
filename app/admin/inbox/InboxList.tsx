@@ -1,6 +1,8 @@
+import Link from "next/link";
 import { requireAdmin } from "@/lib/admin";
 import { BOXES, STAGES, TOPIC_LABEL, type InboxBox } from "@/lib/inbox";
 import AdminBrowserToolbar from "../AdminBrowserToolbar";
+import AdminMenu from "../AdminMenu";
 import { Empty, Flash, PageHeader, Pager, Panel, Pill, Row, ViewTabs, ago, pageNumber, plural } from "../ui";
 
 const PAGE_SIZE = 30;
@@ -68,12 +70,19 @@ export default async function InboxList({ box, searchParams }: { box?: InboxBox;
 
   return (
     <>
-      <PageHeader title={info?.label ?? "All messages"} description={info?.about ?? "Everything people send through the contact, feedback and partnership forms."} />
+      <PageHeader title="Inbox" description={info?.about ?? "Everything people send through the contact, feedback and partnership forms."} />
+      <div className="admin-filter-row">
+        <AdminMenu label="Which messages" align="left" text={info?.label ?? "All messages"}>
+          <Link href="/admin/inbox" aria-current={!box ? "page" : undefined}>All messages</Link>
+          {BOXES.map((b) => <Link key={b.id} href={`/admin/inbox/${b.id}`} aria-current={b.id === box ? "page" : undefined}>{b.label}</Link>)}
+          <Link href="/admin/inbox/newsletter">Newsletter sign-ups</Link>
+        </AdminMenu>
+        <ViewTabs label="Messages by status" items={views.map((v, i) => ({
+          label: v.label, href: `${base}?view=${v.id}`, active: v === view, count: viewCounts[i].count ?? 0,
+        }))} />
       <Flash ok={sp.deleted ? "Message deleted." : null} />
-      <ViewTabs label="Messages by status" items={views.map((v, i) => ({
-        label: v.label, href: `${base}?view=${v.id}`, active: v === view, count: viewCounts[i].count ?? 0,
-      }))} />
-      <AdminBrowserToolbar action={base} query={q} placeholder="Search names, emails and messages" />
+        <AdminBrowserToolbar action={base} query={q} placeholder="Search messages" />
+      </div>
       {messages.length ? (
         <Panel>
           {messages.map((m) => (

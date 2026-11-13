@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import Icon, { type IconName } from "@/components/Icon";
+import AdminMenu from "./AdminMenu";
 
 /**
  * The building blocks every admin screen uses, so headers, cards, rows, filters, empty states
@@ -40,7 +41,7 @@ export function pageNumber(raw: string | undefined, max = 10000) {
   return Math.max(1, Math.min(max, Number.parseInt(raw ?? "1", 10) || 1));
 }
 
-/** The title of a screen, what it's for, and its main actions. */
+/** The title of a screen (its one heading), what it's for, and its main actions. */
 export function PageHeader({ title, description, actions, back }: {
   title: string; description?: ReactNode; actions?: ReactNode; back?: { href: string; label: string };
 }) {
@@ -48,7 +49,7 @@ export function PageHeader({ title, description, actions, back }: {
     <header className="admin-page-head">
       <div>
         {back && <Link className="admin-back" href={back.href}><Icon name="arrowLeft" />{back.label}</Link>}
-        <h2>{title}</h2>
+        <h1>{title}</h1>
         {description && <p>{description}</p>}
       </div>
       {actions && <div className="actions">{actions}</div>}
@@ -108,16 +109,18 @@ export function Count({ value, label }: { value: number; label?: string }) {
 }
 
 /** Links that switch between views of one list ("Open", "Done", …), with counts. */
+/** Which records to show (by status, say), as one dropdown rather than a row of tabs. */
 export function ViewTabs({ items, label }: { items: { label: string; href: string; active: boolean; count?: number }[]; label: string }) {
+  const current = items.find((item) => item.active) ?? items[0];
+  const count = (n?: number) => n !== undefined ? <span className="count">{n.toLocaleString("en-US")}</span> : null;
   return (
-    <nav className="admin-view-tabs" aria-label={label}>
-      {items.map((item) => (
-        <Link key={item.href} href={item.href} className="chip" aria-current={item.active ? "page" : undefined}>
-          {item.label}
-          {item.count !== undefined && <span className="count">{item.count.toLocaleString("en-US")}</span>}
-        </Link>
-      ))}
-    </nav>
+    <div className="admin-view-filter">
+      <AdminMenu label={label} align="left" text={<>{current?.label}{count(current?.count)}</>}>
+        {items.map((item) => (
+          <Link key={item.href} href={item.href} aria-current={item.active ? "page" : undefined}>{item.label}{count(item.count)}</Link>
+        ))}
+      </AdminMenu>
+    </div>
   );
 }
 

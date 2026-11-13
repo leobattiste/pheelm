@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireAdmin } from "@/lib/admin";
 import CommunityTile from "@/components/CommunityTile";
 import { getCommunityCollections, MIN_FILMS } from "@/lib/community";
@@ -5,6 +6,7 @@ import AdminBrowserToolbar from "../../AdminBrowserToolbar";
 import ConfirmButton from "../../ConfirmButton";
 import SubmitButton from "../../SubmitButton";
 import { setListFlag } from "../../actions";
+import AdminMenu from "../../AdminMenu";
 import { Empty, PageHeader, Pager, pageNumber, plural } from "../../ui";
 import { deleteWatchlist } from "../actions";
 
@@ -25,7 +27,10 @@ export default async function AdminWatchlists({ searchParams }: { searchParams: 
     .eq("is_public", true).order("created_at", { ascending: false }).range((page - 1) * SIZE, page * SIZE - 1);
   if (q) listQuery = listQuery.ilike("title", `%${q.replace(/[%_]/g, "")}%`);
   if (filter !== "all") listQuery = listQuery.eq(filter, true);
-  const [lists, publicCollections] = await Promise.all([listQuery, getCommunityCollections()]);
+  const [lists, publicCollections, listReports, commentReports] = await Promise.all([listQuery, getCommunityCollections(),
+    db.from("list_reports").select("id", { count: "exact", head: true }).eq("resolved", false),
+    db.from("comment_reports").select("id", { count: "exact", head: true }).eq("resolved", false)]);
+  const reports = { count: (listReports.count ?? 0) + (commentReports.count ?? 0) };
   if (lists.error) return <><PageHeader title="Watchlists" /><p className="notice error">Watchlists couldn&apos;t load. Try again in a moment.</p></>;
   const rows = lists.data ?? [];
   const tiles = new Map(publicCollections.map((c) => [c.id, c]));
@@ -47,7 +52,11 @@ export default async function AdminWatchlists({ searchParams }: { searchParams: 
 
   return (
     <>
-      <PageHeader title="Watchlists" description={`A public watchlist shows in the community once it has a title, at least ${MIN_FILMS} films and its maker has a public name. Staff picks and featured watchlists show first. Hidden ones disappear for everyone but their maker.`} />
+      <PageHeader title="Watchlists" description="Public watchlists from members. Staff picks and featured ones show first; hidden ones disappear for everyone but their maker."
+        actions={<>
+          <AdminMenu><Link href="/admin/community/comments">All comments</Link></AdminMenu>
+          <Link className={reports.count ? "button" : "button ghost"} href="/admin/community">{reports.count ? `Review ${reports.count} ${reports.count === 1 ? "report" : "reports"}` : "Reports"}</Link>
+        </>} />
       <AdminBrowserToolbar action="/admin/community/watchlists" query={q} placeholder="Search watchlists" filters={[{ name: "filter", label: "Watchlists", value: filter, options: FILTERS }]} />
       <p className="muted">{plural(lists.count ?? 0, "matching watchlist")}.</p>
       {rows.length ? (

@@ -1960,6 +1960,9 @@ html[data-auth="in"] .visitor-only { display: none !important; }
    screen size), for visitors and members alike.
    The header stays only to hold the menu and sign-in sheets, which open from the pill's ⋯. */
 .tab-bar { display: none; }
+/* The admin has its own sidebar: no site header, footer or menu bar there. */
+html[data-chrome="admin"] .site-header > :not(dialog), html[data-chrome="admin"] .site-footer, html[data-chrome="admin"] .back-to-top, html[data-chrome="admin"] .install-banner { display: none !important; }
+html[data-chrome="admin"] .site-header { display: contents; }
 html[data-chrome="app"] {
   --tab-gap: calc(var(--space-12) + env(safe-area-inset-bottom));
   --tab-h: var(--bar-height);

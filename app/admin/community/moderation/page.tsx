@@ -16,7 +16,7 @@ export default async function ModerationLog({ searchParams }: { searchParams: Pr
 
   return (
     <>
-      <PageHeader title="Refused text" description="Comments, bios and watchlist descriptions stopped for a banned word before they were posted. Kept for 90 days. Nothing here was published." />
+      <PageHeader back={{ href: "/admin/settings", label: "Settings" }} title="Refused text" description="Comments, bios and watchlist descriptions stopped for a banned word before they were posted. Kept for 90 days. Nothing here was published." />
       {error ? <p className="notice error">The log couldn&apos;t load. If this keeps happening, run <code>supabase/admin-community.sql</code> in Supabase.</p> : rows.length ? (
         <>
           <p className="muted">{plural(total, "refusal")} in the last 90 days.</p>

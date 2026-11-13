@@ -77,19 +77,18 @@ export default async function AdminPeople({ searchParams }: { searchParams: Prom
 
   return (
     <AdminSelectionProvider key="people" entity="people"><section className="admin-directors">
-      <PageHeader title="Directors" description="Directors and everyone else credited on a film. A director is listed publicly once they direct a published film." />
+      <PageHeader title="Directors" description="A director shows in the public directory once they direct a published film."
+        actions={<AdminAddPanel label="Add a director" text="Add director"><AddPersonForm/></AdminAddPanel>} />
       {!!sp.updated && <p className="notice ok" role="status">{sp.updated} people updated.</p>}
       {sp.error === "selection" && <p className="notice error">Select at least one person first.</p>}
       {sp.error === "credits" && <p className="notice error">No one was deleted. Some selected people still have film credits; remove or reassign those credits first.</p>}
       <AdminBrowserToolbar action="/admin/people" query={q} pageSize={effectiveSize} placeholder="Search directors" compact count={count ?? 0} noun={everyone ? "people" : "directors"} allowAll={!everyone}
-        addControl={<AdminAddPanel label="Add or import a director"><AddPersonForm/></AdminAddPanel>}
-        panelTools={<><Link className="button ghost" href="/admin/quality">Content quality</Link><p className="muted">A person appears in the public Directors directory when their listing is enabled and they have a directing credit on a published film.</p></>}
         selectionControls={<AdminSelectionTools entity="people" ids={rows.map(person => person.id)} canDelete={owner} action={bulkPersonChange}/>}
         filters={[
         { name: "all", label: "Show", value: everyone ? "1" : "", options: [{ value: "", label: "Directors" }, { value: "1", label: "Everyone" }] },
         { name: "visibility", label: "Directory visibility", value: visibility, options: [{ value: "", label: "All" }, { value: "shown", label: "Shown" }, { value: "hidden", label: "Hidden" }] },
         { name: "country", label: "Country", value: country, options: [{ value: "", label: "All countries" }, ...countries.map((code) => ({ value: code, label: countryName(code) }))] },
-        { name: "missing", label: "Incomplete records", value: missing, options: [{ value: "", label: "Any" }, { value: "bio", label: "Missing biography" }, { value: "photo", label: "Missing portrait" }] },
+        { name: "missing", label: "Needs fixing", value: missing, options: [{ value: "", label: "Any" }, { value: "bio", label: "Missing biography" }, { value: "photo", label: "Missing portrait" }] },
         { name: "sort", label: "Sort by", value: sort, options: [{ value: "az", label: "Name A–Z" }, { value: "za", label: "Name Z–A" }] },
       ]} />
       {error ? <p className="notice error">Could not load directors. Try again.</p> : (

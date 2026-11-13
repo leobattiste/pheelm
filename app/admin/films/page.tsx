@@ -1,16 +1,12 @@
 import Link from "next/link";
 import AdminBrowserToolbar from "../AdminBrowserToolbar";
-import AdminAddPanel from "../AdminAddPanel";
+import AdminMenu from "../AdminMenu";
 import { AdminSelectionProvider, AdminSelectionTools } from "../AdminSelectionBar";
 import { requireAdmin } from "@/lib/admin";
 import { PageHeader } from "../ui";
 import { countryName } from "@/lib/format";
-import { createFilm } from "../actions";
-import BulkAdd from "./BulkAdd";
-import FilmQueue from "./FilmQueue";
 import BulkControls, { type AdminFilmRow } from "./BulkControls";
 import { bulkFilmChange } from "./bulk-actions";
-import queue from "@/data/film-queue.json";
 
 type Params = {
   status?: string; missing?: string; q?: string; type?: string; featured?: string;
@@ -70,19 +66,12 @@ export default async function AdminFilms({ searchParams }: { searchParams: Promi
     return { data: rows, count, error: null };
   };
 
-  const [result, collectionsResult, allResult, facetsResult] = await Promise.all([
+  const [result, facetsResult, suggestions] = await Promise.all([
     load(),
-    db.from("lists").select("id,title").eq("user_id", user.id).order("created_at", { ascending: false }),
-    page === 1 && !q ? db.from("films").select("title,year").limit(5000) : Promise.resolve({ data: [] as { title: string; year: number }[] }),
     db.rpc("admin_film_facets"),
+    db.from("submissions").select("id", { count: "exact", head: true }).eq("status", "pending"),
   ]);
   const { data: films, count, error } = result;
-  const all = allResult.data ?? [];
-  const plain = (text: string) => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
-  const have = new Map<string, number[]>();
-  for (const film of all) have.set(plain(film.title), [...(have.get(plain(film.title)) ?? []), film.year]);
-  const waiting = (queue as { t: string; y: number; d: string[]; n?: string }[])
-    .filter((item) => !(have.get(plain(item.t)) ?? []).some((year) => Math.abs(year - item.y) <= 1));
   // Every decade, country and genre in the catalog, worked out in the database.
   const facets = (facetsResult.data ?? {}) as { decades?: number[]; countries?: string[]; genres?: string[] };
   const countries = facets.countries ?? [];
@@ -95,27 +84,17 @@ export default async function AdminFilms({ searchParams }: { searchParams: Promi
 
   return (
     <AdminSelectionProvider key="films" entity="films"><section className="admin-films">
-      <PageHeader title="Films" description="Add, import, edit and publish films. Drafts stay hidden until you publish them." />
+      <PageHeader title="Films" description="Everything in the catalog. Drafts stay hidden until you publish them."
+        actions={<>
+          <AdminMenu>
+            <Link href="/admin/submissions">Suggestions from members{!!suggestions.count && <span className="admin-count">{suggestions.count}</span>}</Link>
+            <Link href="/admin/automation">Fill missing details from TMDB</Link>
+          </AdminMenu>
+          <Link className="button" href="/admin/films/add">Add films</Link>
+        </>} />
       {!!sp.updated && <p className="notice ok" role="status">{sp.updated} films updated.</p>}
       {sp.error === "selection" && <p className="notice error">Select at least one film first.</p>}
       <AdminBrowserToolbar action="/admin/films" query={q} pageSize={size} placeholder="Search films" compact count={count ?? 0} noun="films"
-        addControl={<AdminAddPanel label="Add or import films">
-          <div className="admin-toolbox-body">
-          <form action={createFilm} className="fieldset form">
-            <h2>Add a film</h2>
-            <div className="form-row">
-              <label className="field">Title<input name="title" required /></label>
-              <label className="field">Year<input name="year" inputMode="numeric" pattern="[0-9]{4}" required /></label>
-              <label className="field">Director<input name="director" required /></label>
-              <label className="field">TMDB id <span className="hint">optional</span><input name="tmdb_id" inputMode="numeric" /></label>
-            </div>
-            <div className="actions"><button className="button">Create draft</button></div>
-          </form>
-          {page === 1 && !q && <FilmQueue items={waiting} />}
-          <BulkAdd collections={collectionsResult.data ?? []} />
-        </div>
-        </AdminAddPanel>}
-        panelTools={<><Link className="button ghost" href="/admin/quality">Content quality</Link><Link className="button ghost" href="/admin/automation">Automation</Link></>}
         selectionControls={<AdminSelectionTools entity="films" ids={(films ?? []).map(film => film.id)} canDelete={owner} action={bulkFilmChange}/>}
         filters={[
         { name: "status", label: "Publication status", value: status, options: [{ value: "", label: "All films" }, { value: "published", label: "Published" }, { value: "draft", label: "Draft" }] },
@@ -124,7 +103,7 @@ export default async function AdminFilms({ searchParams }: { searchParams: Promi
         { name: "country", label: "Country", value: country, options: [{ value: "", label: "All countries" }, ...countries.map((code) => ({ value: code, label: countryName(code) }))] },
         { name: "genre", label: "Genre", value: genre, options: [{ value: "", label: "All genres" }, ...genres.map((value) => ({ value, label: value }))] },
         { name: "featured", label: "Featured", value: featured, options: [{ value: "", label: "All" }, { value: "yes", label: "Featured" }, { value: "no", label: "Not featured" }] },
-        { name: "missing", label: "Incomplete records", value: missing, options: [{ value: "", label: "Any" }, { value: "poster", label: "Missing poster" }, { value: "synopsis", label: "Missing synopsis" }] },
+        { name: "missing", label: "Needs fixing", value: missing, options: [{ value: "", label: "Any" }, { value: "poster", label: "Missing poster" }, { value: "synopsis", label: "Missing synopsis" }] },
         { name: "sort", label: "Sort by", value: sort, options: [{ value: "newest", label: "Newest releases" }, { value: "oldest", label: "Oldest releases" }, { value: "title", label: "Title A–Z" }, { value: "recent", label: "Recently updated" }] },
       ]} />
       {error ? <p className="notice error">Could not load films. Try again.</p> : (

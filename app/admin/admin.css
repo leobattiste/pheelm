@@ -1,35 +1,78 @@
 /* Admin styles. Loaded only on /admin routes, after globals.css.
    Cards, rows and controls use the site's glass material and hairlines, like the menu bar. */
 
-/* Shell: title, who you are, and the two rows of tabs ---------------------------------------- */
-.admin { display: block; min-width: 0; padding: 0 var(--gutter) var(--space-48); }
-.admin.account-page { padding-top: 0; }
-.admin.account-page > .page-head { padding-bottom: 0; }
-.admin > .page-head h1 { font-size: var(--t-3xl); }
-.admin-who { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-8) var(--space-16); }
+/* Shell: a sidebar of sections, then the page ------------------------------------------------- */
+/* One level of navigation. On wide screens the sidebar sits on the left; on phones the same
+   sections become a bar of icons along the bottom, like a social app. */
+.admin-app { --admin-side: 236px; display: grid; grid-template-columns: var(--admin-side) minmax(0, 1fr); min-height: 100svh; padding: 0; }
+.admin-sidebar {
+  position: sticky; top: 0; display: flex; flex-direction: column; gap: var(--space-24);
+  height: 100svh; padding: var(--space-24) var(--space-12); border-right: 1px solid var(--line); background: var(--bg);
+}
+.admin-brand { display: flex; align-items: baseline; gap: var(--space-8); padding: 0 var(--space-12); color: var(--ink); text-decoration: none; }
+.admin-brand .wordmark-type { font-size: 30px; line-height: 1; }
+.admin-brand-tag { color: var(--muted); font-size: var(--t-sm); font-weight: 500; }
+.admin-sections { display: grid; gap: 2px; }
+.admin-section-link {
+  display: flex; align-items: center; gap: var(--space-12); min-height: 48px; padding: 0 var(--space-12);
+  border-radius: 12px; color: var(--text); font-size: var(--t-md); font-weight: 500; text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+.admin-section-link .icon { flex: none; color: var(--muted); transition: color 0.15s; }
+.admin-section-link:hover { background: var(--surface); }
+.admin-section-link[aria-current="page"] { background: var(--surface); color: var(--ink); font-weight: 650; }
+.admin-section-link[aria-current="page"] .icon { color: var(--ink); }
+.admin-section-link .admin-count { margin-left: auto; }
+.admin-section-link.is-settings { margin-top: var(--space-16); }
+.admin-sidebar-foot { display: grid; gap: 2px; margin-top: auto; padding-top: var(--space-16); border-top: 1px solid var(--line); }
+.admin-foot-link { display: flex; align-items: center; gap: var(--space-12); min-height: 44px; padding: 0 var(--space-12); border-radius: 12px; color: var(--muted); font-size: var(--t-sm); text-decoration: none; }
+.admin-foot-link:hover { background: var(--surface); color: var(--ink); }
+.admin-who { display: grid; gap: 2px; padding: var(--space-8) var(--space-12) 0; font-size: var(--t-xs); color: var(--muted); }
+.admin-who-email { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+.admin-role { color: var(--muted); }
+.admin-main { min-width: 0; width: 100%; max-width: 1240px; padding: var(--space-32) var(--space-40, 40px) var(--space-64, 64px); }
 
-.admin-navigation { min-width: 0; }
-.admin-main-tabs.profile-tabs { position: relative; margin: var(--space-24) 0 0; flex-wrap: nowrap; padding: 2px; border-bottom: 0; scrollbar-width: none; scroll-padding-inline: var(--space-16); }
-.admin-main-tabs.profile-tabs::-webkit-scrollbar { display: none; }
-.admin-main-tabs .chip { display: inline-flex; align-items: center; gap: var(--space-8); min-height: 44px; }
-.admin-main-tabs .chip[aria-current="page"] { background: var(--ink); border-color: transparent; color: var(--on-ink); }
-.admin-main-tabs .chip[aria-current="page"]:hover { background: color-mix(in srgb, var(--ink) 86%, var(--bg)); }
-.admin-subtabs { position: relative; display: flex; gap: var(--space-8); overflow-x: auto; padding: var(--space-12) 2px 2px; scrollbar-width: none; }
-.admin-subtabs a { display: inline-flex; flex: none; align-items: center; gap: var(--space-8); min-height: 44px; padding: var(--space-8) var(--space-12); border-radius: var(--pill); color: var(--muted); font-size: var(--t-sm); text-decoration: none; }
-.admin-subtabs a:hover, .admin-subtabs a[aria-current="page"] { color: var(--ink); background: var(--surface); }
-.admin-subtabs a[aria-current="page"] { box-shadow: inset 0 0 0 1px var(--control-border-strong); }
+@media (max-width: 899px) {
+  .admin-app { grid-template-columns: minmax(0, 1fr); }
+  .admin-main { padding: calc(var(--space-20) + env(safe-area-inset-top)) var(--gutter) calc(88px + env(safe-area-inset-bottom)); }
+  .admin-sidebar {
+    position: fixed; z-index: 40; inset: auto 0 0 0; top: auto; height: auto; flex-direction: row; gap: 0;
+    padding: 6px var(--space-4) calc(6px + env(safe-area-inset-bottom)); border-right: 0; border-top: 1px solid var(--line);
+    background: var(--glass-bg); -webkit-backdrop-filter: var(--glass-filter); backdrop-filter: var(--glass-filter);
+  }
+  .admin-brand, .admin-sidebar-foot { display: none; }
+  .admin-sections { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); width: 100%; gap: 0; }
+  .admin-section-link { position: relative; flex-direction: column; justify-content: center; gap: 0; min-height: 52px; padding: 0 2px; border-radius: 10px; }
+  .admin-section-link[aria-current="page"]::after { content: ""; position: absolute; bottom: 5px; width: 4px; height: 4px; border-radius: 50%; background: var(--ink); }
+  .admin-section-link[aria-current="page"] { background: transparent; font-weight: 650; }
+  /* Icons only, like a social app's tab bar; the names stay for screen readers and as tooltips. */
+  .admin-section-link .admin-section-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .admin-section-link .admin-count { position: absolute; top: 3px; left: calc(50% + 6px); min-width: 17px; height: 17px; margin: 0; padding: 0 4px; font-size: 10px; }
+  .admin-section-link.is-settings { margin-top: 0; }
+}
+
+/* A menu of less-used actions behind ⋯, so each page shows one main button. */
+.admin-menu { position: relative; }
+.admin-menu > summary { list-style: none; }
+.admin-menu > summary::-webkit-details-marker { display: none; }
+.admin-menu-list {
+  position: absolute; z-index: 30; right: 0; top: calc(100% + 6px); display: grid; min-width: 220px; padding: 6px;
+  border: 1px solid var(--line); border-radius: 14px; background: var(--surface); box-shadow: 0 12px 32px rgb(0 0 0 / 0.35);
+}
+.admin-menu-list a, .admin-menu-list button { display: flex; align-items: center; justify-content: space-between; gap: var(--space-12); min-height: 44px; padding: 0 var(--space-12); border: 0; border-radius: 10px; background: none; color: var(--text); font: inherit; font-size: var(--t-sm); text-align: left; text-decoration: none; cursor: pointer; }
+.admin-menu-list a:hover, .admin-menu-list button:hover, .admin-menu-list [aria-current="page"] { background: color-mix(in srgb, var(--ink) 8%, transparent); color: var(--ink); }
 
 /* A number waiting for you, on a tab or a row. */
 .admin-count { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: var(--pill); background: var(--error); color: #fff; font-size: 11px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
 
-.admin-content { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-32); min-width: 0; padding-top: var(--space-32); }
+.admin-content { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-24); align-content: start; min-width: 0; }
 .admin-content > *, .admin :is(.fieldset, .form, .form-row, .field, .editor, .editor > *, .actions, .stats, .stat, .account-section) { min-width: 0; }
 
 /* Screen header -------------------------------------------------------------------------------- */
-.admin-page-head, .admin-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--space-16); }
+.admin-page-head, .admin-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-16); }
 .admin-page-head > div:first-child, .admin-head > div:first-child { display: grid; gap: var(--space-8); min-width: 0; }
-.admin-page-head h2, .admin-head .admin-section-heading { font-size: var(--t-2xl); line-height: 1.15; overflow-wrap: anywhere; }
-.admin-page-head p, .admin-head p { max-width: 65ch; color: var(--muted); }
+.admin-page-head h1, .admin-page-head h2, .admin-head .admin-section-heading { font-size: var(--t-3xl); font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; overflow-wrap: anywhere; }
+.admin-page-head p, .admin-head p { max-width: 62ch; color: var(--muted); font-size: var(--t-sm); }
 .admin-back { display: inline-flex; align-items: center; gap: var(--space-4); width: fit-content; color: var(--muted); font-size: var(--t-sm); text-decoration: none; }
 .admin-back:hover { color: var(--ink); }
 
@@ -186,9 +229,9 @@ a.admin-attention-row:hover, .admin-attention-row a:hover { color: var(--ink); }
   .admin .editor { grid-template-columns: minmax(0, 1fr) 280px; align-items: start; }
 }
 @media (max-width: 720px) {
-  .admin-content { gap: var(--space-24); padding-top: var(--space-24); }
+  .admin-content { gap: var(--space-20); }
+  .admin-page-head h1, .admin-page-head h2 { font-size: var(--t-2xl); }
   .admin-grid { grid-template-columns: minmax(0, 1fr); }
-  .admin-main-tabs.profile-tabs .chip { flex: none; }
   .admin .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .admin .stat { padding: var(--space-16); }
   .admin .stat strong { font-size: var(--t-2xl); }
@@ -282,3 +325,59 @@ a.admin-attention-row:hover, .admin-attention-row a:hover { color: var(--ink); }
 .admin-word-list { list-style: none; margin: 0; padding: 0; display: grid; }
 .admin-word-list li { display: flex; align-items: center; justify-content: space-between; gap: var(--space-12); padding: var(--space-8) 0; border-top: 1px solid var(--line); }
 .admin-word-list li:first-child { border-top: 0; }
+
+/* Add films: three ways, then the chosen one -------------------------------------------------- */
+.admin-menu > summary.icon-only { display: inline-grid; place-items: center; width: 44px; padding: 0; }
+.add-films { display: grid; gap: var(--space-20); max-width: 880px; }
+.add-methods { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-12); }
+.add-method {
+  display: flex; align-items: flex-start; gap: var(--space-12); min-height: 88px; padding: var(--space-16);
+  border: 1px solid var(--line); border-radius: 16px; background: transparent; color: var(--text); font: inherit; text-align: left; cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.add-method .icon { flex: none; margin-top: 2px; color: var(--muted); }
+.add-method:hover { background: var(--surface); }
+.add-method[aria-checked="true"] { border-color: var(--ink); background: var(--surface); }
+.add-method[aria-checked="true"] .icon { color: var(--ink); }
+.add-method-text { display: grid; gap: 4px; min-width: 0; }
+.add-method-text strong { display: flex; align-items: center; gap: var(--space-8); color: var(--ink); font-size: var(--t-md); }
+.add-method-text > span { color: var(--muted); font-size: var(--t-sm); }
+.add-method-count { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: var(--pill); background: var(--ink); color: var(--on-ink); font-size: 11px; font-weight: 700; }
+.add-panel { display: grid; gap: var(--space-16); padding: var(--space-24); border: 1px solid var(--line); border-radius: 16px; }
+.add-one { display: grid; grid-template-columns: minmax(0, 1fr) 120px auto; gap: var(--space-12); align-items: end; }
+.add-options { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-16); align-items: end; }
+.add-manual { border-top: 1px solid var(--line); padding-top: var(--space-16); }
+.add-manual summary { color: var(--muted); font-size: var(--t-sm); cursor: pointer; }
+.add-manual-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-12); padding-top: var(--space-16); align-items: end; }
+.add-results { display: grid; gap: var(--space-8); }
+.add-summary { display: flex; flex-wrap: wrap; gap: var(--space-16); font-size: var(--t-sm); color: var(--muted); }
+.add-summary strong { color: var(--ink); }
+.add-films .is-error { color: var(--error); }
+.add-films .import-log .is-added { color: var(--text); }
+.add-queue-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-16); }
+.add-queue-head p { max-width: 52ch; color: var(--muted); font-size: var(--t-sm); }
+.add-queue-head strong { color: var(--ink); }
+.add-queue { display: grid; max-height: 60vh; overflow: auto; border-top: 1px solid var(--line); }
+.add-queue li { display: flex; align-items: center; justify-content: space-between; gap: var(--space-12); padding: var(--space-12) 0; border-bottom: 1px solid var(--line); }
+.add-queue-main { display: grid; gap: 2px; min-width: 0; }
+.add-queue-main strong { font-weight: 550; overflow-wrap: anywhere; }
+.add-queue-main span { color: var(--muted); font-size: var(--t-xs); }
+@media (max-width: 720px) {
+  /* Three compact choices side by side; the descriptions are for wider screens. */
+  .add-method { flex-direction: column; align-items: center; gap: var(--space-8); min-height: 0; padding: var(--space-12) var(--space-8); text-align: center; }
+  .add-method .icon { margin: 0; }
+  .add-method-text > span { display: none; }
+  .add-method-text strong { justify-content: center; font-size: var(--t-sm); }
+  .add-panel { padding: var(--space-16); }
+  .add-one, .add-options, .add-manual-form { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Dropdowns that stand in for tabs: which box, which status. */
+.admin-menu.is-left .admin-menu-list { left: 0; right: auto; }
+.admin-menu > summary { display: inline-flex; align-items: center; gap: var(--space-8); }
+.admin-menu .count, .admin-menu-list .count { color: var(--muted); font-size: var(--t-xs); font-variant-numeric: tabular-nums; }
+.admin-view-filter { display: flex; }
+
+.admin-page-head > .actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-8); }
+.admin-filter-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-12); }
+.admin-filter-row > .admin-browser-tools { flex: 1 1 260px; min-width: 0; }

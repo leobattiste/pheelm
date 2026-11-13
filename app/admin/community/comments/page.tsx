@@ -37,7 +37,7 @@ export default async function AdminComments({ searchParams }: { searchParams: Pr
 
   return (
     <>
-      <PageHeader title="Comments" description="Every comment on films and watchlists, newest first. Removing one replaces it with “Comment removed” if it has replies, and deletes it otherwise." />
+      <PageHeader back={{ href: "/admin/community/watchlists", label: "Watchlists" }} title="Comments" description="Every comment on films and watchlists, newest first. Removing one replaces it with “Comment removed” if it has replies, and deletes it otherwise." />
       <AdminBrowserToolbar action="/admin/community/comments" query={q} placeholder="Search comments" />
       <ViewTabs label="Where" items={[
         { label: "All", href: link({ where: "all" }), active: where === "all" },

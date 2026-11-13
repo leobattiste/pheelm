@@ -42,7 +42,7 @@ export default async function AdminSubmissions({ searchParams }: { searchParams:
 
   return (
     <>
-      <PageHeader title="Submissions" description="Films members suggest, or submit as their own. Approving creates a draft you check before publishing. The member is emailed when you approve or reject." />
+      <PageHeader back={{ href: "/admin/films", label: "Films" }} title="Submissions" description="Films members suggest, or submit as their own. Approving creates a draft you check before publishing. The member is emailed when you approve or reject." />
       <ViewTabs label="Submissions by status" items={STATUSES.map((s, i) => ({ label: s.label, href: `/admin/submissions?status=${s.id}`, active: s.id === status, count: counts[i].count ?? 0 }))} />
       {error ? <p className="notice error">Submissions couldn&apos;t load. Try again in a moment.</p> : submissions.length ? submissions.map((s) => {
         const match = matches.get(`${canon(s.title)}|${s.year}`);

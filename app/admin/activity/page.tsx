@@ -37,7 +37,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
 
   return (
     <>
-      <PageHeader title="Activity log" description={`Every change made in admin, newest first. ${plural(count ?? 0, "change")} recorded.`} />
+      <PageHeader back={{ href: "/admin/settings", label: "Settings" }} title="Activity log" description={`Every change made in admin, newest first. ${plural(count ?? 0, "change")} recorded.`} />
       <ViewTabs label="Filter by kind" items={[
         { label: "Everything", href: "/admin/activity", active: type === "all" },
         ...TYPES.map(([t, label]) => ({ label, href: `/admin/activity?type=${t}`, active: type === t })),

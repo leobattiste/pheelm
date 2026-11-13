@@ -24,7 +24,7 @@ export default async function BannedWords({ searchParams }: { searchParams: Prom
 
   return (
     <>
-      <PageHeader title="Banned words" description="Words members can't use in comments, bios and watchlist descriptions. They're told what kind of word it is and what to write instead, never the word itself." />
+      <PageHeader back={{ href: "/admin/settings", label: "Settings" }} title="Banned words" description="Words members can't use in comments, bios and watchlist descriptions. They're told what kind of word it is and what to write instead, never the word itself." />
       {q.error && <p className="notice error" role="alert">{q.error}</p>}
       {q.saved && <p className="notice ok" role="status">Saved. It applies right away.</p>}
       {q.removed && <p className="notice ok" role="status">Removed. Members can use it again.</p>}

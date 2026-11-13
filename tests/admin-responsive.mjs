@@ -34,6 +34,7 @@ const records = {
     { id: '11111111-1111-1111-1111-111111111111', name: 'A programmer at a film festival with a long name', email: 'programmer@festival.example', organization: 'Pan-African Film Festival', topic: 'partnership', status: 'new', stage: 'talking', partnership_type: 'Film festival or screening', website: 'https://festival.example', notes: 'Call on Friday.', body: 'We would love to host a Pheelm night at our festival.\n\nWe can offer a screen and a panel.', created_at: '2026-11-10', replied_at: '2026-11-11', due_at: null, closed_at: null, page: null, page_title: null },
     { id: '22222222-2222-2222-2222-222222222222', name: null, email: 'reader@example.com', organization: null, topic: 'privacy', status: 'open', stage: null, partnership_type: null, website: null, notes: null, body: 'Please delete my account data.', created_at: '2026-11-01', replied_at: null, due_at: '2026-12-01', closed_at: null, page: '/films/atlantics', page_title: 'Atlantics' },
   ],
+  film_queue: [{ id: 'q1', title: 'Soleil Ô', year: 1970, director_name: 'Med Hondo', director_keys: ['hondo'], synopsis: 'An essay.', last_error: null }, { id: 'q2', title: 'A queued film with a title long enough to wrap on a phone', year: 1982, director_name: null, director_keys: [], synopsis: null, last_error: 'No confident match on TMDB.' }],
   message_replies: [{ id: 'r1', body: 'Thanks, let us talk.', via: 'pheelm', created_at: '2026-11-11', author_id: 'member' }],
 };
 const rpcs = {
@@ -105,6 +106,8 @@ const Automation = load(resolve(root, 'app/admin/automation/page.tsx')).default;
 const Inbox = load(resolve(root, 'app/admin/inbox/InboxList.tsx')).default;
 const Message = load(resolve(root, 'app/admin/inbox/message/[id]/page.tsx')).default;
 const Newsletter = load(resolve(root, 'app/admin/inbox/newsletter/page.tsx')).default;
+const AddFilmsPage = load(resolve(root, 'app/admin/films/add/page.tsx')).default;
+const SettingsPage = load(resolve(root, 'app/admin/settings/page.tsx')).default;
 const PersonEditor = load(resolve(root, 'app/admin/people/[id]/PersonEditor.tsx')).default;
 const executablePath = process.env.CHROMIUM_PATH || (existsSync('/usr/bin/chromium') ? '/usr/bin/chromium' : undefined);
 const browser = await chromium.launch({ executablePath, headless: true, args: ['--no-sandbox'] });
@@ -119,8 +122,8 @@ try {
     for (const width of [320, 390, 600, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: 1000 });
       for (const grid of ['large', 'small', 'list']) {
-      for (const screen of ['overview', 'films', 'people', 'members', 'editorial', 'community', 'quality', 'activity', 'analytics', 'automation', 'inbox', 'partnerships', 'message', 'newsletter', 'reports', 'comments', 'refused', 'banned', 'submissions', 'member', 'editor']) {
-        pathname = screen === 'overview' ? '/admin' : screen === 'editor' ? '/admin/people/fixture' : screen === 'partnerships' ? '/admin/inbox/partnerships' : screen === 'message' ? '/admin/inbox/message/11111111-1111-1111-1111-111111111111' : screen === 'newsletter' ? '/admin/inbox/newsletter' : screen === 'community' ? '/admin/community/watchlists' : screen === 'reports' ? '/admin/community' : screen === 'comments' ? '/admin/community/comments' : screen === 'refused' ? '/admin/community/moderation' : screen === 'banned' ? '/admin/community/banned-words' : screen === 'member' ? '/admin/members/33333333-3333-3333-3333-333333333333' : `/admin/${screen}`;
+      for (const screen of ['overview', 'films', 'people', 'members', 'editorial', 'community', 'quality', 'activity', 'analytics', 'automation', 'inbox', 'partnerships', 'message', 'newsletter', 'reports', 'comments', 'refused', 'banned', 'submissions', 'member', 'editor', 'add', 'settings']) {
+        pathname = screen === 'overview' ? '/admin' : screen === 'editor' ? '/admin/people/fixture' : screen === 'partnerships' ? '/admin/inbox/partnerships' : screen === 'message' ? '/admin/inbox/message/11111111-1111-1111-1111-111111111111' : screen === 'newsletter' ? '/admin/inbox/newsletter' : screen === 'community' ? '/admin/community/watchlists' : screen === 'reports' ? '/admin/community' : screen === 'comments' ? '/admin/community/comments' : screen === 'refused' ? '/admin/community/moderation' : screen === 'banned' ? '/admin/community/banned-words' : screen === 'member' ? '/admin/members/33333333-3333-3333-3333-333333333333' : screen === 'add' ? '/admin/films/add' : `/admin/${screen}`;
         const content = screen === 'overview' ? await Home() : screen === 'films'
           ? await Films({ searchParams: Promise.resolve({}) })
           : screen === 'people' ? await People({ searchParams: Promise.resolve({}) })
@@ -141,6 +144,8 @@ try {
           : screen === 'partnerships' ? await Inbox({ box: 'partnerships', searchParams: Promise.resolve({}) })
           : screen === 'message' ? await Message({ params: Promise.resolve({ id: '11111111-1111-1111-1111-111111111111' }) })
           : screen === 'newsletter' ? await Newsletter({ searchParams: Promise.resolve({}) })
+          : screen === 'add' ? await AddFilmsPage({ searchParams: Promise.resolve({ method: grid === 'small' ? 'list' : grid === 'list' ? 'one' : 'queue' }) })
+          : screen === 'settings' ? await SettingsPage()
           : React.createElement(PersonEditor, { person: { id: 'person', name: film.title, slug: 'fixture', country: 'SN', birth_year: 1970, bio: 'A filmmaker biography.', photo_url: null, is_director: true } });
         const html = renderToStaticMarkup(await Layout({ children: content }));
         await page.setContent(`<!doctype html><html data-theme="${theme}" data-grid="${grid}"><head><style>${css}</style></head><body>${html}</body></html>`);
@@ -151,9 +156,17 @@ try {
         }).map(icon => icon.outerHTML.slice(0, 100)));
         assert.deepEqual(wrongIcons, [], `${prefix}: all admin icons are 24.5px`);
         assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${prefix}: page overflows`);
-        assert.equal(await page.locator('.admin-main-tabs [aria-current="page"]').count(), 1, `${prefix}: active main tab`);
-        assert.equal(await page.locator('.admin-main-tabs a .icon').count(), 0, `${prefix}: admin tabs are text only`);
-        assert.equal(await page.locator('.admin-main-tabs [aria-current="page"]').getAttribute('href'), screen === 'overview' ? '/admin' : ['films', 'people', 'editorial', 'editor', 'quality', 'automation'].includes(screen) ? '/admin/films' : screen === 'activity' ? '/admin/analytics' : ['inbox', 'partnerships', 'message', 'newsletter'].includes(screen) ? '/admin/inbox' : ['reports', 'comments', 'refused', 'banned', 'submissions'].includes(screen) ? '/admin/community' : screen === 'member' ? '/admin/members' : `/admin/${screen}`);
+        assert.equal(await page.locator('.admin-sections [aria-current="page"]').count(), 1, `${prefix}: one selected section`);
+        const section = screen === 'overview' || screen === 'analytics' ? '/admin'
+          : ['films', 'editorial', 'quality', 'automation', 'submissions', 'add'].includes(screen) ? '/admin/films'
+          : ['people', 'editor'].includes(screen) ? '/admin/people'
+          : ['community', 'reports', 'comments'].includes(screen) ? '/admin/community/watchlists'
+          : ['members', 'member'].includes(screen) ? '/admin/members'
+          : ['inbox', 'partnerships', 'message', 'newsletter'].includes(screen) ? '/admin/inbox' : '/admin/settings';
+        assert.equal(await page.locator('.admin-sections [aria-current="page"]').getAttribute('href'), section, `${prefix}: selected section`);
+        assert.equal(await page.locator('.admin-tabs, .admin-subtabs, .admin-main-tabs').count(), 0, `${prefix}: no second row of tabs`);
+        const bar = await page.locator('.admin-sidebar').evaluate(el => { const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, bottom: r.bottom, vw: innerWidth, vh: innerHeight }; });
+        assert(bar.left >= -1 && bar.right <= bar.vw + 1, `${prefix}: sections fit the screen ${JSON.stringify(bar)}`);
         const tooWide = await page.locator('.admin-content .button, .admin-content input:not([type="hidden"]), .admin-content textarea, .admin-content select').evaluateAll(elements => elements.filter(el => el.getBoundingClientRect().right > innerWidth || el.getBoundingClientRect().left < 0).map(el => el.outerHTML.slice(0, 150)));
         assert.deepEqual(tooWide, [], `${prefix}: overflowing controls`);
         if (screen === 'films') {
@@ -170,12 +183,8 @@ try {
         }
         if (screen === 'editorial') assert.equal(await page.locator('.film-grid .film-card').count(), films.length, `${prefix}: editorial poster cards`);
         if (screen === 'community') assert.equal(await page.locator('.collection-list .collection-tile').count(), collections.length, `${prefix}: shared collection tiles`);
-        assert.equal(await page.locator('.account-page > .page-head h1').textContent(), 'Admin', `${prefix}: Settings shell`);
-        await page.locator('.admin-main-tabs a').last().focus();
-        await page.locator('.admin-main-tabs').evaluate(el => { el.scrollLeft = el.scrollWidth; });
-        const lastTab = await page.locator('.admin-main-tabs a').last().evaluate(el => { const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, viewport: innerWidth }; });
-        assert(lastTab.left >= -1 && lastTab.right <= lastTab.viewport + 1, `${prefix}: last tab reachable ${JSON.stringify(lastTab)}`);
-        await page.locator('.admin-main-tabs [aria-current="page"]').evaluate(el => { document.activeElement?.blur(); el.scrollIntoView({ block: 'nearest', inline: 'nearest' }); });
+        if (screen === 'add') assert.equal(await page.locator('.add-method').count(), 3, `${prefix}: three ways to add films`);
+        if (screen !== 'editor') assert.equal(await page.locator('.admin-content h1').count(), 1, `${prefix}: one page title`);
         if (artifacts && grid === 'large' && [390, 1440].includes(width)) await page.screenshot({ path: resolve(artifacts, `${theme}-${width}-${screen}.png`), fullPage: true });
         checks++;
       }
@@ -205,15 +214,14 @@ try {
   assert(!member.includes('gone@example.com'), 'non-owner must not see a member email');
   assert(!member.includes('Make admin'), 'non-owner has no role action on a member');
   isOwner = true;
-  // Deep links keep both the owning group and its child selected.
-  for (const [path, parent] of [['/admin/quality', '/admin/films'], ['/admin/automation', '/admin/films'], ['/admin/submissions', '/admin/community'], ['/admin/activity', '/admin/analytics']]) {
+  // Pages reached from a section's buttons keep that section selected.
+  for (const [path, parent] of [['/admin/quality', '/admin/films'], ['/admin/automation', '/admin/films'], ['/admin/films/add', '/admin/films'], ['/admin/submissions', '/admin/films'], ['/admin/community', '/admin/community/watchlists'], ['/admin/activity', '/admin/settings'], ['/admin/inbox/press', '/admin/inbox']]) {
     pathname = path;
     const html = renderToStaticMarkup(await Layout({ children: null }));
     await page.setContent(html);
-    assert.equal(await page.locator('.admin-main-tabs [aria-current="page"]').getAttribute('href'), parent);
-    assert.equal(await page.locator('.admin-subtabs [aria-current="page"]').getAttribute('href'), path);
+    assert.equal(await page.locator('.admin-sections [aria-current="page"]').getAttribute('href'), parent, path);
   }
-  console.log(`Passed ${checks} responsive component scenarios and 4 nested navigation checks.`);
+  console.log(`Passed ${checks} responsive component scenarios and 7 section navigation checks.`);
 } finally {
   await browser.close();
 }
