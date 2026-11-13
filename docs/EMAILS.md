@@ -8,7 +8,7 @@
 - Messages use `Pheelm <notifications@pheelm.com>` and reply to `hey@pheelm.com`.
 - Resend delivery/bounce/complaint webhooks require Svix signature verification and a five-minute timestamp window. Event IDs are deduplicated. Bounced and complained recipients are suppressed.
 - Queue jobs use deterministic Resend idempotency keys, row-lock claims, leases, bounded retries and a twelve-hour expiry. Email content is retained for fourteen days.
-- The deployed worker sends the rendered HTML/plain-text snapshots in `supabase/functions/pheelm-email/templates.json`. The source is `emails/PheelmEmail.tsx` and `emails/catalog.json`.
+- The deployed worker sends the rendered HTML/plain-text snapshots in `supabase/functions/pheelm-email/templates.json`, packed into `templates.compact.json` (two shared layouts plus each email’s words; `unpack.mjs` rebuilds them exactly, and `npm run email:preview` refuses to pack if it wouldn’t). The source is `emails/PheelmEmail.tsx` and `emails/catalog.json`. Deploy `index.ts`, `security.ts`, `unpack.mjs`, `templates.compact.json` and `deno.json`.
 - Production copies are published in Resend under `pheelm-live-*`. Editable original designs are preserved under `pheelm-*` as drafts. Dashboard edits do not automatically update the deployed snapshots: regenerate and deploy the worker after changing the source.
 
 ## Templates and event coverage

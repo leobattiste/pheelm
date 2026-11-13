@@ -1,5 +1,8 @@
 import {actionUrl,escapeHtml,safeEqual,verifyWebhook} from './security.ts';
-import templates from './templates.json' with {type:'json'};
+// The email designs, packed small (see scripts/compact-email-templates.mjs); same HTML and text as templates.json.
+import packed from './templates.compact.json' with {type:'json'};
+import {unpack} from './unpack.mjs';
+const templates=unpack(packed);
 const project=Deno.env.get('SUPABASE_URL')!;
 const service=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const endpoint=project+'/functions/v1/pheelm-email';
