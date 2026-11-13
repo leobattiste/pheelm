@@ -137,8 +137,8 @@ svg { flex-shrink: 0; }
 
 /* Controls ----------------------------------------------------------------------------
    One system for everything you press or type into.
-   Sizes: --control (42px, border included) for buttons, fields, search bars, tabs and icon buttons;
-          --control-sm (34px) only for the segments inside a switch; every button, chip and tab is --control.
+   Sizes: --control (48px, border included) for buttons, fields, search bars, tabs and icon buttons;
+          --control-sm (40px) only for the segments inside a switch; every button, chip and tab is --control.
    Shape: anything one line tall is a pill; taller things (text areas) get the 18px corners.
    Looks: .button (primary, solid ink) · .button.ghost (secondary, outlined) ·
           .button.quiet / .icon-button (no border until hovered) · .pill-button / .round-button
@@ -146,9 +146,9 @@ svg { flex-shrink: 0; }
    States are the same everywhere: hover fill, press to 97%, one focus ring, 45% when disabled. */
 
 :root {
-  --bar-height: 42px;
-  --control: 42px;
-  --control-sm: 34px;
+  --bar-height: 48px;
+  --control: 48px;
+  --control-sm: 40px;
   --control-pad: var(--space-20);
   --control-pad-sm: var(--space-16);
   --control-gap: var(--space-8);
@@ -261,7 +261,7 @@ svg { flex-shrink: 0; }
   font-weight: 700;
 }
 
-/* Switches (poster view, Light/Dark): a 42px pill holding 34px segments. */
+/* Switches (poster view, Light/Dark): a 48px pill holding 40px segments. */
 .segmented, .theme-toggle {
   display: inline-flex;
   gap: var(--space-2);
@@ -279,7 +279,7 @@ svg { flex-shrink: 0; }
   background: none;
   color: var(--muted);
 }
-.segmented button { padding: 0; width: 38px; }
+.segmented button { padding: 0; width: 44px; }
 .segmented button:hover, .theme-toggle button:hover { color: var(--ink); }
 :is(.segmented, .theme-toggle) button[aria-checked="true"] { background: var(--raised); color: var(--ink); }
 .segmented svg { width: var(--control-icon); height: var(--control-icon); fill: currentColor; }
@@ -2663,8 +2663,8 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
   :root:root .filter-button { width: var(--bar-height); }
 }
 
-/* Tab navigation is 42px in total, including its existing padding and borders.
-   Child tabs fit inside the strip instead of each adding a separate 42px box. */
+/* Tab navigation is 48px in total, including its existing padding and borders.
+   Child tabs fit inside the strip instead of each adding a separate 48px box. */
 :root:root :is(.tabs, .profile-tabs, .admin-subtabs, .feed-tabs, .segmented, .theme-toggle) {
   box-sizing: border-box;
   height: var(--bar-height);
@@ -2684,7 +2684,7 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
   border-radius: 50%;
 }
 
-/* Tabs stay within their 42px scroll area during hover and keyboard focus. */
+/* Tabs stay within their 48px scroll area during hover and keyboard focus. */
 :root :is(.tabs, .profile-tabs, .admin-subtabs, .feed-tabs) > :is(a, button):hover {
   transform: none;
 }
@@ -2727,7 +2727,7 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 /* Controls and navigation never draw a browser or custom focus outline. */
 :focus { outline: none !important; }
 
-/* Catalog search uses the same 42px controls and glass material. */
+/* Catalog search uses the same 48px controls and glass material. */
 .catalog-toolbar { position: relative; z-index: 40; background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
 .catalog-search-control { position: relative; flex: 1; min-width: 0; }
 .catalog-search-control .search-bar { width: 100%; max-width: none; }
