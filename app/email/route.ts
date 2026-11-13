@@ -1,10 +1,17 @@
 import { NextResponse } from 'next/server';
+import { getServerClient } from '@/lib/supabase/server';
 export const dynamic='force-dynamic';
 const ENDPOINT='https://mvhwfmlairwrngdttzjh.supabase.co/functions/v1/pheelm-email';
 /** Public, token-scoped forms. A GET never subscribes or unsubscribes someone. */
 async function handle(request:Request){
  const url=new URL(request.url),action=url.searchParams.get('action');
  if(action!=='confirm'&&action!=='unsubscribe')return new NextResponse('Not found',{status:404});
+ // "Email preferences and unsubscribe" in an email footer: a signed-in member lands on their email settings,
+ // where they can turn off just what they don't want. Signed out, the one-step unsubscribe page still works
+ // without signing in, and mail apps' one-click unsubscribe (a POST) is unchanged.
+ if(action==='unsubscribe'&&request.method==='GET'){
+  try{const db=await getServerClient();const user=db?(await db.auth.getUser()).data.user:null;if(user)return NextResponse.redirect(new URL('/account#notifications',url),303);}catch{}
+ }
  const body=request.method==='POST'?await request.text():undefined;
  if(body&&body.length>2048)return new NextResponse('Request too large',{status:413});
  const query=new URLSearchParams({action});const token=url.searchParams.get('token');if(token&&token.length<=64)query.set('token',token);
