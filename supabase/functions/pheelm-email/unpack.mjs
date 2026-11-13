@@ -2,7 +2,7 @@
 // Every email shares a layout; the words that differ are stored per email and filled in here.
 // What is left as [[TOKENS]] is filled when the email is sent: MESSAGE, ACTION_URL, UNSUBSCRIBE_URL, POSTAL_ADDRESS, YEAR.
 export const FIELDS = ['TITLE', 'PREHEADER', 'BUTTON', 'NOTE', 'L1', 'T1', 'L2', 'T2', 'L3', 'T3'];
-const FILLER = ' ‌​‍﻿';
+const FILLER = '\u00a0\u200c\u200b\u200d\ufeff';
 const escape = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
 export function unpack(packed) {
   const out = {};

@@ -1,5 +1,5 @@
 import {actionUrl,escapeHtml,safeEqual,verifyWebhook} from './security.ts';
-// The email designs, packed small (see scripts/compact-email-templates.mjs); same HTML and text as templates.json.
+// The email designs: two shared layouts plus each email's words (see scripts/email-previews.mjs).
 import packed from './templates.compact.json' with {type:'json'};
 import {unpack} from './unpack.mjs';
 const templates=unpack(packed);
