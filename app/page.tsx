@@ -7,7 +7,7 @@ import { getFilms, toCard } from "@/lib/data";
 import { PAGE_COPY, SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
 import { SITE_URL } from "@/lib/supabase/config";
 
-export const revalidate = 300;
+export const revalidate = 3600; // admin saves refresh it right away
 export const metadata: Metadata = publicPageMetadata("/");
 
 const FAQS: [string, string][] = [

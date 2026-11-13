@@ -1956,21 +1956,22 @@ html[data-auth="in"] .intro-head + .section-head { margin-top: var(--space-16); 
 html:not([data-auth="in"]) .member-only { display: none !important; }
 html[data-auth="in"] .visitor-only { display: none !important; }
 
-/* Members in the app: no header or footer, a floating pill of icons instead (any screen size).
+/* Every page but the landing page: no header or footer, a floating pill of icons instead (any
+   screen size), for visitors and members alike.
    The header stays only to hold the menu and sign-in sheets, which open from the pill's ⋯. */
 .tab-bar { display: none; }
-html[data-auth="in"][data-chrome="app"] {
+html[data-chrome="app"] {
   --tab-gap: calc(var(--space-12) + env(safe-area-inset-bottom));
   --tab-h: var(--bar-height);
   --tab-width: var(--floating-width);
   --floating-bottom: calc(var(--tab-gap) + var(--tab-h) + 10px);
   --tab-bar: calc(var(--tab-h) + var(--tab-gap) + var(--space-12));
 }
-html[data-auth="in"][data-chrome="app"] .site-header { display: contents; }
-html[data-auth="in"][data-chrome="app"] .site-header > :not(dialog) { display: none !important; }
-html[data-auth="in"][data-chrome="app"] .site-footer { display: none; }
-html[data-auth="in"][data-chrome="app"] body { padding-bottom: var(--tab-bar); }
-html[data-auth="in"][data-chrome="app"] .tab-bar {
+html[data-chrome="app"] .site-header { display: contents; }
+html[data-chrome="app"] .site-header > :not(dialog) { display: none !important; }
+html[data-chrome="app"] .site-footer { display: none; }
+html[data-chrome="app"] body { padding-bottom: var(--tab-bar); }
+html[data-chrome="app"] .tab-bar {
   position: fixed; z-index: 35; left: 50%; bottom: var(--tab-gap); transform: translateX(-50%);
   display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
   width: var(--tab-width); height: var(--tab-h); padding: 0 var(--space-8);
@@ -1993,11 +1994,11 @@ html[data-auth="in"][data-chrome="app"] .tab-bar {
 .tab-icon { position: relative; display: grid; }
 .tab-dot { position: absolute; top: -1px; right: -3px; width: 9px; height: 9px; border-radius: 50%; background: var(--error); box-shadow: 0 0 0 2px var(--bg); }
 /* What sits at the bottom moves up above the pill. */
-html[data-auth="in"][data-chrome="app"] .film-bar { bottom: var(--tab-bar); border: 1px solid var(--line); border-radius: var(--pill); left: var(--gutter); right: var(--gutter); padding: var(--space-8); }
+html[data-chrome="app"] .film-bar { bottom: var(--tab-bar); border: 1px solid var(--line); border-radius: var(--pill); left: var(--gutter); right: var(--gutter); padding: var(--space-8); }
 /* With no header above, pages start a little lower, clear of the phone's status bar. */
-html[data-auth="in"][data-chrome="app"] main { padding-top: env(safe-area-inset-top); }
+html[data-chrome="app"] main { padding-top: env(safe-area-inset-top); }
 /* The menu from ⋯: no section links (they're in the pill); the footer's links and newsletter are. */
-html[data-auth="in"][data-chrome="app"] .menu-sheet .menu-main { display: none; }
+html[data-chrome="app"] .menu-sheet .menu-main { display: none; }
 .menu-site { display: none; }
 html[data-chrome="app"] .menu-site { display: grid; gap: var(--space-20); padding: var(--space-20) 0 0; border-top: 1px solid var(--line); }
 html:not([data-chrome="app"]) .menu-find { display: none; }
@@ -2057,7 +2058,7 @@ html:not([data-chrome="app"]) .menu-find { display: none; }
 [data-grid="list"] .quick-save, [data-grid="small"] .quick-save { display: none; }
 @media (hover: hover) { .film-card .quick-save:not([aria-pressed="true"]) { opacity: 0; } .film-card:hover .quick-save, .quick-save:focus-visible { opacity: 1; } }
 /* The expanded app menu aligns with the bottom bar on every screen. */
-html[data-auth="in"][data-chrome="app"] .menu-sheet {
+html[data-chrome="app"] .menu-sheet {
   position: fixed;
   inset: auto auto calc(var(--tab-gap) + var(--tab-h) + 10px) 50%;
   width: var(--tab-width);
@@ -2070,9 +2071,9 @@ html[data-auth="in"][data-chrome="app"] .menu-sheet {
   transform: translateX(-50%);
   transform-origin: bottom center;
 }
-html[data-auth="in"][data-chrome="app"] .menu-sheet .menu-inner { min-height: 0; height: auto; padding: 0 var(--space-20) var(--space-20); }
-html[data-auth="in"][data-chrome="app"] .menu-sheet .menu-top { height: 60px; flex: none; }
-html[data-auth="in"][data-chrome="app"] .menu-sheet[open] { animation: menu-rise 0.22s var(--ease); }
+html[data-chrome="app"] .menu-sheet .menu-inner { min-height: 0; height: auto; padding: 0 var(--space-20) var(--space-20); }
+html[data-chrome="app"] .menu-sheet .menu-top { height: 60px; flex: none; }
+html[data-chrome="app"] .menu-sheet[open] { animation: menu-rise 0.22s var(--ease); }
 @keyframes menu-rise { from { opacity: 0; transform: translateX(-50%) translateY(8px) scale(0.97); } }
 
 /* Create your profile: a preview of how you'll appear, then the two fields. */
@@ -2147,7 +2148,7 @@ html[data-auth="in"][data-chrome="app"] .menu-sheet[open] { animation: menu-rise
   transform: translate(-50%, 110%);
 }
 .film-bar[data-show="true"] { transform: translateX(-50%); }
-html[data-auth="in"][data-chrome="app"] .film-bar { inset: auto auto var(--floating-bottom) 50%; border-radius: var(--pill); }
+html[data-chrome="app"] .film-bar { inset: auto auto var(--floating-bottom) 50%; border-radius: var(--pill); }
 /* Buttons stay flat; keyboard focus remains visible. */
 .film-actions > .pill-button, .film-actions > .more-menu > .round-button,
 .film-bar > .pill-button, .film-bar > .round-button { box-shadow: none; }
@@ -2278,12 +2279,12 @@ html[data-auth="in"][data-chrome="app"] .film-bar { inset: auto auto var(--float
 }
 /* The app scrim lives in the page below the bottom bar. Native dialogs stay
    in the top layer and retain focus trapping, without blurring navigation. */
-html[data-auth="in"][data-chrome="app"] dialog::backdrop {
+html[data-chrome="app"] dialog::backdrop {
   background: transparent;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
-html[data-auth="in"][data-chrome="app"] body:has(dialog:modal)::after {
+html[data-chrome="app"] body:has(dialog:modal)::after {
   content: "";
   position: fixed;
   inset: 0;
@@ -2294,7 +2295,7 @@ html[data-auth="in"][data-chrome="app"] body:has(dialog:modal)::after {
   pointer-events: none;
   animation: fade 0.2s;
 }
-html[data-auth="in"][data-chrome="app"] body:has(dialog:modal) .tab-bar { z-index: 1001; }
+html[data-chrome="app"] body:has(dialog:modal) .tab-bar { z-index: 1001; }
 
 /* Bare action glyphs: no button frame or inset spacing on profile menus and
    dialog dismiss controls, including hover. Keep the focus outline visible. */
@@ -2531,22 +2532,22 @@ body:has(dialog:modal) .floating-controls { visibility: hidden; }
 }
 
 /* At the end of a list, leave exactly the shared 10px gap above navigation. */
-html[data-auth="in"][data-chrome="app"] body:has(.pagination-controls) {
+html[data-chrome="app"] body:has(.pagination-controls) {
   padding-bottom: var(--floating-bottom);
 }
 
 /* Shared clearance for page ends and panels around the main navigation. */
-html[data-auth="in"][data-chrome="app"] body {
+html[data-chrome="app"] body {
   --above-bar-controls: 0px;
   padding-bottom: var(--floating-bottom);
 }
-html[data-auth="in"][data-chrome="app"] body:is(:has(.floating-controls), :has(.pagination-controls)) {
+html[data-chrome="app"] body:is(:has(.floating-controls), :has(.pagination-controls)) {
   --above-bar-controls: calc(var(--tab-h) + 10px);
 }
-html[data-auth="in"][data-chrome="app"] body:has(.floating-controls):not(:has(.pagination-controls)) {
+html[data-chrome="app"] body:has(.floating-controls):not(:has(.pagination-controls)) {
   padding-bottom: calc(var(--floating-bottom) + var(--above-bar-controls));
 }
-html[data-auth="in"][data-chrome="app"] body .install-banner {
+html[data-chrome="app"] body .install-banner {
   left: 50%;
   right: auto;
   width: var(--floating-width);
@@ -2554,7 +2555,7 @@ html[data-auth="in"][data-chrome="app"] body .install-banner {
   transform: translateX(-50%);
   animation: menu-rise .22s var(--ease);
 }
-html[data-auth="in"][data-chrome="app"] .welcome-foot {
+html[data-chrome="app"] .welcome-foot {
   bottom: calc(var(--floating-bottom) + var(--above-bar-controls));
 }
 body:has(dialog:modal) .install-banner { visibility: hidden; }
@@ -2562,21 +2563,21 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 /* Desktop: actions to the left, navigation in the middle, top control to the right.
    Pagination remains at the end of the list; dialogs remain centered above navigation. */
 @media (min-width: 900px) {
-  html[data-auth="in"][data-chrome="app"] body:is(:has(.floating-controls), :has(.pagination-controls)) { --above-bar-controls: 0px; }
-  html[data-auth="in"][data-chrome="app"] .floating-controls {
+  html[data-chrome="app"] body:is(:has(.floating-controls), :has(.pagination-controls)) { --above-bar-controls: 0px; }
+  html[data-chrome="app"] .floating-controls {
     bottom: var(--tab-gap);
     height: var(--tab-h);
     pointer-events: none;
   }
-  html[data-auth="in"][data-chrome="app"] :is(.floating-controls, .pagination-controls) > .back-to-top {
+  html[data-chrome="app"] :is(.floating-controls, .pagination-controls) > .back-to-top {
     position: absolute;
     left: calc(100% + 10px);
     right: auto;
     bottom: 0;
     pointer-events: auto;
   }
-  html[data-auth="in"][data-chrome="app"] .floating-controls > .film-bar.film-bar,
-  html[data-auth="in"][data-chrome="app"] .pagination-controls > .button.more {
+  html[data-chrome="app"] .floating-controls > .film-bar.film-bar,
+  html[data-chrome="app"] .pagination-controls > .button.more {
     position: absolute;
     left: auto;
     right: calc(100% + 10px);
@@ -2584,16 +2585,16 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
     width: 180px;
     pointer-events: auto;
   }
-  html[data-auth="in"][data-chrome="app"] .pagination-controls {
+  html[data-chrome="app"] .pagination-controls {
     position: relative;
     height: var(--tab-h);
   }
-  html[data-auth="in"][data-chrome="app"] body:has(.pagination-controls) {
+  html[data-chrome="app"] body:has(.pagination-controls) {
     padding-bottom: var(--tab-gap);
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  html[data-auth="in"][data-chrome="app"] body .install-banner { animation: none; }
+  html[data-chrome="app"] body .install-banner { animation: none; }
 }
 
 /* Tabs remain horizontally scrollable without a visible scrollbar. */

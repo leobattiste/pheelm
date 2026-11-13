@@ -6,7 +6,7 @@ import { filmSearchEntry } from "@/lib/search-data";
 import FilmBrowser from "@/components/FilmBrowser";
 import { getFilms } from "@/lib/data";
 
-export const revalidate = 300;
+export const revalidate = 3600; // admin saves refresh it right away
 export const metadata: Metadata = publicPageMetadata("/films");
 
 export default async function FilmsPage() {

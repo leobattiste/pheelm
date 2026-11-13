@@ -6,7 +6,7 @@ import { directorSearchEntry } from "@/lib/search-data";
 import DirectorBrowser from "@/components/DirectorBrowser";
 import { getDirectors } from "@/lib/data";
 
-export const revalidate = 300;
+export const revalidate = 3600; // admin saves refresh it right away
 export const metadata: Metadata = publicPageMetadata("/directors");
 
 export default async function DirectorsPage() {

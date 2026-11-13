@@ -23,7 +23,7 @@ import { SITE_URL } from "@/lib/supabase/config";
 import type { Award, Credit, Role } from "@/lib/types";
 import Row from "@/components/Row";
 
-export const revalidate = 300;
+export const revalidate = 3600; // admin saves refresh it right away
 export const dynamicParams = true;
 
 /**

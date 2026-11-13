@@ -5,7 +5,8 @@ import { seoText } from './seo';
 import { SUPABASE_URL } from './supabase/config';
 
 export const SHARE_SIZE={width:1200,height:630};
-type ShareImage={title:string;label:string;description?:string|null;image?:string|null;private?:boolean};
+// private: never cached. cache: seconds the CDN may keep a public image (default an hour).
+type ShareImage={title:string;label:string;description?:string|null;image?:string|null;private?:boolean;cache?:number};
 
 /** A broken or unsupported poster/portrait always leaves a complete branded preview. */
 async function artwork(source:string|null|undefined):Promise<string|null>{
@@ -43,6 +44,6 @@ export async function shareImage(input:ShareImage){
     {image?<img src={image} width={334} height={502} alt="" style={{objectFit:'cover'}}/>:<div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:32}}><OgWordmark size={64}/><div style={{display:'flex',fontSize:18,color:'#a8a8a8'}}>Made for the love of cinema.</div></div>}
    </div>
   </div>,
-  {...SHARE_SIZE,fonts,headers:{'Cache-Control':input.private?'private, no-store':'public, max-age=0, s-maxage=3600'}},
+  {...SHARE_SIZE,fonts,headers:{'Cache-Control':input.private?'private, no-store':`public, max-age=0, s-maxage=${input.cache??3600}`}},
  );
 }

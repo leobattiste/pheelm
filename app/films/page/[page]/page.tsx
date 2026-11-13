@@ -3,7 +3,7 @@ import Link from 'next/link';
 import {getFilms} from '@/lib/data';
 import {pageMetadata} from '@/lib/seo';
 import CatalogListing,{CATALOG_PAGE_SIZE,catalogPagePath} from '@/components/CatalogListing';
-export const revalidate=300;
+export const revalidate = 3600; // admin saves refresh it right away
 export async function generateStaticParams(){return [];}
 type Props={params:Promise<{page:string}>};
 async function load(params:Props['params']){

@@ -3,7 +3,7 @@ import { getDirectors, getFilms } from "@/lib/data";
 import { countryName, ROLE_LABELS } from "@/lib/format";
 import type { Role } from "@/lib/types";
 
-export const revalidate = 300;
+export const revalidate = 3600; // admin saves refresh it right away
 
 /**
  * A compact index of every film, director, cast and crew member and collection, loaded the

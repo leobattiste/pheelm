@@ -6,7 +6,7 @@ import PersonDetails from "@/components/PersonDetails";
 import { getDirector, getDirectors, getFilms, getPerson } from "@/lib/data";
 import { personInfo } from "@/lib/roles";
 
-export const revalidate = 300;
+export const revalidate = 3600; // admin saves refresh it right away
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const slug=(await params).slug;

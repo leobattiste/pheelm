@@ -16,7 +16,7 @@ import { countryName } from "@/lib/format";
 import { SITE_URL } from "@/lib/supabase/config";
 import { bornText, diedText, rolesOnFilm, rolesWithCommas, worksOf } from "@/lib/roles";
 
-export const revalidate = 300;
+export const revalidate = 3600; // admin saves refresh it right away
 export const dynamicParams = true;
 
 // Director pages are built the first time someone opens one, then kept, so the build stays small.
