@@ -848,6 +848,9 @@ main { width: 100%; }
 .toast-region[popover]:not(:popover-open) { display: none; }
 .toast { flex: none; min-height: var(--bar-height); pointer-events: auto; display: flex; align-items: center; gap: var(--space-12); width: var(--floating-width, min(560px, calc(100vw - 32px))); max-width: calc(100vw - 32px); padding: var(--space-8) var(--space-8) var(--space-8) var(--space-20); border: 1px solid var(--line); border-radius: var(--pill); background: var(--glass-bg); -webkit-backdrop-filter: var(--glass-filter); backdrop-filter: var(--glass-filter); color: var(--text); box-shadow: var(--glass-shadow); font-size: var(--t-sm); line-height: 1.45; animation: toast-up 0.32s var(--ease); }
 .toast-text { flex: 1; min-width: 0; }
+/* Wrapped text: the corners of cards and modals, not a pill (pills are for one line). */
+.toast.is-multiline { align-items: flex-start; border-radius: var(--r); padding-top: var(--space-12); padding-bottom: var(--space-12); }
+.toast.is-multiline :is(.toast-icon, .toast-close, .toast-action) { margin-top: -2px; }
 .toast-icon { flex: none; display: grid; place-items: center; }
 .toast-success .toast-icon { color: var(--ok); }
 .toast-error .toast-icon { color: var(--error); }

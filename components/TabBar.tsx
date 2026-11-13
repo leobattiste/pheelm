@@ -48,9 +48,10 @@ export default function TabBar() {
           <Icon name={t.icon} />
         </Link>
       ))}
+      {/* Signed out, the profile tab signs you in. Getting early access is only on the landing page. */}
       <Link href="/login" className="tab visitor-only" aria-current={path === "/login" ? "page" : undefined} aria-label="Sign in" title="Sign in"
         onClick={(e) => { if (openSignIn("signin")) e.preventDefault(); }}>
-        <Icon name="login" />
+        <Icon name="userCircle" />
       </Link>
       <button type="button" className="tab" aria-haspopup="dialog" aria-label={me?.unread ? `More, ${me.unread} new notifications` : "More"} title="More"
         onClick={() => window.dispatchEvent(new Event("pheelm:menu"))}>

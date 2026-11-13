@@ -56,7 +56,6 @@ export default function AccountMenu({ onNavigate, children }: { onNavigate: () =
   if (!me) {
     return (
       <><nav className="menu-more menu-account" aria-label="Account">
-        <button type="button" className="menu-more-button" onClick={() => { onNavigate(); openSignIn("signup"); }}><Icon name="plus" />Get early access</button>
         <button type="button" className="menu-more-button" onClick={() => { onNavigate(); openSignIn("signin"); }}><Icon name="login" />Sign in</button>
         <p className="menu-note">Save films, make watchlists and follow directors.</p>
       </nav>{children}</>

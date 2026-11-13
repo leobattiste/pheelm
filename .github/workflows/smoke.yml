@@ -51,6 +51,9 @@ jobs:
       - run: node tests/nav-progress-browser.mjs
         env:
           BASE_URL: http://localhost:3000
+      - run: node tests/toast-shape-browser.mjs
+        env:
+          BASE_URL: http://localhost:3000
       - run: node tests/catalog-search-browser.mjs
         env:
           BASE_URL: http://localhost:3000
