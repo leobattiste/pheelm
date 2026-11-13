@@ -53,7 +53,7 @@ export default async function AccountPage() {
   const { data: notificationPrefs } = await db.from("notification_preferences").select("disabled_types").eq("user_id", user.id).maybeSingle();
   const disabledNotificationTypes = (notificationPrefs?.disabled_types ?? []) as string[];
 
-  const { data: emailPrefs } = await db.from("email_preferences").select("collaboration_emails,digest_frequency").eq("user_id", user.id).maybeSingle();
+  const { data: emailPrefs } = await db.from("email_preferences").select("collaboration_emails,activity_emails,digest_frequency").eq("user_id", user.id).maybeSingle();
 
 
   const tabs = [
@@ -109,7 +109,7 @@ export default async function AccountPage() {
         <div className="account-panel">
           <section className="account-section" aria-labelledby="notification-settings-h">
             <h2 id="notification-settings-h">Notification preferences</h2>
-            <EmailPreferences userId={user.id} initial={(emailPrefs ?? { collaboration_emails: true, digest_frequency: "off" }) as EmailSettings} />
+            <EmailPreferences userId={user.id} initial={(emailPrefs ?? { collaboration_emails: true, activity_emails: true, digest_frequency: "off" }) as EmailSettings} />
             <NotificationPreferences userId={user.id} initialDisabled={disabledNotificationTypes} isAdmin={!!p.is_admin} />
             <p className="muted"><Link href="/notifications">View your notifications</Link></p>
           </section>

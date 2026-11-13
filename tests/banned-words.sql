@@ -44,5 +44,26 @@ select set_config('request.jwt.claim.sub', '', true);
 insert into public.list_comments(user_id, body) values ('00000000-0000-0000-0000-00000000000b', 'fuck (written by maintenance)');
 -- Signed out: no checking through the site's function.
 do $$begin begin perform public.check_text('comment', 'x'); raise exception 'Anonymous check allowed'; exception when insufficient_privilege then null; end; end$$;
+-- The admin's page: only admins see or change the list, and bad entries are refused.
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-00000000000b', true);
+set local role authenticated;
+do $$begin begin perform public.admin_banned_words(); raise exception 'Member saw the list'; exception when insufficient_privilege then null; end; end$$;
+do $$begin begin perform public.admin_save_banned_word('blorp', 'swearing'); raise exception 'Member added a word'; exception when insufficient_privilege then null; end; end$$;
+select set_config('test.is_admin', 'true', true);
+do $$begin
+  if (select count(*) from public.admin_banned_words()) < 40 then raise exception 'List missing'; end if;
+  perform public.admin_save_banned_word('  Blorp  Zap ', 'swearing', 'oops');
+  if public.check_text('comment', 'what a b.l.o.r.p zap') <> 'Swearing isn''t allowed on Pheelm. Try “oops” instead.' then raise exception 'New word not checked'; end if;
+  perform public.admin_save_banned_word('blorp zap', 'racist', null);
+  if public.check_text('comment', 'blorp zap') <> 'Racial slurs aren''t allowed on Pheelm. Remove it and try again.' then raise exception 'Change not applied'; end if;
+  perform public.admin_remove_banned_word('Blorp Zap');
+  if public.check_text('comment', 'blorp zap') is not null then raise exception 'Removed word still banned'; end if;
+  begin perform public.admin_save_banned_word('a', 'swearing'); raise exception 'Short word added'; exception when invalid_parameter_value then null; end;
+  begin perform public.admin_save_banned_word('no way1', 'swearing'); raise exception 'Digits added'; exception when invalid_parameter_value then null; end;
+  begin perform public.admin_save_banned_word('blorp', 'rude'); raise exception 'Unknown kind added'; exception when invalid_parameter_value then null; end;
+  begin perform public.admin_save_banned_word('blorp', 'swearing', 'bitch'); raise exception 'Banned suggestion added'; exception when invalid_parameter_value then null; end;
+end$$;
+reset role;
+select set_config('test.is_admin', '', true);
 rollback;
 select 'banned words ok';

@@ -33,11 +33,15 @@ export type SearchEntry = {
     film?: FilmCard;
     director?: DirectorSummary;
 };
-export const SEARCH_KEYS = ['q', 'sort', 'country', 'decade', 'language', 'genre', 'type', 'year', 'from', 'to', 'minRuntime', 'maxRuntime', 'award', 'festival', 'provider', 'region', 'access', 'min'] as const;
+export const SEARCH_KEYS = ['q', 'sort', 'country', 'decade', 'language', 'genre', 'type', 'year', 'from', 'to', 'minRuntime', 'maxRuntime', 'length', 'award', 'festival', 'provider', 'region', 'access', 'min'] as const;
 export type SearchKey = typeof SEARCH_KEYS[number];
 export type SearchState = Partial<Record<SearchKey, string>>;
 export type SearchMode = 'films' | 'directors';
-export const FILM_FILTERS: SearchKey[] = ['country', 'decade', 'year', 'language', 'genre', 'type', 'provider', 'access'];
+export const FILM_FILTERS: SearchKey[] = ['country', 'decade', 'year', 'language', 'genre', 'type', 'length', 'provider', 'access'];
+export const LENGTHS: [
+    string,
+    string
+][] = [['under90', 'Under 90 minutes'], ['90to120', '90 to 120 minutes'], ['over120', 'Over 2 hours']];
 export const DIRECTOR_FILTERS: SearchKey[] = ['country', 'type'];
 export const TYPE_LABELS: Record<string, string> = { feature: 'Feature', documentary: 'Documentary', short: 'Short', animation: 'Animation' };
 export const SORTS: Record<SearchMode, [
@@ -71,6 +75,8 @@ export function cleanState(params: URLSearchParams, mode: SearchMode): SearchSta
             continue;
         if (['minRuntime', 'maxRuntime', 'min'].includes(k) && (!/^\d{1,4}$/.test(v) || +v < 1))
             continue;
+        if (k === 'length' && !LENGTHS.some(([id]) => id === v))
+            continue;
         if (k === 'sort' && !SORTS[mode].some(([id]) => id === v))
             continue;
         if (k === 'type' && !TYPE_LABELS[v])
@@ -103,6 +109,8 @@ export function filterLabel(k: SearchKey, v: string) {
         return 'Films from ' + v;
     if (k === 'to')
         return 'Films through ' + v;
+    if (k === 'length')
+        return LENGTHS.find(([id]) => id === v)?.[1] ?? v;
     if (k === 'min')
         return v + '+ films';
     if (k === 'award')
@@ -121,6 +129,8 @@ export function matchesFilters(e: SearchEntry, s: SearchState, mode: SearchMode)
     if (s.decade && !e.years.some(y => Math.floor(y / 10) * 10 + 's' === s.decade) || s.year && !e.years.includes(+s.year))
         return false;
     if (s.minRuntime && (e.runtime === null || e.runtime < +s.minRuntime) || s.maxRuntime && (e.runtime === null || e.runtime > +s.maxRuntime))
+        return false;
+    if (s.length && (e.runtime === null || (s.length === 'under90' ? e.runtime >= 90 : s.length === '90to120' ? e.runtime < 90 || e.runtime > 120 : e.runtime <= 120)))
         return false;
     if (s.award === 'won' && !e.wins || s.award === 'nominated' && !e.nominations || s.festival && !e.awards.includes(s.festival))
         return false;

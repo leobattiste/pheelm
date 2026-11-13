@@ -38,6 +38,7 @@ export const ADMIN_GROUPS: Group[] = [
       { label: "Watchlists", href: "/admin/community/watchlists" },
       { label: "Submissions", href: "/admin/submissions", badge: "submissions" },
       { label: "Refused text", href: "/admin/community/moderation" },
+      { label: "Banned words", href: "/admin/community/banned-words" },
     ] },
   { label: "Members", href: "/admin/members", routes: ["/admin/members"] },
   { label: "Insights", href: "/admin/analytics", routes: ["/admin/analytics", "/admin/activity"],

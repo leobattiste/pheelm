@@ -156,3 +156,47 @@ drop trigger if exists require_moderation_lists on public.lists;
 drop function if exists public.require_moderated_content();
 drop function if exists public.record_moderation_approval(uuid, text, text);
 drop table if exists private.moderation_approvals;
+
+-- For the admin's Banned words page (Community > Banned words): see the list, add a word, remove one.
+create or replace function public.admin_banned_words() returns table (word text, kind text, instead text, added_at timestamptz)
+language plpgsql stable security definer set search_path = '' as $$
+begin
+  if not coalesce(public.is_admin(), false) then raise exception 'Admin access required' using errcode = '42501'; end if;
+  return query select b.word, b.kind, b.instead, b.added_at from private.banned_words b order by b.kind, b.word;
+end $$;
+revoke all on function public.admin_banned_words() from public, anon;
+grant execute on function public.admin_banned_words() to authenticated;
+
+-- Adds a word, or changes the kind and suggestion of one that's there. Letters only (a phrase can
+-- have spaces), at least 3 letters, so a short word can't block ordinary text by accident.
+create or replace function public.admin_save_banned_word(p_word text, p_kind text, p_instead text default null) returns void
+language plpgsql security definer set search_path = '' as $$
+declare w text := regexp_replace(lower(btrim(coalesce(p_word, ''))), '\s+', ' ', 'g'); alt text := nullif(btrim(coalesce(p_instead, '')), '');
+begin
+  if not coalesce(public.is_admin(), false) then raise exception 'Admin access required' using errcode = '42501'; end if;
+  if w !~ '^[a-z]+( [a-z]+)*$' or length(w) < 3 or length(w) > 40 then
+    raise exception 'Use letters only, at least 3 (a phrase can have spaces).' using errcode = '22023';
+  end if;
+  if p_kind not in ('swearing', 'sexist', 'racist', 'antisemitic', 'homophobic', 'transphobic', 'ableist') then
+    raise exception 'Choose what kind of word it is.' using errcode = '22023';
+  end if;
+  if alt is not null and alt !~ '^[A-Za-z][A-Za-z -]{0,23}$' then
+    raise exception 'The suggested word can use letters, spaces and dashes, up to 24 characters.' using errcode = '22023';
+  end if;
+  if alt is not null and private.first_banned_word(alt) is not null then
+    raise exception 'The suggested word can''t be a banned word itself.' using errcode = '22023';
+  end if;
+  insert into private.banned_words (word, kind, instead) values (w, p_kind, alt)
+    on conflict (word) do update set kind = excluded.kind, instead = excluded.instead;
+end $$;
+revoke all on function public.admin_save_banned_word(text, text, text) from public, anon;
+grant execute on function public.admin_save_banned_word(text, text, text) to authenticated;
+
+create or replace function public.admin_remove_banned_word(p_word text) returns void
+language plpgsql security definer set search_path = '' as $$
+begin
+  if not coalesce(public.is_admin(), false) then raise exception 'Admin access required' using errcode = '42501'; end if;
+  delete from private.banned_words where word = lower(btrim(p_word));
+end $$;
+revoke all on function public.admin_remove_banned_word(text) from public, anon;
+grant execute on function public.admin_remove_banned_word(text) to authenticated;

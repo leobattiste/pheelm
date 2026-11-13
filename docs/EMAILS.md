@@ -28,6 +28,7 @@
 | collection-invitation | Invitation notification created and email preference allows it |
 | collaboration-update | Collaboration request or membership response notification created and email preference allows it |
 | newsletter-confirmation | New newsletter subscription request; double opt-in, no automatic mailing-list import |
+| activity-update | A reply, mention, comment on your watchlist or new film from a followed director, unless “Replies, mentions and new films” is off; at most 5 an hour; says what happened, never who or what was said |
 | activity-digest | Digest: newly added public films, directors and collections; daily or weekly from the member’s selection; off by default; empty periods send no email |
 | newsletter | Ready for a separately authorized editorial campaign; no campaign is sent by this setup |
 | report-update | Template ready; report outcome messages require an explicit moderation action |

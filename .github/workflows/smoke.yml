@@ -81,6 +81,9 @@ jobs:
       - run: psql -v ON_ERROR_STOP=1 -f tests/catalog-digest-bootstrap.sql
       - run: psql -v ON_ERROR_STOP=1 -f supabase/catalog-digest.sql
       - run: psql -v ON_ERROR_STOP=1 -f tests/catalog-digest.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/activity-emails.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/activity-emails.sql
+      - run: psql -v ON_ERROR_STOP=1 -f tests/activity-emails.sql
 
   profile-database:
     runs-on: ubuntu-latest

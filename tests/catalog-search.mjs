@@ -27,6 +27,7 @@ assert.equal(parsed.country,'SN');assert.equal(parsed.genre,'Drama');assert.equa
 assert.equal(interpretQuery('streaming on Netflix','films',facets).provider,'Netflix');
 assert.equal(interpretQuery('French language dramas','films',facets).language,'French');
 assert.equal(interpretQuery('award-winning dramas','films',facets),null);
+assert.equal(matchesFilters(rows[0],{length:'90to120'},'films'),true,'99 minutes is 90 to 120');assert.equal(matchesFilters(rows[0],{length:'under90'},'films'),false);assert.equal(matchesFilters(rows[0],{length:'over120'},'films'),false);assert.equal(matchesFilters(rows[1],{length:'90to120'},'films'),false,'unknown runtimes do not match a length');assert.equal(matchesFilters(rows[2],{length:'90to120'},'films'),true);assert.equal(cleanState(new URLSearchParams('length=nonsense&length2=1'),'films').length,undefined);assert.equal(cleanState(new URLSearchParams('length=under90'),'films').length,'under90');
 const director=entry({title:'Barry Jenkins',aliases:['Moonlight','Medicine for Melancholy'],countries:['US'],filmography:[{year:2008,type:'feature'},{year:2020,type:'documentary'}],types:['feature','documentary'],years:[2008,2020],count:2});
 assert.equal(searchEntries(indexEntries([director]),{q:'Moonlight'},'directors')[0].entry.title,'Barry Jenkins');
 assert.equal(matchesFilters(director,{type:'documentary',from:'2000',to:'2010'},'directors'),false,'type and year must match the same directed film');

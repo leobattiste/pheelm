@@ -40,3 +40,24 @@ export async function deleteWatchlist(f: FormData) {
   revalidatePath("/watchlists");
   redirect(back(f) ?? "/admin/community/watchlists");
 }
+
+/** Adds a word to the banned list (see supabase/banned-words.sql), or changes its kind and suggested alternative. */
+export async function addBannedWord(f: FormData) {
+  const db = await adminClient();
+  const word = String(f.get("word") ?? "");
+  const { error } = await db.rpc("admin_save_banned_word", { p_word: word, p_kind: String(f.get("kind") ?? ""), p_instead: String(f.get("instead") ?? "") || null });
+  if (error) redirect(`/admin/community/banned-words?error=${encodeURIComponent(error.message)}`);
+  await logAdminActivity(db, "Banned a word", "moderation", null, "A word was added to the banned list");
+  revalidatePath("/admin/community/banned-words");
+  redirect("/admin/community/banned-words?saved=1");
+}
+
+/** Takes a word off the banned list. */
+export async function removeBannedWord(f: FormData) {
+  const db = await adminClient();
+  const { error } = await db.rpc("admin_remove_banned_word", { p_word: String(f.get("word") ?? "") });
+  if (error) redirect(`/admin/community/banned-words?error=${encodeURIComponent(error.message)}`);
+  await logAdminActivity(db, "Allowed a word", "moderation", null, "A word was removed from the banned list");
+  revalidatePath("/admin/community/banned-words");
+  redirect("/admin/community/banned-words?removed=1");
+}

@@ -276,3 +276,9 @@ a.admin-attention-row:hover, .admin-attention-row a:hover { color: var(--ink); }
 .admin-filter-links { display:grid; grid-template-columns:minmax(0,1fr); gap:var(--space-12); }
 .admin-filter-links > .button { width:100%; min-width:0; }
 .admin-filter-links > p { font-size:var(--t-sm); }
+
+/* Banned words */
+.admin-word-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--space-12); align-items: end; }
+.admin-word-list { list-style: none; margin: 0; padding: 0; display: grid; }
+.admin-word-list li { display: flex; align-items: center; justify-content: space-between; gap: var(--space-12); padding: var(--space-8) 0; border-top: 1px solid var(--line); }
+.admin-word-list li:first-child { border-top: 0; }

@@ -40,6 +40,7 @@ const rpcs = {
   admin_members: members,
   admin_monthly_counts: ['2026-06-01', '2026-07-01', '2026-08-01', '2026-09-01', '2026-10-01', '2026-11-01'].map((month, i) => ({ month, films: i * 4, members: i, watchlists: 6 - i, saves: i % 2 })),
   admin_film_facets: { decades: [2010, 2000], countries: ['SN', 'US'], genres: ['Drama'] },
+  admin_banned_words: [{ word: 'porch monkey', kind: 'racist', instead: null, added_at: '2026-11-01' }, { word: 'bitch', kind: 'swearing', instead: 'b-word', added_at: '2026-11-01' }],
   admin_moderation_log: [{ id: 1, actor_id: 'member', handle: 'curator', field: 'comment', excerpt: 'A refused comment that was long enough to need wrapping on the narrowest phones we support', reason: 'harassment, hate', created_at: '2026-11-10', total: 1 }],
   admin_newsletter_counts: { total: 4, confirmed: 2, pending: 1, unsubscribed: 1, suppressed: 0 },
   admin_newsletter: [{ email: 'a-reader-with-a-long-address@example.com', source: 'home', created_at: '2026-11-07', state: 'confirmed', confirmed_at: '2026-11-08', unsubscribed_at: null, total: 2 }, { email: 'b@example.com', source: null, created_at: '2026-11-09', state: 'confirmed', confirmed_at: '2026-11-09', unsubscribed_at: null, total: 2 }],
@@ -94,6 +95,7 @@ const Community = load(resolve(root, 'app/admin/community/watchlists/page.tsx'))
 const Reports = load(resolve(root, 'app/admin/community/page.tsx')).default;
 const Comments = load(resolve(root, 'app/admin/community/comments/page.tsx')).default;
 const Refused = load(resolve(root, 'app/admin/community/moderation/page.tsx')).default;
+const Banned = load(resolve(root, 'app/admin/community/banned-words/page.tsx')).default;
 const Submissions = load(resolve(root, 'app/admin/submissions/page.tsx')).default;
 const Member = load(resolve(root, 'app/admin/members/[id]/page.tsx')).default;
 const Quality = load(resolve(root, 'app/admin/quality/page.tsx')).default;
@@ -117,8 +119,8 @@ try {
     for (const width of [320, 390, 600, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: 1000 });
       for (const grid of ['large', 'small', 'list']) {
-      for (const screen of ['overview', 'films', 'people', 'members', 'editorial', 'community', 'quality', 'activity', 'analytics', 'automation', 'inbox', 'partnerships', 'message', 'newsletter', 'reports', 'comments', 'refused', 'submissions', 'member', 'editor']) {
-        pathname = screen === 'overview' ? '/admin' : screen === 'editor' ? '/admin/people/fixture' : screen === 'partnerships' ? '/admin/inbox/partnerships' : screen === 'message' ? '/admin/inbox/message/11111111-1111-1111-1111-111111111111' : screen === 'newsletter' ? '/admin/inbox/newsletter' : screen === 'community' ? '/admin/community/watchlists' : screen === 'reports' ? '/admin/community' : screen === 'comments' ? '/admin/community/comments' : screen === 'refused' ? '/admin/community/moderation' : screen === 'member' ? '/admin/members/33333333-3333-3333-3333-333333333333' : `/admin/${screen}`;
+      for (const screen of ['overview', 'films', 'people', 'members', 'editorial', 'community', 'quality', 'activity', 'analytics', 'automation', 'inbox', 'partnerships', 'message', 'newsletter', 'reports', 'comments', 'refused', 'banned', 'submissions', 'member', 'editor']) {
+        pathname = screen === 'overview' ? '/admin' : screen === 'editor' ? '/admin/people/fixture' : screen === 'partnerships' ? '/admin/inbox/partnerships' : screen === 'message' ? '/admin/inbox/message/11111111-1111-1111-1111-111111111111' : screen === 'newsletter' ? '/admin/inbox/newsletter' : screen === 'community' ? '/admin/community/watchlists' : screen === 'reports' ? '/admin/community' : screen === 'comments' ? '/admin/community/comments' : screen === 'refused' ? '/admin/community/moderation' : screen === 'banned' ? '/admin/community/banned-words' : screen === 'member' ? '/admin/members/33333333-3333-3333-3333-333333333333' : `/admin/${screen}`;
         const content = screen === 'overview' ? await Home() : screen === 'films'
           ? await Films({ searchParams: Promise.resolve({}) })
           : screen === 'people' ? await People({ searchParams: Promise.resolve({}) })
@@ -132,6 +134,7 @@ try {
           : screen === 'reports' ? await Reports()
           : screen === 'comments' ? await Comments({ searchParams: Promise.resolve({}) })
           : screen === 'refused' ? await Refused({ searchParams: Promise.resolve({}) })
+          : screen === 'banned' ? await Banned({ searchParams: Promise.resolve({}) })
           : screen === 'submissions' ? await Submissions({ searchParams: Promise.resolve({}) })
           : screen === 'member' ? await Member({ params: Promise.resolve({ id: '33333333-3333-3333-3333-333333333333' }) })
           : screen === 'inbox' ? await Inbox({ searchParams: Promise.resolve({}) })
@@ -150,7 +153,7 @@ try {
         assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${prefix}: page overflows`);
         assert.equal(await page.locator('.admin-main-tabs [aria-current="page"]').count(), 1, `${prefix}: active main tab`);
         assert.equal(await page.locator('.admin-main-tabs a .icon').count(), 0, `${prefix}: admin tabs are text only`);
-        assert.equal(await page.locator('.admin-main-tabs [aria-current="page"]').getAttribute('href'), screen === 'overview' ? '/admin' : ['films', 'people', 'editorial', 'editor', 'quality', 'automation'].includes(screen) ? '/admin/films' : screen === 'activity' ? '/admin/analytics' : ['inbox', 'partnerships', 'message', 'newsletter'].includes(screen) ? '/admin/inbox' : ['reports', 'comments', 'refused', 'submissions'].includes(screen) ? '/admin/community' : screen === 'member' ? '/admin/members' : `/admin/${screen}`);
+        assert.equal(await page.locator('.admin-main-tabs [aria-current="page"]').getAttribute('href'), screen === 'overview' ? '/admin' : ['films', 'people', 'editorial', 'editor', 'quality', 'automation'].includes(screen) ? '/admin/films' : screen === 'activity' ? '/admin/analytics' : ['inbox', 'partnerships', 'message', 'newsletter'].includes(screen) ? '/admin/inbox' : ['reports', 'comments', 'refused', 'banned', 'submissions'].includes(screen) ? '/admin/community' : screen === 'member' ? '/admin/members' : `/admin/${screen}`);
         const tooWide = await page.locator('.admin-content .button, .admin-content input:not([type="hidden"]), .admin-content textarea, .admin-content select').evaluateAll(elements => elements.filter(el => el.getBoundingClientRect().right > innerWidth || el.getBoundingClientRect().left < 0).map(el => el.outerHTML.slice(0, 150)));
         assert.deepEqual(tooWide, [], `${prefix}: overflowing controls`);
         if (screen === 'films') {

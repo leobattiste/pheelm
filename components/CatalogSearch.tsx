@@ -10,7 +10,7 @@ import { FilmGrid } from './FilmCard';
 import { BackToTopButton } from './BackToTop';
 import { countryName } from '@/lib/format';
 import { plain } from '@/lib/fuzzy';
-import { buildFacets, cleanState, DIRECTOR_FILTERS, FILM_FILTERS, filterLabel, indexEntries, interpretQuery, matchesFilters, relevance, searchEntries, spellingCorrection, SORTS, stateQuery, TYPE_LABELS, type SearchEntry, type SearchKey, type SearchMode, type SearchState } from '@/lib/catalog-search';
+import { buildFacets, cleanState, DIRECTOR_FILTERS, FILM_FILTERS, filterLabel, LENGTHS, indexEntries, interpretQuery, matchesFilters, relevance, searchEntries, spellingCorrection, SORTS, stateQuery, TYPE_LABELS, type SearchEntry, type SearchKey, type SearchMode, type SearchState } from '@/lib/catalog-search';
 type HistoryItem = {
     label: string;
     state: SearchState;
@@ -176,6 +176,8 @@ function Browser({ entries, mode }: {
     ][] => {
         if (key === 'award')
             return [['won', 'Award winners'], ['nominated', 'Award nominees']];
+        if (key === 'length')
+            return LENGTHS;
         if (key === 'access')
             return [['stream', 'Streaming'], ['rent', 'Rent'], ['buy', 'Buy'], ['free', 'Free to watch']];
         if (key === 'min')
@@ -184,7 +186,7 @@ function Browser({ entries, mode }: {
             return facets[key as keyof typeof facets].map(v => [v, key === 'country' || key === 'region' ? countryName(v) : key === 'type' ? TYPE_LABELS[v] ?? v : v]);
         return [];
     };
-    const titles: Partial<Record<SearchKey, string>> = { country: 'Country', decade: 'Decade', year: 'Release year', language: 'Language', genre: 'Genre', type: 'Film type', provider: 'Where to watch', access: 'Viewing option' };
+    const titles: Partial<Record<SearchKey, string>> = { country: 'Country', decade: 'Decade', year: 'Release year', language: 'Language', genre: 'Genre', type: 'Film type', provider: 'Where to watch', access: 'Viewing option', length: 'Length' };
     const countFor = (key: SearchKey, value: string) => matchingIndex.filter(i => matchesFilters(i.entry, { ...state, [key]: value }, mode)).length;
     const boundsInvalid = !!((state.minRuntime && state.maxRuntime && +state.minRuntime > +state.maxRuntime) || (state.from && state.to && +state.from > +state.to));
     return <div className="browser catalog-browser" data-shuffle-ready={visitReady} aria-busy={state !== deferred} onClickCapture={e => { if ((e.target as Element).closest(".film-grid a, .director-grid a"))

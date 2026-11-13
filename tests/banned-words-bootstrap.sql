@@ -18,3 +18,6 @@ create trigger require_moderation_comments before insert or update on public.lis
 create trigger require_moderation_profiles before insert or update on public.profiles for each row execute function public.require_moderated_content();
 grant usage on schema public to authenticated;
 grant select, insert, update on public.profiles, public.lists, public.list_comments to authenticated;
+
+create function public.is_admin() returns boolean language sql stable as $$select current_setting('test.is_admin',true)='true'$$;
+grant execute on function public.is_admin() to authenticated;
