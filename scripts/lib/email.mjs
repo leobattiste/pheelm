@@ -23,7 +23,7 @@ export async function withEmail(run) {
 
 export const hasUnsubscribe = (t) => ['optional', 'marketing'].includes(t.category);
 /** The words each template contributes. Everything else (links, name, year) is filled in when it is sent. */
-export const staticProps = (t) => ({ title: t.title, preheader: t.preheader, rows: t.rows, note: t.note, actionLabel: t.button });
+export const staticProps = (t) => ({ title: t.title, preheader: t.preheader, rows: t.rows, guide: t.guide ?? [], note: t.note, actionLabel: t.button });
 
 export const write = (path, data) => fs.writeFile(new URL(path, root), data);
 export const file = (path) => new URL(path, root);

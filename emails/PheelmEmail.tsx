@@ -7,6 +7,8 @@ export type EmailProps = {
   preheader?: string;
   /** Up to three short "good to know" rows: [label, sentence]. None for a Digest. */
   rows?: [string, string][];
+  /** A short guide: questions a first-time member would ask, each answered with a link. */
+  guide?: { q: string; a: string; href: string; label: string }[];
   /** A closing line in its own box, such as "Didn't ask for this?". */
   note?: string;
   /** A one-time code (sign-in, confirmation, reset). */
@@ -36,7 +38,7 @@ const paint = (color: string) => ({ backgroundColor: color, backgroundImage: `li
 const G = ({ children }: { children: ReactNode }) => <span className="gm-s" style={{ display: 'block' }}><span className="gm-d" style={{ display: 'block' }}>{children}</span></span>;
 
 /** One layout for every email: wordmark, title, message, optional code, button, good-to-know rows, a note, and a footer. No web fonts, scripts or blur. */
-export default function PheelmEmail({ title, message, actionUrl, actionLabel, preheader = title, rows = [], note, code, unsubscribeUrl, postalAddress, year = String(new Date().getFullYear()), pad = '' }: EmailProps) {
+export default function PheelmEmail({ title, message, actionUrl, actionLabel, preheader = title, rows = [], guide = [], note, code, unsubscribeUrl, postalAddress, year = String(new Date().getFullYear()), pad = '' }: EmailProps) {
   const link = { color: c.ink, textDecoration: 'underline' } as const;
   return <Html lang="en" dir="ltr"><Head>
     <meta name="color-scheme" content="dark" /><meta name="supported-color-schemes" content="dark" /><title>{title}</title>
@@ -66,6 +68,13 @@ export default function PheelmEmail({ title, message, actionUrl, actionLabel, pr
           {rows.map(([label, text], i) => <Row key={i} style={{ borderBottom: i < rows.length - 1 ? `1px solid ${c.line}` : 0 }}><Column style={{ padding: '14px 0' }}>
             <Text style={{ fontSize: 15, lineHeight: '22px', fontWeight: 700, color: c.ink, margin: '0 0 2px' }}><G>{label}</G></Text>
             <Text style={{ fontSize: 14, lineHeight: '22px', color: c.soft, margin: 0 }}><G>{text}</G></Text>
+          </Column></Row>)}</>}
+
+        {guide.length > 0 && <><Hr style={{ borderTop: `1px solid ${c.line}`, borderBottom: 0, margin: '30px 0 4px' }} />
+          {guide.map((g, i) => <Row key={i} style={{ borderBottom: i < guide.length - 1 ? `1px solid ${c.line}` : 0 }}><Column style={{ padding: '18px 0' }}>
+            <Text style={{ fontSize: 17, lineHeight: '24px', fontWeight: 700, color: c.ink, margin: '0 0 6px' }}><G>{g.q}</G></Text>
+            <Text style={{ fontSize: 15, lineHeight: '24px', color: c.soft, margin: '0 0 8px' }}><G>{g.a}</G></Text>
+            <Text style={{ fontSize: 14, lineHeight: '20px', fontWeight: 700, margin: 0 }}><G><Link href={g.href.startsWith('/') ? SITE + g.href : SITE} style={{ color: c.ink, textDecoration: 'underline' }}>{g.label}</Link></G></Text>
           </Column></Row>)}</>}
 
         {note && <Section style={{ marginTop: 22 }}><Text style={{ margin: 0, padding: '14px 16px', ...paint(c.inset), borderRadius: 14, fontSize: 13, lineHeight: '20px', color: c.body }}><G>{note}</G></Text></Section>}
