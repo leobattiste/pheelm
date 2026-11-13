@@ -10,7 +10,6 @@ import Icon, { type IconName } from "./Icon";
 import SignInSheet, { openSignIn } from "./SignInSheet";
 
 const MAIN: { href: string; label: string; icon: IconName }[] = [
-  { href: "/home", label: "Home", icon: "explore" },
   { href: "/films", label: "Films", icon: "film" },
   { href: "/watchlists", label: "Watchlists", icon: "stack" },
   { href: "/directors", label: "Directors", icon: "users2" },

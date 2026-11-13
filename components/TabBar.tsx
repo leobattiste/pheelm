@@ -9,7 +9,7 @@ import { chromeFor } from "@/lib/chrome";
 type Me = { handle: string | null; unread: number };
 
 /**
- * Members' tab bar, a floating pill of icons: Home, Films, Collections, Directors, your profile, and ⋯
+ * Members' tab bar, a floating pill of icons: Films, Collections, Directors, your profile, and ⋯
  * for everything else (search, notifications, Watchlist, settings, support, and what the footer holds).
  */
 export default function TabBar() {
@@ -30,7 +30,6 @@ export default function TabBar() {
   const profile = me?.handle ? `/@${me.handle}` : "/profile";
   const at = (href: string) => path === href || path.startsWith(`${href}/`);
   const tabs: { href: string; label: string; icon: IconName; on: boolean }[] = [
-    { href: "/home", label: "Home", icon: "explore", on: at("/home") },
     { href: "/films", label: "Films", icon: "film", on: at("/films") },
     { href: "/watchlists", label: "Watchlists", icon: "stack", on: at("/watchlists") || path.startsWith("/c/") },
     { href: "/directors", label: "Directors", icon: "users2", on: at("/directors") || path.startsWith("/people/") },
