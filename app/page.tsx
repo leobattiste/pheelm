@@ -2,7 +2,7 @@ import { publicPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import EarlyAccessButton, { EarlyAccessGate } from "@/components/EarlyAccessButton";
 import CurvedCarousel from "@/components/CurvedCarousel";
-import FeatureSection from "@/components/home/FeatureSection";
+import FeatureTabs, { type HomeFeature } from "@/components/home/FeatureTabs";
 import { getFilms, toCard } from "@/lib/data";
 import { PAGE_COPY, SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
 import { SITE_URL } from "@/lib/supabase/config";
@@ -29,7 +29,7 @@ const ICONIC = [
 ];
 
 // The four parts of Pheelm, each with a screenshot of its real page (public/home).
-const FEATURES = [
+const FEATURES: HomeFeature[] = [
   { id: "films", shot: "films", title: "Films", intro: "Discover films by Black directors from around the world.",
     alt: "The Films page: a search bar, filters and film posters.",
     features: [
@@ -111,11 +111,9 @@ export default async function Home() {
       </div>
       </div>
 
-      {FEATURES.map((f) => (
-        <div className="home-block" key={f.id}>
-          <FeatureSection {...f} />
-        </div>
-      ))}
+      <div className="home-block">
+        <FeatureTabs features={FEATURES} />
+      </div>
       </EarlyAccessGate>
 
       <div className="home-block">

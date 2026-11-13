@@ -2946,7 +2946,7 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
 /* Home page sections: headings, text and buttons are left-aligned, in one column as wide as the
    screenshots, so every section starts on the same edge. */
 :root { --home-width: none; }
-.early-gate .statement-body, .statement.is-cta .statement-body, .faq-body, .home-feature-head { width: 100%; max-width: var(--home-width); margin-inline: auto; justify-items: start; text-align: left; }
+.early-gate .statement-body, .statement.is-cta .statement-body, .faq-body { width: 100%; max-width: var(--home-width); margin-inline: auto; justify-items: start; text-align: left; }
 .early-gate .statement .actions, .statement.is-cta .actions { justify-content: flex-start; }
 .early-gate .statement p, .statement.is-cta p { margin-inline: 0; max-width: 60ch; }
 
@@ -2982,39 +2982,90 @@ html:has(.early-gate) { scroll-snap-type: y proximity; }
 .faq-card p { margin-top: var(--space-12); color: var(--muted); max-width: 64ch; }
 .statement.is-cta .cta-card { padding: calc(var(--space-40) * 3) clamp(var(--space-24), 4vw, var(--space-48)); }
 
-/* Home features: a heading, then a square screenshot of the real page in the visitor's theme with
-   three things you can do as glass cards. The screenshot settles into place as it scrolls in. */
-.home-feature { display: grid; gap: var(--space-32); padding: 0 var(--gutter); }
-.home-feature-head h2 { font-size: var(--t-3xl); text-wrap: wrap; }
-.home-feature-body { display: grid; gap: var(--space-16); width: 100%; max-width: var(--home-width); margin-inline: auto; }
-.home-feature-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-16); }
+/* Home, "Inside Pheelm": the four parts of Pheelm as tabs. On phones, a row of pills, then a stage
+   where the real page peeks in from the corner, then three things you can do there. On wide screens
+   the parts are a list on the left (the open one shows its intro) beside the stage. */
+.hf { display: grid; gap: var(--space-32); padding: 0 var(--gutter); }
+.hf-head, .hf-grid { width: 100%; max-width: var(--home-width); margin-inline: auto; }
+.hf-head { display: grid; gap: var(--space-12); justify-items: start; }
+.hf-head h2 { font-size: var(--t-3xl); text-wrap: balance; }
+.hf-head p { color: var(--muted); max-width: 46ch; }
+.hf-grid { display: grid; gap: var(--space-24); }
+
+.hf-tabs {
+  display: flex; gap: var(--space-8); overflow-x: auto; scrollbar-width: none;
+  margin-inline: calc(var(--gutter) * -1); padding: 2px var(--gutter);
+}
+.hf-tabs::-webkit-scrollbar { display: none; }
+.hf-tab {
+  flex: none; display: grid; gap: var(--space-4); padding: 10px 18px;
+  border: 1px solid var(--line-strong); border-radius: var(--pill); background: transparent;
+  color: var(--text); font: inherit; font-weight: 600; text-align: left; cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+.hf-tab[aria-selected="true"] { background: var(--ink); border-color: var(--ink); color: var(--on-ink); }
+.hf-tab:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.hf-tab-intro { display: none; }
+
+.hf-panels { display: grid; }
+.hf-panel { grid-area: 1 / 1; display: grid; gap: var(--space-24); align-content: start; transition: opacity 0.35s ease, visibility 0.35s; }
+/* Hidden panels stay in place (so the stage keeps its size and pictures are ready) but can't be seen or reached. */
+.hf-panel[hidden] { display: grid; visibility: hidden; opacity: 0; }
+.hf-panel-intro { color: var(--muted); max-width: 52ch; }
+
+.hf-stage {
+  position: relative; margin: 0; overflow: hidden; aspect-ratio: 1 / 1;
+  border: 1px solid var(--line); border-radius: 28px; background: var(--surface);
+}
+.hf-stage img {
+  position: absolute; top: 9%; left: 8%; width: 132%; max-width: none; height: auto;
+  border: 1px solid var(--line-strong); border-radius: 14px 0 0 0; box-shadow: var(--shadow);
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.hf-panel[hidden] .hf-stage img { transform: translateY(16px); }
+.hf-stage .shot-light { display: none; }
+:root[data-theme="light"] .hf-stage .shot-dark { display: none; }
+:root[data-theme="light"] .hf-stage .shot-light { display: block; }
+
+.hf-list { display: grid; list-style: none; margin: 0; padding: 0; }
+.hf-item { display: grid; gap: var(--space-4); padding: var(--space-16) 0; border-top: 1px solid var(--line); }
+.hf-item h3 { font-size: var(--t-md); }
+.hf-item p { color: var(--muted); font-size: var(--t-sm); line-height: 1.55; }
+
+@media (min-width: 640px) {
+  .hf-stage { aspect-ratio: 16 / 11; }
+  .hf-stage img { width: 112%; }
+  .hf-list { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-24); }
+}
+
 @media (min-width: 1000px) {
-  /* The square screenshot, with the three features stacked beside it. */
-  .home-feature-body { grid-template-columns: minmax(0, 7fr) minmax(280px, 5fr); align-items: start; }
-  .home-feature-list { grid-template-columns: minmax(0, 1fr); }
-}
-.home-feature-item { display: grid; align-content: start; justify-items: start; gap: var(--space-8); text-align: left; }
-.home-feature-item h3 { font-size: var(--t-lg); }
-.home-feature-item p { color: var(--muted); font-size: var(--t-sm); line-height: 1.55; }
-.home-feature-shot {
-  margin: 0; overflow: hidden; aspect-ratio: 1;
-  border: 1px solid var(--line); border-radius: var(--r); background: var(--bg);
-}
-.home-feature-shot img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top left; }
-.home-feature-shot .shot-light { display: none; }
-:root[data-theme="light"] .home-feature-shot .shot-dark { display: none; }
-:root[data-theme="light"] .home-feature-shot .shot-light { display: block; }
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .home-feature-shot { animation: feature-settle linear both; animation-timeline: view(); animation-range: entry 0% cover 40%; transform-origin: 50% 0; }
+  .hf-grid { grid-template-columns: minmax(260px, 4fr) minmax(0, 8fr); gap: var(--space-48); align-items: start; }
+  .hf-tabs { flex-direction: column; gap: 0; overflow: visible; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+  .hf-tab {
+    position: relative; padding: var(--space-20) 0 var(--space-20) var(--space-24);
+    border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: transparent; color: var(--muted);
   }
+  .hf-tab::before {
+    content: ""; position: absolute; left: 0; top: var(--space-20); bottom: var(--space-20); width: 2px;
+    border-radius: 2px; background: transparent; transition: background-color 0.2s ease;
+  }
+  .hf-tab:hover { color: var(--text); }
+  .hf-tab[aria-selected="true"] { background: transparent; border-color: var(--line); color: var(--text); }
+  .hf-tab[aria-selected="true"]::before { background: var(--ink); }
+  .hf-tab-title { font-size: var(--t-xl); line-height: 1.2; }
+  /* The open part's intro, revealed under its name. */
+  .hf-tab-intro {
+    display: block; overflow: hidden; max-height: 0; opacity: 0;
+    color: var(--muted); font-size: var(--t-sm); font-weight: 400; line-height: 1.5;
+    transition: max-height 0.35s ease, opacity 0.35s ease;
+  }
+  .hf-tab[aria-selected="true"] .hf-tab-intro { max-height: 6em; opacity: 1; }
+  .hf-panel-intro { display: none; }
 }
-@keyframes feature-settle {
-  from { opacity: 0.35; transform: perspective(1800px) rotateX(14deg) translateY(56px) scale(0.94); }
-  to { opacity: 1; transform: none; }
-}
-@media (max-width: 759px) {
-  .home-feature-list { grid-template-columns: minmax(0, 1fr); }
+
+@media (prefers-reduced-motion: reduce) {
+  .hf-tab, .hf-panel, .hf-stage img, .hf-tab-intro, .hf-tab::before { transition: none; }
+  .hf-panel[hidden] .hf-stage img { transform: none; }
 }
 
 /* Director About: the awards their films won. */

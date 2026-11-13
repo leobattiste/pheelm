@@ -27,10 +27,13 @@ await check("home shows the hero, the four feature sections and the questions", 
   const res = await page.goto(BASE + "/", { waitUntil: "networkidle" });
   expect(res?.ok(), `status ${res?.status()}`);
   expect(await page.isVisible("h1"), "no heading");
-  expect((await page.$$(".home-feature")).length === 4, "expected four feature sections");
-  expect((await page.$$(".home-feature-item")).length === 12, "expected three features in each section");
-  expect((await page.$$(".home-feature a")).length === 0, "the feature sections should not link anywhere");
-  const shots = await page.$$eval(".home-feature-shot img", (imgs) => imgs.map((img) => img.getAttribute("src")));
+  expect((await page.$$(".hf-tab")).length === 4, "expected four parts of Pheelm");
+  expect((await page.$$(".hf-panel")).length === 4 && (await page.$$(".hf-item")).length === 12, "expected three features for each part");
+  expect((await page.$$(".hf a")).length === 0, "the feature section should not link anywhere");
+  expect((await page.$$(".hf-panel:not([hidden])")).length === 1, "one part shows at a time");
+  await page.click('.hf-tab:nth-child(3)');
+  expect(await page.getAttribute('.hf-tab:nth-child(3)', 'aria-selected') === 'true' && !(await page.$('#hf-panel-watchlists[hidden]')), "choosing Watchlists shows it");
+  const shots = await page.$$eval(".hf-stage img", (imgs) => imgs.map((img) => img.getAttribute("src")));
   for (const src of shots) expect((await page.request.get(BASE + src)).ok(), `missing screenshot ${src}`);
   expect((await page.$$(".faq-card")).length > 0, "no questions");
 });
