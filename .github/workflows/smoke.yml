@@ -40,6 +40,7 @@ jobs:
       - run: node tests/watchlist-mobile.mjs
       - run: node tests/profile-forms-browser.mjs
       - run: node tests/profile-about-browser.mjs
+      - run: node tests/profile-activity-browser.mjs
       - run: node tests/tabs-browser.mjs
       - run: node tests/admin-catalog-toolbar-browser.mjs
       - run: node tests/admin-catalog-toolbar-browser.mjs
