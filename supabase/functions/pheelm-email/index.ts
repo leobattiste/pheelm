@@ -2,6 +2,7 @@ import {actionUrl,escapeHtml,safeEqual,verifyWebhook} from './security.ts';
 // The email designs: two shared layouts plus each email's words (see scripts/email-previews.mjs).
 import packed from './templates.compact.json' with {type:'json'};
 import {unpack} from './unpack.mjs';
+import {digestHtml,digestIntro,digestText} from './digest.mjs';
 const templates=unpack(packed);
 const project=Deno.env.get('SUPABASE_URL')!;
 const service=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -34,10 +35,18 @@ Deno.serve(async req=>{try{const url=new URL(req.url);const action=url.searchPar
   const optional=job.category==='optional'||job.category==='marketing';if(job.category==='marketing')throw new Error('Marketing broadcasts require explicit campaign approval');
   const preferences=job.user_id?await rpc('email_job_preferences',{uid:job.user_id}):null;
   const unsub=preferences?.token?BASE+'/email?action=unsubscribe&token='+preferences.token:BASE+'/account?tab=notifications';
-  const digest=job.template==='activity-digest'?await rpc('email_digest_payload',{job_id:job.id,lease_id:job.lease}):job.message;
-  if(!digest){await rpc('email_complete',{job_id:job.id,lease_id:job.lease,failure:'No public additions remain',retryable:false});continue;}
-  const values:Record<string,string>={MESSAGE:digest,YEAR:String(new Date().getFullYear()),ACTION_URL:actionUrl(job.action_path,BASE,endpoint),UNSUBSCRIBE_URL:unsub,POSTAL_ADDRESS:config.pheelm_postal_address??''};
-  const html=template.html.replace(/\[\[([A-Z0-9_]+)\]\]/g,(_,key)=>key==='MESSAGE'?escapeHtml(values[key]??'').replaceAll('\n','<br>'):escapeHtml(values[key]??''));const text=template.text.replace(/\[\[([A-Z0-9_]+)\]\]/g,(_,key)=>values[key]??'');
+  // A Digest is built from what's new right now (posters, directors, watchlists), not from the queued text.
+  let message=job.message,layoutHtml=template.html,layoutText=template.text,digestHtmlPart='',digestTextPart='';
+  if(job.template==='activity-digest'){
+   const data=await rpc('email_digest_items',{job_id:job.id,lease_id:job.lease});
+   if(!data||!(data.films||data.directors||data.watchlists)){await rpc('email_complete',{job_id:job.id,lease_id:job.lease,failure:'No public additions remain',retryable:false});continue;}
+   message=digestIntro(data.frequency);digestHtmlPart=digestHtml(data);digestTextPart=digestText(data);
+   layoutHtml=layoutHtml.replace('[[MESSAGE]]</p>','[[MESSAGE]]</p>[[DIGEST]]');layoutText=layoutText.replace('[[MESSAGE]]','[[MESSAGE]]\n\n[[DIGEST]]');
+  }
+  const postal=config.pheelm_postal_address??'';if(!postal){layoutHtml=layoutHtml.replace('[[POSTAL_ADDRESS]]<br/>','');layoutText=layoutText.replace('[[POSTAL_ADDRESS]]\n','');}
+  const values:Record<string,string>={MESSAGE:message,YEAR:String(new Date().getFullYear()),ACTION_URL:actionUrl(job.action_path,BASE,endpoint),UNSUBSCRIBE_URL:unsub,POSTAL_ADDRESS:postal};
+  // One pass, so nothing inserted here is read again as a [[TOKEN]]. DIGEST is HTML built (and escaped) by digest.mjs.
+  const html=layoutHtml.replace(/\[\[([A-Z0-9_]+)\]\]/g,(_,key)=>key==='DIGEST'?digestHtmlPart:key==='MESSAGE'?escapeHtml(values[key]??'').replaceAll('\n','<br>'):escapeHtml(values[key]??''));const text=layoutText.replace(/\[\[([A-Z0-9_]+)\]\]/g,(_,key)=>key==='DIGEST'?digestTextPart:values[key]??'');
   const r=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:'Bearer '+config.pheelm_resend_api_key,'Content-Type':'application/json','Idempotency-Key':'pheelm-email/'+job.id},body:JSON.stringify({from:'Pheelm <notifications@pheelm.com>',reply_to:'hey@pheelm.com',to:[job.recipient],subject:template.subject,html,text,...(optional?{headers:{'List-Unsubscribe':`<${unsub}>`,'List-Unsubscribe-Post':'List-Unsubscribe=One-Click'}}:{}),tags:[{name:'template',value:job.template}]}),signal:AbortSignal.timeout(10000)});
   if(!r.ok){await rpc('email_complete',{job_id:job.id,lease_id:job.lease,failure:'Email provider HTTP '+r.status,retryable:r.status===429||r.status>=500});failed++;}else{const result=await r.json();await rpc('email_complete',{job_id:job.id,lease_id:job.lease,provider:result.id});sent++;}
  }catch{await rpc('email_complete',{job_id:job.id,lease_id:job.lease,failure:'Delivery interrupted or invalid configuration',retryable:true});failed++;}

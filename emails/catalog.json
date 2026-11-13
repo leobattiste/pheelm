@@ -392,7 +392,7 @@
   "title": "New on Pheelm",
   "subject": "New on Pheelm",
   "button": "See what’s new",
-  "message": "Discover new films, directors and watchlists added to Pheelm.",
+  "message": "Here’s what was added to Pheelm this week.",
   "category": "optional",
   "preheader": "Your Pheelm digest: what’s new in the catalog.",
   "rows": [
@@ -406,7 +406,7 @@
    ],
    [
     "Your schedule",
-    "You chose daily or weekly. Empty periods send nothing."
+    "Daily Digests arrive at 4 pm Eastern; weekly ones on Fridays at 4 pm. If nothing new was added, we don’t send one."
    ]
   ],
   "note": "Change how often you get this, or turn it off, under Email notifications in your account settings."

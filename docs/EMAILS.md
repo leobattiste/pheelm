@@ -88,3 +88,7 @@ Inspect queue state and retry errors in the private schema using the SQL editor.
 ## Wording
 
 Emails say “watchlist”, like the site. `supabase/email-wording.sql` updates the queued messages in the three database functions that still said “collection” (welcome, collaboration, digest heading); the same words are fixed in `email-system.sql`, `activity-emails.sql` and `catalog-digest.sql`.
+
+## Digest schedule
+
+Digests go out at 4 pm New York time: every day for Daily, on Fridays for Weekly (`supabase/digest-schedule.sql`, `pheelm_email.digest_due`). The worker runs every five minutes, so the first run after 4 pm sends. Each Digest covers what was added since the member's last one: up to six films with their posters (from TMDB, w185), four directors with photos, and four public watchlists, built by `supabase/functions/pheelm-email/digest.mjs` from `email_digest_items`. Turning the Digest on, or changing how often, starts the window from that moment.
