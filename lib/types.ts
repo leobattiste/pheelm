@@ -53,6 +53,8 @@ export type PersonRow = {
   imdb_id?: string | null;
   instagram?: string | null;
   details_at?: string | null;
+  /** When the person was added to the directory. */
+  created_at?: string;
 };
 
 export type CreditRow = { film_id: string; person_id: string; role: Role; character: string | null; sort: number };

@@ -5,8 +5,8 @@ import vm from 'node:vm';
 import ts from 'typescript';
 const cache=new Map();
 function load(file){const absolute=path.resolve(file);if(cache.has(absolute))return cache.get(absolute);const exports={};cache.set(absolute,exports);const source=ts.transpileModule(fs.readFileSync(absolute,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;vm.runInNewContext(source,{exports,URLSearchParams,require:(name)=>load(path.resolve(path.dirname(absolute),name)+'.ts')});return exports;}
-const {buildFacets,cleanState,indexEntries,interpretQuery,matchesFilters,searchEntries,stateQuery,spellingCorrection}=load('lib/catalog-search.ts');
-const entry=(overrides={})=>({id:'1',slug:'dust',title:'Dust',image:null,subtitle:'',aliases:[],names:['Ousmane Sembène','Actor Name'],countries:['SN'],languages:['French'],genres:['Drama'],types:['feature'],years:[1991],runtime:99,wins:1,nominations:0,awards:['Cannes Film Festival'],availability:[{provider:'Netflix',region:'US',kind:'stream'},{provider:'Mubi',region:'GB',kind:'rent'}],count:1,filmography:[{year:1991,type:'feature'}],...overrides});
+const {buildFacets,cleanState,indexEntries,interpretQuery,matchesFilters,searchEntries,stateQuery,spellingCorrection,SORTS,FILM_FILTERS,DIRECTOR_FILTERS}=load('lib/catalog-search.ts');
+const entry=(overrides={})=>({id:'1',slug:'dust',title:'Dust',image:null,subtitle:'',aliases:[],names:['Ousmane Sembène','Actor Name'],countries:['SN'],languages:['French'],genres:['Drama'],types:['feature'],years:[1991],runtime:99,wins:1,nominations:0,awards:['Cannes Film Festival'],availability:[{provider:'Netflix',region:'US',kind:'stream'},{provider:'Mubi',region:'GB',kind:'rent'}],added:0,count:1,filmography:[{year:1991,type:'feature'}],...overrides});
 const rows=[entry(),entry({id:'2',title:'Dust and Dreams',aliases:['Poussière'],names:['Dust'],runtime:null}),entry({id:'3',title:'Us',countries:['US'],names:['Jordan Peele'],years:[2019],runtime:116}),entry({id:'4',title:'Another Film',names:['Denzel Washington','Editor Name']})];
 const index=indexEntries(rows),facets=buildFacets(rows);
 assert.equal(searchEntries(indexEntries([entry({title:'B.A.P.S.'})]),{q:'BAPS'},'films')[0].entry.title,'B.A.P.S.','punctuated titles also match compact spelling');
@@ -17,7 +17,7 @@ assert.equal(searchEntries(index,{q:'Sembane'},'films').length,1,'director typos
 assert.equal(searchEntries(index,{q:'Denzel Washington'},'films')[0].entry.id,'4','cast search');
 assert.equal(searchEntries(index,{q:'Editor Name'},'films')[0].entry.id,'4','crew search');
 assert.equal(matchesFilters(rows[0],{provider:'Netflix',region:'GB'},'films'),false,'region and provider must match one option');
-assert.equal(matchesFilters(rows[0],{provider:'Mubi',region:'GB',access:'rent'},'films'),true);
+assert.equal(matchesFilters(rows[0],{provider:'Mubi',region:'GB'},'films'),true);
 assert.equal(matchesFilters(rows[1],{maxRuntime:'100'},'films'),false,'unknown runtimes do not match a runtime cap');
 assert.equal(matchesFilters(rows[0],{award:'nominated'},'films'),false);
 assert.equal(matchesFilters(rows[0],{festival:'Cannes Film Festival',award:'won'},'films'),true);
@@ -27,7 +27,6 @@ assert.equal(parsed.country,'SN');assert.equal(parsed.genre,'Drama');assert.equa
 assert.equal(interpretQuery('streaming on Netflix','films',facets).provider,'Netflix');
 assert.equal(interpretQuery('French language dramas','films',facets).language,'French');
 assert.equal(interpretQuery('award-winning dramas','films',facets),null);
-assert.equal(matchesFilters(rows[0],{length:'90to120'},'films'),true,'99 minutes is 90 to 120');assert.equal(matchesFilters(rows[0],{length:'under90'},'films'),false);assert.equal(matchesFilters(rows[0],{length:'over120'},'films'),false);assert.equal(matchesFilters(rows[1],{length:'90to120'},'films'),false,'unknown runtimes do not match a length');assert.equal(matchesFilters(rows[2],{length:'90to120'},'films'),true);assert.equal(cleanState(new URLSearchParams('length=nonsense&length2=1'),'films').length,undefined);assert.equal(cleanState(new URLSearchParams('length=under90'),'films').length,'under90');
 const director=entry({title:'Barry Jenkins',aliases:['Moonlight','Medicine for Melancholy'],countries:['US'],filmography:[{year:2008,type:'feature'},{year:2020,type:'documentary'}],types:['feature','documentary'],years:[2008,2020],count:2});
 assert.equal(searchEntries(indexEntries([director]),{q:'Moonlight'},'directors')[0].entry.title,'Barry Jenkins');
 assert.equal(matchesFilters(director,{type:'documentary',from:'2000',to:'2010'},'directors'),false,'type and year must match the same directed film');
@@ -35,7 +34,7 @@ assert.equal(matchesFilters(director,{from:'2020',to:'2020'},'directors'),true);
 assert.equal(interpretQuery('Nigerian directors active between 1990 and 2000','directors',facets),null);
 assert.equal(interpretQuery('directors before 1990','directors',facets),null);
 assert.equal(interpretQuery('films by women','films',facets),null,'unsupported attributes are not guessed');
-const state=cleanState(new URLSearchParams('q=Dust&maxRuntime=100&sort=invalid&year=NaN&provider=Netflix'), 'films');assert.equal(state.sort,undefined);assert.equal(state.year,undefined);assert.equal(cleanState(new URLSearchParams(stateQuery(state)),'films').q,'Dust');
+const state=cleanState(new URLSearchParams('q=Dust&maxRuntime=100&sort=invalid&year=1966&length=under90&access=free&provider=Netflix'), 'films');assert.equal(state.sort,undefined);assert.equal(state.year,undefined,'release year is no longer a filter');assert.equal(state.length,undefined);assert.equal(state.access,undefined);assert.equal(cleanState(new URLSearchParams(stateQuery(state)),'films').q,'Dust');
 assert.equal(spellingCorrection(index,'zzzzzzzzzz'),null);
 assert.equal(searchEntries(index,{q:'Us'},'films')[0].entry.title,'Us','short literal titles stay searchable');
 console.log('PASS: ranking, titles, accents, typos, cast/crew, coherent filters, natural phrases, filmography and shareable state');
@@ -45,6 +44,18 @@ const ids=(state,seed)=>searchEntries(shuffleIndex,state,'films',seed).map(r=>r.
 assert.equal(ids({},123),ids({},123),'a visit keeps its order');
 assert.notEqual(ids({},123),ids({},456),'a different visit changes the order');
 assert.equal(new Set(ids({},123).split(',')).size,100,'shuffle includes every film exactly once');
-for(const sort of ['title','newest','oldest','awards','relevance'])assert.equal(ids({sort},123),ids({sort},456),'explicit non-shuffle sorts ignore the seed');
+for(const sort of ['title','newest','oldest','awards','added'])assert.equal(ids({sort},123),ids({sort},456),'explicit non-shuffle sorts ignore the seed');
 assert.equal(ids({q:'Film 2'},123),ids({q:'Film 2'},456),'default search relevance is not shuffled');
 console.log('PASS: seeded film shuffle is stable, complete, changes per visit, and preserves search/explicit sorting.');
+
+// Sort by and filter lists: no Best match; Latest added for films and directors; Genre then Type first.
+const J=JSON.stringify;assert.equal(J(SORTS.films.map(([id])=>id)),J(['shuffle','added','newest','oldest','title','awards']));
+assert.equal(J(SORTS.directors.map(([id])=>id)),J(['added','films','az','earliest','latest']));
+assert.ok(![...SORTS.films,...SORTS.directors].some(([id,label])=>id==='relevance'||/best match/i.test(label)));
+assert.equal(SORTS.films.find(([id])=>id==='added')[1],'Latest added');assert.equal(SORTS.directors.find(([id])=>id==='added')[1],'Latest added');
+assert.equal(J(FILM_FILTERS.slice(0,2)),J(['genre','type']));assert.ok(!FILM_FILTERS.some(k=>['year','length','access'].includes(k)));assert.equal(DIRECTOR_FILTERS[0],'type');
+assert.equal(cleanState(new URLSearchParams('sort=relevance'),'films').sort,undefined,'old Best match links fall back to the default');
+const stamped=indexEntries([entry({id:'a',title:'Old',added:1000}),entry({id:'b',title:'New',added:3000}),entry({id:'c',title:'Mid',added:2000}),entry({id:'d',title:'Unknown',added:0})]);
+assert.equal(J(searchEntries(stamped,{sort:'added'},'films').map(r=>r.entry.id)),J(['b','c','a','d']),'Latest added puts the most recently added first');
+assert.equal(J(searchEntries(stamped,{sort:'added'},'directors').map(r=>r.entry.id)),J(['b','c','a','d']),'and the same for directors');
+console.log('PASS: sort and filter lists, Latest added, removed filters ignored.');

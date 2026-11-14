@@ -10,7 +10,7 @@ import { FilmGrid } from './FilmCard';
 import { BackToTopButton } from './BackToTop';
 import { countryName } from '@/lib/format';
 import { plain } from '@/lib/fuzzy';
-import { buildFacets, cleanState, DIRECTOR_FILTERS, FILM_FILTERS, filterLabel, LENGTHS, indexEntries, interpretQuery, matchesFilters, relevance, searchEntries, spellingCorrection, SORTS, stateQuery, TYPE_LABELS, type SearchEntry, type SearchKey, type SearchMode, type SearchState } from '@/lib/catalog-search';
+import { buildFacets, cleanState, DIRECTOR_FILTERS, FILM_FILTERS, filterLabel, indexEntries, interpretQuery, matchesFilters, relevance, searchEntries, spellingCorrection, SORTS, stateQuery, TYPE_LABELS, type SearchEntry, type SearchKey, type SearchMode, type SearchState } from '@/lib/catalog-search';
 type HistoryItem = {
     label: string;
     state: SearchState;
@@ -166,7 +166,8 @@ function Browser({ entries, mode }: {
     catch { } };
     const submit = () => { const next = proposal ? { ...state, q: undefined, ...proposal } : state; commit(next); remember(next); };
     const clearFilters = () => commit({ q: state.q, sort: state.sort });
-    const sortDefault = state.q ? 'relevance' : mode === 'films' ? 'shuffle' : 'films';
+    // With text in the search box and no sort chosen, the closest matches come first.
+    const sortDefault = mode === 'films' ? 'shuffle' : 'films';
     const correction = useMemo(() => state.q ? (rows.length > 0 && rows[0].score === 450 ? rows[0].entry.title : rows.length === 0 && !index.some(i => relevance(i, state.q!) > 0) ? spellingCorrection(index, state.q) : null) : null, [state.q, rows, index]);
     const matchingIndex = useMemo(() => filtersOpen ? index.filter(i => relevance(i, state.q ?? '') > 0) : [], [index, state.q, filtersOpen]);
     const relaxed = state.q && active.length ? searchEntries(index, { q: state.q, sort: state.sort }, mode).length : 0;
@@ -176,17 +177,13 @@ function Browser({ entries, mode }: {
     ][] => {
         if (key === 'award')
             return [['won', 'Award winners'], ['nominated', 'Award nominees']];
-        if (key === 'length')
-            return LENGTHS;
-        if (key === 'access')
-            return [['stream', 'Streaming'], ['rent', 'Rent'], ['buy', 'Buy'], ['free', 'Free to watch']];
         if (key === 'min')
             return [['2', '2 or more'], ['3', '3 or more'], ['5', '5 or more'], ['10', '10 or more']];
         if (key in facets)
             return facets[key as keyof typeof facets].map(v => [v, key === 'country' || key === 'region' ? countryName(v) : key === 'type' ? TYPE_LABELS[v] ?? v : v]);
         return [];
     };
-    const titles: Partial<Record<SearchKey, string>> = { country: 'Country', decade: 'Decade', year: 'Release year', language: 'Language', genre: 'Genre', type: 'Film type', provider: 'Where to watch', access: 'Viewing option', length: 'Length' };
+    const titles: Partial<Record<SearchKey, string>> = { country: 'Country', decade: 'Decade', language: 'Language', genre: 'Genre', type: 'Type', provider: 'Where to watch' };
     const countFor = (key: SearchKey, value: string) => matchingIndex.filter(i => matchesFilters(i.entry, { ...state, [key]: value }, mode)).length;
     const boundsInvalid = !!((state.minRuntime && state.maxRuntime && +state.minRuntime > +state.maxRuntime) || (state.from && state.to && +state.from > +state.to));
     return <div className="browser catalog-browser" data-shuffle-ready={visitReady} aria-busy={state !== deferred} onClickCapture={e => { if ((e.target as Element).closest(".film-grid a, .director-grid a"))
@@ -213,7 +210,6 @@ function Browser({ entries, mode }: {
    <div className="modal-body"><FilterSelect label="Sort by" value={state.sort ?? sortDefault} onChange={e => set('sort', e.target.value)}>{SORTS[mode].map(([v, l]) => <option key={v} value={v}>{l}</option>)}</FilterSelect>
     {filters.map(k => ['year', 'from', 'to', 'minRuntime', 'maxRuntime'].includes(k) ? <label key={k} className="field filter-field">{titles[k]}<input type="number" inputMode="numeric" min={k === 'minRuntime' || k === 'maxRuntime' ? 1 : 1890} max={k === 'minRuntime' || k === 'maxRuntime' ? 9999 : 2199} key={k + ':' + (state[k] ?? '')} defaultValue={state[k] ?? ''} onBlur={e => set(k, e.target.value)} onKeyDown={e => { if (e.key === 'Enter')
         e.currentTarget.blur(); }} placeholder="Any"/></label> : <FilterSelect key={k} label={titles[k]??k} value={state[k] ?? ''} onChange={e => set(k, e.target.value)}><option value="">Any</option>{state[k] && !options(k).some(([v]) => v === state[k]) && <option value={state[k]}>{filterLabel(k, state[k]!)}</option>}{options(k).map(([v, l]) => <option key={v} value={v}>{l}{active.length > 0 ? ` (${countFor(k, v)})` : ''}</option>)}</FilterSelect>)}
-    {mode === 'films' && <p className="muted">Viewing availability varies by region and reflects the links currently in our directory.</p>}{mode === 'directors' && <p className="muted">Film-type filters refer to films listed in this directory.</p>}
    </div><div className="modal-foot"><button type="button" className="button ghost" disabled={!active.length && !state.sort} onClick={() => commit({ q: state.q })}>Reset</button><button type="button" className="button" onClick={() => { remember(state); modal.current?.close(); }}>Show {active.length > 0 || state.q?.trim() ? `${results.length} ` : ''}{mode}</button></div>
   </dialog>
  </div>;

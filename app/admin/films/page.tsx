@@ -16,7 +16,22 @@ type Params = {
 
 const SIZES = ["20", "40", "80", "all"];
 const TYPES = ["feature", "documentary", "short", "animation"];
-const SORTS = ["newest", "oldest", "title", "recent"];
+const SORTS = ["newest", "oldest", "title", "recent", "added"];
+// What a film can be missing. "any" is any of the first six.
+const BLANK = (column: string) => `${column}.is.null,${column}.eq.`;
+const MISSING: Record<string, { label: string; or: string }> = {
+  poster: { label: "Missing poster", or: BLANK("poster_url") },
+  backdrop: { label: "Missing backdrop image", or: BLANK("backdrop_url") },
+  synopsis: { label: "Missing synopsis", or: BLANK("synopsis") },
+  trailer: { label: "Missing trailer", or: BLANK("trailer_url") },
+  runtime: { label: "Missing runtime", or: "runtime.is.null" },
+  genres: { label: "Missing genres", or: "genres.cd.{}" },
+  countries: { label: "Missing country", or: "countries.cd.{}" },
+  languages: { label: "Missing language", or: "languages.cd.{}" },
+  watch: { label: "Missing where to watch", or: "watch.eq.[]" },
+  tmdb: { label: "Not linked to TMDB", or: "tmdb_id.is.null" },
+};
+const MISSING_ANY = ["poster", "synopsis", "trailer", "runtime", "genres", "countries"].map((k) => MISSING[k].or).join(",");
 
 export default async function AdminFilms({ searchParams }: { searchParams: Promise<Params> }) {
   const { db, user, owner } = await requireAdmin("/admin/films");
@@ -28,7 +43,7 @@ export default async function AdminFilms({ searchParams }: { searchParams: Promi
   const sort = SORTS.includes(sp.sort ?? "") ? sp.sort! : "newest";
   const status = ["draft", "published"].includes(sp.status ?? "") ? sp.status! : "";
   const type = TYPES.includes(sp.type ?? "") ? sp.type! : "";
-  const missing = ["poster", "synopsis"].includes(sp.missing ?? "") ? sp.missing! : "";
+  const missing = sp.missing === "any" || sp.missing! in MISSING ? sp.missing! : "";
   const featured = ["yes", "no"].includes(sp.featured ?? "") ? sp.featured! : "";
   const decade = /^\d{4}$/.test(sp.decade ?? "") ? Number(sp.decade) : null;
   const country = /^[A-Za-z]{2}$/.test(sp.country ?? "") ? sp.country!.toUpperCase() : "";
@@ -39,8 +54,8 @@ export default async function AdminFilms({ searchParams }: { searchParams: Promi
       .select("id,slug,title,year,type,status,poster_url,featured,tmdb_id,credits(role,people(name))", { count: "exact" });
     if (status) query = query.eq("status", status);
     if (type) query = query.eq("type", type);
-    if (missing === "poster") query = query.is("poster_url", null);
-    if (missing === "synopsis") query = query.is("synopsis", null);
+    if (missing === "any") query = query.or(MISSING_ANY);
+    else if (missing) query = query.or(MISSING[missing].or);
     if (featured) query = query.eq("featured", featured === "yes");
     if (country) query = query.contains("countries", [country]);
     if (genre) query = query.contains("genres", [genre]);
@@ -48,6 +63,7 @@ export default async function AdminFilms({ searchParams }: { searchParams: Promi
     if (q) query = query.ilike("title", `%${q.replace(/[%_]/g, "")}%`);
     if (sort === "oldest") return query.order("year", { ascending: true }).order("title");
     if (sort === "title") return query.order("title", { ascending: true });
+    if (sort === "added") return query.order("created_at", { ascending: false }).order("title");
     if (sort === "recent") return query.order("updated_at", { ascending: false }).order("title");
     return query.order("year", { ascending: false }).order("title");
   };
@@ -103,8 +119,8 @@ export default async function AdminFilms({ searchParams }: { searchParams: Promi
         { name: "country", label: "Country", value: country, options: [{ value: "", label: "All countries" }, ...countries.map((code) => ({ value: code, label: countryName(code) }))] },
         { name: "genre", label: "Genre", value: genre, options: [{ value: "", label: "All genres" }, ...genres.map((value) => ({ value, label: value }))] },
         { name: "featured", label: "Featured", value: featured, options: [{ value: "", label: "All" }, { value: "yes", label: "Featured" }, { value: "no", label: "Not featured" }] },
-        { name: "missing", label: "Needs fixing", value: missing, options: [{ value: "", label: "Any" }, { value: "poster", label: "Missing poster" }, { value: "synopsis", label: "Missing synopsis" }] },
-        { name: "sort", label: "Sort by", value: sort, options: [{ value: "newest", label: "Newest releases" }, { value: "oldest", label: "Oldest releases" }, { value: "title", label: "Title A–Z" }, { value: "recent", label: "Recently updated" }] },
+        { name: "missing", label: "Needs fixing", value: missing, options: [{ value: "", label: "Nothing in particular" }, { value: "any", label: "Missing any key detail" }, ...Object.entries(MISSING).map(([value, m]) => ({ value, label: m.label }))] },
+        { name: "sort", label: "Sort by", value: sort, options: [{ value: "newest", label: "Newest releases" }, { value: "oldest", label: "Oldest releases" }, { value: "title", label: "Title A–Z" }, { value: "recent", label: "Recently updated" }, { value: "added", label: "Latest added" }] },
       ]} />
       {error ? <p className="notice error">Could not load films. Try again.</p> : (
         <BulkControls films={(films ?? []) as unknown as AdminFilmRow[]} canDelete={owner} />

@@ -15,6 +15,20 @@ type Params = {
   sort?: string; page?: string; limit?: string; updated?: string; error?: string;
 };
 const SIZES = ["20", "40", "80", "all"];
+// What a person can be missing. "any" is any of the first five.
+const BLANK = (column: string) => `${column}.is.null,${column}.eq.`;
+const MISSING: Record<string, { label: string; or: string }> = {
+  photo: { label: "Missing portrait", or: BLANK("photo_url") },
+  bio: { label: "Missing biography", or: BLANK("bio") },
+  country: { label: "Missing country", or: BLANK("country") },
+  born: { label: "Missing birth date", or: "born.is.null" },
+  birthplace: { label: "Missing birthplace", or: BLANK("birthplace") },
+  known_for: { label: "Missing known for", or: BLANK("known_for") },
+  instagram: { label: "Missing Instagram", or: BLANK("instagram") },
+  imdb: { label: "Missing IMDb link", or: BLANK("imdb_id") },
+  tmdb: { label: "Not linked to TMDB", or: "tmdb_id.is.null" },
+};
+const MISSING_ANY = ["photo", "bio", "country", "born", "birthplace"].map((k) => MISSING[k].or).join(",");
 
 export default async function AdminPeople({ searchParams }: { searchParams: Promise<Params> }) {
   const { db, owner } = await requireAdmin("/admin/people");
@@ -27,20 +41,21 @@ export default async function AdminPeople({ searchParams }: { searchParams: Prom
   const perPage = effectiveSize === "all" ? 500 : Number(effectiveSize);
   const page = effectiveSize === "all" ? 1 : Math.max(1, Math.min(5000, Number.parseInt(sp.page ?? "1", 10) || 1));
   const q = (sp.q ?? "").trim().slice(0, 100);
-  const missing = ["bio", "photo"].includes(sp.missing ?? "") ? sp.missing! : "";
+  const missing = sp.missing === "any" || sp.missing! in MISSING ? sp.missing! : "";
   const visibility = ["shown", "hidden"].includes(sp.visibility ?? "") ? sp.visibility! : "";
   const country = /^[A-Za-z]{2}$/.test(sp.country ?? "") ? sp.country!.toUpperCase() : "";
-  const sort = sp.sort === "za" ? "za" : "az";
+  const sort = ["za", "added"].includes(sp.sort ?? "") ? sp.sort! : "az";
 
   const build = () => {
     let query = everyone
       ? db.from("people").select("id,slug,name,country,bio,photo_url,in_directory,credits(role)", { count: "exact" })
       : db.from("people").select("id,slug,name,country,bio,photo_url,in_directory,credits!inner(role)", { count: "exact" }).eq("credits.role", "director");
     if (q) query = query.ilike("name", `%${q.replace(/[%_]/g, "")}%`);
-    if (missing === "bio") query = query.or("bio.is.null,bio.eq.");
-    if (missing === "photo") query = query.or("photo_url.is.null,photo_url.eq.");
+    if (missing === "any") query = query.or(MISSING_ANY);
+    else if (missing) query = query.or(MISSING[missing].or);
     if (country) query = query.eq("country", country);
     if (visibility) query = query.eq("in_directory", visibility === "shown");
+    if (sort === "added") return query.order("created_at", { ascending: false }).order("name");
     return query.order("name", { ascending: sort === "az" });
   };
 
@@ -88,8 +103,8 @@ export default async function AdminPeople({ searchParams }: { searchParams: Prom
         { name: "all", label: "Show", value: everyone ? "1" : "", options: [{ value: "", label: "Directors" }, { value: "1", label: "Everyone" }] },
         { name: "visibility", label: "Directory visibility", value: visibility, options: [{ value: "", label: "All" }, { value: "shown", label: "Shown" }, { value: "hidden", label: "Hidden" }] },
         { name: "country", label: "Country", value: country, options: [{ value: "", label: "All countries" }, ...countries.map((code) => ({ value: code, label: countryName(code) }))] },
-        { name: "missing", label: "Needs fixing", value: missing, options: [{ value: "", label: "Any" }, { value: "bio", label: "Missing biography" }, { value: "photo", label: "Missing portrait" }] },
-        { name: "sort", label: "Sort by", value: sort, options: [{ value: "az", label: "Name A–Z" }, { value: "za", label: "Name Z–A" }] },
+        { name: "missing", label: "Needs fixing", value: missing, options: [{ value: "", label: "Nothing in particular" }, { value: "any", label: "Missing any key detail" }, ...Object.entries(MISSING).map(([value, m]) => ({ value, label: m.label }))] },
+        { name: "sort", label: "Sort by", value: sort, options: [{ value: "az", label: "Name A–Z" }, { value: "za", label: "Name Z–A" }, { value: "added", label: "Latest added" }] },
       ]} />
       {error ? <p className="notice error">Could not load directors. Try again.</p> : (
         <PeopleBulkControls people={rows} canDelete={owner} />

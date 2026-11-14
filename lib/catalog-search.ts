@@ -25,6 +25,8 @@ export type SearchEntry = {
         region: string;
         kind: string;
     }[];
+    /** When it was added to Pheelm (milliseconds), for Latest added. 0 when unknown. */
+    added: number;
     count: number;
     filmography: {
         year: number;
@@ -33,23 +35,20 @@ export type SearchEntry = {
     film?: FilmCard;
     director?: DirectorSummary;
 };
-export const SEARCH_KEYS = ['q', 'sort', 'country', 'decade', 'language', 'genre', 'type', 'year', 'from', 'to', 'minRuntime', 'maxRuntime', 'length', 'award', 'festival', 'provider', 'region', 'access', 'min'] as const;
+export const SEARCH_KEYS = ['q', 'sort', 'country', 'decade', 'language', 'genre', 'type', 'from', 'to', 'minRuntime', 'maxRuntime', 'award', 'festival', 'provider', 'region', 'min'] as const;
 export type SearchKey = typeof SEARCH_KEYS[number];
 export type SearchState = Partial<Record<SearchKey, string>>;
 export type SearchMode = 'films' | 'directors';
-export const FILM_FILTERS: SearchKey[] = ['country', 'decade', 'year', 'language', 'genre', 'type', 'length', 'provider', 'access'];
-export const LENGTHS: [
-    string,
-    string
-][] = [['under90', 'Under 90 minutes'], ['90to120', '90 to 120 minutes'], ['over120', 'Over 2 hours']];
-export const DIRECTOR_FILTERS: SearchKey[] = ['country', 'type'];
+/** In the order they appear in the Filters sheet, after Sort by. */
+export const FILM_FILTERS: SearchKey[] = ['genre', 'type', 'country', 'decade', 'language', 'provider'];
+export const DIRECTOR_FILTERS: SearchKey[] = ['type', 'country'];
 export const TYPE_LABELS: Record<string, string> = { feature: 'Feature', documentary: 'Documentary', short: 'Short', animation: 'Animation' };
 export const SORTS: Record<SearchMode, [
     string,
     string
 ][]> = {
-    films: [['relevance', 'Best match'], ['shuffle', 'Shuffled'], ['newest', 'Newest'], ['oldest', 'Oldest'], ['title', 'A to Z'], ['awards', 'Most awarded']],
-    directors: [['relevance', 'Best match'], ['films', 'Most films'], ['az', 'A to Z'], ['earliest', 'Earliest film'], ['latest', 'Latest film']],
+    films: [['shuffle', 'Shuffled'], ['added', 'Latest added'], ['newest', 'Newest'], ['oldest', 'Oldest'], ['title', 'A to Z'], ['awards', 'Most awarded']],
+    directors: [['added', 'Latest added'], ['films', 'Most films'], ['az', 'A to Z'], ['earliest', 'Earliest film'], ['latest', 'Latest film']],
 };
 const normalized = (s: string) => plain(s).replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 const unique = (xs: string[]) => [...new Set(xs.filter(Boolean))].sort((a, b) => a.localeCompare(b));
@@ -71,19 +70,15 @@ export function cleanState(params: URLSearchParams, mode: SearchMode): SearchSta
         const v = params.get(k)?.trim().slice(0, k === 'q' ? 200 : 120);
         if (!v || !allowed.has(k))
             continue;
-        if (['year', 'from', 'to'].includes(k) && (!/^\d{4}$/.test(v) || +v < 1890 || +v > 2199))
+        if (['from', 'to'].includes(k) && (!/^\d{4}$/.test(v) || +v < 1890 || +v > 2199))
             continue;
         if (['minRuntime', 'maxRuntime', 'min'].includes(k) && (!/^\d{1,4}$/.test(v) || +v < 1))
-            continue;
-        if (k === 'length' && !LENGTHS.some(([id]) => id === v))
             continue;
         if (k === 'sort' && !SORTS[mode].some(([id]) => id === v))
             continue;
         if (k === 'type' && !TYPE_LABELS[v])
             continue;
         if (k === 'award' && !['won', 'nominated'].includes(v))
-            continue;
-        if (k === 'access' && !['stream', 'rent', 'buy', 'free'].includes(v))
             continue;
         s[k] = v;
     }
@@ -109,14 +104,10 @@ export function filterLabel(k: SearchKey, v: string) {
         return 'Films from ' + v;
     if (k === 'to')
         return 'Films through ' + v;
-    if (k === 'length')
-        return LENGTHS.find(([id]) => id === v)?.[1] ?? v;
     if (k === 'min')
         return v + '+ films';
     if (k === 'award')
         return v === 'won' ? 'Award winners' : 'Award nominees';
-    if (k === 'access')
-        return ({ stream: 'Streaming', rent: 'Rent', buy: 'Buy', free: 'Free to watch' })[v] ?? v;
     return v;
 }
 export function matchesFilters(e: SearchEntry, s: SearchState, mode: SearchMode) {
@@ -126,16 +117,14 @@ export function matchesFilters(e: SearchEntry, s: SearchState, mode: SearchMode)
         return e.count >= Number(s.min ?? 0) && e.filmography.some(f => (!s.type || f.type === s.type) && (!s.from || f.year >= +s.from) && (!s.to || f.year <= +s.to));
     if (s.type && !e.types.includes(s.type) || s.language && !e.languages.includes(s.language) || s.genre && !e.genres.includes(s.genre))
         return false;
-    if (s.decade && !e.years.some(y => Math.floor(y / 10) * 10 + 's' === s.decade) || s.year && !e.years.includes(+s.year))
+    if (s.decade && !e.years.some(y => Math.floor(y / 10) * 10 + 's' === s.decade))
         return false;
     if (s.minRuntime && (e.runtime === null || e.runtime < +s.minRuntime) || s.maxRuntime && (e.runtime === null || e.runtime > +s.maxRuntime))
         return false;
-    if (s.length && (e.runtime === null || (s.length === 'under90' ? e.runtime >= 90 : s.length === '90to120' ? e.runtime < 90 || e.runtime > 120 : e.runtime <= 120)))
-        return false;
     if (s.award === 'won' && !e.wins || s.award === 'nominated' && !e.nominations || s.festival && !e.awards.includes(s.festival))
         return false;
-    // Provider, region and access must describe the same viewing option.
-    if ((s.provider || s.region || s.access) && !e.availability.some(w => (!s.provider || w.provider === s.provider) && (!s.region || w.region === s.region) && (!s.access || w.kind === s.access)))
+    // Provider and region must describe the same viewing option.
+    if ((s.provider || s.region) && !e.availability.some(w => (!s.provider || w.provider === s.provider) && (!s.region || w.region === s.region)))
         return false;
     return true;
 }
@@ -176,6 +165,8 @@ export function searchEntries(index: IndexedEntry[], state: SearchState, mode: S
             return b.score - a.score;
         if (sort === 'shuffle')
             return filmShuffleRank(a.entry.id, shuffleSeed) - filmShuffleRank(b.entry.id, shuffleSeed) || a.entry.id.localeCompare(b.entry.id);
+        if (sort === 'added')
+            return b.entry.added - a.entry.added || a.entry.title.localeCompare(b.entry.title);
         if (sort === 'newest' || sort === 'latest')
             return Math.max(...b.entry.years) - Math.max(...a.entry.years) || a.entry.title.localeCompare(b.entry.title);
         if (sort === 'oldest' || sort === 'earliest')
@@ -204,10 +195,7 @@ export function interpretQuery(input: string, mode: SearchMode, facets: SearchFa
         remove(/\b(?:award winning|award winners?|oscar winning)\b/, m => { filters.award = 'won'; if (m[0].startsWith('oscar'))
             filters.festival = facets.festival.find(f => /academy awards?|oscars?/i.test(f)) ?? 'Academy Awards'; });
         remove(/\b(?:award nominated|award nominees?)\b/, () => filters.award = 'nominated');
-        remove(/\b(?:free to watch|watch for free)\b/, () => filters.access = 'free');
-        remove(/\bstreaming\b/, () => filters.access = 'stream');
-        remove(/\b(?:available to rent|for rent)\b/, () => filters.access = 'rent');
-        remove(/\b(?:available to buy|to purchase)\b/, () => filters.access = 'buy');
+        remove(/\bstreaming\b/, () => { });
         for (const language of [...facets.language].sort((a, b) => b.length - a.length)) {
             const needle = text.includes(' in ' + plain(language)) ? ' in ' + plain(language) : plain(language) + ' language';
             if (text.includes(needle)) {
@@ -245,8 +233,6 @@ export function interpretQuery(input: string, mode: SearchMode, facets: SearchFa
             filters.genre = parsed.genre;
         if (parsed.decade)
             filters.decade = parsed.decade;
-        if (parsed.year)
-            filters.year = String(parsed.year);
     }
     else {
         if (parsed.decade) {
