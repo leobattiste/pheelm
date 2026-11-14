@@ -1999,7 +1999,6 @@ html[data-chrome="app"] .tab-bar {
 .tab .icon { width: var(--control-icon); height: var(--control-icon); stroke-width: 1.5; }
 .tab:hover { color: var(--ink); }
 .tab[aria-current="page"] { color: var(--ink); }
-.tab[aria-current="page"]::after { content: ""; position: absolute; bottom: 8px; width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
 .tab:active { transform: scale(0.9); }
 .tab:focus-visible { outline: none; box-shadow: none; border-radius: var(--pill); }
 .tab-icon { position: relative; display: grid; }
