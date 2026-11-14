@@ -945,9 +945,10 @@ main:has(.feature) { margin-top: calc(var(--header) * -1); }
 
 /* Where to watch */
 .watch { display: grid; gap: var(--space-16); }
-.watch-groups { display: grid; gap: var(--space-16); }
-.watch-groups > div { display: grid; gap: var(--space-8); }
-.watch-groups dt, .details dt { color: var(--muted); font-size: var(--t-sm); font-weight: 400; }
+.watch-platforms { display: flex; flex-wrap: wrap; gap: var(--space-8); margin: 0 0 var(--space-16); padding: 0; list-style: none; }
+.watch-platform { display: inline-flex; align-items: center; gap: var(--space-8); min-height: var(--control); padding: 0 var(--space-16) 0 var(--space-8); border: 1px solid var(--control-border-strong); border-radius: var(--pill); color: var(--ink); font-weight: 400; text-decoration: none; }
+.watch-platform:hover { background: var(--control-hover); }
+.details dt { color: var(--muted); font-size: var(--t-sm); font-weight: 400; }
 .film-page .chip { border-color: var(--line); background: transparent; color: var(--ink); }
 .film-page .chip:hover { background: var(--hover); }
 .film-page .chip[aria-pressed="true"] { border-color: transparent; background: var(--ink); color: var(--bg); }
@@ -1523,7 +1524,7 @@ h1, h2, .empty-state p:first-of-type, .decades a,
 .comments-count { color: var(--muted); }
 .comments .segmented button { width: auto; padding: 0 var(--space-12); font-size: var(--t-sm); }
 
-.comment-avatar { display: grid; place-items: center; flex: none; width: 36px; height: 36px; border-radius: var(--pill); background: var(--raised); color: var(--muted); font-size: var(--t-xs); font-weight: 700; letter-spacing: 0; }
+.comment-avatar { display: grid; place-items: center; flex: none; width: 36px; height: 54px; aspect-ratio: 2 / 3; object-fit: cover; object-position: 50% 20%; overflow: hidden; border-radius: var(--r-media); background: var(--raised); color: var(--muted); font-size: var(--t-xs); font-weight: 700; letter-spacing: 0; }
 .comment-new { display: flex; align-items: flex-start; gap: var(--space-12); }
 .comment-new .composer { flex: 1; min-width: 0; }
 
@@ -1574,7 +1575,7 @@ a.comment-name:hover { text-decoration: underline; text-underline-offset: 0.2em;
 .comment-confirm { display: inline-flex; align-items: center; gap: var(--space-4); padding-left: var(--space-8); color: var(--text); font-size: var(--t-sm); }
 
 .replies { display: grid; gap: var(--space-4); margin-left: 17px; padding-left: var(--space-24); border-left: 1px solid var(--line); }
-.replies .comment-avatar { width: 28px; height: 28px; }
+.replies .comment-avatar { width: 28px; height: 42px; }
 .comment-new.is-reply { padding: var(--space-8) 0; }
 .more-replies { color: var(--ink); }
 .comments-empty { padding: var(--space-24) 0; color: var(--muted); }
