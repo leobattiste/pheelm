@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Icon, { type IconName } from "./Icon";
 import { chromeFor } from "@/lib/chrome";
 import { openSignIn } from "./SignInSheet";
@@ -40,9 +40,19 @@ export default function TabBar() {
     { href: profile, label: "Profile", icon: "userCircle", on: at(profile) || path === "/profile", only: "member-only" },
   ];
 
+  // The outline sits over the open page's tab: 0 Films, 1 Watchlists, 2 Directors, 3 Profile or Sign in.
+  const open = tabs.findIndex((t) => t.on);
+  const ring = open >= 0 ? open : path === "/login" ? 3 : -1;
+  // It slides between tabs, but when it first appears (a page with no open tab, or your profile
+  // before we know your handle) it just fades in at the right tab instead of sliding from the left.
+  const was = useRef(ring);
+  const fresh = was.current < 0 && ring >= 0;
+  useEffect(() => { was.current = ring; }, [ring]);
+
   return (
-    <nav className="tab-bar" aria-label="Sections">
+    <nav className="tab-bar" aria-label="Sections" style={{ "--tab-i": Math.max(ring, 0) } as React.CSSProperties}>
       <NavProgressLine />
+      <span className="tab-ring" data-on={ring >= 0} data-fresh={fresh} aria-hidden="true" />
       {tabs.map((t) => (
         <Link key={t.label} href={t.href} className={t.only ? `tab ${t.only}` : "tab"} aria-current={t.on ? "page" : undefined} aria-label={t.label} title={t.label}>
           <Icon name={t.icon} />

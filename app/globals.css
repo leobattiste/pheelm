@@ -1999,8 +1999,15 @@ html[data-chrome="app"] .tab-bar {
 .tab .icon { width: var(--control-icon); height: var(--control-icon); stroke-width: 1.5; }
 .tab:hover { color: var(--ink); }
 .tab[aria-current="page"] { color: var(--ink); }
-/* The open page's icon sits in a round outline as tall as a button. */
-.tab[aria-current="page"]::after { content: ""; position: absolute; top: 50%; left: 50%; width: var(--control); height: var(--control); transform: translate(-50%, -50%); border: 1px solid var(--control-border-strong); border-radius: 50%; pointer-events: none; }
+/* One outline, as tall as a button, slides to whichever page is open. The five slots are the five tabs. */
+.tab-ring {
+  position: absolute; top: 50%; left: var(--space-8); width: calc((100% - 2 * var(--space-8)) / 5); height: var(--control);
+  transform: translate(calc(var(--tab-i, 0) * 100%), -50%); transition: transform 0.38s var(--ease), opacity 0.2s; pointer-events: none;
+}
+.tab-ring[data-on="false"] { opacity: 0; }
+.tab-ring[data-fresh="true"], .tab-ring[data-on="false"] { transition: opacity 0.2s; }
+.tab-ring::before { content: ""; position: absolute; inset: 0 auto; left: 50%; width: min(64px, calc(100% - 8px)); transform: translateX(-50%); border: 1px solid var(--control-border-strong); border-radius: var(--pill); }
+@media (prefers-reduced-motion: reduce) { .tab-ring { transition: none; } }
 .tab:active { transform: scale(0.9); }
 .tab:focus-visible { outline: none; box-shadow: none; border-radius: var(--pill); }
 .tab-icon { position: relative; display: grid; }
@@ -3079,4 +3086,10 @@ html[data-nav="loading"] .nav-progress { --nav-p: 88%; opacity: 1; transition: -
 html[data-nav="done"] .nav-progress { --nav-p: 100%; opacity: 0; transition: --nav-p 0.25s ease-out, opacity 0.35s 0.2s; }
 @media (prefers-reduced-motion: reduce) {
   html[data-nav="loading"] .nav-progress { --nav-p: 100%; transition: opacity 0.2s; }
+}
+
+/* On phones the menu bar, and everything that floats above it (film bar, menus, dialogs, toasts, buttons),
+   run to 20px from each edge of the screen. */
+@media (max-width: 639px) {
+  :root { --floating-width: calc(100vw - 40px); }
 }
