@@ -1973,7 +1973,7 @@ html[data-chrome="admin"] .site-header > :not(dialog), html[data-chrome="admin"]
 html[data-chrome="admin"] .site-header { display: contents; }
 html[data-chrome="app"] {
   --tab-gap: calc(var(--space-12) + env(safe-area-inset-bottom));
-  --tab-h: 60px;
+  --tab-h: 66px; /* 48px ring + 8px gap above and below + the 1px border each side */
   --tab-width: var(--floating-width);
   --floating-bottom: calc(var(--tab-gap) + var(--tab-h) + 10px);
   --tab-bar: calc(var(--tab-h) + var(--tab-gap) + var(--space-12));
@@ -1999,14 +1999,15 @@ html[data-chrome="app"] .tab-bar {
 .tab .icon { width: var(--control-icon); height: var(--control-icon); stroke-width: 1.5; }
 .tab:hover { color: var(--ink); }
 .tab[aria-current="page"] { color: var(--ink); }
-/* One outline, as tall as a button, slides to whichever page is open. The five slots are the five tabs. */
+/* One outline, as tall as a button, slides to whichever page is open. The five slots are the five tabs and
+   the outline fills its slot, so its gap to the bar's edge is 8px on the left, top and bottom alike, on any screen. */
 .tab-ring {
   position: absolute; top: 50%; left: var(--space-8); width: calc((100% - 2 * var(--space-8)) / 5); height: var(--control);
   transform: translate(calc(var(--tab-i, 0) * 100%), -50%); transition: transform 0.38s var(--ease), opacity 0.2s; pointer-events: none;
 }
 .tab-ring[data-on="false"] { opacity: 0; }
 .tab-ring[data-fresh="true"], .tab-ring[data-on="false"] { transition: opacity 0.2s; }
-.tab-ring::before { content: ""; position: absolute; inset: 0 auto; left: 50%; width: min(64px, calc(100% - 8px)); transform: translateX(-50%); border: 1px solid var(--control-border-strong); border-radius: var(--pill); }
+.tab-ring::before { content: ""; position: absolute; inset: 0; border: 1px solid var(--control-border-strong); border-radius: var(--pill); }
 @media (prefers-reduced-motion: reduce) { .tab-ring { transition: none; } }
 .tab:active { transform: scale(0.9); }
 .tab:focus-visible { outline: none; box-shadow: none; border-radius: var(--pill); }
