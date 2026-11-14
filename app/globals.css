@@ -1973,7 +1973,7 @@ html[data-chrome="admin"] .site-header > :not(dialog), html[data-chrome="admin"]
 html[data-chrome="admin"] .site-header { display: contents; }
 html[data-chrome="app"] {
   --tab-gap: calc(var(--space-12) + env(safe-area-inset-bottom));
-  --tab-h: 58px;
+  --tab-h: 60px;
   --tab-width: var(--floating-width);
   --floating-bottom: calc(var(--tab-gap) + var(--tab-h) + 10px);
   --tab-bar: calc(var(--tab-h) + var(--tab-gap) + var(--space-12));
@@ -1999,8 +1999,8 @@ html[data-chrome="app"] .tab-bar {
 .tab .icon { width: var(--control-icon); height: var(--control-icon); stroke-width: 1.5; }
 .tab:hover { color: var(--ink); }
 .tab[aria-current="page"] { color: var(--ink); }
-/* The open page's icon sits in a round 40px outline, like the filter control. */
-.tab[aria-current="page"]::after { content: ""; position: absolute; top: 50%; left: 50%; width: 40px; height: 40px; transform: translate(-50%, -50%); border: 1px solid var(--control-border-strong); border-radius: 50%; pointer-events: none; }
+/* The open page's icon sits in a round outline as tall as a button. */
+.tab[aria-current="page"]::after { content: ""; position: absolute; top: 50%; left: 50%; width: var(--control); height: var(--control); transform: translate(-50%, -50%); border: 1px solid var(--control-border-strong); border-radius: 50%; pointer-events: none; }
 .tab:active { transform: scale(0.9); }
 .tab:focus-visible { outline: none; box-shadow: none; border-radius: var(--pill); }
 .tab-icon { position: relative; display: grid; }
