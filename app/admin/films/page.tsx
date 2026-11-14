@@ -43,11 +43,16 @@ export default async function AdminFilms({ searchParams }: { searchParams: Promi
   const sort = SORTS.includes(sp.sort ?? "") ? sp.sort! : "newest";
   const status = ["draft", "published"].includes(sp.status ?? "") ? sp.status! : "";
   const type = TYPES.includes(sp.type ?? "") ? sp.type! : "";
-  const missing = sp.missing === "any" || sp.missing! in MISSING ? sp.missing! : "";
+  const missing = sp.missing === "any" || sp.missing === "director" || sp.missing! in MISSING ? sp.missing! : "";
   const featured = ["yes", "no"].includes(sp.featured ?? "") ? sp.featured! : "";
   const decade = /^\d{4}$/.test(sp.decade ?? "") ? Number(sp.decade) : null;
   const country = /^[A-Za-z]{2}$/.test(sp.country ?? "") ? sp.country!.toUpperCase() : "";
   const genre = (sp.genre ?? "").trim().slice(0, 60);
+
+  // Films with no director credit: the database lists them (up to 500), and the list is filtered to those.
+  const noDirector: string[] = missing === "director"
+    ? ((await db.rpc("admin_films_without_director")).data as string[] | null) ?? []
+    : [];
 
   const build = () => {
     let query = db.from("films")
@@ -55,6 +60,7 @@ export default async function AdminFilms({ searchParams }: { searchParams: Promi
     if (status) query = query.eq("status", status);
     if (type) query = query.eq("type", type);
     if (missing === "any") query = query.or(MISSING_ANY);
+    else if (missing === "director") query = query.in("id", noDirector.length ? noDirector.slice(0, 200) : ["00000000-0000-0000-0000-000000000000"]);
     else if (missing) query = query.or(MISSING[missing].or);
     if (featured) query = query.eq("featured", featured === "yes");
     if (country) query = query.contains("countries", [country]);
@@ -119,7 +125,7 @@ export default async function AdminFilms({ searchParams }: { searchParams: Promi
         { name: "country", label: "Country", value: country, options: [{ value: "", label: "All countries" }, ...countries.map((code) => ({ value: code, label: countryName(code) }))] },
         { name: "genre", label: "Genre", value: genre, options: [{ value: "", label: "All genres" }, ...genres.map((value) => ({ value, label: value }))] },
         { name: "featured", label: "Featured", value: featured, options: [{ value: "", label: "All" }, { value: "yes", label: "Featured" }, { value: "no", label: "Not featured" }] },
-        { name: "missing", label: "Needs fixing", value: missing, options: [{ value: "", label: "Nothing in particular" }, { value: "any", label: "Missing any key detail" }, ...Object.entries(MISSING).map(([value, m]) => ({ value, label: m.label }))] },
+        { name: "missing", label: "Needs fixing", value: missing, options: [{ value: "", label: "Nothing in particular" }, { value: "any", label: "Missing any key detail" }, { value: "director", label: "Missing director" }, ...Object.entries(MISSING).map(([value, m]) => ({ value, label: m.label }))] },
         { name: "sort", label: "Sort by", value: sort, options: [{ value: "newest", label: "Newest releases" }, { value: "oldest", label: "Oldest releases" }, { value: "title", label: "Title A–Z" }, { value: "recent", label: "Recently updated" }, { value: "added", label: "Latest added" }] },
       ]} />
       {error ? <p className="notice error">Could not load films. Try again.</p> : (
