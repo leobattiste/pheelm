@@ -1973,7 +1973,8 @@ html[data-chrome="admin"] .site-header > :not(dialog), html[data-chrome="admin"]
 html[data-chrome="admin"] .site-header { display: contents; }
 html[data-chrome="app"] {
   --tab-gap: calc(var(--space-12) + env(safe-area-inset-bottom));
-  --tab-h: 66px; /* 48px ring + 8px gap above and below + the 1px border each side */
+  --ring-gap: 10px; /* from the ring to the bar's left, top and bottom edges */
+  --tab-h: calc(var(--control) + 2 * var(--ring-gap) + 2px); /* ring + gaps + the 1px border each side: 70px */
   --tab-width: var(--floating-width);
   --floating-bottom: calc(var(--tab-gap) + var(--tab-h) + 10px);
   --tab-bar: calc(var(--tab-h) + var(--tab-gap) + var(--space-12));
@@ -1985,7 +1986,7 @@ html[data-chrome="app"] body { padding-bottom: var(--tab-bar); }
 html[data-chrome="app"] .tab-bar {
   position: fixed; z-index: 35; left: 50%; bottom: var(--tab-gap); transform: translateX(-50%);
   display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
-  width: var(--tab-width); height: var(--tab-h); padding: 0 var(--space-8);
+  width: var(--tab-width); height: var(--tab-h); padding: 0 var(--ring-gap);
   border: 1px solid var(--line); border-radius: var(--pill);
   background: var(--glass-bg);
   -webkit-backdrop-filter: var(--glass-filter); backdrop-filter: var(--glass-filter);
@@ -2000,9 +2001,9 @@ html[data-chrome="app"] .tab-bar {
 .tab:hover { color: var(--ink); }
 .tab[aria-current="page"] { color: var(--ink); }
 /* One outline, as tall as a button, slides to whichever page is open. The five slots are the five tabs and
-   the outline fills its slot, so its gap to the bar's edge is 8px on the left, top and bottom alike, on any screen. */
+   the outline fills its slot, so its gap to the bar's edge is --ring-gap (10px) on the left, top and bottom alike, on any screen. */
 .tab-ring {
-  position: absolute; top: 50%; left: var(--space-8); width: calc((100% - 2 * var(--space-8)) / 5); height: var(--control);
+  position: absolute; top: 50%; left: var(--ring-gap); width: calc((100% - 2 * var(--ring-gap)) / 5); height: var(--control);
   transform: translate(calc(var(--tab-i, 0) * 100%), -50%); transition: transform 0.38s var(--ease), opacity 0.2s; pointer-events: none;
 }
 .tab-ring[data-on="false"] { opacity: 0; }
