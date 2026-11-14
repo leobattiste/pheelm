@@ -137,8 +137,8 @@ svg { flex-shrink: 0; }
 
 /* Controls ----------------------------------------------------------------------------
    One system for everything you press or type into.
-   Sizes: --control (48px, border included) for buttons, fields, search bars, tabs and icon buttons;
-          --control-sm (40px) only for the segments inside a switch; every button, chip and tab is --control.
+   Sizes: --control (55px, border included) for buttons, fields, search bars, tabs and icon buttons;
+          --control-sm (47px) only for the segments inside a switch; every button, chip and tab is --control.
    Shape: anything one line tall is a pill; taller things (text areas) get the 18px corners.
    Looks: .button (primary, solid ink) · .button.ghost (secondary, outlined) ·
           .button.quiet / .icon-button (no border until hovered) · .pill-button / .round-button
@@ -146,9 +146,9 @@ svg { flex-shrink: 0; }
    States are the same everywhere: hover fill, press to 97%, one focus ring, 45% when disabled. */
 
 :root {
-  --bar-height: 48px;
-  --control: 48px;
-  --control-sm: 40px;
+  --bar-height: 55px;
+  --control: 55px;
+  --control-sm: 47px;
   --control-pad: var(--space-20);
   --control-pad-sm: var(--space-16);
   --control-gap: var(--space-8);
@@ -261,7 +261,7 @@ svg { flex-shrink: 0; }
   font-weight: 700;
 }
 
-/* Switches (poster view, Light/Dark): a 48px pill holding 40px segments. */
+/* Switches (poster view, Light/Dark): a 55px pill holding 47px segments. */
 .segmented, .theme-toggle {
   display: inline-flex;
   gap: var(--space-2);
@@ -279,7 +279,7 @@ svg { flex-shrink: 0; }
   background: none;
   color: var(--muted);
 }
-.segmented button { padding: 0; width: 44px; }
+.segmented button { padding: 0; width: 51px; }
 .segmented button:hover, .theme-toggle button:hover { color: var(--ink); }
 :is(.segmented, .theme-toggle) button[aria-checked="true"] { background: var(--raised); color: var(--ink); }
 .segmented svg { width: var(--control-icon); height: var(--control-icon); fill: currentColor; }
@@ -1973,8 +1973,8 @@ html[data-chrome="admin"] .site-header > :not(dialog), html[data-chrome="admin"]
 html[data-chrome="admin"] .site-header { display: contents; }
 html[data-chrome="app"] {
   --tab-gap: calc(var(--space-12) + env(safe-area-inset-bottom));
-  --ring-gap: 10px; /* from the ring to the bar's left, top and bottom edges */
-  --tab-h: calc(var(--control) + 2 * var(--ring-gap) + 2px); /* ring + gaps + the 1px border each side: 70px */
+  --ring-gap: 3px; /* from the ring to the bar's left, top and bottom edges */
+  --tab-h: calc(var(--control) + 2 * var(--ring-gap) + 2px); /* ring + gaps + the 1px border each side: 56px */
   --tab-width: var(--floating-width);
   --floating-bottom: calc(var(--tab-gap) + var(--tab-h) + 10px);
   --tab-bar: calc(var(--tab-h) + var(--tab-gap) + var(--space-12));
@@ -2001,7 +2001,7 @@ html[data-chrome="app"] .tab-bar {
 .tab:hover { color: var(--ink); }
 .tab[aria-current="page"] { color: var(--ink); }
 /* One outline, as tall as a button, slides to whichever page is open. The five slots are the five tabs and
-   the outline fills its slot, so its gap to the bar's edge is --ring-gap (10px) on the left, top and bottom alike, on any screen. */
+   the outline fills its slot, so its gap to the bar's edge is --ring-gap (3px) on the left, top and bottom alike, on any screen. */
 .tab-ring {
   position: absolute; top: 50%; left: var(--ring-gap); width: calc((100% - 2 * var(--ring-gap)) / 5); height: var(--control);
   transform: translate(calc(var(--tab-i, 0) * 100%), -50%); transition: transform 0.38s var(--ease), opacity 0.2s; pointer-events: none;
