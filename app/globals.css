@@ -3096,3 +3096,85 @@ html[data-nav="done"] .nav-progress { --nav-p: 100%; opacity: 0; transition: --n
 @media (max-width: 639px) {
   :root { --floating-width: calc(100vw - 40px); }
 }
+
+/* ---------------------------------------------------------------------------------------------------
+   Liquid Glass, after Apple's "Adopting Liquid Glass".
+   - It is for the layer that floats above the content, and only there: the menu bar, the film bar,
+     back-to-top, toasts, menus, sheets, dialogs and popovers. Cards, fields and chips stay on the page.
+   - Glass is never layered on glass: the open-page ring inside the menu bar is a tint, not a second blur.
+   - Colour stays out of the material, so the content behind it shows through (more transparent for bars,
+     denser for panels that hold text).
+   - Light catches the edges: a bright rim on top, a soft one below, and a faint sheen across the face.
+   - It adapts: reduced transparency and more contrast give solid surfaces; no backdrop blur gives the same.
+   Safari and Chrome can't bend the light behind glass the way iOS does, so this is the look without refraction.
+   --------------------------------------------------------------------------------------------------- */
+:root[data-theme="dark"] {
+  --lg-bar: rgb(255 255 255 / 0.1);
+  --lg-panel: rgb(34 34 34 / 0.74);
+  --lg-edge: rgb(255 255 255 / 0.2);
+  --lg-rim: rgb(255 255 255 / 0.42);
+  --lg-sheen: rgb(255 255 255 / 0.14);
+  --lg-lens: rgb(255 255 255 / 0.16);
+  --lg-shadow: 0 14px 34px -10px rgb(0 0 0 / 0.6), 0 2px 8px rgb(0 0 0 / 0.3);
+  --lg-solid: #262626;
+}
+:root[data-theme="light"] {
+  --lg-bar: rgb(255 255 255 / 0.5);
+  --lg-panel: rgb(255 255 255 / 0.8);
+  --lg-edge: rgb(0 0 0 / 0.08);
+  --lg-rim: rgb(255 255 255 / 0.95);
+  --lg-sheen: rgb(255 255 255 / 0.7);
+  --lg-lens: rgb(0 0 0 / 0.07);
+  --lg-shadow: 0 14px 34px -10px rgb(0 0 0 / 0.28), 0 2px 8px rgb(0 0 0 / 0.1);
+  --lg-solid: #fafafa;
+}
+:root {
+  --lg-filter: blur(14px) saturate(1.9);
+  --lg-filter-panel: blur(24px) saturate(1.7);
+  --lg-face: linear-gradient(155deg, var(--lg-sheen) 0%, transparent 36%, transparent 64%, color-mix(in srgb, var(--lg-sheen) 40%, transparent) 100%);
+}
+
+/* Bars and floating buttons. */
+:root:root :is(html[data-chrome="app"] .tab-bar, .film-bar, .back-to-top, .toast) {
+  background-color: var(--lg-bar);
+  background-image: var(--lg-face);
+  -webkit-backdrop-filter: var(--lg-filter);
+  backdrop-filter: var(--lg-filter);
+  border: 1px solid var(--lg-edge);
+  box-shadow: inset 0 1px 0 var(--lg-rim), inset 0 -1px 0 color-mix(in srgb, var(--lg-rim) 30%, transparent), var(--lg-shadow);
+}
+:root:root .back-to-top:hover { background-color: color-mix(in srgb, var(--lg-bar), var(--lg-lens) 60%); }
+
+/* Menus, sheets, dialogs and popovers hold text, so they are denser and blur more. */
+:root:root :is(.menu-sheet, .modal, .search-dialog, .trailer-dialog, .more-panel, .catalog-suggestions) {
+  background-color: var(--lg-panel);
+  background-image: var(--lg-face);
+  -webkit-backdrop-filter: var(--lg-filter-panel);
+  backdrop-filter: var(--lg-filter-panel);
+  border: 1px solid var(--lg-edge);
+  box-shadow: inset 0 1px 0 var(--lg-rim), var(--lg-shadow);
+}
+
+/* The open page is a lens inside the menu bar: a tint with its own highlight, not another layer of glass. */
+.tab-ring::before {
+  border-color: transparent;
+  background: var(--lg-lens);
+  box-shadow: inset 0 1px 0 var(--lg-rim), inset 0 0 0 1px color-mix(in srgb, var(--lg-edge) 70%, transparent);
+}
+
+/* Scroll edge: content fades out beneath the floating bar instead of running into it. */
+html[data-chrome="app"] body::after {
+  content: ""; position: fixed; inset: auto 0 0 0; z-index: 29; pointer-events: none;
+  height: calc(var(--tab-h) + var(--tab-gap) + 28px);
+  background: linear-gradient(to top, color-mix(in srgb, var(--bg) 86%, transparent) 25%, transparent);
+}
+
+/* Reduced transparency, more contrast, or no backdrop blur: solid surfaces, same shapes. */
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  :root:root[data-theme] { --lg-bar: var(--lg-solid); --lg-panel: var(--lg-solid); --lg-filter: none; --lg-filter-panel: none; --lg-face: none; }
+  :root:root :is(html[data-chrome="app"] .tab-bar, .film-bar, .back-to-top, .toast, .menu-sheet, .modal, .search-dialog, .trailer-dialog, .more-panel, .catalog-suggestions) { border-color: var(--line-strong, var(--line)); }
+  html[data-chrome="app"] body::after { display: none; }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root:root[data-theme] { --lg-bar: var(--lg-solid); --lg-panel: var(--lg-solid); --lg-face: none; }
+}
