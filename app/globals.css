@@ -3199,8 +3199,8 @@ html[data-nav="done"] .nav-progress { --nav-p: 100%; opacity: 0; transition: --n
 /* Inside a panel, a floating bar or a card, controls keep the look but don't blur a second time. */
 :root:root:root :is(.modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .collection-tile, .admin-managed-card, .fieldset, .public-name, .person-head, .catalog-suggestions)
   :is(.button, .chip, .search-trigger, .link-chip, .pill-button, .round-button, .icon-button, .watch-platform, .segmented, .theme-toggle, .grid-toggle, input, select, textarea, .composer, .collection-tile) {
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
 }
 /* The film bar's buttons sit in the bar's own glass; the menu bar's tabs are bare icons. */
 :root:root:root .tab-bar .tab { background: none; box-shadow: none; }

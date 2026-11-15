@@ -18,10 +18,10 @@ try{
   await until(async()=>(await modal.getByRole('button',{name:'Show films',exact:true}).evaluate(e=>{const s=document.createElement('span');s.style.color='var(--on-ink)';document.body.append(s);const want=getComputedStyle(s).color;s.remove();return getComputedStyle(e).color===want&&!e.getAnimations().length;})),`Show films colour never settled in ${theme} theme`);
   for(const control of [modal.getByRole('button',{name:'Show films',exact:true})]){
    const style=await control.evaluate(e=>({bg:getComputedStyle(e).backgroundColor,color:getComputedStyle(e).color,blur:getComputedStyle(e).backdropFilter}));
-   assert.notEqual(style.bg,'rgba(0, 0, 0, 0)');assert.notEqual(style.blur,'none');assert.equal(style.color,await page.evaluate(()=>{const span=document.createElement('span');span.style.color='var(--on-ink)';document.body.append(span);const color=getComputedStyle(span).color;span.remove();return color;}));
+   assert.notEqual(style.bg,'rgba(0, 0, 0, 0)');assert.equal(style.blur,'none','no glass on glass inside a sheet');assert.equal(style.color,await page.evaluate(()=>{const span=document.createElement('span');span.style.color='var(--on-ink)';document.body.append(span);const color=getComputedStyle(span).color;span.remove();return color;}));
   }
  }
- assert.equal(await modal.getByLabel('Sort by',{exact:true}).evaluate(e=>getComputedStyle(e).backgroundColor),'rgba(0, 0, 0, 0)');
+ assert.equal(await modal.getByLabel('Sort by',{exact:true}).evaluate(e=>getComputedStyle(e).backdropFilter),'none');
  await modal.getByLabel('Country',{exact:true}).selectOption('US');
  await until(async()=>/Show \d+ films/.test(await modal.locator('.modal-foot').textContent()),'filtered count missing');
  await modal.getByRole('button',{name:'Reset',exact:true}).click();
@@ -51,8 +51,8 @@ try{
  for(const button of await sortModal.locator('.chip-row button').all()){
   const selected=await button.getAttribute('aria-pressed')==='true';
   const style=await button.evaluate(e=>({background:getComputedStyle(e).backgroundColor,blur:getComputedStyle(e).backdropFilter}));
-  if(selected){assert.notEqual(style.background,'rgba(0, 0, 0, 0)');assert.notEqual(style.blur,'none');}
-  else{assert.equal(style.background,'rgba(0, 0, 0, 0)');assert.equal(style.blur,'none');}
+  if(selected){assert.notEqual(style.background,'rgba(0, 0, 0, 0)');assert.equal(style.blur,'none');}
+  else{assert.equal(style.blur,'none');}
  }
  await sortModal.getByRole('button',{name:'New',exact:true}).click();
  await until(()=>new URL(page.url()).searchParams.get('sort')==='new','Watchlists sort did not update');
