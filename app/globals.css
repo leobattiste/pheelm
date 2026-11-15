@@ -3138,7 +3138,7 @@ html[data-nav="done"] .nav-progress { --nav-p: 100%; opacity: 0; transition: --n
   --lg-filter: blur(14px) saturate(1.9);
   --lg-filter-panel: blur(28px) saturate(1.7);
   --lg-face: linear-gradient(160deg, var(--lg-sheen) 0%, transparent 38%, transparent 66%, color-mix(in srgb, var(--lg-sheen) 35%, transparent) 100%);
-  --lg-edges: inset 0 1px 0 var(--lg-rim), inset 0 -1px 0 var(--lg-rim-low), inset 0 0 0 1px var(--lg-rim-low);
+  --lg-edges: 0 0 0 0 transparent;
   /* Anything still drawing a hairline from the old tokens draws nothing. */
   --control-border: transparent;
   --control-border-strong: transparent;
@@ -3171,7 +3171,7 @@ html[data-nav="done"] .nav-progress { --nav-p: 100%; opacity: 0; transition: --n
 }
 /* Fields show focus with a ring, since they have no outline to darken. */
 :root:root:root :is(.search-bar input, .field input, .field select, .field textarea, .search-input, .save-new input, .newsletter-row input, .invite-combo input):focus,
-:root:root:root .composer:focus-within { box-shadow: var(--lg-edges), inset 0 0 0 1.5px var(--ink); outline: none; }
+:root:root:root .composer:focus-within { background-color: var(--lg-clear-hover); box-shadow: none; outline: none; }
 
 /* Prominent glass: primary buttons and anything selected, pressed or current. */
 :root:root:root :is(.button:not(.ghost):not(.quiet):not(.danger):not(.danger-text),
@@ -3182,7 +3182,7 @@ html[data-nav="done"] .nav-progress { --nav-p: 100%; opacity: 0; transition: --n
   color: var(--on-ink) !important;
   -webkit-backdrop-filter: var(--lg-filter);
   backdrop-filter: var(--lg-filter);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--lg-rim) 70%, transparent), 0 6px 18px -10px rgb(0 0 0 / 0.5);
+  box-shadow: 0 6px 18px -10px rgb(0 0 0 / 0.5);
 }
 :root:root:root .button:not(.ghost):not(.quiet):not(.danger):not(.danger-text):hover:not(:disabled) { background-color: color-mix(in srgb, var(--lg-prominent) 86%, transparent) !important; }
 
@@ -3193,7 +3193,7 @@ html[data-nav="done"] .nav-progress { --nav-p: 100%; opacity: 0; transition: --n
   background-image: var(--lg-face);
   -webkit-backdrop-filter: var(--lg-filter-panel);
   backdrop-filter: var(--lg-filter-panel);
-  box-shadow: var(--lg-edges), 0 24px 60px -18px rgb(0 0 0 / 0.55);
+  box-shadow: 0 24px 60px -18px rgb(0 0 0 / 0.55);
 }
 
 /* Inside a panel, a floating bar or a card, controls keep the look but don't blur a second time. */
@@ -3206,7 +3206,19 @@ html[data-nav="done"] .nav-progress { --nav-p: 100%; opacity: 0; transition: --n
 :root:root:root .tab-bar .tab { background: none; box-shadow: none; }
 
 /* The open page is a lens inside the menu bar: a tint with its own highlight, not another layer of glass. */
-.tab-ring::before { border-color: transparent; background: var(--lg-lens); box-shadow: inset 0 1px 0 var(--lg-rim), inset 0 0 0 1px var(--lg-rim-low); }
+.tab-ring::before { border: 0; background: var(--lg-lens); box-shadow: none; }
+
+/* The ⋯ menu button and the close cross have no background at all. */
+:root:root:root :is(.more-button, :is(dialog, .menu-sheet) :is(.icon-button[aria-label^="Close"], .search-close, .trailer-close)),
+:root:root:root :is(.more-button, :is(dialog, .menu-sheet) :is(.icon-button[aria-label^="Close"], .search-close, .trailer-close)):is(:hover, :focus-visible, :active) {
+  background: none; background-image: none; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+/* The ⋯ menu's sheet is a solid-looking glass, since it can't blur what sits behind a glass parent; its rows have no background until hovered. */
+:root:root:root .more-panel { background-color: color-mix(in srgb, var(--lg-solid) 96%, transparent); -webkit-backdrop-filter: none; backdrop-filter: none; }
+:root:root:root .more-panel :is(.button, .link-button, .round-button) { background: none; background-image: none; box-shadow: none; }
+@media (hover: hover) { :root:root:root .more-panel :is(.button, .link-button):hover { background: var(--lg-clear-hover); } }
+/* Remaining frames drawn as borders. */
+:root:root:root :is(.hf-stage, .shot-dark, .shot-light, kbd, .tab-bar, .film-bar) { border-color: transparent; }
 
 /* Nothing dims or blurs the page behind an open menu or dialog, or under the menu bar. */
 :root:root dialog::backdrop, :root:root .menu-sheet::backdrop { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
