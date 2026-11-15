@@ -3098,83 +3098,125 @@ html[data-nav="done"] .nav-progress { --nav-p: 100%; opacity: 0; transition: --n
 }
 
 /* ---------------------------------------------------------------------------------------------------
-   Liquid Glass, after Apple's "Adopting Liquid Glass".
-   - It is for the layer that floats above the content, and only there: the menu bar, the film bar,
-     back-to-top, toasts, menus, sheets, dialogs and popovers. Cards, fields and chips stay on the page.
-   - Glass is never layered on glass: the open-page ring inside the menu bar is a tint, not a second blur.
-   - Colour stays out of the material, so the content behind it shows through (more transparent for bars,
-     denser for panels that hold text).
-   - Light catches the edges: a bright rim on top, a soft one below, and a faint sheen across the face.
-   - It adapts: reduced transparency and more contrast give solid surfaces; no backdrop blur gives the same.
-   Safari and Chrome can't bend the light behind glass the way iOS does, so this is the look without refraction.
+   Liquid Glass, after Apple's "Adopting Liquid Glass", on every surface: the menu bar and floating controls,
+   menus, sheets and dialogs, cards, fields, chips, toggles, and primary and secondary buttons.
+   - No outlines: the edges are lit instead (a bright rim on top, a soft one below) with a faint sheen.
+   - Secondary controls are clear glass; primary and selected ones are prominent glass, tinted with ink.
+   - Panels that hold text (menus, sheets, dialogs) are denser so they stay readable with nothing dimmed
+     behind them.
+   - Glass isn't stacked on glass: controls inside a panel or card keep the look but don't blur again.
+   - Reduced transparency, more contrast, or no backdrop blur give solid surfaces with the same shapes.
+   Browsers can't bend the light behind glass the way iOS does, so this is the look without refraction.
    --------------------------------------------------------------------------------------------------- */
 :root[data-theme="dark"] {
-  --lg-bar: rgb(255 255 255 / 0.1);
-  --lg-panel: rgb(34 34 34 / 0.74);
-  --lg-edge: rgb(255 255 255 / 0.2);
-  --lg-rim: rgb(255 255 255 / 0.42);
-  --lg-sheen: rgb(255 255 255 / 0.14);
+  --lg-clear: rgb(255 255 255 / 0.08);
+  --lg-bar: rgb(38 38 38 / 0.55);
+  --lg-clear-hover: rgb(255 255 255 / 0.14);
+  --lg-panel: rgb(30 30 30 / 0.82);
+  --lg-rim: rgb(255 255 255 / 0.3);
+  --lg-rim-low: rgb(255 255 255 / 0.08);
+  --lg-sheen: rgb(255 255 255 / 0.1);
   --lg-lens: rgb(255 255 255 / 0.16);
-  --lg-shadow: 0 14px 34px -10px rgb(0 0 0 / 0.6), 0 2px 8px rgb(0 0 0 / 0.3);
+  --lg-prominent: rgb(255 255 255 / 0.9);
+  --lg-shadow: 0 10px 30px -12px rgb(0 0 0 / 0.65), 0 1px 3px rgb(0 0 0 / 0.3);
   --lg-solid: #262626;
 }
 :root[data-theme="light"] {
-  --lg-bar: rgb(255 255 255 / 0.5);
-  --lg-panel: rgb(255 255 255 / 0.8);
-  --lg-edge: rgb(0 0 0 / 0.08);
+  --lg-clear: rgb(0 0 0 / 0.04);
+  --lg-bar: rgb(255 255 255 / 0.74);
+  --lg-clear-hover: rgb(0 0 0 / 0.07);
+  --lg-panel: rgb(255 255 255 / 0.86);
   --lg-rim: rgb(255 255 255 / 0.95);
-  --lg-sheen: rgb(255 255 255 / 0.7);
+  --lg-rim-low: rgb(0 0 0 / 0.06);
+  --lg-sheen: rgb(255 255 255 / 0.65);
   --lg-lens: rgb(0 0 0 / 0.07);
-  --lg-shadow: 0 14px 34px -10px rgb(0 0 0 / 0.28), 0 2px 8px rgb(0 0 0 / 0.1);
-  --lg-solid: #fafafa;
+  --lg-prominent: rgb(17 17 17 / 0.88);
+  --lg-shadow: 0 10px 30px -12px rgb(0 0 0 / 0.25), 0 1px 3px rgb(0 0 0 / 0.1);
+  --lg-solid: #f3f3f3;
 }
 :root {
   --lg-filter: blur(14px) saturate(1.9);
-  --lg-filter-panel: blur(24px) saturate(1.7);
-  --lg-face: linear-gradient(155deg, var(--lg-sheen) 0%, transparent 36%, transparent 64%, color-mix(in srgb, var(--lg-sheen) 40%, transparent) 100%);
+  --lg-filter-panel: blur(28px) saturate(1.7);
+  --lg-face: linear-gradient(160deg, var(--lg-sheen) 0%, transparent 38%, transparent 66%, color-mix(in srgb, var(--lg-sheen) 35%, transparent) 100%);
+  --lg-edges: inset 0 1px 0 var(--lg-rim), inset 0 -1px 0 var(--lg-rim-low), inset 0 0 0 1px var(--lg-rim-low);
+  /* Anything still drawing a hairline from the old tokens draws nothing. */
+  --control-border: transparent;
+  --control-border-strong: transparent;
 }
 
-/* Bars and floating buttons. */
-:root:root :is(html[data-chrome="app"] .tab-bar, .film-bar, .back-to-top, .toast) {
-  background-color: var(--lg-bar);
+/* Clear glass: floating bars, cards, fields and secondary controls. */
+:root:root:root :is(
+  html[data-chrome="app"] .tab-bar, .film-bar, .back-to-top, .toast,
+  .collection-tile, .admin-managed-card, .ways li, .anniversary a, .stat, .fieldset, .inbox li, .public-name, .person-head,
+  .person-facts > div, .filmography > li, .welcome-person, .cast a, .cast button, .cta-card, .catalog-interpretation,
+  .button.ghost, .button.quiet, .chip, .search-trigger, .link-chip, .pill-button, .round-button, .icon-button, .watch-platform,
+  .segmented, .theme-toggle, .grid-toggle,
+  .search-bar input, .field input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="color"]),
+  .field select, .field textarea, .search-input, .save-new input, .newsletter-row input, .invite-combo input, .composer
+):not(:where([aria-pressed="true"], [aria-selected="true"], [aria-current="page"], [aria-checked="true"], .danger, .danger-text, .admin .editor .fieldset, .admin-toolbox .fieldset, .admin-managed-card > .collection-tile)) {
+  border-color: transparent;
+  background-color: var(--lg-clear);
   background-image: var(--lg-face);
   -webkit-backdrop-filter: var(--lg-filter);
   backdrop-filter: var(--lg-filter);
-  border: 1px solid var(--lg-edge);
-  box-shadow: inset 0 1px 0 var(--lg-rim), inset 0 -1px 0 color-mix(in srgb, var(--lg-rim) 30%, transparent), var(--lg-shadow);
+  box-shadow: var(--lg-edges);
 }
-:root:root .back-to-top:hover { background-color: color-mix(in srgb, var(--lg-bar), var(--lg-lens) 60%); }
+/* Floating things sit over anything (posters, photos), so they are denser, and cast a shadow. */
+:root:root:root :is(html[data-chrome="app"] .tab-bar, .film-bar, .back-to-top, .toast) { background-color: var(--lg-bar); box-shadow: var(--lg-edges), var(--lg-shadow); }
+@media (hover: hover) {
+  :root:root:root :is(.button.ghost, .button.quiet, .chip, .search-trigger, .link-chip, .pill-button, .round-button, .icon-button, .watch-platform, .back-to-top,
+    .collection-tile, .anniversary a, .stat, .welcome-person, .cast a, .cast button):not(:where([aria-pressed="true"], [aria-selected="true"], [aria-current="page"], [aria-checked="true"], .danger, .danger-text)):hover {
+    background-color: var(--lg-clear-hover);
+  }
+}
+/* Fields show focus with a ring, since they have no outline to darken. */
+:root:root:root :is(.search-bar input, .field input, .field select, .field textarea, .search-input, .save-new input, .newsletter-row input, .invite-combo input):focus,
+:root:root:root .composer:focus-within { box-shadow: var(--lg-edges), inset 0 0 0 1.5px var(--ink); outline: none; }
 
-/* Menus, sheets, dialogs and popovers hold text, so they are denser and blur more. */
-:root:root :is(.menu-sheet, .modal, .search-dialog, .trailer-dialog, .more-panel, .catalog-suggestions) {
+/* Prominent glass: primary buttons and anything selected, pressed or current. */
+:root:root:root :is(.button:not(.ghost):not(.quiet):not(.danger):not(.danger-text),
+  :is(.chip, .button, .pill-button, .segmented button, .theme-toggle button, .grid-toggle button):is([aria-pressed="true"], [aria-selected="true"], [aria-current="page"], [aria-checked="true"])) {
+  border-color: transparent;
+  background-color: var(--lg-prominent) !important;
+  background-image: var(--lg-face);
+  color: var(--on-ink) !important;
+  -webkit-backdrop-filter: var(--lg-filter);
+  backdrop-filter: var(--lg-filter);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--lg-rim) 70%, transparent), 0 6px 18px -10px rgb(0 0 0 / 0.5);
+}
+:root:root:root .button:not(.ghost):not(.quiet):not(.danger):not(.danger-text):hover:not(:disabled) { background-color: color-mix(in srgb, var(--lg-prominent) 86%, transparent) !important; }
+
+/* Panels that hold text: denser glass, blurring more. */
+:root:root:root :is(.menu-sheet, .modal, .search-dialog, .trailer-dialog, .more-panel, .catalog-suggestions) {
+  border-color: transparent;
   background-color: var(--lg-panel);
   background-image: var(--lg-face);
   -webkit-backdrop-filter: var(--lg-filter-panel);
   backdrop-filter: var(--lg-filter-panel);
-  border: 1px solid var(--lg-edge);
-  box-shadow: inset 0 1px 0 var(--lg-rim), var(--lg-shadow);
+  box-shadow: var(--lg-edges), 0 24px 60px -18px rgb(0 0 0 / 0.55);
 }
+
+/* Inside a panel, a floating bar or a card, controls keep the look but don't blur a second time. */
+:root:root:root :is(.modal, .search-dialog, .trailer-dialog, .menu-sheet, .more-panel, .film-bar, .tab-bar, .collection-tile, .admin-managed-card, .fieldset, .public-name, .person-head, .catalog-suggestions)
+  :is(.button, .chip, .search-trigger, .link-chip, .pill-button, .round-button, .icon-button, .watch-platform, .segmented, .theme-toggle, .grid-toggle, input, select, textarea, .composer, .collection-tile) {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+/* The film bar's buttons sit in the bar's own glass; the menu bar's tabs are bare icons. */
+:root:root:root .tab-bar .tab { background: none; box-shadow: none; }
 
 /* The open page is a lens inside the menu bar: a tint with its own highlight, not another layer of glass. */
-.tab-ring::before {
-  border-color: transparent;
-  background: var(--lg-lens);
-  box-shadow: inset 0 1px 0 var(--lg-rim), inset 0 0 0 1px color-mix(in srgb, var(--lg-edge) 70%, transparent);
-}
+.tab-ring::before { border-color: transparent; background: var(--lg-lens); box-shadow: inset 0 1px 0 var(--lg-rim), inset 0 0 0 1px var(--lg-rim-low); }
 
-/* Scroll edge: content fades out beneath the floating bar instead of running into it. */
-html[data-chrome="app"] body::after {
-  content: ""; position: fixed; inset: auto 0 0 0; z-index: 29; pointer-events: none;
-  height: calc(var(--tab-h) + var(--tab-gap) + 28px);
-  background: linear-gradient(to top, color-mix(in srgb, var(--bg) 86%, transparent) 25%, transparent);
-}
+/* Nothing dims or blurs the page behind an open menu or dialog, or under the menu bar. */
+:root:root dialog::backdrop, :root:root .menu-sheet::backdrop { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
+html[data-chrome="app"] body:has(dialog:modal)::after { content: none; }
 
 /* Reduced transparency, more contrast, or no backdrop blur: solid surfaces, same shapes. */
 @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
-  :root:root[data-theme] { --lg-bar: var(--lg-solid); --lg-panel: var(--lg-solid); --lg-filter: none; --lg-filter-panel: none; --lg-face: none; }
-  :root:root :is(html[data-chrome="app"] .tab-bar, .film-bar, .back-to-top, .toast, .menu-sheet, .modal, .search-dialog, .trailer-dialog, .more-panel, .catalog-suggestions) { border-color: var(--line-strong, var(--line)); }
-  html[data-chrome="app"] body::after { display: none; }
+  :root:root[data-theme] { --lg-clear: var(--lg-solid); --lg-bar: var(--lg-solid); --lg-clear-hover: var(--hover); --lg-panel: var(--surface); --lg-filter: none; --lg-filter-panel: none; --lg-face: none; --lg-prominent: var(--ink); --lg-rim-low: var(--line); }
 }
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  :root:root[data-theme] { --lg-bar: var(--lg-solid); --lg-panel: var(--lg-solid); --lg-face: none; }
+  :root:root[data-theme] { --lg-clear: var(--lg-solid); --lg-bar: var(--lg-solid); --lg-panel: var(--surface); --lg-prominent: var(--ink); --lg-face: none; }
 }
+

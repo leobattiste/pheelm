@@ -26,7 +26,7 @@ for(const theme of ['dark','light'])for(const width of [320,390,768,1440]){
  const geometry=await filters.evaluate(el=>{const rect=el.getBoundingClientRect(),body=el.querySelector('.modal-body'),bar=document.querySelector('.tab-bar').getBoundingClientRect();return{left:rect.left,right:rect.right,top:rect.top,bottom:rect.bottom,barTop:bar.top,scroll:el.scrollWidth,client:el.clientWidth,bodyScroll:body.scrollWidth,bodyClient:body.clientWidth}});
  assert.ok(geometry.left>=0&&geometry.right<=width+1,JSON.stringify({width,theme,...geometry}));assert.ok(geometry.top>=0);assert.ok(geometry.bottom<=geometry.barTop-9,'modal overlaps the main bar');assert.ok(geometry.scroll<=geometry.client+1);assert.ok(geometry.bodyScroll<=geometry.bodyClient+1);
  const primary=filters.getByRole('button',{name:'Show results',exact:true});assert.notEqual(await primary.evaluate(el=>getComputedStyle(el).backgroundColor),'rgba(0, 0, 0, 0)');
- const field=filters.getByRole('combobox',{name:'Status',exact:true});assert.equal(await field.evaluate(el=>getComputedStyle(el).backgroundColor),'rgba(0, 0, 0, 0)');
+ const field=filters.getByRole('combobox',{name:'Status',exact:true});assert.equal(await field.evaluate(el=>getComputedStyle(el).backdropFilter),'none','fields inside a sheet are not blurred a second time');
  assert.equal(await field.locator('..').locator('svg').count(),1);
  assert.equal(await filters.locator('.admin-selection-panel').evaluate(el=>getComputedStyle(el).boxShadow),'none');
  assert.ok(await filters.locator('.admin-filter-form').evaluate(el=>Array.from(el.querySelectorAll('.filter-field')).filter(n=>n.getBoundingClientRect().height).every(n=>n.getBoundingClientRect().bottom<=el.getBoundingClientRect().bottom+1)),'form controls overlap later sections');
