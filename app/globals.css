@@ -3224,6 +3224,54 @@ html[data-nav="done"] .nav-progress { --nav-p: 100%; opacity: 0; transition: --n
 :root:root dialog::backdrop, :root:root .menu-sheet::backdrop { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
 html[data-chrome="app"] body:has(dialog:modal)::after { content: none; }
 
+/* ---- Liquid Glass motion ----
+   Glass is fluid: it moves on springs, flexes under your finger and lights up where you touch it,
+   and menus grow out of the button that opened them. */
+:root {
+  --lg-spring: linear(0, 0.06 2.3%, 0.25 5.4%, 0.55 9.6%, 0.85 14.6%, 1.02 19.6%, 1.06 23.6%, 1.05 28%, 1.01 35%, 0.995 45%, 1);
+  --lg-glow: rgb(255 255 255 / 0.42);
+}
+:root[data-theme="light"] { --lg-glow: rgb(255 255 255 / 0.85); }
+:root:root:root :is(.button, .chip, .pill-button, .round-button, .icon-button, .search-trigger, .link-chip, .watch-platform, .back-to-top, .segmented button, .theme-toggle button, .grid-toggle button):not([role="tab"]) {
+  transition: transform 0.55s var(--lg-spring), background-color 0.2s, color 0.2s, box-shadow 0.3s;
+}
+/* Pressed: the control swells (glass flexes outward rather than sinking) and glows from the touch point. */
+:root:root:root :is(.button, .chip, .pill-button, .round-button, .icon-button, .search-trigger, .link-chip, .watch-platform, .back-to-top, .segmented button, .theme-toggle button, .grid-toggle button):not([role="tab"]):is(:active, [data-lg-press]):not(:disabled) {
+  transform: scale(1.06);
+  transition: transform 0.22s var(--lg-spring), background-color 0.2s, color 0.2s;
+}
+:root:root:root [data-lg-press]:not(:disabled) {
+  background-image: radial-gradient(circle at var(--lg-x, 50%) var(--lg-y, 50%), var(--lg-glow), transparent 70%), var(--lg-face) !important;
+}
+
+/* The menu bar: the lens springs between tabs, swells while you touch the bar, and follows your finger when dragged. */
+.tab-ring { transition: transform 0.6s var(--lg-spring), opacity 0.2s; }
+.tab-ring::before { transition: transform 0.45s var(--lg-spring), background-color 0.2s; }
+.tab-bar[data-press] .tab-ring::before { transform: scale(1.08, 1.12); background-color: var(--lg-clear-hover); box-shadow: 0 8px 22px -10px rgb(0 0 0 / 0.45); }
+.tab-ring[data-drag] { transition: opacity 0.2s; }
+html[data-chrome="app"] .tab-bar { touch-action: pan-y; transition: transform 0.5s var(--lg-spring); }
+html[data-chrome="app"] .tab-bar[data-press] { transform: translateX(-50%) scale(1.02); }
+.tab:active { transform: none; }
+
+/* The ⋯ menu grows out of its button on a spring, and shrinks back into it. */
+:root:root:root .more-panel {
+  transform-origin: top left; transform: scale(0.5); opacity: 0;
+  transition: transform 0.32s var(--ease), opacity 0.18s var(--ease), visibility 0s linear 0.32s;
+}
+:root:root:root :is(.more-menu.is-corner, .film-actions) .more-panel { transform-origin: top right; }
+:root:root:root .more-panel[data-open] { transform: none; opacity: 1; transition: transform 0.55s var(--lg-spring), opacity 0.16s var(--ease), visibility 0s; }
+/* Dialogs and sheets settle in on the same spring. */
+@keyframes lg-pop { from { opacity: 0; transform: scale(0.9); } }
+@media (min-width: 640px) {
+  :root:root .modal[open], :root:root .search-dialog[open] { animation: lg-pop 0.5s var(--lg-spring); }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root:root:root :is(.button, .chip, .pill-button, .round-button, .icon-button, .search-trigger, .link-chip, .watch-platform, .back-to-top, .segmented button, .theme-toggle button, .grid-toggle button):is(:active, [data-lg-press]) { transform: none; }
+  :root:root:root .more-panel, .tab-ring, .tab-ring::before, html[data-chrome="app"] .tab-bar { transition: none; }
+  html[data-chrome="app"] .tab-bar[data-press] { transform: translateX(-50%); }
+  .tab-bar[data-press] .tab-ring::before { transform: none; }
+}
+
 /* Reduced transparency, more contrast, or no backdrop blur: solid surfaces, same shapes. */
 @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
   :root:root[data-theme] { --lg-clear: var(--lg-solid); --lg-bar: var(--lg-solid); --lg-clear-hover: var(--hover); --lg-panel: var(--surface); --lg-filter: none; --lg-filter-panel: none; --lg-face: none; --lg-prominent: var(--ink); --lg-rim-low: var(--line); }

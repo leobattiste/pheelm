@@ -49,10 +49,65 @@ export default function TabBar() {
   const fresh = was.current < 0 && ring >= 0;
   useEffect(() => { was.current = ring; }, [ring]);
 
+  // Like iOS, the lens swells while you touch the bar, and you can drag it to another tab: it follows your
+  // finger and opens the tab it's let go over.
+  const bar = useRef<HTMLElement>(null);
+  const lens = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    const nav = bar.current, el = lens.current;
+    if (!nav || !el) return;
+    let start = -1, dragged = false, swallow = false, slot = 0, at = 0;
+    const tabsShown = () => [...nav.querySelectorAll<HTMLElement>(".tab")].filter((t) => t.offsetParent !== null);
+    const follow = (x: number) => {
+      const r = nav.getBoundingClientRect(), gap = el.offsetLeft;
+      slot = el.offsetWidth;
+      at = Math.min(Math.max(x - r.left - gap - slot / 2, 0), slot * 4);
+      el.style.transform = `translate(${at}px, -50%)`;
+    };
+    const down = (e: PointerEvent) => {
+      if (!e.isPrimary || e.button > 0) return;
+      start = e.clientX; dragged = false;
+      nav.dataset.press = "";
+    };
+    const move = (e: PointerEvent) => {
+      if (start < 0 || !e.isPrimary) return;
+      if (!dragged && Math.abs(e.clientX - start) < 8) return;
+      if (!dragged) { dragged = true; el.dataset.drag = ""; el.dataset.on = "true"; }
+      follow(e.clientX);
+    };
+    const up = () => {
+      if (start < 0) return;
+      start = -1; delete nav.dataset.press;
+      if (!dragged) return;
+      const target = tabsShown()[Math.round(at / slot)];
+      delete el.dataset.drag; el.style.transform = "";
+      swallow = true;
+      setTimeout(() => { swallow = false; target?.click(); }, 0);
+    };
+    const click = (e: MouseEvent) => { if (swallow) { e.preventDefault(); e.stopPropagation(); } };
+    const cancel = () => { start = -1; dragged = false; delete nav.dataset.press; delete el.dataset.drag; el.style.transform = ""; };
+    // A link would otherwise start being dragged itself, which cancels the pointer.
+    const noDrag = (e: DragEvent) => e.preventDefault();
+    nav.addEventListener("dragstart", noDrag);
+    nav.addEventListener("pointerdown", down);
+    window.addEventListener("pointermove", move, { passive: true });
+    window.addEventListener("pointerup", up);
+    nav.addEventListener("pointercancel", cancel);
+    nav.addEventListener("click", click, true);
+    return () => {
+      nav.removeEventListener("dragstart", noDrag);
+      nav.removeEventListener("pointerdown", down);
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      nav.removeEventListener("pointercancel", cancel);
+      nav.removeEventListener("click", click, true);
+    };
+  }, []);
+
   return (
-    <nav className="tab-bar" aria-label="Sections" style={{ "--tab-i": Math.max(ring, 0) } as React.CSSProperties}>
+    <nav ref={bar} className="tab-bar" aria-label="Sections" style={{ "--tab-i": Math.max(ring, 0) } as React.CSSProperties}>
       <NavProgressLine />
-      <span className="tab-ring" data-on={ring >= 0} data-fresh={fresh} aria-hidden="true" />
+      <span ref={lens} className="tab-ring" data-on={ring >= 0} data-fresh={fresh} aria-hidden="true" />
       {tabs.map((t) => (
         <Link key={t.label} href={t.href} className={t.only ? `tab ${t.only}` : "tab"} aria-current={t.on ? "page" : undefined} aria-label={t.label} title={t.label}>
           <Icon name={t.icon} />
