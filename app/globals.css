@@ -3102,3 +3102,8 @@ html[data-nav="done"] .nav-progress { --nav-p: 100%; opacity: 0; transition: --n
 :root:root:root :is(.icon-button, .menu-sheet, .modal, .chip, .hf-stage, .shot-dark, .shot-light, .statement-body, .search-dialog, kbd, .button, .collection-tile, .back-to-top, .tab-bar, .film-bar, .more-panel, .round-button, .pill-button, .search-trigger, .link-chip, .watch-platform, .toast, .segmented, .segmented button, select, textarea, input:not([type="checkbox"]):not([type="radio"])) { border-color: transparent; }
 :root:root:root :is(.menu-more, .menu-site, .modal-head, .modal-foot, .search-field, .search-foot) { border-color: transparent; }
 :root:root:root :is(select, textarea, input:not([type="checkbox"]):not([type="radio"])) { border-color: transparent !important; }
+
+/* Cards (profile header included) have no outline, and the bottom bars no big shadow: it was cut off by the browser's own
+   toolbar and showed as a lighter or darker strip under the menu bar. */
+:root:root:root :is(.collection-tile, .admin-managed-card, .ways li, .anniversary a, .stat, .fieldset, .inbox li, .public-name, .person-head, .person-facts > div, .filmography > li, .welcome-person, .cast :is(a, button), .film-card > a, .menu-newsletter input, .menu-newsletter button) { border-color: transparent; box-shadow: none; }
+html:root:root:root[data-chrome="app"] :is(.tab-bar, .film-bar, .back-to-top) { box-shadow: none; }
