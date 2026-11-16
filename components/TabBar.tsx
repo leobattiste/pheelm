@@ -17,7 +17,7 @@ type Me = { handle: string | null; unread: number };
  * paint (data-auth), so it never flashes.
  */
 export default function TabBar() {
-  const path = usePathname();
+  const path = decodeURIComponent(usePathname());
   const [me, setMe] = useState<Me | null>(null);
 
   // Which kind of page this is (set before paint on the first load, then on every navigation).
