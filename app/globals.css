@@ -3264,11 +3264,6 @@ html[data-chrome="app"] .tab-bar[data-press] { transform: translateX(-50%) scale
 }
 :root:root:root :is(.more-menu.is-corner, .film-actions) .more-panel { transform-origin: top right; }
 :root:root:root .more-panel[data-open] { transform: none; opacity: 1; transition: transform 0.55s var(--lg-spring), opacity 0.16s var(--ease), visibility 0s; }
-/* Dialogs and sheets settle in on the same spring. */
-@keyframes lg-pop { from { opacity: 0; transform: scale(0.9); } }
-@media (min-width: 640px) {
-  :root:root .modal[open], :root:root .search-dialog[open] { animation: lg-pop 0.5s var(--lg-spring); }
-}
 @media (prefers-reduced-motion: reduce) {
   :root:root:root :is(.button, .chip, .pill-button, .round-button, .icon-button, .search-trigger, .link-chip, .watch-platform, .back-to-top, .segmented button, .theme-toggle button, .grid-toggle button):is(:active, [data-lg-press]) { transform: none; }
   :root:root:root .more-panel, .tab-ring, .tab-ring::before, html[data-chrome="app"] .tab-bar { transition: none; }
