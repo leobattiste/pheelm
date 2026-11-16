@@ -1,5 +1,5 @@
 import { pageMetadata, privateMetadata } from "@/lib/seo";
-import type { Metadata, Viewport } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import FilmCard from "@/components/FilmCard";
@@ -18,7 +18,7 @@ import FilmComments from "@/components/FilmComments";
 import { getCommunityCollections } from "@/lib/community";
 import { getDirectors, getFilm, getFilms, toCard } from "@/lib/data";
 import { personInfo, roleLabel, sentence } from "@/lib/roles";
-import { countryName, inkFor, listJoin, runtimeLabel, trailerEmbed } from "@/lib/format";
+import { countryName, listJoin, runtimeLabel, trailerEmbed } from "@/lib/format";
 import { SITE_URL } from "@/lib/supabase/config";
 import type { Award, Credit, Role } from "@/lib/types";
 import Row from "@/components/Row";
@@ -37,14 +37,6 @@ export async function generateStaticParams() {
 
 type Params = { params: Promise<{ slug: string }> };
 
-const validColour = (hex: string | null | undefined) => (hex && /^#[0-9a-f]{6}$/i.test(hex) ? hex : null);
-
-/** Tints the phone's browser bar with the film's colour, like Covvvvvers cover pages. */
-export async function generateViewport({ params }: Params): Promise<Viewport> {
-  const film = await getFilm((await params).slug);
-  const bg = validColour(film?.color);
-  return bg ? { themeColor: bg } : {};
-}
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const film = await getFilm((await params).slug);
@@ -57,16 +49,6 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 const CREW_ORDER: Role[] = ["director", "writer", "cinematographer", "editor", "composer", "producer"];
 // How many cast members show before "Show all".
 const CAST_SHOWN = 6;
-
-/**
- * The whole page takes the film's colour (from its poster), with black or white text for
- * contrast. Films without a poster colour keep the site's own black, white and gray.
- */
-function pageColours(bg: string) {
-  const ink = inkFor(bg);
-  const mix = (n: number) => `color-mix(in srgb, ${ink} ${n}%, ${bg})`;
-  return `:root[data-theme]{--bg:${bg};--ink:${ink};--text:${ink};--on-ink:${bg};--muted:${mix(66)};--line:${mix(18)};--line-strong:${mix(32)};--surface:${mix(5)};--raised:${mix(9)};--hover:${mix(12)};--gold:${ink};color-scheme:${ink === "#ffffff" ? "dark" : "light"}}`;
-}
 
 export default async function FilmPage({ params }: Params) {
   const film = await getFilm((await params).slug);
@@ -95,7 +77,6 @@ export default async function FilmPage({ params }: Params) {
     .slice(0, 16)
     .map((r) => r.f);
 
-  const bg = validColour(film.color);
   const cast = film.credits.filter((c) => c.role === "cast");
   const crew = CREW_ORDER
     .map((role) => ({ role, people: film.credits.filter((c) => c.role === role) }))
@@ -158,7 +139,6 @@ export default async function FilmPage({ params }: Params) {
     <>
       <article className="film-page">
         {/* Hands the film's colour to the whole page, header and footer included, while it's open. */}
-        {bg && <style>{pageColours(bg)}</style>}
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
 
         <Breadcrumbs parent="Films" href="/films" current={film.title} currentHref={`/films/${film.slug}`} />

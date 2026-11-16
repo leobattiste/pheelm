@@ -3,6 +3,7 @@
  * Decorative by default (hidden from screen readers); pass `label` when the icon is the only
  * thing saying what something is.
  */
+import type { ReactNode } from "react";
 import {
   Edit04Icon, Camera01Icon, Delete02Icon, TiktokIcon, YoutubeIcon, NewTwitterIcon, Facebook01Icon, BlueskyIcon, Linkedin01Icon, DashboardCircleSettingsIcon, Add01Icon, ArrowDown01Icon, ArrowUpDownIcon, DiceFaces03Icon, Tag01Icon, ArrowLeft01Icon, ArrowRight01Icon, ArrowTurnBackwardIcon, ArrowUp02Icon, AtIcon, Award01Icon,
   Bookmark02Icon, Calendar03Icon, ClapperboardIcon, Cancel01Icon, FlimSlateIcon, Clock01Icon, Comment01Icon, Door01Icon,
@@ -99,7 +100,21 @@ export function IconShapes({ name }: { name: keyof typeof ICONS }) {
   );
 }
 
-export default function Icon({ name, size = 24.5, label, className }: { name: IconName; size?: number; label?: string; className?: string }) {
+/** Solid versions of the menu bar icons, shown for the open page. Outline is the resting look. */
+const FILLED: Partial<Record<IconName, ReactNode>> = {
+  film: <rect x="5" y="2" width="14" height="20" rx="3" fill="currentColor" />,
+  stack: (<><rect x="9.5" y="3" width="13" height="18" rx="3" fill="currentColor" /><path d="M2.5 7.5v9M6 5.5v13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></>),
+  users2: (<><circle cx="12" cy="7.8" r="3.6" fill="currentColor" /><path d="M5.2 20.5c0-3.7 3-6.2 6.8-6.2s6.8 2.5 6.8 6.2c0 .4-.3.7-.7.7H5.9c-.4 0-.7-.3-.7-.7z" fill="currentColor" /><circle cx="4.9" cy="9.4" r="2.3" fill="currentColor" /><circle cx="19.1" cy="9.4" r="2.3" fill="currentColor" /><path d="M1.2 17.2c0-2.1 1.6-3.7 3.9-3.9-.9 1-1.4 2.3-1.4 3.9v.9H1.9c-.4 0-.7-.4-.7-.9zM22.8 17.2c0-2.1-1.6-3.7-3.9-3.9.9 1 1.4 2.3 1.4 3.9v.9h1.8c.4 0 .7-.4.7-.9z" fill="currentColor" /></>),
+  userCircle: <path fillRule="evenodd" fill="currentColor" d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM12 7a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM6.2 18.6C7.4 17 9.4 16 12 16s4.6 1 5.8 2.6C16.6 20 14.5 20.8 12 20.8S7.4 20 6.2 18.6z" />,
+  moreCircle: (<><circle cx="4.5" cy="12" r="2" fill="currentColor" /><circle cx="12" cy="12" r="2" fill="currentColor" /><circle cx="19.5" cy="12" r="2" fill="currentColor" /></>),
+};
+
+export default function Icon({ name, size = 24.5, label, className, filled }: { name: IconName; size?: number; label?: string; className?: string; filled?: boolean }) {
+  if (filled && FILLED[name]) return (
+    <svg className={`icon${className ? ` ${className}` : ""}`} viewBox="0 0 24 24" width={size} height={size} fill="none" aria-hidden={label ? undefined : true} role={label ? "img" : undefined} aria-label={label} focusable="false">
+      {FILLED[name]}
+    </svg>
+  );
   const Lucide = name === "film" ? RectangleVerticalIcon : name === "stack" ? GalleryHorizontalEndIcon : null;
   if (Lucide) return <Lucide className={`icon${className ? ` ${className}` : ""}`} size={size} strokeWidth={1.5} aria-hidden={label ? undefined : true} role={label ? "img" : undefined} aria-label={label} focusable="false" />;
   if (name === "imdb") return (

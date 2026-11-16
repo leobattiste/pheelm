@@ -3108,22 +3108,29 @@ html[data-nav="done"] .nav-progress { --nav-p: 100%; opacity: 0; transition: --n
 :root:root:root :is(.collection-tile, .admin-managed-card, .ways li, .anniversary a, .stat, .fieldset, .inbox li, .public-name, .person-head, .person-facts > div, .filmography > li, .welcome-person, .cast :is(a, button), .film-card > a, .menu-newsletter input, .menu-newsletter button) { border-color: transparent; box-shadow: none; }
 html:root:root:root[data-chrome="app"] :is(.tab-bar, .film-bar, .back-to-top) { box-shadow: none; }
 
-/* ---- One flat system: no blur, no shadows, no outlines ----
-   Two fills, by role. In the page (cards, buttons, chips, fields) it's --surface. What floats over the page (menu bar,
-   film bar, back-to-top, menus, sheets, dialogs, toasts) is --raised. Anything inside a card takes --raised; anything
-   inside a floating layer takes --surface, so it still stands out. Primary and selected are solid ink. */
+/* ---- One system: flat fills in the page, glass for what floats over it ----
+   In the page (cards, buttons, chips, fields) there's one flat fill, --surface; inside a card they take --raised. What floats
+   over the page (menu bar, film bar, back-to-top, ⋯ menus, sheets, dialogs, toasts) is one dark or light glass. Controls inside
+   the glass take --surface. Primary and selected are solid ink. No outlines and no shadows. */
 :root:root[data-theme] {
   --glass-bg: var(--surface); --glass-hover: var(--raised); --glass-filter: none; --glass-shadow: none;
   --control-fill: var(--surface); --control-hover: var(--raised);
 }
-*, *::before, *::after, ::backdrop { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+:root:root[data-theme="dark"] { --float-bg: rgb(12 12 12 / 0.66); }
+:root:root[data-theme="light"] { --float-bg: rgb(236 236 239 / 0.78); }
 :root:root:root *:not(.tab-ring) { box-shadow: none; }
-:root:root:root :is(.tab-bar, .film-bar, .back-to-top, .more-panel, .menu-sheet, .modal, .search-dialog, .trailer-dialog, .toast, .catalog-suggestions) { background: var(--raised); }
-:root:root:root :is(.tab-bar, .film-bar, .more-panel, .menu-sheet, .modal, .search-dialog, .toast) :is(.button, .chip, .round-button, .pill-button, .icon-button, .search-trigger, .link-chip, .segmented, .theme-toggle, .grid-toggle, .watch-platform, select, textarea, input:not([type="checkbox"]):not([type="radio"]), .composer):not(:where([aria-pressed="true"], [aria-selected="true"], [aria-current="page"], [aria-checked="true"], .more-button, .button.primary, .button:not(.ghost):not(.quiet))) { background: var(--surface); }
+:root:root:root :is(.tab-bar, .film-bar, .back-to-top, .more-panel, .menu-sheet, .modal, .search-dialog, .toast, .catalog-suggestions) {
+  background: var(--float-bg); -webkit-backdrop-filter: blur(22px) saturate(1.6); backdrop-filter: blur(22px) saturate(1.6);
+}
+/* Controls inside the glass are flat, with no second blur. */
+:root:root:root :is(.tab-bar, .film-bar, .more-panel, .menu-sheet, .modal, .search-dialog, .toast) * { -webkit-backdrop-filter: none; backdrop-filter: none; }
+:root:root:root :is(.film-bar, .more-panel, .menu-sheet, .modal, .search-dialog, .toast) :is(.button, .chip, .round-button, .pill-button, .icon-button, .search-trigger, .link-chip, .segmented, .theme-toggle, .grid-toggle, .watch-platform, select, textarea, input:not([type="checkbox"]):not([type="radio"]), .composer):not(:where([aria-pressed="true"], [aria-selected="true"], [aria-current="page"], [aria-checked="true"], .more-button, .button.primary, .button:not(.ghost):not(.quiet))) { background: var(--surface); }
 :root:root:root :is(.collection-tile, .admin-managed-card, .ways li, .stat, .fieldset, .inbox li, .public-name, .person-head, .person-facts > div, .welcome-person, .cta-card) :is(.button.ghost, .button.quiet, .chip, .round-button, .pill-button, .icon-button, .search-trigger, .link-chip, .watch-platform, .segmented, select, textarea, input:not([type="checkbox"]):not([type="radio"]), .composer):not(:where([aria-pressed="true"], [aria-selected="true"], [aria-current="page"], [aria-checked="true"], .more-button)) { background: var(--raised); }
-:root:root:root .tab-ring::before { background: var(--surface); box-shadow: none; }
+:root:root:root .tab-ring::before { background: rgb(255 255 255 / 0.18); box-shadow: none; }
+:root:root[data-theme="light"] .tab-ring::before { background: rgb(0 0 0 / 0.09); }
 :root:root:root :is(.more-panel) :is(.button, .link-button) { background: transparent; }
 :root:root:root :is(dialog, .menu-sheet) :is(.icon-button[aria-label^="Close"], .search-close, .trailer-close) { background: transparent; }
-/* No dimming or blur behind sheets and dialogs. */
-:root:root dialog::backdrop, html[data-chrome="app"] dialog::backdrop { background: transparent; }
-html[data-chrome="app"] body:has(dialog:modal)::after { content: none; }
+/* Opening a sheet or dialog blurs the page behind it, with no dark or light tint, and nothing is left under the menu bar. */
+:root:root dialog:not(.trailer-dialog)::backdrop { background: transparent; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+html:root[data-chrome="app"] dialog::backdrop { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
+html:root[data-chrome="app"] body:has(dialog:modal)::after { background: transparent; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
