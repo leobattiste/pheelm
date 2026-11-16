@@ -3308,3 +3308,18 @@ html[data-chrome="app"] .tab-bar[data-press] { transform: translateX(-50%) scale
 /* Menu bar icons follow the page's ink: white on dark pages and dark films, dark on light ones. */
 :root:root:root .tab-bar .tab, :root:root:root .tab-bar .tab:hover, :root:root:root .tab-bar .tab[aria-current="page"] { color: var(--ink); }
 :root:root:root .more-panel { background-color: var(--lg-panel); -webkit-backdrop-filter: var(--lg-filter-panel); backdrop-filter: var(--lg-filter-panel); }
+
+/* Darker glass: bars, menus and sheets are a deeper, more opaque tint and dim what's behind them. */
+:root:root[data-theme="dark"] {
+  --lg-bar: rgb(0 0 0 / 0.62);
+  --lg-panel: rgb(0 0 0 / 0.8);
+  --lg-filter: blur(16px) saturate(1.6) brightness(0.8);
+  --lg-filter-bar: blur(22px) saturate(1.6) brightness(0.65);
+  --lg-filter-panel: blur(32px) saturate(1.5) brightness(0.6);
+}
+:root:root[data-theme="light"] {
+  --lg-bar: rgb(235 235 238 / 0.78);
+  --lg-panel: rgb(240 240 243 / 0.9);
+  --lg-filter-bar: blur(22px) saturate(1.6) brightness(0.9);
+  --lg-filter-panel: blur(32px) saturate(1.5) brightness(0.9);
+}
