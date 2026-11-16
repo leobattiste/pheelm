@@ -8,7 +8,6 @@ import BackToTop from "@/components/BackToTop";
 import NewsletterForm from "@/components/NewsletterForm";
 import Search from "@/components/Search";
 import TabBar from "@/components/TabBar";
-import LiquidGlass from "@/components/LiquidGlass";
 import WelcomeNudge from "@/components/WelcomeNudge";
 import Toaster from "@/components/Toast";
 import NotificationToasts from "@/components/NotificationToasts";
@@ -175,7 +174,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
         </footer>
         <TabBar />
-        <LiquidGlass />
         <BackToTop />
         <InstallBanner />
         <WelcomeNudge />
