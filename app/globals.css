@@ -3283,3 +3283,28 @@ html[data-chrome="app"] .tab-bar[data-press] { transform: translateX(-50%) scale
 /* Menu bar icons are white; in light mode the bar is dark glass so they stay readable. */
 :root[data-theme="light"] { --lg-bar: rgb(30 30 32 / 0.5); --lg-lens: rgb(255 255 255 / 0.22); }
 :root:root:root .tab-bar .tab, :root:root:root .tab-bar .tab:hover, :root:root:root .tab-bar .tab[aria-current="page"] { color: #fff; }
+
+/* ---- Glass takes the page's colour ----
+   Every glass surface is tinted from the page itself (--bg and --ink, which film pages set from the film's
+   colour), and blurs what's behind it, so bars, menus, cards and buttons blend into the page instead of
+   sitting on it as gray. No lit edges or sheen lines. */
+:root:root[data-theme] {
+  --lg-clear: color-mix(in srgb, var(--ink) 9%, transparent);
+  --lg-clear-hover: color-mix(in srgb, var(--ink) 16%, transparent);
+  --lg-bar: color-mix(in srgb, var(--bg) 52%, transparent);
+  --lg-panel: color-mix(in srgb, var(--bg) 74%, transparent);
+  --lg-lens: color-mix(in srgb, var(--ink) 15%, transparent);
+  --lg-prominent: var(--ink);
+  --lg-solid: color-mix(in srgb, var(--bg) 90%, var(--ink));
+  --lg-glow-in: transparent;
+  --lg-face: none;
+  --lg-edges: 0 0 0 0 transparent;
+  --lg-filter: blur(16px) saturate(1.8);
+  --lg-filter-bar: blur(22px) saturate(1.8);
+  --lg-filter-panel: blur(32px) saturate(1.6);
+  --glass-bg: var(--lg-bar);
+  --glass-filter: var(--lg-filter-bar);
+}
+/* Menu bar icons follow the page's ink: white on dark pages and dark films, dark on light ones. */
+:root:root:root .tab-bar .tab, :root:root:root .tab-bar .tab:hover, :root:root:root .tab-bar .tab[aria-current="page"] { color: var(--ink); }
+:root:root:root .more-panel { background-color: var(--lg-panel); -webkit-backdrop-filter: var(--lg-filter-panel); backdrop-filter: var(--lg-filter-panel); }
