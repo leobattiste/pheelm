@@ -3109,24 +3109,26 @@ html[data-nav="done"] .nav-progress { --nav-p: 100%; opacity: 0; transition: --n
    Browsers can't bend the light behind glass the way iOS does, so this is the look without refraction.
    --------------------------------------------------------------------------------------------------- */
 :root[data-theme="dark"] {
-  --lg-clear: rgb(255 255 255 / 0.08);
-  --lg-bar: rgb(38 38 38 / 0.55);
+  --lg-clear: rgb(255 255 255 / 0.05);
+  --lg-glow-in: rgb(255 255 255 / 0.07);
+  --lg-bar: rgb(40 40 40 / 0.32);
   --lg-clear-hover: rgb(255 255 255 / 0.14);
   --lg-panel: rgb(30 30 30 / 0.82);
-  --lg-rim: rgb(255 255 255 / 0.3);
+  --lg-rim: rgb(255 255 255 / 0.7);
   --lg-rim-low: rgb(255 255 255 / 0.08);
   --lg-sheen: rgb(255 255 255 / 0.1);
   --lg-lens: rgb(255 255 255 / 0.16);
-  --lg-prominent: rgb(255 255 255 / 0.9);
+  --lg-prominent: rgb(255 255 255 / 0.88);
   --lg-shadow: 0 10px 30px -12px rgb(0 0 0 / 0.65), 0 1px 3px rgb(0 0 0 / 0.3);
   --lg-solid: #262626;
 }
 :root[data-theme="light"] {
-  --lg-clear: rgb(0 0 0 / 0.04);
-  --lg-bar: rgb(255 255 255 / 0.74);
+  --lg-clear: rgb(0 0 0 / 0.035);
+  --lg-glow-in: rgb(255 255 255 / 0.5);
+  --lg-bar: rgb(255 255 255 / 0.42);
   --lg-clear-hover: rgb(0 0 0 / 0.07);
   --lg-panel: rgb(255 255 255 / 0.86);
-  --lg-rim: rgb(255 255 255 / 0.95);
+  --lg-rim: rgb(255 255 255 / 1);
   --lg-rim-low: rgb(0 0 0 / 0.06);
   --lg-sheen: rgb(255 255 255 / 0.65);
   --lg-lens: rgb(0 0 0 / 0.07);
@@ -3135,10 +3137,12 @@ html[data-nav="done"] .nav-progress { --nav-p: 100%; opacity: 0; transition: --n
   --lg-solid: #f3f3f3;
 }
 :root {
-  --lg-filter: blur(14px) saturate(1.9);
-  --lg-filter-panel: blur(28px) saturate(1.7);
-  --lg-face: linear-gradient(160deg, var(--lg-sheen) 0%, transparent 38%, transparent 66%, color-mix(in srgb, var(--lg-sheen) 35%, transparent) 100%);
-  --lg-edges: 0 0 0 0 transparent;
+  --lg-filter: blur(3px) saturate(1.8) brightness(1.06);
+  --lg-filter-bar: blur(9px) saturate(1.9) brightness(1.08);
+  --lg-filter-panel: blur(22px) saturate(1.7);
+  --lg-face: linear-gradient(180deg, color-mix(in srgb, var(--lg-sheen) 55%, transparent) 0%, transparent 45%);
+  /* Light on the glass's edge, not a line: bright where the top-left catches it, a faint return on the opposite side, and a soft glow inside. */
+  --lg-edges: inset 1.5px 1.5px 1px -1px var(--lg-rim), inset -1.5px -1.5px 1px -1px color-mix(in srgb, var(--lg-rim) 55%, transparent), inset 0 0 16px var(--lg-glow-in);
   /* Anything still drawing a hairline from the old tokens draws nothing. */
   --control-border: transparent;
   --control-border-strong: transparent;
@@ -3162,7 +3166,7 @@ html[data-nav="done"] .nav-progress { --nav-p: 100%; opacity: 0; transition: --n
   box-shadow: var(--lg-edges);
 }
 /* Floating things sit over anything (posters, photos), so they are denser, and cast a shadow. */
-:root:root:root :is(html[data-chrome="app"] .tab-bar, .film-bar, .back-to-top, .toast) { background-color: var(--lg-bar); box-shadow: var(--lg-edges), var(--lg-shadow); }
+:root:root:root :is(html[data-chrome="app"] .tab-bar, .film-bar, .back-to-top, .toast) { background-color: var(--lg-bar); -webkit-backdrop-filter: var(--lg-filter-bar); backdrop-filter: var(--lg-filter-bar); box-shadow: var(--lg-edges), var(--lg-shadow); }
 @media (hover: hover) {
   :root:root:root :is(.button.ghost, .button.quiet, .chip, .search-trigger, .link-chip, .pill-button, .round-button, .icon-button, .watch-platform, .back-to-top,
     .collection-tile, .anniversary a, .stat, .welcome-person, .cast a, .cast button):not(:where([aria-pressed="true"], [aria-selected="true"], [aria-current="page"], [aria-checked="true"], .danger, .danger-text)):hover {
@@ -3182,7 +3186,7 @@ html[data-nav="done"] .nav-progress { --nav-p: 100%; opacity: 0; transition: --n
   color: var(--on-ink) !important;
   -webkit-backdrop-filter: var(--lg-filter);
   backdrop-filter: var(--lg-filter);
-  box-shadow: 0 6px 18px -10px rgb(0 0 0 / 0.5);
+  box-shadow: var(--lg-edges), 0 6px 18px -10px rgb(0 0 0 / 0.5);
 }
 :root:root:root .button:not(.ghost):not(.quiet):not(.danger):not(.danger-text):hover:not(:disabled) { background-color: color-mix(in srgb, var(--lg-prominent) 86%, transparent) !important; }
 
@@ -3193,7 +3197,7 @@ html[data-nav="done"] .nav-progress { --nav-p: 100%; opacity: 0; transition: --n
   background-image: var(--lg-face);
   -webkit-backdrop-filter: var(--lg-filter-panel);
   backdrop-filter: var(--lg-filter-panel);
-  box-shadow: 0 24px 60px -18px rgb(0 0 0 / 0.55);
+  box-shadow: var(--lg-edges), 0 24px 60px -18px rgb(0 0 0 / 0.55);
 }
 
 /* Inside a panel, a floating bar or a card, controls keep the look but don't blur a second time. */
@@ -3206,7 +3210,7 @@ html[data-nav="done"] .nav-progress { --nav-p: 100%; opacity: 0; transition: --n
 :root:root:root .tab-bar .tab { background: none; box-shadow: none; }
 
 /* The open page is a lens inside the menu bar: a tint with its own highlight, not another layer of glass. */
-.tab-ring::before { border: 0; background: var(--lg-lens); box-shadow: none; }
+.tab-ring::before { border: 0; background: var(--lg-lens); box-shadow: var(--lg-edges); }
 
 /* The ⋯ menu button and the close cross have no background at all. */
 :root:root:root :is(.more-button, :is(dialog, .menu-sheet) :is(.icon-button[aria-label^="Close"], .search-close, .trailer-close)),
@@ -3280,3 +3284,7 @@ html[data-chrome="app"] .tab-bar[data-press] { transform: translateX(-50%) scale
   :root:root[data-theme] { --lg-clear: var(--lg-solid); --lg-bar: var(--lg-solid); --lg-panel: var(--surface); --lg-prominent: var(--ink); --lg-face: none; }
 }
 
+
+/* Menu bar icons are white; in light mode the bar is dark glass so they stay readable. */
+:root[data-theme="light"] { --lg-bar: rgb(30 30 32 / 0.5); --lg-lens: rgb(255 255 255 / 0.22); }
+:root:root:root .tab-bar .tab, :root:root:root .tab-bar .tab:hover, :root:root:root .tab-bar .tab[aria-current="page"] { color: #fff; }
