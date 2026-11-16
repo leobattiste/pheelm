@@ -3096,3 +3096,9 @@ html[data-nav="done"] .nav-progress { --nav-p: 100%; opacity: 0; transition: --n
 @media (max-width: 639px) {
   :root { --floating-width: calc(100vw - 40px); }
 }
+
+/* No borders around modals, sheets, buttons, fields, chips, cards or the menu bar, and no divider lines inside sheets
+   and dialogs. Surfaces are told apart by their fill. Focus rings (outlines) stay for keyboard users. */
+:root:root:root :is(.icon-button, .menu-sheet, .modal, .chip, .hf-stage, .shot-dark, .shot-light, .statement-body, .search-dialog, kbd, .button, .collection-tile, .back-to-top, .tab-bar, .film-bar, .more-panel, .round-button, .pill-button, .search-trigger, .link-chip, .watch-platform, .toast, .segmented, .segmented button, select, textarea, input:not([type="checkbox"]):not([type="radio"])) { border-color: transparent; }
+:root:root:root :is(.menu-more, .menu-site, .modal-head, .modal-foot, .search-field, .search-foot) { border-color: transparent; }
+:root:root:root :is(select, textarea, input:not([type="checkbox"]):not([type="radio"])) { border-color: transparent !important; }
