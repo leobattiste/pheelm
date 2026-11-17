@@ -3147,3 +3147,24 @@ html:root[data-chrome="app"] body:has(dialog:modal)::after { background: transpa
 :root:root:root :is(.more-panel, .menu-sheet, .modal, .search-dialog, .catalog-suggestions) { background-color: color-mix(in srgb, var(--surface) 72%, transparent); }
 html:root:root:root[data-chrome="app"] body:has(dialog:modal) .tab-bar { z-index: 999; }
 html:root:root:root[data-chrome="app"] body:has(dialog:modal)::after, :root:root:root dialog:not(.trailer-dialog)::backdrop { -webkit-backdrop-filter: blur(12px) !important; backdrop-filter: blur(12px) !important; }
+
+/* ---- Plain surfaces: the page's own colour, a 1px border ----
+   Cards, buttons, chips, fields, and everything that floats over the page (menu bar, film bar, back-to-top, ⋯ menus, sheets,
+   dialogs, toasts) are the same colour as the page, set apart by a 1px border instead of a fill or blur. Primary and selected
+   stay solid ink. The page behind an open sheet or dialog is still blurred. */
+:root:root:root:root :is(.collection-tile, .admin-managed-card, .ways li, .anniversary a, .stat, .fieldset, .inbox li, .public-name, .person-head, .person-facts > div, .filmography > li, .welcome-person, .cta-card,
+  .button.ghost, .button.quiet, .chip, .round-button, .pill-button, .search-trigger, .link-chip, .watch-platform, .segmented, .theme-toggle, .grid-toggle, .composer, select, textarea, input:not([type="checkbox"]):not([type="radio"]),
+  .tab-bar, .film-bar, .back-to-top, .more-panel, .menu-sheet, .modal, .search-dialog, .toast, .catalog-suggestions):not(:where([aria-pressed="true"], [aria-selected="true"], [aria-current="page"], [aria-checked="true"], .button.primary)) {
+  background-color: var(--bg); background-image: none;
+  border: 1px solid var(--line);
+  -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none;
+}
+:root:root:root:root :is(.tab-bar, .film-bar, .back-to-top, .more-panel, .menu-sheet, .modal, .search-dialog, .toast, .catalog-suggestions) { -webkit-backdrop-filter: none; backdrop-filter: none; }
+:root:root:root:root :is(.collection-tile, .admin-managed-card, .ways li, .stat, .fieldset, .inbox li, .public-name, .person-head, .person-facts > div, .welcome-person, .cta-card, .more-panel, .menu-sheet, .modal, .search-dialog, .tab-bar, .film-bar) :is(.button.ghost, .button.quiet, .chip, .round-button, .pill-button, .search-trigger, .link-chip, .watch-platform, .segmented, .composer, select, textarea, input:not([type="checkbox"]):not([type="radio"])):not(:where([aria-pressed="true"], [aria-selected="true"], [aria-current="page"], [aria-checked="true"], .more-button)) { background-color: var(--bg); border: 1px solid var(--line); }
+/* Selected chips and primary buttons: solid ink, no border. */
+:root:root:root:root :is([aria-pressed="true"], [aria-selected="true"], [aria-checked="true"], .button.primary):not(.tab) { border-color: transparent; }
+/* Bare glyph buttons and the menu bar's tabs have no border or fill of their own. */
+:root:root:root:root :is(.more-button, .icon-button, .tab-bar .tab, .segmented button, .tab-bar :is(.round-button, .chip)) { border: 0; background-color: transparent; background-image: none; }
+:root:root:root:root .tab-bar .tab { border: 0; }
+:root:root:root:root :is(select, textarea, input:not([type="checkbox"]):not([type="radio"]):not([type="range"])) { border-color: var(--line) !important; }
+:root:root:root:root :is(.tab-bar, .film-bar, .back-to-top, .more-panel, .menu-sheet, .modal, .search-dialog, .toast, .catalog-suggestions, .person-head, .collection-tile) { box-shadow: none !important; }
