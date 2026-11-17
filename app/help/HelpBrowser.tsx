@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Icon from "@/components/Icon";
-import FilterSelect from "@/components/FilterSelect";
 import { HELP_CATEGORIES } from "./help-content";
 
 export default function HelpBrowser() {
@@ -59,10 +58,11 @@ export default function HelpBrowser() {
       <dialog ref={sheet} id="help-filters" className="modal catalog-filter-dialog" aria-labelledby="help-filters-title" onClick={(event) => { if (event.target === sheet.current) sheet.current?.close(); }}>
         <div className="modal-head"><span className="sheet-handle" aria-hidden="true" /><h2 id="help-filters-title">Filters</h2><button type="button" className="icon-button" aria-label="Close filters" onClick={() => sheet.current?.close()}><Icon name="close" /></button></div>
         <div className="modal-body">
-          <FilterSelect label="Topic" value={category} onChange={(event) => select(event.target.value)}>
-            <option value="all">All topics</option>
-            {HELP_CATEGORIES.map((group) => <option key={group.id} value={group.id}>{group.title}</option>)}
-          </FilterSelect>
+          <div className="chip-row filter-choices" role="group" aria-label="Topic">
+            {[{ id: "all", title: "All topics" }, ...HELP_CATEGORIES].map((group) => (
+              <button key={group.id} type="button" className="button ghost" aria-pressed={category === group.id} onClick={() => select(group.id)}>{group.title}</button>
+            ))}
+          </div>
         </div>
         <div className="modal-foot"><button type="button" className="button ghost" disabled={category === "all"} onClick={() => select("all")}>Reset</button><button type="button" className="button" onClick={() => sheet.current?.close()}>Show {total} {total === 1 ? "answer" : "answers"}</button></div>
       </dialog>

@@ -3260,3 +3260,24 @@ html:root:root .collection-about .read-more { color: var(--ink); font-size: inhe
 .photo-zoom { width: min(calc(100vw - 40px), 480px); max-height: calc(100dvh - 80px); margin: auto; padding: 0; border: 0; background: transparent; overflow: visible; }
 .photo-zoom img { display: block; width: 100%; height: auto; max-height: calc(100dvh - 80px); object-fit: contain; border-radius: var(--r); }
 .photo-zoom-close { position: absolute; top: 8px; right: 8px; color: #fff; filter: drop-shadow(0 1px 3px rgb(0 0 0 / 0.6)); }
+
+/* ---- Round of fixes (3) ---- */
+/* Choice buttons inside a dialog (Sort by, Help topics) keep their border and padding. */
+html:root:root:root:root:root :is(dialog, .menu-sheet) :is(.sort-choices, .filter-choices) .button.ghost:not([aria-pressed="true"]) {
+  border: 1px solid var(--line) !important; padding: 0 var(--control-pad) !important; background: var(--bg) !important;
+}
+html:root:root:root:root:root :is(dialog, .menu-sheet) :is(.sort-choices, .filter-choices) .button.ghost[aria-pressed="true"] { padding: 0 var(--control-pad) !important; }
+:is(.sort-choices, .filter-choices) { display: flex; flex-wrap: wrap; gap: var(--space-8); }
+
+/* Separator lines in the expanded menu are the same gray as borders. */
+html:root:root:root:root :is(.menu-more, .menu-site) { border-top-color: var(--line); }
+
+/* Theme and grid pickers: a bordered pill holding the options, the chosen one filled, all inside the border. */
+html:root:root:root:root:root :is(.theme-toggle, .grid-toggle) {
+  box-sizing: border-box; display: inline-flex; width: auto; height: var(--control); padding: 3px; gap: 2px;
+  border: 1px solid var(--line) !important; border-radius: var(--pill); background: var(--bg);
+}
+html:root:root:root:root:root :is(.theme-toggle, .grid-toggle) button { height: 100%; min-width: 0; border-radius: var(--pill); }
+html:root:root:root:root:root .theme-toggle button { width: auto; flex: 0 0 auto; padding: 0 var(--space-16); }
+html:root:root:root:root:root .grid-toggle button { width: calc(var(--control) - 8px); flex: 0 0 calc(var(--control) - 8px); padding: 0; }
+html:root:root:root:root:root :is(.theme-toggle, .grid-toggle) button[aria-checked="true"] { background: var(--ink) !important; color: var(--on-ink) !important; }
