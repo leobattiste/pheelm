@@ -48,6 +48,21 @@ await check("films page lists films and filters them", async () => {
   expect(some > 0 && some <= all, `search gave ${some} of ${all}`);
 });
 
+await check("member homepage shows discovery sections and Home first in the menu", async () => {
+  // With no Supabase connection, /home previews the starter catalog. No invented popularity.
+  const res = await page.goto(BASE + "/home", { waitUntil: "networkidle" });
+  expect(res?.ok(), `status ${res?.status()}`);
+  const headings = await page.locator("#main h2").allTextContents();
+  expect((await page.locator('#film-of-week').boundingBox())?.y >= 0, 'first section heading is clipped');
+  expect(JSON.stringify(headings) === JSON.stringify([
+    "Film of the week", "Most popular films", "From the community", "Director of the week", "Directors to follow", "Explore Further",
+  ]), `unexpected section order: ${headings.join(", ")}`);
+  expect(await page.locator('.tab-bar a').first().getAttribute('href') === '/home', 'Home must be first');
+  expect(await page.locator('.tab-bar a').first().getAttribute('aria-current') === 'page', 'Home must be active');
+  expect(await page.locator('main a[href^="/films/"]').count() > 0, 'featured film must open its film page');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'homepage overflows');
+});
+
 await check("a film page opens with its title and menu", async () => {
   await page.goto(BASE + "/films", { waitUntil: "networkidle" });
   const href = await page.$eval(".film-grid a[href^='/films/']", (a) => a.getAttribute("href"));

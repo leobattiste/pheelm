@@ -8,7 +8,7 @@ import { getBrowserClient } from "@/lib/supabase/client";
 /** The sign-in page, for links from emails and pages that need you signed in first. */
 export default function LoginPage() {
   const router = useRouter();
-  const [next, setNext] = useState("/me");
+  const [next, setNext] = useState("/home");
   const [error, setError] = useState<string | null>(null);
   const [signup, setSignup] = useState(false);
   const [step, setStep] = useState<SignInStep>("start");

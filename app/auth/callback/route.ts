@@ -13,7 +13,7 @@ const OTP_TYPES = new Set<EmailOtpType>(["email", "magiclink", "signup", "invite
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const remembered = request.cookies.get("signin_next")?.value;
-  const next = safeInternalPath(url.searchParams.get("next") ?? remembered ?? null) ?? "/me";
+  const next = safeInternalPath(url.searchParams.get("next") ?? remembered ?? null) ?? "/home";
 
   const redirect = (path: string) => {
     const response = NextResponse.redirect(new URL(path, url.origin));

@@ -59,10 +59,10 @@ export async function proxy(request: NextRequest) {
     return response;
   }
   const { data: { user } } = await supabase.auth.getUser();
-  // Home is for visitors: members start on Films.
+  // The landing page is for visitors; members start on their discovery homepage.
   if (home && user) {
     const to = request.nextUrl.clone();
-    to.pathname = "/films";
+    to.pathname = "/home";
     to.search = "";
     const redirect = NextResponse.redirect(to);
     response.cookies.getAll().forEach((c) => redirect.cookies.set(c));
