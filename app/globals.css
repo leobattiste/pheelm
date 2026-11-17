@@ -3168,3 +3168,44 @@ html:root:root:root[data-chrome="app"] body:has(dialog:modal)::after, :root:root
 :root:root:root:root .tab-bar .tab { border: 0; }
 :root:root:root:root :is(select, textarea, input:not([type="checkbox"]):not([type="radio"]):not([type="range"])) { border-color: var(--line) !important; }
 :root:root:root:root :is(.tab-bar, .film-bar, .back-to-top, .more-panel, .menu-sheet, .modal, .search-dialog, .toast, .catalog-suggestions, .person-head, .collection-tile) { box-shadow: none !important; }
+
+/* ---- Round of fixes ---- */
+/* Every page's first block starts the same distance from the top (no breadcrumbs above it), so swiping back and forth
+   between pages never shifts where content begins. */
+:root { --page-top: clamp(var(--space-24), 4vw, var(--space-48)); }
+:root:root .page-head { padding-top: var(--page-top); }
+:root:root .page-head.has-corner { --head-pad-top: var(--page-top); }
+:root:root .page > .person-head:first-child, :root:root .page > script:first-child + .person-head { margin-top: var(--page-top); }
+:root:root .film-page { padding-top: var(--page-top); }
+
+/* The menu bar and what floats above it are 14% narrower. */
+:root { --floating-width: calc(min(340px, calc(85vw - 1.7 * var(--gutter))) * 0.86); }
+
+/* Menu bar icons are outlines: the border colour at rest, the ink colour (white in dark mode) for the open page. */
+:root:root:root:root .tab-bar .tab { color: var(--line); }
+:root:root:root:root .tab-bar .tab:is(:hover, [aria-current="page"]) { color: var(--ink); }
+
+/* Text fields are the page's colour. */
+:root:root:root:root :is(select, textarea, input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), .search-trigger, .composer) { background-color: var(--bg); }
+
+/* Comment box: one border around the box; the textarea inside has none of its own. */
+:root:root:root:root .composer textarea { border: 0 !important; background: transparent; padding: var(--space-12) var(--space-16) var(--space-4); }
+:root:root:root:root .composer:focus-within { border-color: var(--muted); }
+
+/* Controls in sheets, menus and dialogs are bare text and icons: no border, fill or padding. Text fields and primary buttons
+   keep their shape. */
+:root:root:root:root :is(dialog, .menu-sheet, .more-panel) :is(.button.ghost, .button.quiet, .chip, .round-button, .pill-button, .link-chip, .watch-platform, select, .segmented):not(:where(.button.primary, .pill-button.primary, [aria-pressed="true"], [aria-selected="true"], [aria-checked="true"])) {
+  border-color: transparent !important; background: transparent !important; padding-left: 0; padding-right: 0; box-shadow: none;
+}
+
+/* Primary pill (Trailer). */
+:root:root:root:root .pill-button.primary { background: var(--ink); color: var(--bg); border-color: transparent; }
+
+/* Crew cards get the same 1px border as other cards. */
+:root:root:root:root .cast :is(a, button) { background-color: var(--bg); border: 1px solid var(--line); }
+
+/* Small pictures (crew photos, comment avatars, thumbnails) are 2px rounder; large ones keep their corners. */
+:root { --r-media: min(18px, calc(15% + 2px)) / min(18px, calc(10% + 2px)); --r-square-media: min(18px, calc(15% + 2px)); }
+html:root:root:root:root :is(dialog, .menu-sheet, .more-panel) select:not(.x):not(.y) { border-color: transparent !important; background-color: transparent !important; padding-left: 0; }
+/* The close cross shows no ring when a sheet opens (it gets focus automatically). */
+:root:root:root:root :is(dialog, .menu-sheet) :is(.icon-button[aria-label^="Close"], .search-close, .trailer-close):focus:not(:hover) { outline: none !important; }

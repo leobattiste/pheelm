@@ -35,7 +35,7 @@ export default function TabBar() {
   const at = (href: string) => path === href || path.startsWith(`${href}/`);
   const tabs: { href: string; label: string; icon: IconName; on: boolean; only?: string }[] = [
     { href: "/films", label: "Films", icon: "film", on: at("/films") },
-    { href: "/watchlists", label: "Watchlists", icon: "stack", on: at("/watchlists") || path.startsWith("/c/") },
+    { href: "/watchlists", label: "Watchlists", icon: "userMultiple", on: at("/watchlists") || path.startsWith("/c/") },
     { href: "/directors", label: "Directors", icon: "users2", on: at("/directors") || path.startsWith("/people/") },
     { href: profile, label: "Profile", icon: "userAccount", on: at(profile) || path === "/profile", only: "member-only" },
   ];
@@ -55,13 +55,13 @@ export default function TabBar() {
       <span className="tab-ring" data-on={ring >= 0} data-fresh={fresh} aria-hidden="true" />
       {tabs.map((t) => (
         <Link key={t.label} href={t.href} className={t.only ? `tab ${t.only}` : "tab"} aria-current={t.on ? "page" : undefined} aria-label={t.label} title={t.label}>
-          <Icon name={t.icon} filled={t.on} />
+          <Icon name={t.icon} />
         </Link>
       ))}
       {/* Signed out, the profile tab signs you in. Getting early access is only on the landing page. */}
       <Link href="/login" className="tab visitor-only" aria-current={path === "/login" ? "page" : undefined} aria-label="Sign in" title="Sign in"
         onClick={(e) => { if (openSignIn("signin")) e.preventDefault(); }}>
-        <Icon name="userAccount" filled={path === "/login"} />
+        <Icon name="userAccount" />
       </Link>
       <button type="button" className="tab" aria-haspopup="dialog" aria-label={me?.unread ? `More, ${me.unread} new notifications` : "More"} title="More"
         onClick={() => window.dispatchEvent(new Event("pheelm:menu"))}>

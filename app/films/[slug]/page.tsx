@@ -168,7 +168,7 @@ export default async function FilmPage({ params }: Params) {
 
             <div className="film-actions">
               {embed ? (
-                <TrailerButton embed={embed} title={film.title} className="pill-button" label="Trailer" action="trailer" />
+                <TrailerButton embed={embed} title={film.title} className="pill-button primary" label="Trailer" action="trailer" />
               ) : (
                 // No trailer on file yet: search YouTube for it instead.
                 <a

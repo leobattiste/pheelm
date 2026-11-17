@@ -21,7 +21,7 @@ try{
    assert.notEqual(style.bg,'rgba(0, 0, 0, 0)');assert.equal(style.blur,'none');assert.equal(style.color,await page.evaluate(()=>{const span=document.createElement('span');span.style.color='var(--on-ink)';document.body.append(span);const color=getComputedStyle(span).color;span.remove();return color;}));
   }
  }
- {const [fieldBg,sheetBg]=await modal.getByLabel('Sort by',{exact:true}).evaluate(e=>[getComputedStyle(e).backgroundColor,getComputedStyle(e.closest('dialog, .modal, .menu-sheet')||document.body).backgroundColor]);assert.notEqual(fieldBg,'rgba(0, 0, 0, 0)');assert.equal(fieldBg,sheetBg);}
+ {const [fieldBg,sheetBg]=await modal.getByLabel('Sort by',{exact:true}).evaluate(e=>[getComputedStyle(e).backgroundColor,getComputedStyle(e.closest('dialog, .modal, .menu-sheet')||document.body).backgroundColor]);assert.equal(fieldBg,'rgba(0, 0, 0, 0)');void sheetBg;}
  await modal.getByLabel('Country',{exact:true}).selectOption('US');
  await until(async()=>/Show \d+ films/.test(await modal.locator('.modal-foot').textContent()),'filtered count missing');
  await modal.getByRole('button',{name:'Reset',exact:true}).click();
