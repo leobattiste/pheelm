@@ -11,7 +11,7 @@ import {
   LinkSquare02Icon, Login03Icon, Logout03Icon, Mail01Icon, Moon02Icon, MoreHorizontalIcon, Notification03Icon,
   PencilEdit02Icon, PinIcon, PlayIcon, Search01Icon, Settings02Icon, Share08Icon, ShuffleIcon, SparklesIcon,
   SquareLock02Icon, ThreadsIcon, Tick02Icon, TranslateIcon, UserAdd01Icon, UserGroupIcon, UserIcon, ViewIcon,
-  UserCircleIcon, MoreHorizontalCircle01Icon, UserGroup02Icon,
+  UserCircleIcon, UserAccountIcon, MoreHorizontalCircle01Icon, UserGroup02Icon,
 } from "@hugeicons/core-free-icons";
 
 import { GalleryHorizontalEndIcon, RectangleVerticalIcon } from "lucide-react";
@@ -80,6 +80,7 @@ const ICONS = {
   dice: DiceFaces03Icon,
   tag: Tag01Icon,
   userCircle: UserCircleIcon,
+  userAccount: UserAccountIcon,
   users2: UserGroup02Icon,
   moreCircle: MoreHorizontalCircle01Icon,
 } as const;
@@ -106,6 +107,7 @@ const FILLED: Partial<Record<IconName, ReactNode>> = {
   stack: (<><rect x="9.5" y="3" width="13" height="18" rx="3" fill="currentColor" /><path d="M2.5 7.5v9M6 5.5v13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></>),
   users2: (<><circle cx="12" cy="7.8" r="3.6" fill="currentColor" /><path d="M5.2 20.5c0-3.7 3-6.2 6.8-6.2s6.8 2.5 6.8 6.2c0 .4-.3.7-.7.7H5.9c-.4 0-.7-.3-.7-.7z" fill="currentColor" /><circle cx="4.9" cy="9.4" r="2.3" fill="currentColor" /><circle cx="19.1" cy="9.4" r="2.3" fill="currentColor" /><path d="M1.2 17.2c0-2.1 1.6-3.7 3.9-3.9-.9 1-1.4 2.3-1.4 3.9v.9H1.9c-.4 0-.7-.4-.7-.9zM22.8 17.2c0-2.1-1.6-3.7-3.9-3.9.9 1 1.4 2.3 1.4 3.9v.9h1.8c.4 0 .7-.4.7-.9z" fill="currentColor" /></>),
   userCircle: <path fillRule="evenodd" fill="currentColor" d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM12 7a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM6.2 18.6C7.4 17 9.4 16 12 16s4.6 1 5.8 2.6C16.6 20 14.5 20.8 12 20.8S7.4 20 6.2 18.6z" />,
+  userAccount: <path fillRule="evenodd" fill="currentColor" d="M8.2 3h7.6C19.4 3 21.5 5.1 21.5 8.7v6.6c0 3.6-2.1 5.7-5.7 5.7H8.2c-3.6 0-5.7-2.1-5.7-5.7V8.7C2.5 5.1 4.6 3 8.2 3zM8.5 7.2a2.3 2.3 0 1 0 0 4.6 2.3 2.3 0 0 0 0-4.6zM5.9 16.2c0-1.4 1.2-2.4 2.6-2.4s2.6 1 2.6 2.4c0 .4-.3.7-.7.7H6.6c-.4 0-.7-.3-.7-.7zM13.2 8.3h4.4a.9.9 0 0 1 0 1.8h-4.4a.9.9 0 0 1 0-1.8zM13.2 12h4.4a.9.9 0 0 1 0 1.8h-4.4a.9.9 0 0 1 0-1.8z" />,
   moreCircle: (<><circle cx="4.5" cy="12" r="2" fill="currentColor" /><circle cx="12" cy="12" r="2" fill="currentColor" /><circle cx="19.5" cy="12" r="2" fill="currentColor" /></>),
 };
 

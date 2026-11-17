@@ -3132,3 +3132,18 @@ html:root:root:root[data-chrome="app"] :is(.tab-bar, .film-bar, .back-to-top) { 
 :root:root dialog:not(.trailer-dialog)::backdrop { background: transparent; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
 html:root[data-chrome="app"] dialog::backdrop { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
 html:root[data-chrome="app"] body:has(dialog:modal)::after { background: transparent; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+
+/* ---- Menu bar and frosted layers ----
+   The selected page is shown by its filled icon alone: no lens behind it. The floating layers are real frosted glass: a
+   strong blur with a fine grain, and only a light tint, instead of just a see-through fill. The page behind an open sheet or
+   dialog is blurred too, menu bar included. */
+:root:root:root .tab-ring { display: none; }
+:root:root[data-theme] { --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E"); }
+:root:root:root :is(.tab-bar, .film-bar, .back-to-top, .more-panel, .menu-sheet, .modal, .search-dialog, .toast, .catalog-suggestions) {
+  background-color: color-mix(in srgb, var(--surface) 58%, transparent);
+  background-image: var(--grain); background-size: 140px;
+  -webkit-backdrop-filter: blur(22px) saturate(1.5); backdrop-filter: blur(22px) saturate(1.5);
+}
+:root:root:root :is(.more-panel, .menu-sheet, .modal, .search-dialog, .catalog-suggestions) { background-color: color-mix(in srgb, var(--surface) 72%, transparent); }
+html:root:root:root[data-chrome="app"] body:has(dialog:modal) .tab-bar { z-index: 999; }
+html:root:root:root[data-chrome="app"] body:has(dialog:modal)::after, :root:root:root dialog:not(.trailer-dialog)::backdrop { -webkit-backdrop-filter: blur(12px) !important; backdrop-filter: blur(12px) !important; }

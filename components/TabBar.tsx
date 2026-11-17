@@ -37,7 +37,7 @@ export default function TabBar() {
     { href: "/films", label: "Films", icon: "film", on: at("/films") },
     { href: "/watchlists", label: "Watchlists", icon: "stack", on: at("/watchlists") || path.startsWith("/c/") },
     { href: "/directors", label: "Directors", icon: "users2", on: at("/directors") || path.startsWith("/people/") },
-    { href: profile, label: "Profile", icon: "userCircle", on: at(profile) || path === "/profile", only: "member-only" },
+    { href: profile, label: "Profile", icon: "userAccount", on: at(profile) || path === "/profile", only: "member-only" },
   ];
 
   // The outline sits over the open page's tab: 0 Films, 1 Watchlists, 2 Directors, 3 Profile or Sign in.
@@ -61,7 +61,7 @@ export default function TabBar() {
       {/* Signed out, the profile tab signs you in. Getting early access is only on the landing page. */}
       <Link href="/login" className="tab visitor-only" aria-current={path === "/login" ? "page" : undefined} aria-label="Sign in" title="Sign in"
         onClick={(e) => { if (openSignIn("signin")) e.preventDefault(); }}>
-        <Icon name="userCircle" filled={path === "/login"} />
+        <Icon name="userAccount" filled={path === "/login"} />
       </Link>
       <button type="button" className="tab" aria-haspopup="dialog" aria-label={me?.unread ? `More, ${me.unread} new notifications` : "More"} title="More"
         onClick={() => window.dispatchEvent(new Event("pheelm:menu"))}>
