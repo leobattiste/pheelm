@@ -2,7 +2,6 @@ import Link from "next/link";
 import DirectorCard from "@/components/DirectorCard";
 import AdminBrowserToolbar from "../AdminBrowserToolbar";
 import { requireAdmin } from "@/lib/admin";
-import { setAdmin } from "../actions";
 import { Empty, PageHeader, Pager, Pill, day, pageNumber, plural } from "../ui";
 
 export type MemberRow = {
@@ -16,7 +15,23 @@ const SEGMENTS = [
   { value: "active", label: "Signed in this month" }, { value: "inactive", label: "Not signed in this month" }, { value: "suspended", label: "Suspended" },
 ];
 
-export default async function AdminMembers({ searchParams }: { searchParams: Promise<{ q?: string; segment?: string; page?: string }> }) {
+const SORTS: { value: string; label: string; by: (a: MemberRow, b: MemberRow) => number }[] = [
+  { value: "newest", label: "Newest members", by: (a, b) => time(b.created_at) - time(a.created_at) },
+  { value: "oldest", label: "Oldest members", by: (a, b) => time(a.created_at) - time(b.created_at) },
+  { value: "lists-most", label: "Most watchlists", by: (a, b) => b.lists - a.lists },
+  { value: "lists-least", label: "Fewest watchlists", by: (a, b) => a.lists - b.lists },
+  { value: "saved-most", label: "Most films saved", by: (a, b) => b.saved - a.saved },
+  { value: "saved-least", label: "Fewest films saved", by: (a, b) => a.saved - b.saved },
+  { value: "comments-most", label: "Most comments", by: (a, b) => b.comments - a.comments },
+  { value: "comments-least", label: "Fewest comments", by: (a, b) => a.comments - b.comments },
+  { value: "seen-recent", label: "Signed in most recently", by: (a, b) => time(b.last_seen) - time(a.last_seen) },
+  { value: "seen-oldest", label: "Signed in longest ago", by: (a, b) => time(a.last_seen) - time(b.last_seen) },
+  { value: "name", label: "Name A to Z", by: (a, b) => label(a).localeCompare(label(b)) },
+];
+const time = (d: string | null) => (d ? new Date(d).getTime() : 0);
+const label = (r: MemberRow) => (r.display_name || r.handle || "").toLowerCase();
+
+export default async function AdminMembers({ searchParams }: { searchParams: Promise<{ q?: string; segment?: string; sort?: string; page?: string }> }) {
   const { db, owner } = await requireAdmin("/admin/members");
   const { data, error } = await db.rpc("admin_members");
   if (error) return <><PageHeader title="Members" /><p className="notice error">Members couldn&apos;t load. Try again in a moment.</p></>;
@@ -33,11 +48,13 @@ export default async function AdminMembers({ searchParams }: { searchParams: Pro
       || (segment === "active" && seen(r) >= month) || (segment === "inactive" && seen(r) < month) || (segment === "suspended" && !!r.suspended_at);
     return matches && inSegment;
   });
+  const sort = SORTS.find((o) => o.value === sp.sort) ?? SORTS[0];
+  filtered.sort(sort.by);
   const page = pageNumber(sp.page);
   const pageRows = filtered.slice((page - 1) * SIZE, page * SIZE);
   const { data: photos } = pageRows.length ? await db.from("profiles").select("id, avatar_url").in("id", pageRows.map((r) => r.id)) : { data: [] };
   const photoById = new Map((photos ?? []).map((p) => [p.id, p.avatar_url as string | null]));
-  const href = (p: number) => `/admin/members?${new URLSearchParams({ q, segment, page: String(p) })}`;
+  const href = (p: number) => `/admin/members?${new URLSearchParams({ q, segment, sort: sort.value, page: String(p) })}`;
   const joined = rows.filter((r) => new Date(r.created_at).getTime() >= week).length;
   const suspended = rows.filter((r) => r.suspended_at).length;
 
@@ -47,8 +64,9 @@ export default async function AdminMembers({ searchParams }: { searchParams: Pro
         description={`${plural(rows.length, "member")}, ${plural(rows.filter((r) => r.is_admin).length, "admin")}, ${joined} joined this week${suspended ? `, ${suspended} suspended` : ""}.`} />
       <AdminBrowserToolbar action="/admin/members" query={sp.q ?? ""} placeholder={owner ? "Search handle, name or email" : "Search handle or name"} filters={[
         { name: "segment", label: "Members", value: segment, options: SEGMENTS },
+        { name: "sort", label: "Sort by", value: sort.value, options: SORTS.map(({ value, label }) => ({ value, label })) },
       ]} />
-      <p className="muted">{plural(filtered.length, "matching member")}.{owner ? "" : " Only the owner can change admin roles or see email addresses."}</p>
+      <p className="muted">{plural(filtered.length, "matching member")}.{owner ? "" : " Only the owner can see email addresses."}</p>
       {pageRows.length ? (
         <ul className="director-grid admin-member-grid">
           {pageRows.map((r) => (
@@ -67,7 +85,6 @@ export default async function AdminMembers({ searchParams }: { searchParams: Pro
                 <p className="muted">Joined {day(r.created_at)}<br />Last signed in {day(r.last_seen)}</p>
                 <div className="actions">
                   <Link className="link-button" href={`/admin/members/${r.id}`}>View member</Link>
-                  {owner && !r.is_owner && <form action={setAdmin}><input type="hidden" name="id" value={r.id} /><input type="hidden" name="make" value={r.is_admin ? "false" : "true"} /><button className="button ghost small" type="submit">{r.is_admin ? "Remove admin" : "Make admin"}</button></form>}
                 </div>
               </div>
             } />

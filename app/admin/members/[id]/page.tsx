@@ -2,12 +2,11 @@ import Link from "next/link";
 import { commentPlace } from "@/lib/comments";
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/admin";
-import { setAdmin } from "../../actions";
 import { removeComment } from "../../community/actions";
 import ConfirmButton from "../../ConfirmButton";
 import { Empty, Facts, PageHeader, Panel, Pill, Row, Stat, Stats, day, dayTime } from "../../ui";
 import type { MemberRow } from "../page";
-import SuspendForm from "../SuspendForm";
+import MemberMenu from "../MemberMenu";
 
 /** One member: their account, what they've made and said, and what admins have done about them. */
 export default async function MemberDetail({ params }: { params: Promise<{ id: string }> }) {
@@ -34,8 +33,8 @@ export default async function MemberDetail({ params }: { params: Promise<{ id: s
         description={[person.handle && `@${person.handle}`, `joined ${day(person.created_at)}`].filter(Boolean).join(" · ")}
         actions={<>
           {person.handle && <Link className="button ghost small" href={`/@${person.handle}`}>View profile</Link>}
-          {owner && !person.is_owner && <form action={setAdmin}><input type="hidden" name="id" value={id} /><input type="hidden" name="make" value={person.is_admin ? "false" : "true"} />
-            <button className="button ghost small">{person.is_admin ? "Remove admin" : "Make admin"}</button></form>}
+          <MemberMenu id={id} name={name} isAdmin={person.is_admin} suspended={!!person.suspended_at} canChangeRole={owner && !person.is_owner && person.id !== user.id}
+            canSuspend={canSuspend} canDelete={person.id !== user.id && !person.is_owner && (owner || !person.is_admin)} />
         </>} />
       <div className="admin-tags">
         <Pill tone={person.is_admin ? "info" : "neutral"}>{role}</Pill>
@@ -74,11 +73,6 @@ export default async function MemberDetail({ params }: { params: Promise<{ id: s
               ["Reason", person.suspended_reason],
             ]} />
           </Panel>
-          {canSuspend && (
-            <Panel title={person.suspended_at ? "Suspended" : "Suspend"} icon="lock">
-              <SuspendForm id={id} suspended={!!person.suspended_at} name={name} />
-            </Panel>
-          )}
           <Panel title="Admin history" icon="clock">
             {history?.length ? history.map((h) => <Row key={h.id} detail={h.details || undefined} aside={<span className="muted">{day(h.created_at)}</span>}>{h.action}</Row>)
               : <Empty title="Nothing yet">Role changes and suspensions appear here.</Empty>}

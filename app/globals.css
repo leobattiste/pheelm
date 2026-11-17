@@ -3290,3 +3290,8 @@ html:root:root:root:root :is(
   .site-footer, .footer-bottom, .film-section, .film-comments .comments, .account-page .film-section,
   .member-page .film-section, .faq-list, .faq-card, .hf-item, .danger-zone, .save-new, .setting-row, .follow-list li
 ) { border-top-width: 0; border-bottom-width: 0; }
+
+/* Round of fixes (5): the expanded menu is as wide as a dialog; a lighter blur behind open dialogs */
+html:root:root:root[data-chrome="app"] .menu-sheet { width: min(480px, calc(100vw - 40px)); max-width: min(480px, calc(100vw - 40px)); }
+html:root:root:root:root[data-chrome="app"] body:has(dialog:modal)::after,
+:root:root:root:root dialog:not(.trailer-dialog)::backdrop { -webkit-backdrop-filter: blur(5px) !important; backdrop-filter: blur(5px) !important; }

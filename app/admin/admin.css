@@ -423,3 +423,5 @@ a.admin-attention-row:hover, .admin-attention-row a:hover { color: var(--ink); }
 @media (max-width: 899px) {
   .admin-sidebar > .nav-progress { display: block; left: 0; right: 0; }
 }
+.admin-menu-list .admin-menu-item { justify-content: flex-start; width: 100%; }
+.admin-menu-list .admin-menu-item.danger-text { color: var(--danger, #e5484d); }
