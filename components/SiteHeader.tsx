@@ -79,6 +79,7 @@ export default function SiteHeader() {
           </nav>
           <AccountMenu onNavigate={() => menu.current?.close()}>
           <nav className="menu-more menu-support" aria-label="Support Pheelm">
+            <Link href="/shop" aria-current={current("/shop")}><Icon name="bag" />Shop</Link>
             {DONATE_URL ? (
               <a href={DONATE_URL} target="_blank" rel="noopener noreferrer" onClick={() => menu.current?.close()}><Icon name="heart" />Donate</a>
             ) : (
