@@ -3249,8 +3249,8 @@ html:root:root:root:root :is(.menu-more, .menu-site):first-child { border-top-co
 .comment-new { display: block; }
 
 /* Watchlist cards: the public/private mark sits on the film-count line, the size of its text. */
-html:root:root .collection-desc .tile-icon { display: inline-block; width: 1em; height: 1em; margin: 0 0 0 6px; border: 0; vertical-align: -0.14em; color: inherit; }
-html:root:root .collection-desc .tile-icon .icon { width: 1em; height: 1em; }
+html:root:root .collection-desc:not(.admin *) .tile-icon { display: inline-block; width: 1em; height: 1em; margin: 0 0 0 6px; border: 0; vertical-align: -0.14em; color: inherit; }
+html:root:root .collection-desc:not(.admin *) .tile-icon .icon { width: 1em; height: 1em; }
 
 /* "Read more" is plain highlighted text. */
 html:root:root .collection-about .read-more { color: var(--ink); font-size: inherit; text-decoration: underline; text-underline-offset: 0.2em; min-height: 0; }
