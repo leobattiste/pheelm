@@ -14,24 +14,19 @@ function weekly<T>(items: T[], week: number): T | null {
 }
 
 /**
- * Rank only films present in public community watchlists. A watchlist contributes once per
- * film, regardless of duplicate rows or its follower count. No private saves or watched history
- * are read. The caller supplies getCommunityCollections() results, which enforce public access
- * and the community's visibility rules. With no public signal, return an honest empty state.
+ * Intersect TMDB's worldwide popularity order with Pheelm's published catalog. Using TMDB IDs
+ * avoids matching namesakes or remakes by title. Never substitute Pheelm watchlist activity,
+ * awards or a random order when the external popularity chart is missing.
  */
-export function popularHomeFilms(films: Film[], collections: CommunityCollection[], limit = 6): Film[] {
-  const counts = new Map<string, number>();
-  const seenLists = new Set<string>();
-  for (const list of collections) {
-    if (seenLists.has(list.id)) continue;
-    seenLists.add(list.id);
-    for (const id of new Set(list.films.map((film) => film.id))) {
-      counts.set(id, (counts.get(id) ?? 0) + 1);
-    }
+export function popularHomeFilms(films: Film[], popularMovieIds: readonly number[], limit = 6): Film[] {
+  const catalog = new Map(films.filter((film) => film.status === "published" && film.tmdb_id)
+    .map((film) => [film.tmdb_id, film]));
+  const ranked: Film[] = [];
+  for (const id of new Set(popularMovieIds)) {
+    const film = catalog.get(id);
+    if (film) ranked.push(film);
   }
-  return films.filter((film) => film.status === "published" && counts.has(film.id))
-    .sort((a, b) => counts.get(b.id)! - counts.get(a.id)! || a.title.localeCompare(b.title, "en") || a.id.localeCompare(b.id))
-    .slice(0, Math.max(0, limit));
+  return ranked.slice(0, Math.max(0, limit));
 }
 
 /** Assemble the homepage from existing catalog and publicly visible community data. */
@@ -41,6 +36,7 @@ export function buildHomeData(
   collections: CommunityCollection[],
   now = new Date(),
   followedIds: ReadonlySet<string> = new Set(),
+  popularMovieIds: readonly number[] = [],
 ) {
   const week = homeWeek(now);
   const published = films.filter((film) => film.status === "published");
@@ -66,7 +62,7 @@ export function buildHomeData(
   return {
     filmOfWeek,
     directorOfWeek,
-    popularFilms: popularHomeFilms(published, collections),
+    popularFilms: popularHomeFilms(published, popularMovieIds),
     featuredWatchlists: collections.filter((list) => list.featured || list.staff_pick).slice(0, 3),
     directorsToFollow: rotated.slice(0, 4),
   };
