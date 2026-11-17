@@ -3110,19 +3110,21 @@ html:root:root:root[data-chrome="app"] :is(.tab-bar, .film-bar, .back-to-top) { 
 
 /* ---- One flat fill ----
    Cards, buttons, chips, fields and everything that floats over the page (menu bar, film bar, back-to-top, ⋯ menus, sheets,
-   dialogs, toasts) share --surface; a control inside a card or a floating layer takes --raised so it still stands out.
-   Primary and selected are solid ink. No outlines, no shadows, and no blur on any element; the only blur is on the page
-   behind an open sheet or dialog. */
+   dialogs, toasts) share --surface, and a control inside a card or a floating layer uses that same fill. Primary and selected
+   are solid ink. No outlines and no shadows. Cards and buttons are flat; the layers that float over the page add a small
+   blur so they stand apart from them, and the page behind an open sheet or dialog is blurred too. */
 :root:root[data-theme] {
   --glass-bg: var(--surface); --glass-hover: var(--raised); --glass-filter: none; --glass-shadow: none;
   --control-fill: var(--surface); --control-hover: var(--raised);
 }
 :root:root:root *:not(.tab-ring) { box-shadow: none; }
 :root:root:root :is(.tab-bar, .film-bar, .back-to-top, .more-panel, .menu-sheet, .modal, .search-dialog, .toast, .catalog-suggestions) {
-  background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none;
+  background: color-mix(in srgb, var(--surface) 88%, transparent); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
 }
-:root:root:root :is(.film-bar, .more-panel, .menu-sheet, .modal, .search-dialog, .toast) :is(.button, .chip, .round-button, .pill-button, .icon-button, .search-trigger, .link-chip, .segmented, .theme-toggle, .grid-toggle, .watch-platform, select, textarea, input:not([type="checkbox"]):not([type="radio"]), .composer):not(:where([aria-pressed="true"], [aria-selected="true"], [aria-current="page"], [aria-checked="true"], .more-button, .button.primary, .button:not(.ghost):not(.quiet))) { background: var(--raised); }
-:root:root:root :is(.collection-tile, .admin-managed-card, .ways li, .stat, .fieldset, .inbox li, .public-name, .person-head, .person-facts > div, .welcome-person, .cta-card) :is(.button.ghost, .button.quiet, .chip, .round-button, .pill-button, .icon-button, .search-trigger, .link-chip, .watch-platform, .segmented, select, textarea, input:not([type="checkbox"]):not([type="radio"]), .composer):not(:where([aria-pressed="true"], [aria-selected="true"], [aria-current="page"], [aria-checked="true"], .more-button)) { background: var(--raised); }
+/* Controls inside them are flat: no second blur. */
+:root:root:root :is(.tab-bar, .film-bar, .more-panel, .menu-sheet, .modal, .search-dialog, .toast) * { -webkit-backdrop-filter: none; backdrop-filter: none; }
+:root:root:root :is(.film-bar, .more-panel, .menu-sheet, .modal, .search-dialog, .toast) :is(.button, .chip, .round-button, .pill-button, .icon-button, .search-trigger, .link-chip, .segmented, .theme-toggle, .grid-toggle, .watch-platform, select, textarea, input:not([type="checkbox"]):not([type="radio"]), .composer):not(:where([aria-pressed="true"], [aria-selected="true"], [aria-current="page"], [aria-checked="true"], .more-button, .button.primary, .button:not(.ghost):not(.quiet))) { background: var(--surface); }
+:root:root:root :is(.collection-tile, .admin-managed-card, .ways li, .stat, .fieldset, .inbox li, .public-name, .person-head, .person-facts > div, .welcome-person, .cta-card) :is(.button.ghost, .button.quiet, .chip, .round-button, .pill-button, .icon-button, .search-trigger, .link-chip, .watch-platform, .segmented, select, textarea, input:not([type="checkbox"]):not([type="radio"]), .composer):not(:where([aria-pressed="true"], [aria-selected="true"], [aria-current="page"], [aria-checked="true"], .more-button)) { background: var(--surface); }
 :root:root:root .tab-ring::before { background: var(--raised); box-shadow: none; }
 :root:root:root :is(.more-panel) :is(.button, .link-button) { background: transparent; }
 :root:root:root :is(dialog, .menu-sheet) :is(.icon-button[aria-label^="Close"], .search-close, .trailer-close) { background: transparent; }
