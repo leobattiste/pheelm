@@ -3281,3 +3281,12 @@ html:root:root:root:root:root :is(.theme-toggle, .grid-toggle) button { height: 
 html:root:root:root:root:root .theme-toggle button { width: auto; flex: 0 0 auto; padding: 0 var(--space-16); }
 html:root:root:root:root:root .grid-toggle button { width: calc(var(--control) - 8px); flex: 0 0 calc(var(--control) - 8px); padding: 0; }
 html:root:root:root:root:root :is(.theme-toggle, .grid-toggle) button[aria-checked="true"] { background: var(--ink) !important; color: var(--on-ink) !important; }
+
+/* Round of fixes (4): tab icons easier to see; no divider lines between page sections */
+:root:root:root:root .tab-bar .tab { color: color-mix(in srgb, var(--muted) 45%, var(--line-strong)); }
+:root:root:root:root .tab-bar .tab:is(:hover, [aria-current="page"]) { color: var(--ink); }
+
+html:root:root:root:root :is(
+  .site-footer, .footer-bottom, .film-section, .film-comments .comments, .account-page .film-section,
+  .member-page .film-section, .faq-list, .faq-card, .hf-item, .danger-zone, .save-new, .setting-row, .follow-list li
+) { border-top-width: 0; border-bottom-width: 0; }
