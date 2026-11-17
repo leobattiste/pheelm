@@ -12,12 +12,12 @@ export const metadata: Metadata = privateMetadata("Welcome");
 
 /**
  * After signing up: choose a name and handle, follow a few directors, save a few films. Every step
- * can be skipped; it ends on Films (or wherever the person was headed).
+ * can be skipped; it ends on Home (or wherever the person was headed).
  */
 export default async function WelcomePage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
   const sp = await searchParams;
   const destination = safeInternalPath(sp.next);
-  const next = destination && !destination.startsWith("/welcome") ? destination : "/films";
+  const next = destination && !destination.startsWith("/welcome") ? destination : "/home";
   const db = await getServerClient();
   if (!db) redirect(next);
   const { data: { user } } = await db.auth.getUser();

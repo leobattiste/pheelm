@@ -97,4 +97,8 @@ Change the name and tagline in `lib/site.ts`.
 
 Pheelm is dark by default (visitors can switch to light in the footer). Everything is set in one typeface, Nacelle by Dotcolon (SIL Open Font License), served from the site itself. Each film page takes its colour from the film's poster: the TMDB import measures it automatically, and you can override it in the film's editor. Until a film has a poster, it gets a title card in a colour picked from its name.
 
-The home page's film of the week rotates through films marked "Feature on the home page", preferring those with a still. Search opens with ⌘K, Ctrl+K or "/".
+Members start on `/home`: Film of the week, Most popular films, From the community (featured watchlists), Director of the week, Directors to follow, and Explore Further. The public landing page stays at `/`.
+
+Weekly film and director picks rotate on Mondays in UTC. Films marked "Feature on the home page" are preferred, especially those with a still; directors with a portrait and biography are preferred. Most popular films ranks films by how many qualifying public community watchlists include them, never private saves or viewing history. Without public watchlists, it shows an empty state. Feature a watchlist in its admin menu to put it in From the community. Director suggestions leave out directors the member already follows.
+
+Home is first in the main menu bar; Profile is in the expanded menu above Notifications. Search opens with ⌘K, Ctrl+K or "/".

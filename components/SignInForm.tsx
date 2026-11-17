@@ -20,7 +20,7 @@ export type SignInStep = "start" | "code" | "reset" | "new-password";
 type CodeType = "email" | "signup" | "recovery";
 
 export function safeNext(value: string | null) {
-  return safeInternalPath(value) ?? "/me";
+  return safeInternalPath(value) ?? "/home";
 }
 
 export const LINK_ERRORS: Record<string, string> = {
