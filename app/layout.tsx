@@ -8,6 +8,7 @@ import BackToTop from "@/components/BackToTop";
 import NewsletterForm from "@/components/NewsletterForm";
 import Search from "@/components/Search";
 import TabBar from "@/components/TabBar";
+import PhotoZoom from "@/components/PhotoZoom";
 import WelcomeNudge from "@/components/WelcomeNudge";
 import Toaster from "@/components/Toast";
 import NotificationToasts from "@/components/NotificationToasts";
@@ -150,7 +151,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </nav>
             <nav className="member-only" aria-labelledby="footer-you">
               <h2 id="footer-you">You</h2>
-              <Link className="member-only" href="/me">Watchlist</Link>
+              <Link className="member-only" href="/me">Watchlists</Link>
               <Link className="member-only" href="/profile">Profile</Link>
               <Link className="member-only" href="/account">Settings</Link>
               {INSTAGRAM_URL && <a className="footer-social-link platform-link" aria-label="Pheelm on Instagram" title="Instagram" href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer"><Icon name="instagram" /></a>}
@@ -174,6 +175,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
         </footer>
         <TabBar />
+        <PhotoZoom />
         <BackToTop />
         <InstallBanner />
         <WelcomeNudge />

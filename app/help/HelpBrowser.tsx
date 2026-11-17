@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Icon from "@/components/Icon";
+import FilterSelect from "@/components/FilterSelect";
 import { HELP_CATEGORIES } from "./help-content";
 
 export default function HelpBrowser() {
@@ -10,6 +11,7 @@ export default function HelpBrowser() {
   const [category, setCategory] = useState("all");
   const [open, setOpen] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
+  const sheet = useRef<HTMLDialogElement>(null);
   const questionCount = HELP_CATEGORIES.reduce((sum, group) => sum + group.questions.length, 0);
   const results = useMemo(() => {
     const terms = query.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
@@ -42,17 +44,28 @@ export default function HelpBrowser() {
   }, []);
   return (
     <div className="help-browser">
-      <div className="help-search">
-        <Icon name="search" size={21} />
-        <input type="search" value={query} onChange={(event) => { setQuery(event.target.value); setShowAll(true); setOpen(null); }} placeholder="Search help articles" aria-label="Search help articles" />
-        {query && <button type="button" className="help-clear" onClick={() => setQuery("")} aria-label="Clear search"><Icon name="close" size={18} /></button>}
+      {/* Same navigation as the film and director catalogues: one search field and one Filters control. */}
+      <div className="toolbar catalog-toolbar help-toolbar">
+        <form className="search-bar" role="search" onSubmit={(event) => event.preventDefault()}>
+          <Icon name="search" />
+          <label htmlFor="help-q" className="visually-hidden">Search help</label>
+          <input id="help-q" type="search" value={query} onChange={(event) => { setQuery(event.target.value); setShowAll(true); setOpen(null); }} placeholder="Search help" autoComplete="off" />
+          {query && <button type="button" className="catalog-clear-query" onClick={() => setQuery("")} aria-label="Clear search"><Icon name="close" /></button>}
+        </form>
+        <button type="button" className={"button ghost filter-button" + (category !== "all" ? " has-count" : "")} aria-haspopup="dialog" aria-controls="help-filters" onClick={() => sheet.current?.showModal()}>
+          <Icon name="filter" /><span className="filter-label">Filters</span>{category !== "all" && <span className="badge" aria-label="1 active filter">1</span>}
+        </button>
       </div>
-      <div className="help-categories" role="group" aria-label="Help topics">
-        <button type="button" className="chip" aria-pressed={category === "all"} onClick={() => select("all")}>All topics</button>
-        {HELP_CATEGORIES.map((group) => (
-          <button type="button" key={group.id} className="chip" aria-pressed={category === group.id} onClick={() => select(group.id)}>{group.title}</button>
-        ))}
-      </div>
+      <dialog ref={sheet} id="help-filters" className="modal catalog-filter-dialog" aria-labelledby="help-filters-title" onClick={(event) => { if (event.target === sheet.current) sheet.current?.close(); }}>
+        <div className="modal-head"><span className="sheet-handle" aria-hidden="true" /><h2 id="help-filters-title">Filters</h2><button type="button" className="icon-button" aria-label="Close filters" onClick={() => sheet.current?.close()}><Icon name="close" /></button></div>
+        <div className="modal-body">
+          <FilterSelect label="Topic" value={category} onChange={(event) => select(event.target.value)}>
+            <option value="all">All topics</option>
+            {HELP_CATEGORIES.map((group) => <option key={group.id} value={group.id}>{group.title}</option>)}
+          </FilterSelect>
+        </div>
+        <div className="modal-foot"><button type="button" className="button ghost" disabled={category === "all"} onClick={() => select("all")}>Reset</button><button type="button" className="button" onClick={() => sheet.current?.close()}>Show {total} {total === 1 ? "answer" : "answers"}</button></div>
+      </dialog>
       <p className="muted help-count" aria-live="polite">{query || category !== "all" ? `${total} ${total === 1 ? "answer" : "answers"} found` : `${questionCount} answers across ${HELP_CATEGORIES.length} topics`}</p>
       {results.length ? results.map((group) => {
         const visible = query || category !== "all" || showAll ? group.questions : group.questions.slice(0, 4);

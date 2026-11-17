@@ -70,7 +70,7 @@ export default function AccountMenu({ onNavigate, children }: { onNavigate: () =
         <Icon name="bell" />Notifications
         {me.unread > 0 && <span className="badge" aria-label={`${me.unread} new`}>{me.unread > 9 ? "9+" : me.unread}</span>}
       </Link>
-      <Link href="/me" aria-current={current("/me")}><Icon name="bookmark" />Watchlist</Link>
+      <Link href="/me" aria-current={current("/me")}><Icon name="bookmark" />Watchlists</Link>
       <Link href="/account" aria-current={current("/account")}><Icon name="gear" />Settings</Link>
     </nav>
     {children}

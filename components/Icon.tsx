@@ -8,10 +8,10 @@ import {
   Edit04Icon, Camera01Icon, Delete02Icon, TiktokIcon, YoutubeIcon, NewTwitterIcon, Facebook01Icon, BlueskyIcon, Linkedin01Icon, DashboardCircleSettingsIcon, Add01Icon, ArrowDown01Icon, ArrowUpDownIcon, DiceFaces03Icon, Tag01Icon, ArrowLeft01Icon, ArrowRight01Icon, ArrowTurnBackwardIcon, ArrowUp02Icon, AtIcon, Award01Icon,
   Bookmark02Icon, Calendar03Icon, ClapperboardIcon, Cancel01Icon, FlimSlateIcon, Clock01Icon, Comment01Icon, Door01Icon,
   FavouriteIcon, FilterHorizontalIcon, Film02Icon, Flag02Icon, Globe02Icon, InstagramIcon, Layers01Icon,
-  LinkSquare02Icon, Login03Icon, Logout03Icon, Mail01Icon, Moon02Icon, MoreHorizontalIcon, Notification03Icon,
+  LinkSquare02Icon, Login03Icon, Logout03Icon, Mail01Icon, Moon02Icon, EllipsisIcon, Notification03Icon,
   PencilEdit02Icon, PinIcon, PlayIcon, Search01Icon, Settings02Icon, Share08Icon, ShuffleIcon, SparklesIcon,
   SquareLock02Icon, ThreadsIcon, Tick02Icon, TranslateIcon, UserAdd01Icon, UserGroupIcon, UserIcon, ViewIcon,
-  UserCircleIcon, UserAccountIcon, UserMultiple02Icon, MoreHorizontalCircle01Icon, UserGroup02Icon,
+  UserCircleIcon, UserAccountIcon, UserMultiple02Icon, UserGroup02Icon,
 } from "@hugeicons/core-free-icons";
 
 import { GalleryHorizontalEndIcon, RectangleVerticalIcon } from "lucide-react";
@@ -68,7 +68,7 @@ const ICONS = {
   arrowRight: ArrowRight01Icon,
   arrowUp: ArrowUp02Icon,
   filter: FilterHorizontalIcon,
-  more: MoreHorizontalIcon,
+  more: EllipsisIcon,
   play: PlayIcon,
   share: Share08Icon,
   pencil: PencilEdit02Icon,
@@ -83,7 +83,7 @@ const ICONS = {
   userAccount: UserAccountIcon,
   userMultiple: UserMultiple02Icon,
   users2: UserGroup02Icon,
-  moreCircle: MoreHorizontalCircle01Icon,
+  moreCircle: EllipsisIcon,
 } as const;
 
 export type IconName = keyof typeof ICONS | "imdb";

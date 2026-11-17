@@ -376,7 +376,6 @@ export default function Comments({ listId, filmId, filmTitle, watchedIds = [], o
         <p className="comments-gate">Comments are turned off for this watchlist.</p>
       ) : me ? (
         <div className="comment-new">
-          <UserAvatar person={me} className="comment-avatar" />
           <Composer label="Add a comment" submitLabel="Post" busy={busy} spoilers={isFilm}
             placeholder={isFilm ? `What did you think of ${filmTitle ?? "this film"}?` : isOwner ? "Say something about your watchlist" : "Add a comment"}
             onSubmit={(t, s) => post(t, null, s)} />
@@ -413,7 +412,6 @@ export default function Comments({ listId, filmId, filmTitle, watchedIds = [], o
                     )}
                     {replyTo === c.id && me && (
                       <li className="comment-new is-reply">
-                        <UserAvatar person={me} className="comment-avatar" />
                         <Composer label={`Reply to ${c.id}`} placeholder={`Reply to ${c.author?.display_name || "this comment"}`} submitLabel="Reply" busy={busy} autoFocus
                           initial={c.author && c.user_id !== viewer?.id ? `@${c.author.handle} ` : ""} spoilers={isFilm}
                           onSubmit={(t, s) => post(t, c.id, s)} onCancel={() => setReplyTo(null)} />

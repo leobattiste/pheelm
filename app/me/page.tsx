@@ -16,7 +16,7 @@ import { getServerClient } from "@/lib/supabase/server";
 import { createCollection } from "./actions";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = privateMetadata("Watchlist");
+export const metadata: Metadata = privateMetadata("Watchlists");
 
 type ListRow = CommunityRow & { is_public: boolean };
 const LIST_COLS = "id, slug, title, description, is_public, staff_pick, created_at, user_id, list_films(film_id, added_at)";
@@ -31,7 +31,7 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
   if (!db) {
     return (
       <section className="panel">
-        <h1>Watchlist</h1>
+        <h1>Watchlists</h1>
         <p className="lead">Watchlists aren&rsquo;t available yet. Check back soon.</p>
       </section>
     );
@@ -64,7 +64,7 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
     return (
       <section className="page">
         <header className="page-head">
-          <p className="crumbs"><Link href="/me">Watchlist</Link></p>
+          <p className="crumbs"><Link href="/me">Watchlists</Link></p>
           <h1>All saved films</h1>
           <p className="lead">Everything you&rsquo;ve saved, newest first.</p>
         </header>
@@ -100,7 +100,7 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
   return (
     <section className="page">
       <header className="page-head">
-        <h1>Watchlist</h1>
+        <h1>Watchlists</h1>
         <p className="lead">{PAGE_COPY.watchlist}</p>
       </header>
       {sp.error === "collection" && <p className="notice error">The watchlist couldn&rsquo;t be created. Try again.</p>}

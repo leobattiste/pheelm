@@ -3209,3 +3209,54 @@ html:root:root:root[data-chrome="app"] body:has(dialog:modal)::after, :root:root
 html:root:root:root:root :is(dialog, .menu-sheet, .more-panel) select:not(.x):not(.y) { border-color: transparent !important; background-color: transparent !important; padding-left: 0; }
 /* The close cross shows no ring when a sheet opens (it gets focus automatically). */
 :root:root:root:root :is(dialog, .menu-sheet) :is(.icon-button[aria-label^="Close"], .search-close, .trailer-close):focus:not(:hover) { outline: none !important; }
+
+/* ---- Round of fixes (2) ---- */
+/* Primary buttons, Trailer included: solid ink (white in dark mode) with the page colour for text. */
+html:root:root:root:root:root :is(.button:not(.ghost):not(.quiet):not(.link-button), .button.primary, .pill-button.primary):not(:disabled) {
+  background: var(--ink) !important; color: var(--on-ink) !important; border-color: transparent !important;
+}
+
+/* Film bar buttons and every ⋯ control: no border. */
+html:root:root:root:root :is(.film-bar :is(.button, .round-button, .pill-button, button), .more-menu > :is(.round-button, .more-button, button)) { border-color: transparent !important; }
+html:root:root:root:root .more-menu > :is(.round-button, .more-button) { background: transparent !important; }
+
+/* ⋯ menus and the menu sheet keep a 20px inner margin; their rows sit inside it. */
+html:root:root:root:root .more-panel { padding: var(--space-8) var(--space-20); }
+html:root:root:root:root .more-panel :is(.button, .link-button, a, button):not(dialog *) { padding-left: 0; padding-right: 0; }
+
+/* Filters inside sheets and dialogs keep their border and padding (other controls there stay bare). */
+html:root:root:root:root :is(dialog, .menu-sheet) .filter-field select:not(.x) { border: 1px solid var(--line) !important; padding: 0 var(--space-48) 0 var(--space-16) !important; background-color: var(--bg) !important; }
+html:root:root:root:root :is(dialog, .menu-sheet) .filter-field input:not(.x) { border: 1px solid var(--line) !important; padding: 0 var(--space-16) !important; }
+
+/* The close cross in sheets and dialogs has no background, ever. */
+html:root:root:root:root :is(dialog, .menu-sheet) :is(.modal-head .icon-button, .icon-button[aria-label^="Close"], .search-close, .trailer-close):is(*, :hover, :active, :focus) { background: transparent !important; }
+
+/* Dialogs open in the middle of the screen; on phones they reach the 20px page margins. */
+html:root:root .modal {
+  inset: 0; margin: auto; transform: none; transform-origin: center;
+  width: min(480px, calc(100vw - 40px)); max-width: none; max-height: calc(100dvh - 40px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  border: 1px solid var(--line); border-radius: var(--r);
+}
+html:root:root .modal[open] { animation: fade 0.2s var(--ease); }
+html:root:root .modal .sheet-handle { display: none; }
+@media (max-width: 639px) { html:root:root .modal { width: calc(100vw - 40px); } html:root:root .modal-head { padding-top: var(--space-16); } }
+
+/* Separator lines in the expanded menu are the ink colour (white in dark mode). */
+html:root:root:root:root :is(.menu-more, .menu-site) { border-top-color: var(--ink); }
+html:root:root:root:root :is(.menu-more, .menu-site):first-child { border-top-color: transparent; }
+
+/* Comments: the box takes the full width, no photo beside it. */
+.comment-new { display: block; }
+
+/* Watchlist cards: the public/private mark sits on the film-count line, the size of its text. */
+html:root:root .collection-desc .tile-icon { display: inline-block; width: 1em; height: 1em; margin: 0 0 0 6px; border: 0; vertical-align: -0.14em; color: inherit; }
+html:root:root .collection-desc .tile-icon .icon { width: 1em; height: 1em; }
+
+/* "Read more" is plain highlighted text. */
+html:root:root .collection-about .read-more { color: var(--ink); font-size: inherit; text-decoration: underline; text-underline-offset: 0.2em; min-height: 0; }
+
+/* A profile photo opened bigger. */
+.person-head img.portrait[data-zoom], .person-head .portrait img[data-zoom] { cursor: zoom-in; }
+.photo-zoom { width: min(calc(100vw - 40px), 480px); max-height: calc(100dvh - 80px); margin: auto; padding: 0; border: 0; background: transparent; overflow: visible; }
+.photo-zoom img { display: block; width: 100%; height: auto; max-height: calc(100dvh - 80px); object-fit: contain; border-radius: var(--r); }
+.photo-zoom-close { position: absolute; top: 8px; right: 8px; color: #fff; filter: drop-shadow(0 1px 3px rgb(0 0 0 / 0.6)); }

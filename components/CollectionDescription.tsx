@@ -28,7 +28,7 @@ export default function CollectionDescription({ title, text }: { title: string; 
     <div className="collection-about">
       <p ref={lead} className="lead clamp-3">{text}</p>
       {long && (
-        <button type="button" className="button ghost small" aria-haspopup="dialog" onClick={() => modal.current?.showModal()}>
+        <button type="button" className="link-button read-more" aria-haspopup="dialog" onClick={() => modal.current?.showModal()}>
           Read more
         </button>
       )}

@@ -29,13 +29,15 @@ export default function CommunityTile({ c, showOwner = true, badge, filmCount, f
         </span>
         <span className="collection-title">
           {c.title}
+        </span>
+        <span className="collection-desc">
+          {meta}
           {badge && (
             <span className="tile-icon" title={badge}>
               <Icon name={BADGE_ICONS[badge] ?? "eye"} label={badge} />
             </span>
           )}
         </span>
-        <span className="collection-desc">{meta}</span>
       </Wrap>
       {footer}
     </li>
