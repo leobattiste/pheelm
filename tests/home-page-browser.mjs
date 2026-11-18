@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 const svg = (color, label) => `data:image/svg+xml;base64,${Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="600" height="900"><rect width="600" height="900" fill="${color}"/><circle cx="300" cy="280" r="160" fill="#ffffff" opacity=".12"/><text x="50" y="700" fill="white" font-family="sans-serif" font-size="44">${label}</text></svg>`).toString('base64')}`;
 const colors = ['#684a35', '#28585e', '#6a364b', '#38543c', '#57436b', '#8a5935', '#254a69', '#795447'];
 const people = colors.map((color, i) => ({ id: `director-${i}`, slug: `director-${i}`, name: ['Amina Johnson', 'Ousmane Diallo', 'Nia Williams', 'Maya Lewis', 'Kwame Mensah', 'Imani James', 'Zora Thomas', 'Ada Okafor'][i], country: ['US', 'SN', 'GB', 'US', 'GH', 'JM', 'BR', 'NG'][i], photo_url: svg(color, 'Director'), bio: 'A filmmaker exploring memory, identity and the everyday stories that connect us. Discover their work through a growing collection of films.', in_directory: true }));
-const films = colors.map((color, i) => ({ id: `film-${i}`, slug: `film-${i}`, title: ['A Place Between Worlds', 'The River Remembers', 'After the Rain', 'An Ordinary Day', 'Letters from Home', 'City of Light', 'Across the Water', 'A New Morning'][i], year: 2020 + i % 5, type: i === 2 ? 'documentary' : i === 3 ? 'short' : 'feature', countries: [people[i].country], languages: ['English'], genres: ['Drama'], runtime: 96, synopsis: 'A journey through the places and people we carry with us.', note: i === 0 ? 'An intimate story of belonging, told through the people who make a place feel like home.' : null, status: 'published', featured: i === 0, color, poster_url: svg(color, 'Pheelm'), backdrop_url: i === 0 ? svg(color, '') : null, trailer_url: null, awards: [], watch: [], directors: [people[i]], credits: [{ person: people[i], role: 'director' }], collections: [] }));
+const films = colors.map((color, i) => ({ id: `film-${i}`, tmdb_id: 100 + i, slug: `film-${i}`, title: ['A Place Between Worlds', 'The River Remembers', 'After the Rain', 'An Ordinary Day', 'Letters from Home', 'City of Light', 'Across the Water', 'A New Morning'][i], year: 2020 + i % 5, type: i === 2 ? 'documentary' : i === 3 ? 'short' : 'feature', countries: [people[i].country], languages: ['English'], genres: ['Drama'], runtime: 96, synopsis: 'A journey through the places and people we carry with us.', note: i === 0 ? 'An intimate story of belonging, told through the people who make a place feel like home.' : null, status: 'published', featured: i === 0, color, poster_url: svg(color, 'Pheelm'), backdrop_url: i === 0 ? svg(color, '') : null, trailer_url: null, awards: [], watch: [], directors: [people[i]], credits: [{ person: people[i], role: 'director' }], collections: [] }));
 const directors = people.map((person, i) => ({ ...person, films: [films[i], films[(i + 1) % films.length], films[(i + 2) % films.length]] }));
 const collection = (id, title, indexes, featured = false) => ({ id, slug: id, title, films: indexes.map(i => films[i]), featured, staff_pick: false, description: 'A selection by the community.', created_at: '2026-01-01', updated_at: '2026-01-01', saves: 0, curators: 1, owner: { id: `owner-${id}`, handle: id, display_name: id } });
 const collections = [collection('first', 'Journeys of belonging', [0, 1, 2, 3, 4], true), collection('second', 'A different perspective', [1, 2, 3, 4, 5], true), collection('third', 'Stories across borders', [1, 3, 5, 6, 7], true), collection('ordinary', 'Not a featured selection', [1, 0, 2, 6, 7])];
@@ -21,6 +21,7 @@ const bundle = await build({
     b.onResolve({ filter: /^next\/link$/ }, () => ({ path: 'link', namespace: 'fixture' }));
     b.onResolve({ filter: /^@\/lib\/data$/ }, () => ({ path: 'data', namespace: 'fixture' }));
     b.onResolve({ filter: /^@\/lib\/community$/ }, () => ({ path: 'community', namespace: 'fixture' }));
+    b.onResolve({ filter: /^@\/lib\/home-popularity$/ }, () => ({ path: 'popularity', namespace: 'fixture' }));
     b.onResolve({ filter: /^@\/lib\/seo$/ }, () => ({ path: 'seo', namespace: 'fixture' }));
     b.onResolve({ filter: /supabase\/(client|server)$/ }, ({ path }) => ({ path: path.endsWith('server') ? 'server' : 'client', namespace: 'fixture' }));
     b.onResolve({ filter: /SignInSheet$/ }, () => ({ path: 'signin', namespace: 'fixture' }));
@@ -30,6 +31,7 @@ const bundle = await build({
       link: `import React from'react';export default function Link({href,children,onClick,...props}){return <a href={href} {...props} onClick={e=>{onClick?.(e);if(!e.defaultPrevented){e.preventDefault();history.pushState({},'',href)}}}>{children}</a>}`,
       data: `export{toCard,toDirectorSummary}from'./lib/data.ts';export const getFilms=async()=>window.homeFixture.films;export const getDirectors=async()=>window.homeFixture.directors;`,
       community: `export const getCommunityCollections=async()=>window.homeFixture.collections;`,
+      popularity: `export const getPopularMovieIds=async()=>[106,107,100,104,102,103];`,
       seo: `export const privateMetadata=()=>({});`,
       server: `export const getServerClient=async()=>({auth:{getUser:async()=>({data:{user:{id:'member'}}})},from(){return{select(){return this},eq:async()=>({data:[]})}}});`,
       client: `const followed=new Set();window.followedFixture=followed;export function getBrowserClient(){return{auth:{getSession:async()=>({data:{session:{user:{id:'member'}}}}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})},from(table){const filters={};let removing=false;const query={select(){return query},eq(k,v){filters[k]=v;return query},order(){return query},delete(){removing=true;return query},insert(row){followed.add(row.person_id);return Promise.resolve({error:null})},maybeSingle:async()=>({data:table==='follows'&&followed.has(filters.person_id)?{person_id:filters.person_id}:null}),then(resolve){if(removing)followed.delete(filters.person_id);return Promise.resolve({data:[],error:null}).then(resolve)}};return query}}}`,
@@ -55,19 +57,64 @@ try {
     await page.addStyleTag({ content: fs.readFileSync('app/globals.css', 'utf8') + '\n' + css + `\n@font-face{font-family:FixtureInter;src:url(data:font/woff2;base64,${fs.readFileSync('app/fonts/Inter-Latin.woff2').toString('base64')}) format('woff2');font-weight:100 900}:root{--font-inter:FixtureInter;--font-inter-ext:FixtureInter}` });
     await page.addScriptTag({ content: js });
     await page.getByRole('heading', { name: 'Explore Further', exact: true }).waitFor();
-    assert.deepEqual(await page.locator('h2:visible').allTextContents(), ['Film of the week', 'Most popular films', 'From the community', 'Director of the week', 'Directors to follow', 'Explore Further']);
+    const directorName = await page.locator('#director-of-week').textContent();
+    assert.deepEqual(await page.locator('h2:visible').allTextContents(), [films[0].title, 'Most popular films', 'From the community', directorName, 'Directors to follow', 'Explore Further']);
+    assert.equal(await page.getByRole('heading', {name:/^(Film|Director) of the week$/}).count(), 0, 'weekly labels removed');
+    assert.equal(await page.locator('.row-title > p').count(), 0, 'section subtitles removed');
     const popular = page.locator('section').filter({ has: page.getByRole('heading', { name: 'Most popular films', exact: true }) });
-    assert.equal(await popular.locator('.film-card-title').first().textContent(), films[1].title, 'film appearing in all four public lists ranks first');
+    assert.equal(await popular.locator('.film-card-title').first().textContent(), films[6].title, 'worldwide chart order wins over public-watchlist counts');
     assert.equal(await popular.locator('.film-card').count(), 6);
     const community = page.locator('section').filter({ has: page.getByRole('heading', { name: 'From the community', exact: true }) });
     assert.equal(await community.locator('.collection-tile').count(), 3);
     assert.equal(await community.getByText('Not a featured selection', { exact: true }).count(), 0);
 
-    assert.ok((await page.getByRole('heading', {name:'Film of the week', exact:true}).boundingBox()).y >= 0, 'first section heading is not hidden above the viewport');
+    assert.ok((await page.locator('#film-of-week').boundingBox()).y >= 0, 'first section heading is not hidden above the viewport');
+    const spotlight = page.locator('.person-head');
+    const portrait = await spotlight.locator('.portrait').boundingBox();
+    const directorTitle = await page.locator('#director-of-week').boundingBox();
+    const directorActions = await spotlight.locator('.actions').boundingBox();
+    assert.ok(portrait.width >= Math.min(230, width - 70), 'director portrait is large');
+    if (width < 900) {
+      assert.ok(directorTitle.y >= portrait.y + portrait.height, 'mobile director text is below the photo');
+      assert.ok(directorActions.y >= directorTitle.y + directorTitle.height, 'mobile director actions follow text');
+    } else {
+      assert.ok(directorTitle.x >= portrait.x + portrait.width, 'desktop director text is beside the photo');
+      assert.ok(directorActions.x >= portrait.x + portrait.width, 'desktop director actions are beside the photo');
+    }
     await page.evaluate(async () => {
       await document.fonts.ready;
       await Promise.all([...document.images].map(image => { image.loading = 'eager'; return image.decode().catch(() => {}); }));
     });
+    const feature = page.locator('.feature');
+    const featuredPoster = feature.locator('.feature-poster .poster');
+    assert.equal(await featuredPoster.isVisible(), true, `${theme} ${width}: featured poster is visible`);
+    const posterLayout = await featuredPoster.evaluate(element => {
+      const image = element.querySelector('img');
+      const poster = element.getBoundingClientRect(), hero = element.closest('.feature').getBoundingClientRect(), img = image.getBoundingClientRect();
+      return { poster: poster.toJSON(), hero: hero.toJSON(), image: img.toJSON(), fit: getComputedStyle(image).objectFit, loaded: image.complete && image.naturalWidth > 0 };
+    });
+    assert.equal(posterLayout.loaded, true, 'featured poster image is decoded');
+    assert.equal(posterLayout.fit, 'contain', 'the complete poster is shown without cropping');
+    assert.ok(posterLayout.poster.height > posterLayout.poster.width, 'featured poster retains portrait shape');
+    for (const box of [posterLayout.poster, posterLayout.image]) {
+      assert.ok(box.left >= posterLayout.hero.left - 1 && box.right <= posterLayout.hero.right + 1 && box.top >= posterLayout.hero.top - 1 && box.bottom <= posterLayout.hero.bottom + 1, `${theme} ${width}: the whole poster fits inside the hero`);
+    }
+    assert.equal(await feature.locator('.feature-still').count(), 0, 'the poster is not cropped into a background backdrop');
+
+    const featuredWatchlist = feature.locator('[data-action="watchlist"]');
+    await featuredWatchlist.waitFor();
+    const unrelatedFollow = spotlight.locator('.follow button');
+    const followBackground = await unrelatedFollow.evaluate(element => getComputedStyle(element).backgroundColor);
+    assert.notEqual(followBackground, 'rgba(0, 0, 0, 0)', 'the unrelated Follow control keeps its existing opaque background');
+    await page.mouse.move(0, 0);
+    assert.equal(await featuredWatchlist.evaluate(element => getComputedStyle(element).backgroundColor), 'rgba(0, 0, 0, 0)', `${theme} ${width}: featured Watchlist has no background`);
+    await featuredWatchlist.hover();
+    await page.waitForTimeout(250);
+    assert.equal(await featuredWatchlist.evaluate(element => getComputedStyle(element).backgroundColor), 'rgba(0, 0, 0, 0)', `${theme} ${width}: featured Watchlist stays transparent on hover`);
+    await page.mouse.move(0, 0);
+    await page.waitForTimeout(250);
+    assert.equal(await unrelatedFollow.evaluate(element => getComputedStyle(element).backgroundColor), followBackground, 'the unrelated Follow control retains its background');
+    await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({ path: `${screenshotDir}/home-${theme}-${width}.png`, fullPage: true });
     const followButtons = page.locator('.follow button');
     await followButtons.first().waitFor();
@@ -92,6 +139,11 @@ try {
     }
     assert.equal(await page.evaluate(() => window.followedFixture.size), 5);
 
+    const learnMore = page.getByRole('link', { name: 'Learn more', exact: true }).first();
+    assert.equal(await learnMore.getAttribute('href'), '/films/film-0', 'first Learn more opens the featured film');
+    await learnMore.click();
+    assert.equal(new URL(page.url()).pathname, '/films/film-0');
+
     const explore = page.locator('section').filter({ has: page.getByRole('heading', { name: 'Explore Further', exact: true }) });
     for (const [label, type] of [['Documentaries', 'documentary'], ['Short films', 'short']]) {
       await explore.getByRole('link', { name: new RegExp(label) }).click();
@@ -102,6 +154,6 @@ try {
     assert.deepEqual(errors, [], `${theme} ${width}: script errors`);
     await page.close();
   }
-  console.log('PASS: six populated homepage sections in order, public popularity, featured lists, five unclipped working Follow buttons, supported Explore filters, and no overflow/errors at 320/390/1440 in light/dark.');
+  console.log('PASS: content headings without weekly labels/subtitles, full uncropped featured poster, transparent Watchlist, Learn more links, worldwide popularity, featured lists, responsive large director portrait, working Follow buttons and Explore filters, no overflow/errors at 320/390/1440 in light/dark.');
   console.log(`Screenshots: ${screenshotDir}/home-{dark,light}-{320,390,1440}.png`);
 } finally { await browser.close(); }

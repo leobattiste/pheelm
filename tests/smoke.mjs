@@ -55,8 +55,10 @@ await check("member homepage shows discovery sections and Home first in the menu
   const headings = await page.locator("#main h2").allTextContents();
   expect((await page.locator('#film-of-week').boundingBox())?.y >= 0, 'first section heading is clipped');
   expect(JSON.stringify(headings) === JSON.stringify([
-    "Film of the week", "Most popular films", "From the community", "Director of the week", "Directors to follow", "Explore Further",
+    await page.locator('#film-of-week').textContent(), "Most popular films", "From the community", await page.locator('#director-of-week').textContent(), "Directors to follow", "Explore Further",
   ]), `unexpected section order: ${headings.join(", ")}`);
+  expect(!headings.includes('Film of the week') && !headings.includes('Director of the week'), 'weekly labels must be removed');
+  expect(await page.locator('#main .row-title > p').count() === 0, 'section subtitles must be removed');
   expect(await page.locator('.tab-bar a').first().getAttribute('href') === '/home', 'Home must be first');
   expect(await page.locator('.tab-bar a').first().getAttribute('aria-current') === 'page', 'Home must be active');
   expect(await page.locator('main a[href^="/films/"]').count() > 0, 'featured film must open its film page');

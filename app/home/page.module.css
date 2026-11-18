@@ -2,22 +2,28 @@
 /* The reused feature normally sits behind the public header; app pages have no header. */
 :global(html[data-chrome="app"] main):has(> .home) { margin-top: 0; }
 .weeklyFilm { padding: var(--space-32) var(--gutter) 0; }
-.sectionHeading { margin-bottom: var(--space-20); }
-.feature {
+.home .feature {
   border-radius: var(--r);
-  min-height: min(70svh, 680px);
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  min-height: 0;
   padding: var(--space-32) var(--space-24);
 }
+.feature .filmCover { display: block; width: 100%; max-width: 400px; min-width: 0; }
+.filmCover :global(.poster img) { object-fit: contain; }
+/* Keep only this hero's Watchlist trigger clear, including hover and saved states. */
+:global(:root:root:root:root) .home .feature :global([data-action="watchlist"]) { background: transparent; color: var(--ink); }
 .filmTitle { font-size: var(--t-3xl); line-height: var(--lh-tight); letter-spacing: -0.03em; }
-.feature:global(.has-still) .filmTitle { color: #fff; }
 .excerpt { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
 .section { padding: clamp(var(--space-48), 7vw, var(--space-96)) var(--gutter) 0; }
 .home .empty { display: block; margin-top: var(--space-20); text-align: left; padding: var(--space-24); background: var(--surface); border: 0; border-radius: var(--r); }
-.directorSpotlight { margin-top: 0; align-items: start; }
+.home .directorSpotlight { margin-top: 0; grid-template-columns: minmax(0, 1fr); align-items: center; gap: var(--space-24); }
+.directorPortrait { display: block; width: 100%; max-width: 400px; min-width: 0; }
+.home .directorSpotlight :global(.portrait) { width: 100%; height: auto; aspect-ratio: 2 / 3; }
 .directorBody { display: grid; gap: var(--space-12); min-width: 0; }
 .directorName { font-size: var(--t-2xl); line-height: var(--lh-snug); letter-spacing: -0.025em; }
 .directorBody > p { max-width: 72ch; }
-.directorActions { grid-column: 1 / -1; }
+.directorActions { margin-top: var(--space-8); }
 .followAction { padding: 0 var(--space-16) var(--space-16); }
 .followAction :global(.button) { width: 100%; }
 .home :global(.director-card) { display: flex; flex-direction: column; min-width: 0; border-radius: var(--r); overflow: hidden; }
@@ -29,16 +35,11 @@
 .exploreLink > h3 { font-size: var(--t-lg); }
 .exploreArrow { margin-top: var(--space-8); color: var(--muted); }
 @media (min-width: 900px) {
-  .feature { grid-template-columns: minmax(0, 1fr) 240px; padding: var(--space-48); }
-  .directorSpotlight { grid-template-columns: 180px minmax(0, 1fr); gap: var(--space-32); }
-  .directorSpotlight :global(.portrait) { width: 180px; height: 270px; }
-  .directorSpotlight > a { grid-row: span 2; }
-  .directorActions { grid-column: 2; }
+  .home .feature { grid-template-columns: minmax(0, 400px) minmax(0, 1fr); padding: var(--space-48); }
+  .home .directorSpotlight { grid-template-columns: minmax(0, 400px) minmax(0, 1fr); gap: var(--space-40); }
   .explore { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 @media (max-width: 479px) {
-  .feature { padding: var(--space-24) var(--space-16); }
-  .directorSpotlight { grid-template-columns: 64px minmax(0, 1fr); gap: var(--space-12); }
-  .directorSpotlight :global(.portrait) { width: 64px; height: 96px; }
+  .home .feature { padding: var(--space-24) var(--space-16); }
   .explore { grid-template-columns: 1fr; }
 }

@@ -13,6 +13,7 @@ import { getCommunityCollections } from "@/lib/community";
 import { getDirectors, getFilms, toCard, toDirectorSummary } from "@/lib/data";
 import { countryName, runtimeLabel, tintStyle } from "@/lib/format";
 import { buildHomeData } from "@/lib/home";
+import { getPopularMovieIds } from "@/lib/home-popularity";
 import { privateMetadata } from "@/lib/seo";
 import { getServerClient } from "@/lib/supabase/server";
 import styles from "./page.module.css";
@@ -29,29 +30,29 @@ export default async function HomePage() {
   const user = db ? (await db.auth.getUser()).data.user : null;
   if (db && !user) redirect("/login?next=/home");
 
-  const [films, directors, collections, follows] = await Promise.all([
+  const [films, directors, collections, follows, popularMovieIds] = await Promise.all([
     getFilms(),
     getDirectors(),
     getCommunityCollections(),
     db && user ? db.from("follows").select("person_id").eq("user_id", user.id) : null,
+    getPopularMovieIds(),
   ]);
   const followed = new Set<string>((follows?.data ?? []).map((f) => f.person_id));
   const { filmOfWeek, popularFilms, featuredWatchlists, directorOfWeek, directorsToFollow } =
-    buildHomeData(films, directors, collections, new Date(), followed);
+    buildHomeData(films, directors, collections, new Date(), followed, popularMovieIds);
 
   return (
     <div className={styles.home}>
       <h1 className="visually-hidden">Home</h1>
 
-      <section className={styles.weeklyFilm} aria-labelledby="film-of-week">
-        <h2 id="film-of-week" className={styles.sectionHeading}>Film of the week</h2>
+      <section className={styles.weeklyFilm} aria-labelledby={filmOfWeek ? "film-of-week" : undefined} aria-label={filmOfWeek ? undefined : "Featured film"}>
         {filmOfWeek ? (
-          <div className={`feature ${styles.feature}${filmOfWeek.backdrop_url ? " has-still" : ""}`} style={tintStyle(filmOfWeek.color)}>
-            {filmOfWeek.backdrop_url && <div className="feature-still">
-              <img src={filmOfWeek.backdrop_url} alt="" fetchPriority="high" />
-            </div>}
+          <div className={`feature ${styles.feature}`} style={tintStyle(filmOfWeek.color)}>
+            <Link className={`feature-poster ${styles.filmCover}`} href={`/films/${filmOfWeek.slug}`} aria-label={`Learn more about ${filmOfWeek.title}`}>
+              <Poster title={filmOfWeek.title} year={filmOfWeek.year} directors={filmOfWeek.directors.map((d) => d.name)} src={filmOfWeek.poster_url} sizes="(min-width: 900px) 400px, (min-width: 470px) 400px, calc(100vw - 66px)" priority />
+            </Link>
             <div className="feature-body">
-              <h3 className={styles.filmTitle}><Link href={`/films/${filmOfWeek.slug}`}>{filmOfWeek.title}</Link></h3>
+              <h2 id="film-of-week" className={styles.filmTitle}><Link href={`/films/${filmOfWeek.slug}`}>{filmOfWeek.title}</Link></h2>
               <p className="feature-by">
                 {filmOfWeek.directors.map((d, i) => <span key={d.id}>
                   {i > 0 && " and "}<Link href={`/${d.in_directory === false ? "people" : "directors"}/${d.slug}`}>{d.name}</Link>
@@ -60,28 +61,25 @@ export default async function HomePage() {
               </p>
               {(filmOfWeek.note || filmOfWeek.synopsis) && <p className={`feature-line ${styles.excerpt}`}>{filmOfWeek.note || filmOfWeek.synopsis}</p>}
               <div className="actions">
-                <Link className="button" href={`/films/${filmOfWeek.slug}`}>Explore film<Icon name="arrowRight" /></Link>
+                <Link className="button" href={`/films/${filmOfWeek.slug}`}>Learn more<Icon name="arrowRight" /></Link>
                 <WatchlistButton filmId={filmOfWeek.id} filmTitle={filmOfWeek.title} />
               </div>
             </div>
-            <Link className="feature-poster" href={`/films/${filmOfWeek.slug}`} aria-label={`Explore ${filmOfWeek.title}`}>
-              <Poster title={filmOfWeek.title} year={filmOfWeek.year} directors={filmOfWeek.directors.map((d) => d.name)} src={filmOfWeek.poster_url} sizes="240px" priority={!filmOfWeek.backdrop_url} />
-            </Link>
           </div>
-        ) : <p className={`empty-state ${styles.empty}`}>Our next film of the week is on its way. <Link href="/films">Explore films</Link>.</p>}
+        ) : <p className={`empty-state ${styles.empty}`}>A featured film will appear here. <Link href="/films">Explore films</Link>.</p>}
       </section>
 
       {popularFilms.length > 0 ? (
-        <Row title="Most popular films" intro="The films appearing in the most public community watchlists." href="/films" linkLabel="All films">
+        <Row title="Most popular films" href="/films" linkLabel="All films">
           {popularFilms.map((film) => <FilmCard key={film.id} film={toCard(film)} />)}
         </Row>
       ) : <section className={styles.section} aria-labelledby="popular-films">
         <h2 id="popular-films">Most popular films</h2>
-        <p className={`empty-state ${styles.empty}`}>Popular films will appear as the community shares watchlists. <Link href="/films">Find a film to save</Link>.</p>
+        <p className={`empty-state ${styles.empty}`}>Worldwide popular films aren’t available right now. <Link href="/films">Explore films</Link>.</p>
       </section>}
 
       {featuredWatchlists.length > 0 ? (
-        <Row title="From the community" intro="Featured watchlists, curated by Pheelm members." href="/watchlists?feed=featured" linkLabel="See all">
+        <Row title="From the community" href="/watchlists?feed=featured" linkLabel="See all">
           {featuredWatchlists.map((c) => <CommunityTile key={c.id} c={c} />)}
         </Row>
       ) : <section className={styles.section} aria-labelledby="from-community">
@@ -89,24 +87,23 @@ export default async function HomePage() {
         <p className={`empty-state ${styles.empty}`}>Featured community watchlists will appear here. <Link href="/watchlists">Explore watchlists</Link>.</p>
       </section>}
 
-      <section className={styles.section} aria-labelledby="director-of-week">
-        <h2 id="director-of-week" className={styles.sectionHeading}>Director of the week</h2>
+      <section className={styles.section} aria-labelledby={directorOfWeek ? "director-of-week" : undefined} aria-label={directorOfWeek ? undefined : "Featured director"}>
         {directorOfWeek ? <div className={`person-head ${styles.directorSpotlight}`}>
-          <Link href={`/directors/${directorOfWeek.slug}`} aria-label={`Explore ${directorOfWeek.name}`}><Portrait director={directorOfWeek} /></Link>
+          <Link className={styles.directorPortrait} href={`/directors/${directorOfWeek.slug}`} aria-label={`Explore ${directorOfWeek.name}`}><Portrait director={directorOfWeek} /></Link>
           <div className={styles.directorBody}>
-            <h3 className={styles.directorName}><Link href={`/directors/${directorOfWeek.slug}`}>{directorOfWeek.name}</Link></h3>
+            <h2 id="director-of-week" className={styles.directorName}><Link href={`/directors/${directorOfWeek.slug}`}>{directorOfWeek.name}</Link></h2>
             <p className="muted">{[directorOfWeek.country && countryName(directorOfWeek.country), `${directorOfWeek.films.length} ${directorOfWeek.films.length === 1 ? "film" : "films"} on Pheelm`].filter(Boolean).join(" • ")}</p>
             {directorOfWeek.bio && <p className={styles.excerpt}>{directorOfWeek.bio.split(/\n{2,}/)[0]}</p>}
-          </div>
-          <div className={`actions ${styles.directorActions}`}>
-            <Link className="button ghost" href={`/directors/${directorOfWeek.slug}`}>Explore director<Icon name="arrowRight" /></Link>
-            <FollowButton personId={directorOfWeek.id} name={directorOfWeek.name} />
+            <div className={`actions ${styles.directorActions}`}>
+              <Link className="button ghost" href={`/directors/${directorOfWeek.slug}`}>Explore director<Icon name="arrowRight" /></Link>
+              <FollowButton personId={directorOfWeek.id} name={directorOfWeek.name} />
+            </div>
           </div>
         </div> : <p className={`empty-state ${styles.empty}`}>Meet the filmmakers behind the films. <Link href="/directors">Explore directors</Link>.</p>}
       </section>
 
       {directorsToFollow.length > 0 ? (
-        <Row title="Directors to follow" intro="Follow a director to hear when their films are added to Pheelm." href="/directors" linkLabel="See all">
+        <Row title="Directors to follow" href="/directors" linkLabel="See all">
           {directorsToFollow.map((director) => <DirectorCard key={director.id} director={toDirectorSummary(director)} footer={
             <div className={styles.followAction}><FollowButton personId={director.id} name={director.name} /></div>
           } />)}
