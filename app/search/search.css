@@ -36,12 +36,6 @@
 .unified-result-summary > button:disabled { opacity:.4; cursor:default; }
 .unified-result-summary .result-count { margin-left:auto; white-space:nowrap; color:var(--muted); }
 .unified-results { min-width:0; }
-.unified-film-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--space-24) var(--space-16); }
-.unified-film-card { min-width:0; background:transparent; border:0; }
-.unified-film-card > a { display:grid; gap:var(--space-4); min-width:0; background:transparent; border:0; padding:0; }
-.unified-film-card .poster { width:100%; margin-bottom:var(--space-8); }
-.unified-film-title { font-size:var(--t-name); line-height:var(--lh-snug); font-weight:600; overflow-wrap:anywhere; }
-.unified-film-meta { color:var(--muted); font-size:var(--t-sm); line-height:1.4; overflow-wrap:anywhere; }
 .unified-members { display:grid; gap:var(--space-12); }
 .unified-members > li { display:flex; align-items:center; justify-content:space-between; gap:var(--space-12); min-width:0; padding:var(--space-12); border-radius:var(--r); }
 .unified-member { display:flex; flex:1; align-items:center; gap:var(--space-12); min-width:0; }
@@ -63,14 +57,12 @@
 .unified-checkbox input { flex:none; width:24px; height:24px; accent-color:var(--ink); }
 .unified-search-bar, .unified-filter-button, .unified-mobile-category select, .unified-suggestions, :root:root:root .unified-filter-dialog { background:var(--bg); -webkit-backdrop-filter:none; backdrop-filter:none; }
 @media(min-width:700px) {
- .unified-film-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }
  .unified-mobile-category { display:none; }
  .unified-tabs { display:flex; align-items:center; gap:var(--space-8); flex:1; min-width:0; }
  .unified-tabs button { height:60px; padding:0 var(--space-24); border:0; border-radius:var(--pill); background:transparent; color:var(--muted); cursor:pointer; }
  .unified-tabs button[aria-selected="true"] { background:var(--bg); color:var(--text); }
  .unified-members { grid-template-columns:repeat(2,minmax(0,1fr)); }
 }
-@media(min-width:1200px) { .unified-film-grid { grid-template-columns:repeat(6,minmax(0,1fr)); } }
 @media(max-width:639px) {
  :root:root:root .unified-filter-dialog { inset:auto 0 0; width:100%; max-width:none; max-height:calc(100dvh - 24px); margin:0; border-radius:var(--r) var(--r) 0 0; padding-bottom:env(safe-area-inset-bottom); }
  .unified-suggestion-head { flex-wrap:wrap; gap:var(--space-4); }
@@ -90,3 +82,12 @@ html:root:root:root:root:root:root .unified-filter-dialog .filter-field :is(sele
 html:root:root:root:root:root:root .unified-filter-dialog :is(.button.ghost,.icon-button) { background:transparent !important; border:0 !important; }
 .unified-search :is(button,a):focus-visible, .unified-filter-dialog button:focus-visible { text-decoration:underline; text-underline-offset:.25em; }
 .unified-filter-dialog .field:has(:focus-visible) > span:first-child, .unified-checkbox:has(:focus-visible) > span { text-decoration:underline; text-underline-offset:.25em; }
+
+/* Discovery uses the same rows and cards as the rest of Pheelm. */
+.search-discovery { margin-top:var(--space-32); }
+.search-discovery .row { margin-inline:calc(-1 * var(--gutter)); margin-bottom:var(--space-40); }
+.search-genres .row-track { grid-auto-columns:max-content; }
+.search-genres .chip { white-space:nowrap; }
+.search-discovery .director-card > .follow, .search-discovery .director-card > .button { margin-top:var(--space-12); }
+.unified-search-bar:focus-within { border-color:var(--muted); }
+.unified-clear-query:focus-visible { outline:2px solid var(--muted) !important; outline-offset:2px; }

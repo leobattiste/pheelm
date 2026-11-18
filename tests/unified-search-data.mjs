@@ -56,6 +56,7 @@ vm.runInNewContext(compile('lib/search-data.ts'), { exports: searchEntries, requ
 const loader = {};
 vm.runInNewContext(compile('lib/unified-search-data.ts'), { exports: loader, require(name) {
   if (name === 'server-only') return {};
+  if (name === './search-discovery') return {weeklyPopular:()=>[]};
   if (name === './supabase/server') return { getServerClient: async () => state.enabled ? db : null };
   if (name === './data') return { getFilms: async () => films, getDirectors: async () => [{ id: 'director', slug: 'director', name: 'Director', bio: 'Biography', country: 'SN', photo_url: null, films }, { id: 'excluded', in_directory: false, films }] };
   if (name === './search-data') return searchEntries;
@@ -64,7 +65,7 @@ vm.runInNewContext(compile('lib/unified-search-data.ts'), { exports: loader, req
 
 const data = await loader.getUnifiedSearchData();
 const ids = rows => Array.from(rows, row => row.id);
-assert.deepEqual(ids(data.watchlists).sort(), ['own-private', 'public'], 'only public and the viewer’s own private nonhidden lists appear');
+assert.deepEqual(ids(data.watchlists).sort(), ['public'], 'only public nonhidden lists appear');
 assert.deepEqual(ids(data.films), ['published']);
 assert.deepEqual(ids(data.directors), ['director']);
 assert.deepEqual(Array.from(data.directors[0].genres), ['Drama'], 'director genre metadata excludes draft films');
@@ -80,7 +81,6 @@ assert.equal(data.members.find(member => member.id === 'followed').following, tr
 assert.equal(data.members.find(member => member.id === 'follower').followsYou, true);
 assert.ok(!JSON.stringify(data).includes('never-expose') && !JSON.stringify(data).includes('is_admin'), 'member DTO never serializes email or privilege fields');
 assert.ok(queries.filter(query => query.table === 'lists').every(query => query.filters.some(filter => filter.key === 'hidden' && filter.value === false)));
-assert.ok(queries.some(query => query.table === 'lists' && query.filters.some(filter => filter.key === 'user_id' && filter.value === 'viewer') && query.filters.some(filter => filter.key === 'is_public' && filter.value === false)), 'private query is explicitly owned');
 assert.ok(queries.filter(query => query.table === 'member_profiles').every(query => query.filters.some(filter => filter.key === 'is_private' && filter.value === false)));
 assert.ok(queries.every(query => !query.columns.includes('*')), 'queries select compact columns');
 assert.ok(queries.filter(query => query.table === 'profiles').every(query => query.columns === 'id,handle,display_name' && query.filters.some(filter => filter.key === 'id' && filter.value === 'viewer')), 'own-profile label query is minimal and explicitly owned');
@@ -90,12 +90,7 @@ const viewerMember = tables.member_profiles.find(member => member.id === 'viewer
 viewerMember.is_private = true;
 const privateViewer = await loader.getUnifiedSearchData();
 assert.equal(privateViewer.members.some(member => member.id === 'viewer'), false, 'own private profile remains outside member search results');
-const privateOwnList = privateViewer.watchlists.find(list => list.id === 'own-private');
-assert.equal(privateOwnList.owner.handle, 'viewer');
-assert.equal(privateOwnList.owner.display_name, 'Private Viewer', 'viewer retains their own curator label when their profile is private');
-assert.equal(privateOwnList.tile.owner.handle, 'viewer');
-assert.deepEqual(Object.keys(privateOwnList.owner).sort(), ['display_name', 'handle', 'id']);
-assert.ok(!JSON.stringify(privateViewer).includes('own-email-must-stay-private') && !JSON.stringify(privateViewer).includes('is_admin'), 'own profile read cannot serialize unrelated private fields');
+assert.equal(privateViewer.watchlists.some(list=>list.id==='own-private'),false);
 viewerMember.is_private = false;
 
 state.viewer = 'other';
@@ -133,4 +128,4 @@ const failedResponse = await failingEndpoint.GET();
 assert.equal(failedResponse.status, 503);
 assert.equal(failedResponse.headers.get('cache-control'), 'private, no-store');
 assert.equal((await failedResponse.text()).includes('private request details'), false, 'error payloads never expose internal data or credential-bearing request details');
-console.log('PASS: request-scoped search, owned private/public lists, private profile and draft exclusion, follow direction, legacy fallback, compact DTOs, and private no-store endpoint');
+console.log('PASS: request-scoped search, public-only lists, private profile and draft exclusion, follow direction, legacy fallback, compact DTOs, and private no-store endpoint');

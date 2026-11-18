@@ -12,7 +12,7 @@ export type SearchWatchlist = {
 };
 export type SearchMember = {id:string;handle:string;display_name:string|null;avatar_url:string|null;country:string|null;bio:string|null;following:boolean;followsYou:boolean};
 export type UnifiedSearchEntry = Omit<SearchEntry,'filmography'> & {filmography:{year:number;type:string;genres?:string[]}[]};
-export type UnifiedSearchData = {films:UnifiedSearchEntry[];directors:UnifiedSearchEntry[];watchlists:SearchWatchlist[];members:SearchMember[];signedIn:boolean;viewerId:string|null};
+export type UnifiedSearchData = {films:UnifiedSearchEntry[];directors:UnifiedSearchEntry[];watchlists:SearchWatchlist[];members:SearchMember[];signedIn:boolean;viewerId:string|null;popularFilmIds?:string[];followedDirectorIds?:string[]};
 export const CATEGORY_FILTERS = {
  films:['genre','country','language','from','to','minRuntime','maxRuntime','type','award','festival','provider','region','availability'],
  directors:['country','genre','from','to'], watchlists:['genre','min','max','updated'], members:['following','followsYou'],
@@ -68,7 +68,7 @@ export function unifiedResults(data:UnifiedSearchData,category:SearchCategory):U
  if(category==='films'||category==='directors')return data[category].map(entry=>({id:entry.id,title:entry.title,image:entry.image,subtitle:entry.subtitle,href:`/${category}/${encodeURIComponent(entry.slug)}`,entry,genres:entry.genres,years:entry.years,count:entry.count,added:entry.added,updated:entry.added,score:0}));
  if(category==='watchlists') {
   const films=new Map(data.films.map(f=>[f.id,f]));
-  return data.watchlists.map(w=>({id:w.id,title:w.title,image:w.tile.films[0]?.poster_url??null,subtitle:[w.owner?'@'+w.owner.handle:'',w.filmIds.length+' films'].filter(Boolean).join(' • '),href:w.slug?'/watchlists/'+encodeURIComponent(w.slug):'/c/'+encodeURIComponent(w.id),watchlist:w,genres:[...new Set(w.filmIds.flatMap(id=>films.get(id)?.genres??[]))],years:[],count:w.filmIds.length,added:date(w.created_at),updated:date(w.updated_at),score:0}));
+  return data.watchlists.filter(w=>w.is_public).map(w=>({id:w.id,title:w.title,image:w.tile.films[0]?.poster_url??null,subtitle:[w.owner?'@'+w.owner.handle:'',w.filmIds.length+' films'].filter(Boolean).join(' • '),href:w.slug?'/watchlists/'+encodeURIComponent(w.slug):'/c/'+encodeURIComponent(w.id),watchlist:w,genres:[...new Set(w.filmIds.flatMap(id=>films.get(id)?.genres??[]))],years:[],count:w.filmIds.length,added:date(w.created_at),updated:date(w.updated_at),score:0}));
  }
  return data.members.map(member=>({id:member.id,title:member.display_name||member.handle,image:member.avatar_url,subtitle:'@'+member.handle,href:'/@'+encodeURIComponent(member.handle),member,genres:[],years:[],count:0,added:0,updated:0,score:0}));
 }

@@ -1,4 +1,5 @@
 import "server-only";
+import { weeklyPopular } from "./search-discovery";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getFilms, getDirectors } from "./data";
 import { filmSearchEntry, directorSearchEntry } from "./search-data";
@@ -81,22 +82,22 @@ function watchlist(row: ListRow, films: Map<string, Film>, owners: Map<string, L
 
 /**
  * Public catalog plus request-private social data. Do not put this function in a module cache:
- * private watchlist titles belong only to their owner and must never survive into another
- * viewer's response. Explicit public/owner predicates also constrain admins' broader RLS access.
+ * social relationships must never survive into another viewer's response. Explicit public
+ * predicates also constrain admins' broader RLS access.
  */
 export async function getUnifiedSearchData(): Promise<UnifiedSearchData> {
   const db = await getServerClient();
   const user = db ? (await db.auth.getUser()).data.user : null;
   const viewerId = user?.id ?? null;
-  const [catalog, directors, publicLists, ownLists, profiles, ownProfiles, following, followers] = await Promise.all([
+  const [catalog, directors, publicLists, profiles, ownProfiles, following, followers, followedDirectors] = await Promise.all([
     getFilms(),
     getDirectors(),
     db ? rows<ListRow>(db, "lists", LIST_COLUMNS, query => query.eq("is_public", true).eq("hidden", false)) : [],
-    db && viewerId ? rows<ListRow>(db, "lists", LIST_COLUMNS, query => query.eq("user_id", viewerId).eq("is_public", false).eq("hidden", false)) : [],
     db ? rows<PublicMember>(db, "member_profiles", MEMBER_COLUMNS, query => query.eq("is_private", false)) : [],
     db && viewerId ? rows<ListOwner>(db, "profiles", "id,handle,display_name", query => query.eq("id", viewerId)) : [],
     db && viewerId ? rows<{ followed_id: string }>(db, "member_follows", "followed_id", query => query.eq("follower_id", viewerId), "followed_id") : [],
     db && viewerId ? rows<{ follower_id: string }>(db, "member_follows", "follower_id", query => query.eq("followed_id", viewerId), "follower_id") : [],
+    db && viewerId ? rows<{ person_id: string }>(db, "follows", "person_id", query => query.eq("user_id", viewerId), "person_id") : [],
   ]);
   const published = catalog.filter(film => film.status === "published");
   const filmById = new Map(published.map(film => [film.id, film]));
@@ -109,9 +110,9 @@ export async function getUnifiedSearchData(): Promise<UnifiedSearchData> {
   const followingIds = new Set(following.map(row => row.followed_id));
   const followerIds = new Set(followers.map(row => row.follower_id));
   // Defense in depth: even if a privileged session can see collaborator/admin-only records,
-  // those are not part of search. Only public lists and the viewer's own private lists qualify.
-  const visibleLists = [...new Map([...publicLists, ...ownLists]
-    .filter(list => list.hidden === false && (list.is_public === true || (!!viewerId && list.user_id === viewerId)))
+  // those are not part of search. Only public lists qualify.
+  const visibleLists = [...new Map(publicLists
+    .filter(list => list.hidden === false && list.is_public === true)
     .map(list => [list.id, list])).values()];
   const members: SearchMember[] = publicMembers.map(profile => ({
     id: profile.id,
@@ -126,7 +127,9 @@ export async function getUnifiedSearchData(): Promise<UnifiedSearchData> {
   const visibleDirectors = directors.map(director => ({ ...director, films: director.films.filter(film => filmById.has(film.id)) }))
     .filter(director => director.in_directory !== false && director.films.length > 0);
   return {
-    films: published.map(filmSearchEntry),
+    popularFilmIds: weeklyPopular(published).map(film=>film.id),
+    followedDirectorIds: followedDirectors.map(row=>row.person_id),
+    films: published.map(film=>({...filmSearchEntry(film),added:Date.parse(film.published_at??film.created_at??"")||0})),
     directors: visibleDirectors.map(director => ({
       ...directorSearchEntry(director),
       genres: [...new Set(director.films.flatMap(film => film.genres))],

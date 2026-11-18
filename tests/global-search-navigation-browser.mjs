@@ -4,7 +4,7 @@ import { chromium } from 'playwright-core';
 import assert from 'node:assert/strict';
 
 const bundle = await build({
-  stdin: { contents: `import React from 'react';import{createRoot}from'react-dom/client';import Search,{openSearch}from'./components/Search';import Header from'./components/SiteHeader';window.openSearch=openSearch;createRoot(document.getElementById('root')).render(<><Search/><Header/></>);`, resolveDir: process.cwd(), loader: 'tsx' },
+  stdin: { contents: `import React from 'react';import{createRoot}from'react-dom/client';import Search,{openSearch}from'./components/Search';import Header from'./components/SiteHeader';import TabBar from './components/TabBar';window.openSearch=openSearch;createRoot(document.getElementById('root')).render(<><Search/><Header/><TabBar/></>);`, resolveDir: process.cwd(), loader: 'tsx' },
   bundle: true, write: false, format: 'iife', platform: 'browser', define: { 'process.env': '{}' },
   plugins: [{ name: 'search-navigation-fixture', setup(b) {
     b.onResolve({ filter: /^next\/navigation$/ }, () => ({ path: 'navigation', namespace: 'fixture' }));
@@ -62,12 +62,11 @@ try {
     await page.evaluate(() => { window.dispatchEvent(new Event('pheelm:menu')); });
     const menu = page.getByRole('dialog', { name: 'Menu', exact: true });
     await menu.waitFor();
-    const searchLink = menu.getByRole('link', { name: 'Search', exact: true });
-    assert.equal(await searchLink.getAttribute('href'), '/search');
-    await searchLink.click();
-    assert.equal(new URL(page.url()).pathname, '/search');
-    assert.equal(await menu.isVisible(), false, 'navigation closes the expanded menu');
+    assert.equal(await menu.getByRole('link', {name:'Search',exact:true}).count(),0,'search moved to main navigation');
+    await menu.getByRole('button',{name:'Close menu',exact:true}).click();
   }
+  assert.equal(await page.locator('.tab-bar a[aria-label=Search]').count(),1);
+  assert.equal(await page.locator('.tab-bar a[aria-label=Profile]').count(),0);
   assert.deepEqual(errors, []);
   console.log('PASS: keyboard, exported/legacy events and header/menu links open the full search page, preserve queries, focus existing search, and leave typing alone.');
 } finally { await browser.close(); }

@@ -31,6 +31,7 @@ export type FilmRow = {
   status: "draft" | "published";
   featured: boolean;
   /** When the film was added to the directory (only in the database, not the starter file). */
+  published_at?: string | null;
   created_at?: string;
 };
 
