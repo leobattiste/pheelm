@@ -95,9 +95,10 @@ function SearchField({ mode, value, onChange, results, history, onClearHistory, 
   </div>}
  </div>;
 }
-function Browser({ entries, mode }: {
+function Browser({ entries, mode, afterSearch }: {
     entries: SearchEntry[];
     mode: SearchMode;
+    afterSearch?: ReactNode;
 }) {
     const params = useSearchParams().toString();
     const [state, setState] = useState<SearchState>(() => cleanState(new URLSearchParams(params), mode));
@@ -192,6 +193,7 @@ function Browser({ entries, mode }: {
    <SearchField mode={mode} value={state.q ?? ''} onChange={q => set('q', q)} results={results} history={history} onClearHistory={clearHistory} onHistory={s => { commit(s); remember(s); }} onSubmit={submit} onVisit={() => { saveVisit(); remember(state); }} proposal={proposal}/>
    <button type="button" className={"button ghost filter-button" + (active.length ? " has-count" : "")} aria-haspopup="dialog" aria-controls={inputId+'-dialog'} aria-expanded={filtersOpen} onClick={() => { setFiltersOpen(true); modal.current?.showModal(); }}><Icon name="filter"/><span className="filter-label">Filters</span>{active.length > 0 && <span className="badge" aria-label={active.length + " active filters"}>{active.length}</span>}</button>
   </div>
+  {afterSearch}
   {active.length > 0 && <ul className="chip-list catalog-active-filters" aria-label="Active filters">{active.map(k => <li key={k}><button type="button" className="chip" aria-label={'Remove ' + filterLabel(k, state[k]!)} onClick={() => set(k, '')}>{filterLabel(k, state[k]!)}<Icon name="close" className="x"/></button></li>)}</ul>}
   {(!!state.q?.trim() || active.length > 0) && <div className="result-bar catalog-results-summary" aria-live="polite">
    {active.length > 0 && <button type="button" className="link-button" onClick={clearFilters}>Clear</button>}
@@ -218,6 +220,7 @@ export default function CatalogSearch(props: {
     entries: SearchEntry[];
     fallback?:ReactNode;
     mode: SearchMode;
+    afterSearch?: ReactNode;
 }) {
     return <Suspense fallback={props.fallback??<p className="muted" role="status">Loading search…</p>}><Browser {...props}/></Suspense>;
 }

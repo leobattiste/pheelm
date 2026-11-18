@@ -15,14 +15,14 @@ const REGIONS = (process.env.TMDB_WATCH_REGIONS ?? "US").split(",").map((r) => r
 
 const IMG = "https://image.tmdb.org/t/p";
 
-async function get<T>(path: string, params: Record<string, string> = {}): Promise<T> {
+async function get<T>(path: string, params: Record<string, string> = {}, signal?: AbortSignal): Promise<T> {
   const url = new URL(`https://api.themoviedb.org/3${path}`);
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
   const headers: Record<string, string> = { accept: "application/json" };
   // The long token goes in a header; the short key goes in the address.
   if (KEY.length > 40) headers.authorization = `Bearer ${KEY}`;
   else url.searchParams.set("api_key", KEY);
-  const res = await fetch(url, { headers, cache: "no-store" });
+  const res = await fetch(url, { headers, cache: "no-store", signal });
   if (res.status === 401) throw new Error("TMDB rejected the API key. Check TMDB_API_KEY in Vercel.");
   if (res.status === 429) throw new Error("TMDB asked us to slow down. Wait a minute and try again.");
   if (!res.ok) throw new Error(`TMDB returned ${res.status} for ${path}.`);
@@ -30,6 +30,18 @@ async function get<T>(path: string, params: Record<string, string> = {}): Promis
 }
 
 export type SearchResult = { id: number; title: string; original_title: string; year: number | null; poster: string | null; overview: string };
+
+export type PopularMoviesPage = { page: number; results: { id: number; popularity: number }[]; total_pages: number };
+
+/**
+ * TMDB's global popularity order; deliberately no region filter. Language only affects text.
+ * https://developer.themoviedb.org/reference/movie-popular-list
+ * Popularity uses worldwide TMDB activity, not Pheelm saves, ratings or box-office receipts:
+ * https://developer.themoviedb.org/docs/popularity-and-trending
+ */
+export async function getPopularMoviesPage(page: number, signal = AbortSignal.timeout(6000)): Promise<PopularMoviesPage> {
+  return get<PopularMoviesPage>("/movie/popular", { language: "en-US", page: String(page) }, signal);
+}
 
 export async function searchMovies(query: string, year?: number): Promise<SearchResult[]> {
   const params: Record<string, string> = { query, include_adult: "false" };
