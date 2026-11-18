@@ -3336,3 +3336,35 @@ html:root:root:root:root[data-chrome="app"] body:has(dialog:modal)::after,
 html:root:root:root:root:root:root .product-option .button.ghost[aria-pressed="true"] { background: var(--ink) !important; color: var(--on-ink) !important; border-color: var(--ink) !important; opacity: 1; }
 html:root:root:root:root:root:root .product-option .button.ghost:not([aria-pressed="true"]) { background: var(--bg) !important; color: var(--ink) !important; }
 .product-details { list-style: disc; }
+
+/* Film list cards match the rounded director and watchlist cards. The watched-films
+   modal keeps its own compact rows, independent of the site's chosen grid view. */
+:root:root[data-grid="list"] .film-grid:not(:where(.watched-films-dialog *)) .film-card > a {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  grid-template-areas: "poster title" "poster meta";
+  column-gap: var(--space-16);
+  row-gap: var(--space-2);
+  padding: var(--space-12);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--bg);
+  box-shadow: none;
+}
+:root:root[data-grid="list"] .film-grid:not(:where(.watched-films-dialog *)) .film-card > a .poster {
+  grid-area: poster;
+  align-self: center;
+  width: 40px;
+  height: 60px;
+  margin: 0;
+}
+:root:root[data-grid="list"] .film-grid:not(:where(.watched-films-dialog *)) .film-card-title { align-self: end; }
+:root:root[data-grid="list"] .film-grid:not(:where(.watched-films-dialog *)) .film-card-meta {
+  align-self: start;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font-size: var(--t-sm);
+}
+:root:root[data-grid="list"] .film-grid:not(:where(.watched-films-dialog *)) .film-card-meta .film-card-year { display: inline; }
+:root:root[data-grid="list"] .film-grid:not(:where(.watched-films-dialog *)) .film-card-col { display: none; }
