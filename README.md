@@ -3,7 +3,7 @@
 A global directory of films by Black directors: features, documentaries, shorts and animation, with cast and crew, awards, trailers and where to watch.
 Built with Next.js, hosted on Vercel, with accounts and the database on Supabase. It shares its design and setup with Covvvvvers.
 
-- **Films**: browse and filter by type, decade, country, language and genre. A Popular carousel under the search bar ranks published catalog films using TMDB’s worldwide popular-movie chart, independently of Pheelm activity. It uses the existing `TMDB_API_KEY`, caches the first 20 chart pages for six hours, and shows an unavailable message when the chart or matching films are missing.
+- **Films**: browse and filter by type, decade, country, language and genre. A Popular carousel under the search bar shows up to ten posters ranked by TMDB’s worldwide popular-movie chart, independently of Pheelm activity, with only the highest-ranked Spider-Man film. The Explore grid below it keeps its own view settings; the carousel stays in poster view. It uses the existing `TMDB_API_KEY`, caches the first 20 chart pages for six hours, and shows an unavailable message when the chart or matching films are missing.
 - **Directors**: biographies, countries, careers and filmographies.
 - **Collections**: curated selections by movement, theme, country, decade or genre.
 - **Journal**: stories behind films, interviews, essays and film history.
