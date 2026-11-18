@@ -12,13 +12,18 @@ export function mondayWeek(now=new Date()) {
  // UTC Monday midnight, shared by every visitor and server region.
  return Math.floor((now.getTime()-Date.UTC(1970,0,5))/604800000);
 }
-export function weeklyPopular<T extends {id:string;slug:string;status:string}>(films:T[],now=new Date()):T[] {
+export function weeklyPopular<T extends {id:string;slug:string;status:string}>(films:T[],now=new Date(),limit=12):T[] {
  const bySlug=new Map(films.filter(f=>f.status==='published').map(f=>[f.slug,f]));
  const pool=RECOGNIZED_FILMS.flatMap(slug=>bySlug.has(slug)?[bySlug.get(slug)!]:[]);
  if(!pool.length)return [];
  const start=((mondayWeek(now)*12)%pool.length+pool.length)%pool.length;
- return Array.from({length:Math.min(12,pool.length)},(_,i)=>pool[(start+i)%pool.length]);
+ return Array.from({length:Math.min(limit,pool.length)},(_,i)=>pool[(start+i)%pool.length]);
 }
 export function recentlyAdded(entries:SearchEntry[]) {
  return [...entries].sort((a,b)=>b.added-a.added||a.title.localeCompare(b.title)).slice(0,12);
+}
+
+export function avoidPrevious(ids:string[],previous:string[]) {
+ const seen=new Set(previous.slice(0,12));
+ return [...ids.filter(id=>!seen.has(id)),...ids.filter(id=>seen.has(id))];
 }

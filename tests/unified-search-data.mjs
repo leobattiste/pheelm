@@ -56,7 +56,8 @@ vm.runInNewContext(compile('lib/search-data.ts'), { exports: searchEntries, requ
 const loader = {};
 vm.runInNewContext(compile('lib/unified-search-data.ts'), { exports: loader, require(name) {
   if (name === 'server-only') return {};
-  if (name === './search-discovery') return {weeklyPopular:()=>[]};
+  if (name === 'next/cache') return {unstable_cache:fn=>fn};
+  if (name === './search-discovery') return {avoidPrevious:ids=>ids,weeklyPopular:()=>[],mondayWeek:()=>1,RECOGNIZED_FILMS:[]};
   if (name === './supabase/server') return { getServerClient: async () => state.enabled ? db : null };
   if (name === './data') return { getFilms: async () => films, getDirectors: async () => [{ id: 'director', slug: 'director', name: 'Director', bio: 'Biography', country: 'SN', photo_url: null, films }, { id: 'excluded', in_directory: false, films }] };
   if (name === './search-data') return searchEntries;

@@ -1,5 +1,6 @@
 import "server-only";
-import { weeklyPopular } from "./search-discovery";
+import { unstable_cache } from "next/cache";
+import { avoidPrevious, mondayWeek, RECOGNIZED_FILMS, weeklyPopular } from "./search-discovery";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getFilms, getDirectors } from "./data";
 import { filmSearchEntry, directorSearchEntry } from "./search-data";
@@ -33,6 +34,11 @@ type ListRow = {
 };
 const MEMBER_COLUMNS = "id,handle,display_name,avatar_url,country,bio,is_private";
 const LIST_COLUMNS = "id,slug,title,description,is_public,hidden,user_id,featured,staff_pick,created_at,updated_at,list_films(film_id,added_at)";
+
+// One public cache entry per UTC week, shared across viewers. The callback identity stays
+// constant whether filling a missing prior week or storing the current curated order.
+const weeklyOrder = (week:number, build:()=>Promise<string[]>) => unstable_cache(async()=>build(),
+  ["search-weekly-recognized-v2",String(week)], {revalidate:1814400})();
 
 /** RLS remains active. These reads use only the requesting member's ordinary session. */
 async function rows<T>(db: SupabaseClient, table: string, columns: string, filter: (query: any) => any, order = "id"): Promise<T[]> {
@@ -126,8 +132,14 @@ export async function getUnifiedSearchData(): Promise<UnifiedSearchData> {
   }));
   const visibleDirectors = directors.map(director => ({ ...director, films: director.films.filter(film => filmById.has(film.id)) }))
     .filter(director => director.in_directory !== false && director.films.length > 0);
+  const now = new Date();
+  // Freeze the public candidate order for this UTC week. Publishing another recognized
+  // film midweek must not reshuffle Popular; removals still disappear immediately.
+  const week=mondayWeek(now);
+  const previous=await weeklyOrder(week-1,async()=>weeklyPopular(published,new Date(now.getTime()-604800000),RECOGNIZED_FILMS.length).map(f=>f.id));
+  const weeklyIds=await weeklyOrder(week,async()=>avoidPrevious(weeklyPopular(published,now,RECOGNIZED_FILMS.length).map(f=>f.id),previous));
   return {
-    popularFilmIds: weeklyPopular(published).map(film=>film.id),
+    popularFilmIds: weeklyIds.filter(id=>filmById.has(id)).slice(0,12),
     followedDirectorIds: followedDirectors.map(row=>row.person_id),
     films: published.map(film=>({...filmSearchEntry(film),added:Date.parse(film.published_at??film.created_at??"")||0})),
     directors: visibleDirectors.map(director => ({

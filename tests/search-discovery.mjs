@@ -12,4 +12,5 @@ for(let i=0;i<100;i++){const a=exports.weeklyPopular(films,new Date(+monday+i*60
 assert.ok(exports.weeklyPopular(films.map(f=>({...f,status:'draft'})),monday).length===0);
 assert.equal(exports.weeklyPopular(films.slice(0,5),monday).length,5);
 assert.equal(exports.recentlyAdded([{id:'a',title:'A',added:1},{id:'b',title:'B',added:9}])[0].id,'b');
+assert.deepEqual(Array.from(exports.avoidPrevious(['a','b','c'],['a'])),['b','c','a']);
 console.log('PASS: Monday UTC boundary, stable weekly selection, 100 adjacent rotations without repeats, published-only pool, sparse catalogs and publication order');
