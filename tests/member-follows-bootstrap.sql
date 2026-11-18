@@ -1,0 +1,15 @@
+create role anon;
+create role authenticated;
+create schema auth;
+create schema private;
+create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true),'')::uuid $$;
+grant usage on schema auth to anon, authenticated;
+create table public.profiles(id uuid primary key, suspended_at timestamptz);
+create table public.member_profiles(id uuid primary key references public.profiles(id), is_private boolean not null default false);
+create table public.blocks(blocker_id uuid references public.profiles(id), blocked_id uuid references public.profiles(id), primary key(blocker_id,blocked_id));
+alter table public.blocks enable row level security;
+create policy "own blocks" on public.blocks for all to authenticated using(blocker_id=(select auth.uid())) with check(blocker_id=(select auth.uid()));
+grant select, insert on public.blocks to authenticated;
+grant select on public.member_profiles to authenticated;
+create function public.is_suspended(who uuid) returns boolean language sql stable security definer set search_path='' as $$select coalesce((select suspended_at is not null from public.profiles where id=who),false)$$;
+create function public.is_blocked(a uuid,b uuid) returns boolean language sql stable security definer set search_path='' as $$select exists(select 1 from public.blocks where (blocker_id=a and blocked_id=b) or (blocker_id=b and blocked_id=a))$$;

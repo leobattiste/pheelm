@@ -1,90 +1,47 @@
 "use client";
 
-import { watchlistPath } from "@/lib/watchlist-links";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { initials, posterColours } from "@/lib/format";
-import Icon, { type IconName } from "@/components/Icon";
-import { matchScore, plain } from "@/lib/fuzzy";
-import { countryName } from "@/lib/format";
-import { describe, hasFilters, parseQuery } from "@/lib/query";
+import { useEffect } from "react";
 
-type FilmHit = { s: string; t: string; o: string | null; y: number; d: string[]; k?: string[]; p: string | null; c?: string[]; g?: string[] };
-type DirectorHit = { s: string; n: string; c: string | null; f: number; p: string | null };
-type PersonHit = { s: string; n: string; r: string; f: number; p: string | null };
-type CollectionHit = { s: string; slug?: string; t: string; n: number };
-type Index = { films: FilmHit[]; directors: DirectorHit[]; people?: PersonHit[]; collections?: CollectionHit[] };
-
-type Action = { id: string; label: string; hint: string; icon: IconName; words: string; run: () => void };
-type Hit =
-  | { kind: "film"; item: FilmHit; via?: string }
-  | { kind: "director"; item: DirectorHit }
-  | { kind: "person"; item: PersonHit }
-  | { kind: "collection"; item: CollectionHit }
-  | { kind: "action"; item: Action }
-  | { kind: "browse"; item: { id: string; label: string; hint: string; href: string } }
-  | { kind: "recent"; item: string };
-
-const GROUP_LABELS: Record<Hit["kind"], string> = {
-  browse: "Browse",
-  recent: "Recent searches",
-  action: "Quick actions",
-  director: "Directors",
-  film: "Films",
-  person: "Cast and crew",
-  collection: "Watchlists",
+/** Navigate to the full search page from existing search buttons and integrations. */
+export const openSearch = (query?: string) => {
+  if (typeof window === "undefined") return false;
+  return window.dispatchEvent(new CustomEvent("open-search", { detail: { q: query } }));
 };
 
-const RECENT_KEY = "recent-searches";
-
-let cached: Promise<Index> | null = null;
-const loadIndex = () => (cached ??= fetch("/search-index").then((r) => r.json()));
-
-function readRecent(): string[] {
-  try {
-    const v = JSON.parse(localStorage.getItem(RECENT_KEY) ?? "[]");
-    return Array.isArray(v) ? v.filter((x) => typeof x === "string").slice(0, 5) : [];
-  } catch {
-    return [];
-  }
-}
-function saveRecent(list: string[]) {
-  try {
-    localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, 5)));
-  } catch {}
-}
-
-/** Opens the search panel from anywhere: buttons dispatch this event. */
-export const openSearch = () => window.dispatchEvent(new Event("open-search"));
-
-/**
- * Instant search over films, directors, cast and crew, and collections, with recent searches
- * and quick actions when the box is empty. Opens with ⌘K, Ctrl+K or "/".
- */
+/** Keeps the global search shortcuts without rendering a second search interface. */
 export default function Search() {
   const router = useRouter();
-  const dialog = useRef<HTMLDialogElement>(null);
-  const input = useRef<HTMLInputElement>(null);
-  const [index, setIndex] = useState<Index | null>(null);
-  const [q, setQ] = useState("");
-  const [active, setActive] = useState(0);
-  const [recent, setRecent] = useState<string[]>([]);
-
-  const open = useCallback(() => {
-    loadIndex().then(setIndex).catch(() => (cached = null));
-    setRecent(readRecent());
-    if (!dialog.current?.open) dialog.current?.showModal();
-    requestAnimationFrame(() => input.current?.select());
-  }, []);
-  const close = () => dialog.current?.close();
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const typing = e.target instanceof HTMLElement && (e.target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName));
-      if ((e.key === "k" && (e.metaKey || e.ctrlKey)) || (e.key === "/" && !typing)) {
-        e.preventDefault();
-        open();
+    const open = (event?: Event) => {
+      const detail = (event as CustomEvent<{ q?: unknown; query?: unknown } | string> | undefined)?.detail;
+      const value = typeof detail === "string" ? detail : detail?.q ?? detail?.query;
+      const explicit = typeof value === "string" ? value : undefined;
+      if (window.location.pathname === "/search" && explicit === undefined) {
+        const input = document.querySelector<HTMLInputElement>('main input[type="search"]');
+        input?.focus();
+        input?.select();
+        return;
       }
+      // Carry a query across from the film/director browsers when opening global search.
+      const current = /^\/(films|directors|search)\/?$/.test(window.location.pathname)
+        ? new URLSearchParams(window.location.search).get("q") ?? ""
+        : "";
+      const query = (explicit ?? current).trim().slice(0, 200);
+      const params = new URLSearchParams();
+      if (query) params.set("q", query);
+      try { sessionStorage.setItem("pheelm:search-focus", "1"); } catch {}
+      router.push(params.size ? `/search?${params}` : "/search");
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.defaultPrevented || event.repeat || event.altKey) return;
+      const typing = event.target instanceof HTMLElement && (event.target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(event.target.tagName));
+      const command = event.key.toLowerCase() === "k" && (event.metaKey || event.ctrlKey);
+      const slash = event.key === "/" && !event.metaKey && !event.ctrlKey && !typing;
+      if (!command && !slash) return;
+      event.preventDefault();
+      open();
     };
     window.addEventListener("keydown", onKey);
     window.addEventListener("open-search", open);
@@ -92,305 +49,7 @@ export default function Search() {
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("open-search", open);
     };
-  }, [open]);
+  }, [router]);
 
-  const navigate = (href: string) => {
-    close();
-    setQ("");
-    router.push(href);
-  };
-
-  const actions = useMemo<Action[]>(() => {
-    const isDark = () => document.documentElement.dataset.theme !== "light";
-    return [
-      {
-        id: "random", label: "Random film", hint: "Surprise me", icon: "shuffle",
-        words: "random shuffle surprise lucky",
-        run: () => {
-          const films = index?.films ?? [];
-          if (films.length) navigate(`/films/${films[Math.floor(Math.random() * films.length)].s}`);
-        },
-      },
-      { id: "watchlist", label: "Go to my watchlist", hint: "All and your watchlists", icon: "bookmark", words: "watchlist saved my films account watchlists collections lists", run: () => navigate("/me") },
-      { id: "films", label: "Browse all films", hint: "Filter by decade, country, genre", icon: "film", words: "films browse all filter", run: () => navigate("/films") },
-      { id: "directors", label: "Browse directors", hint: "By country and film type", icon: "users2", words: "directors map country", run: () => navigate("/directors") },
-      { id: "collections", label: "Browse watchlists", hint: "Movements, themes and more", icon: "stack", words: "watchlists collections lists movements themes", run: () => navigate("/watchlists") },
-      {
-        id: "theme", label: "Switch light or dark mode", hint: "Theme", icon: "moon",
-        words: "theme dark light mode appearance",
-        run: () => {
-          const next = isDark() ? "light" : "dark";
-          document.documentElement.dataset.theme = next;
-          try {
-            localStorage.setItem("theme", next);
-          } catch {}
-          window.dispatchEvent(new Event("themechange"));
-          close();
-        },
-      },
-      { id: "submit", label: "Suggest a film", hint: "Tell us what we're missing", icon: "plus", words: "submit suggest add missing", run: () => navigate("/submit") },
-    ];
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [index]);
-
-  const hits = useMemo<Hit[]>(() => {
-    const term = plain(q.trim());
-    if (!term) {
-      return [
-        ...recent.map((item) => ({ kind: "recent" as const, item })),
-        ...actions.map((item) => ({ kind: "action" as const, item })),
-      ];
-    }
-    if (!index) return [];
-    // Exact matches first, then the ones found by forgiving a typo.
-    const ranked = <T,>(items: T[], text: (x: T) => string, tie: (a: T, b: T) => number = () => 0) =>
-      items
-        .map((item) => ({ item, score: matchScore(term, plain(text(item))) }))
-        .filter((x) => x.score > 0)
-        .sort((a, b) => b.score - a.score || tie(a.item, b.item))
-        .map((x) => x.item);
-
-    const directors = ranked(index.directors, (d) => d.n, (a, b) => b.f - a.f).slice(0, 4);
-    const people = ranked(index.people ?? [], (p) => p.n, (a, b) => b.f - a.f).slice(0, 4);
-    const films: { item: FilmHit; via?: string; score: number }[] = [];
-    for (const f of index.films) {
-      const score = matchScore(term, plain(`${f.t} ${f.o ?? ""} ${f.d.join(" ")} ${f.y}`));
-      if (score) films.push({ item: f, score });
-      else {
-        // Found through someone in the cast or crew: say who.
-        const who = (f.k ?? []).find((n) => matchScore(term, plain(n)) > 0);
-        if (who) films.push({ item: f, via: who, score: 0 });
-      }
-    }
-    films.sort((a, b) => b.score - a.score || Number(!!a.via) - Number(!!b.via) || Number(plain(b.item.t).startsWith(term)) - Number(plain(a.item.t).startsWith(term)));
-    const collections = ranked(index.collections ?? [], (c) => c.t).slice(0, 3);
-    const matchedActions = ranked(actions, (a) => `${a.label} ${a.words}`).slice(0, 2);
-
-    // Read the search as filters too: "nigerian comedies from the 90s", "senegal documentaries",
-    // "films by women". Offer the matching slice of the Films page, and fill the films with it.
-    const parsed = parseQuery(q);
-    const browse: Hit[] = [];
-    if (hasFilters(parsed) || (parsed.people && parsed.country)) {
-      const decade = parsed.decade ?? (parsed.year ? `${Math.floor(parsed.year / 10) * 10}s` : null);
-      const params = new URLSearchParams();
-      if (parsed.country) params.set("country", parsed.country);
-      if (parsed.genre) params.set("genre", parsed.genre);
-      if (decade) params.set("decade", decade);
-      if (parsed.rest) params.set("q", parsed.rest);
-      if (parsed.people && parsed.country) {
-        // "Senegalese directors": the best-known directors from there.
-        const from = countryName(parsed.country);
-        const extra = index.directors.filter((d) => d.c === from && !directors.includes(d)).sort((a, b) => b.f - a.f);
-        directors.push(...extra.slice(0, Math.max(0, 6 - directors.length)));
-        browse.push({ kind: "browse", item: { id: "directors", label: `Directors from ${countryName(parsed.country)}`, hint: "On the Directors page", href: `/directors?country=${parsed.country}` } });
-      }
-      if (parsed.women) {
-        const women = (index.collections ?? []).find((c) => c.t === "Women Behind the Camera");
-        if (women) browse.push({ kind: "browse", item: { id: "women", label: "Films by women directors", hint: "Women Behind the Camera", href: watchlistPath({id:women.s,slug:women.slug}) } });
-      }
-      if (parsed.country || parsed.genre || decade) {
-        browse.push({ kind: "browse", item: { id: "films", label: describe({ ...parsed, women: false }, countryName), hint: "See them all on the Films page", href: `/films?${params}` } });
-      }
-      // Films that fit the filters, after any that matched by name.
-      const seen = new Set(films.map((f) => f.item.s));
-      const fit = index.films
-        .filter((f) =>
-          !seen.has(f.s) &&
-          (!parsed.country || (f.c ?? []).includes(parsed.country)) &&
-          (!parsed.genre || (f.g ?? []).includes(parsed.genre)) &&
-          (!decade || `${Math.floor(f.y / 10) * 10}s` === decade) &&
-          (!parsed.year || f.y === parsed.year) &&
-          (!parsed.rest || matchScore(plain(parsed.rest), plain(`${f.t} ${f.o ?? ""} ${f.d.join(" ")}`)) > 0),
-        )
-        .sort((a, b) => Number(!!b.p) - Number(!!a.p) || b.y - a.y);
-      if (parsed.country || parsed.genre || decade || parsed.year) films.push(...fit.slice(0, 8).map((item) => ({ item, score: 0 })));
-    }
-
-    return [
-      ...browse,
-      ...directors.map((item) => ({ kind: "director" as const, item })),
-      ...films.slice(0, 8).map(({ item, via }) => ({ kind: "film" as const, item, via })),
-      ...people.map((item) => ({ kind: "person" as const, item })),
-      ...collections.map((item) => ({ kind: "collection" as const, item })),
-      ...matchedActions.map((item) => ({ kind: "action" as const, item })),
-    ];
-  }, [index, q, recent, actions]);
-
-  useEffect(() => setActive(0), [q]);
-
-  const remember = () => {
-    const term = q.trim();
-    if (!term) return;
-    const next = [term, ...recent.filter((r) => r.toLowerCase() !== term.toLowerCase())].slice(0, 5);
-    setRecent(next);
-    saveRecent(next);
-  };
-
-  const go = (hit: Hit) => {
-    if (hit.kind === "recent") {
-      setQ(hit.item);
-      input.current?.focus();
-      return;
-    }
-    if (hit.kind === "action") {
-      hit.item.run();
-      return;
-    }
-    remember();
-    const href =
-      hit.kind === "browse" ? hit.item.href
-      : hit.kind === "film" ? `/films/${hit.item.s}`
-      : hit.kind === "director" ? `/directors/${hit.item.s}`
-      : hit.kind === "person" ? `/people/${hit.item.s}`
-      : watchlistPath({id:hit.item.s,slug:hit.item.slug});
-    navigate(href);
-  };
-
-  const clearRecent = () => {
-    setRecent([]);
-    saveRecent([]);
-  };
-
-  return (
-    <dialog ref={dialog} className="search-dialog" aria-label="Search" onClick={(e) => { if (e.target === dialog.current) close(); }}>
-      <div className="search-panel">
-        <div className="search-field">
-          <Icon name="search" />
-          <input
-            ref={input}
-            type="search"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Try a title, a name, or “Nigerian comedies”"
-            aria-label="Search films, directors, cast and crew"
-            aria-controls="search-results"
-            aria-activedescendant={hits[active] ? `hit-${active}` : undefined}
-            onKeyDown={(e) => {
-              if (e.key === "ArrowDown") { e.preventDefault(); setActive((a) => Math.min(a + 1, hits.length - 1)); }
-              if (e.key === "ArrowUp") { e.preventDefault(); setActive((a) => Math.max(a - 1, 0)); }
-              if (e.key === "Enter" && hits[active]) { e.preventDefault(); go(hits[active]); }
-            }}
-          />
-          <button type="button" className="search-close" onClick={close}>Close</button>
-        </div>
-
-        {q.trim() && !index ? (
-          <p className="search-note">Loading…</p>
-        ) : hits.length ? (
-          <ul id="search-results" role="listbox" className="search-results">
-            {hits.map((h, i) => (
-              <li key={`${h.kind}-${typeof h.item === "string" ? h.item : "s" in h.item ? h.item.s : h.item.id}`} id={`hit-${i}`} role="option" aria-selected={i === active}>
-                {(i === 0 || hits[i - 1].kind !== h.kind) && (
-                  <p className="search-group">
-                    <span>{GROUP_LABELS[h.kind]}</span>
-                    {h.kind === "recent" && <button type="button" className="link-button" onClick={clearRecent}>Clear</button>}
-                  </p>
-                )}
-                <button type="button" onClick={() => go(h)} onMouseEnter={() => setActive(i)}>
-                  <HitRow hit={h} />
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="search-note">Nothing matches &ldquo;{q}&rdquo;. Try a title, a surname, or something like &ldquo;Senegal 1970s&rdquo; or &ldquo;Nigerian comedies&rdquo;. Or <a href="/submit">suggest the film</a>.</p>
-        )}
-
-        <div className="search-foot" aria-hidden="true">
-          <span><kbd>↑</kbd><kbd>↓</kbd> Move</span>
-          <span><kbd>↵</kbd> Open</span>
-          <span><kbd>esc</kbd> Close</span>
-        </div>
-      </div>
-    </dialog>
-  );
-}
-
-function HitIcon({ name }: { name: IconName }) {
-  return (
-    <span className="hit-portrait" aria-hidden="true">
-      <Icon name={name} />
-    </span>
-  );
-}
-
-function HitRow({ hit }: { hit: Hit }) {
-  switch (hit.kind) {
-    case "recent":
-      return (
-        <>
-          <HitIcon name="clock" />
-          <span className="hit-text"><span className="hit-title">{hit.item}</span></span>
-        </>
-      );
-    case "browse":
-      return (
-        <>
-          <HitIcon name={hit.item.id === "directors" ? "users2" : hit.item.id === "women" ? "stack" : "filter"} />
-          <span className="hit-text">
-            <span className="hit-title">{hit.item.label}</span>
-            <span className="hit-meta">{hit.item.hint}</span>
-          </span>
-        </>
-      );
-    case "action":
-      return (
-        <>
-          <HitIcon name={hit.item.icon} />
-          <span className="hit-text">
-            <span className="hit-title">{hit.item.label}</span>
-            <span className="hit-meta">{hit.item.hint}</span>
-          </span>
-        </>
-      );
-    case "film":
-      return (
-        <>
-          {hit.item.p ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={hit.item.p.replace(/\/t\/p\/[^/]+\//, "/t/p/w92/")} alt="" className="hit-poster" />
-          ) : (
-            <span className="hit-poster" style={{ background: posterColours(hit.item.t).bg }} />
-          )}
-          <span className="hit-text">
-            <span className="hit-title">{hit.item.t}</span>
-            <span className="hit-meta">
-              {hit.item.d.join(" and ")} • {hit.item.y}
-              {hit.via && <> • with {hit.via}</>}
-            </span>
-          </span>
-        </>
-      );
-    case "collection":
-      return (
-        <>
-          <HitIcon name="stack" />
-          <span className="hit-text">
-            <span className="hit-title">{hit.item.t}</span>
-            <span className="hit-meta">Collection, {hit.item.n} {hit.item.n === 1 ? "film" : "films"}</span>
-          </span>
-        </>
-      );
-    default: {
-      const p = hit.item as DirectorHit | PersonHit;
-      const meta =
-        hit.kind === "director"
-          ? `Director${(p as DirectorHit).c ? `, ${(p as DirectorHit).c}` : ""}, ${p.f} ${p.f === 1 ? "film" : "films"}`
-          : `${(p as PersonHit).r}, ${p.f} ${p.f === 1 ? "film" : "films"}`;
-      return (
-        <>
-          {p.p ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={p.p} alt="" className="hit-portrait" />
-          ) : (
-            <span className="hit-portrait">{initials(p.n)}</span>
-          )}
-          <span className="hit-text">
-            <span className="hit-title">{p.n}</span>
-            <span className="hit-meta">{meta}</span>
-          </span>
-        </>
-      );
-    }
-  }
+  return null;
 }

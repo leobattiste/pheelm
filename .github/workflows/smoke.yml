@@ -29,6 +29,14 @@ jobs:
       - run: node scripts/export-auth-emails.mjs
       - run: node tests/email-security.mjs
       - run: node tests/film-submissions.mjs
+      - run: node tests/unified-search.mjs
+      - run: node tests/unified-search-data.mjs
+      - run: node tests/unified-search-browser.mjs
+      - run: node tests/unified-search-browser.mjs
+        env:
+          BROWSER: webkit
+      - run: node tests/global-search-navigation-browser.mjs
+      - run: node tests/member-follow-browser.mjs
       - run: node tests/catalog-search.mjs
       - run: node tests/film-popularity.mjs
       - run: node tests/films-popular-browser.mjs
@@ -261,3 +269,30 @@ jobs:
       - run: psql -v ON_ERROR_STOP=1 -f supabase/admin-insights.sql
       - run: psql -v ON_ERROR_STOP=1 -f supabase/admin-insights.sql
       - run: psql -v ON_ERROR_STOP=1 -f tests/admin-insights.sql
+
+  member-follows-database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: member-follows-test-only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: member-follows-test-only
+    steps:
+      - uses: actions/checkout@v4
+      - run: psql -v ON_ERROR_STOP=1 -f tests/member-follows-bootstrap.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/member-follows.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/member-follows.sql
+      - run: psql -v ON_ERROR_STOP=1 -f tests/member-follows.sql
