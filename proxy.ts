@@ -11,7 +11,7 @@ const OPEN = /^\/(search|films|directors|people|help|submit|watchlists|c|collect
 const MEMBER_PAGE = /^\/(?:@|%40)[a-z0-9_]{3,24}\/?$/i;
 const SHARE_IMAGE = /\/(opengraph-image|twitter-image)(-\w+)?$/;
 // Session work only where it's needed: account pages and authenticated endpoints.
-const SESSION = /^\/(me|account|watchlists|c|submit|admin|auth|api|notifications|profile)(\/|$)/;
+const SESSION = /^\/(search|me|account|watchlists|c|submit|admin|auth|api|notifications|profile)(\/|$)/;
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
