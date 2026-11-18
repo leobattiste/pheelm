@@ -85,6 +85,36 @@ try {
       await document.fonts.ready;
       await Promise.all([...document.images].map(image => { image.loading = 'eager'; return image.decode().catch(() => {}); }));
     });
+    const feature = page.locator('.feature');
+    const featuredPoster = feature.locator('.feature-poster .poster');
+    assert.equal(await featuredPoster.isVisible(), true, `${theme} ${width}: featured poster is visible`);
+    const posterLayout = await featuredPoster.evaluate(element => {
+      const image = element.querySelector('img');
+      const poster = element.getBoundingClientRect(), hero = element.closest('.feature').getBoundingClientRect(), img = image.getBoundingClientRect();
+      return { poster: poster.toJSON(), hero: hero.toJSON(), image: img.toJSON(), fit: getComputedStyle(image).objectFit, loaded: image.complete && image.naturalWidth > 0 };
+    });
+    assert.equal(posterLayout.loaded, true, 'featured poster image is decoded');
+    assert.equal(posterLayout.fit, 'contain', 'the complete poster is shown without cropping');
+    assert.ok(posterLayout.poster.height > posterLayout.poster.width, 'featured poster retains portrait shape');
+    for (const box of [posterLayout.poster, posterLayout.image]) {
+      assert.ok(box.left >= posterLayout.hero.left - 1 && box.right <= posterLayout.hero.right + 1 && box.top >= posterLayout.hero.top - 1 && box.bottom <= posterLayout.hero.bottom + 1, `${theme} ${width}: the whole poster fits inside the hero`);
+    }
+    assert.equal(await feature.locator('.feature-still').count(), 0, 'the poster is not cropped into a background backdrop');
+
+    const featuredWatchlist = feature.locator('[data-action="watchlist"]');
+    await featuredWatchlist.waitFor();
+    const unrelatedFollow = spotlight.locator('.follow button');
+    const followBackground = await unrelatedFollow.evaluate(element => getComputedStyle(element).backgroundColor);
+    assert.notEqual(followBackground, 'rgba(0, 0, 0, 0)', 'the unrelated Follow control keeps its existing opaque background');
+    await page.mouse.move(0, 0);
+    assert.equal(await featuredWatchlist.evaluate(element => getComputedStyle(element).backgroundColor), 'rgba(0, 0, 0, 0)', `${theme} ${width}: featured Watchlist has no background`);
+    await featuredWatchlist.hover();
+    await page.waitForTimeout(250);
+    assert.equal(await featuredWatchlist.evaluate(element => getComputedStyle(element).backgroundColor), 'rgba(0, 0, 0, 0)', `${theme} ${width}: featured Watchlist stays transparent on hover`);
+    await page.mouse.move(0, 0);
+    await page.waitForTimeout(250);
+    assert.equal(await unrelatedFollow.evaluate(element => getComputedStyle(element).backgroundColor), followBackground, 'the unrelated Follow control retains its background');
+    await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({ path: `${screenshotDir}/home-${theme}-${width}.png`, fullPage: true });
     const followButtons = page.locator('.follow button');
     await followButtons.first().waitFor();
@@ -109,6 +139,11 @@ try {
     }
     assert.equal(await page.evaluate(() => window.followedFixture.size), 5);
 
+    const learnMore = page.getByRole('link', { name: 'Learn more', exact: true }).first();
+    assert.equal(await learnMore.getAttribute('href'), '/films/film-0', 'first Learn more opens the featured film');
+    await learnMore.click();
+    assert.equal(new URL(page.url()).pathname, '/films/film-0');
+
     const explore = page.locator('section').filter({ has: page.getByRole('heading', { name: 'Explore Further', exact: true }) });
     for (const [label, type] of [['Documentaries', 'documentary'], ['Short films', 'short']]) {
       await explore.getByRole('link', { name: new RegExp(label) }).click();
@@ -119,6 +154,6 @@ try {
     assert.deepEqual(errors, [], `${theme} ${width}: script errors`);
     await page.close();
   }
-  console.log('PASS: content headings without weekly labels/subtitles, worldwide popularity, featured lists, responsive large director portrait, working Follow buttons and Explore filters, no overflow/errors at 320/390/1440 in light/dark.');
+  console.log('PASS: content headings without weekly labels/subtitles, full uncropped featured poster, transparent Watchlist, Learn more links, worldwide popularity, featured lists, responsive large director portrait, working Follow buttons and Explore filters, no overflow/errors at 320/390/1440 in light/dark.');
   console.log(`Screenshots: ${screenshotDir}/home-{dark,light}-{320,390,1440}.png`);
 } finally { await browser.close(); }

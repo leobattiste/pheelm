@@ -2,13 +2,18 @@
 /* The reused feature normally sits behind the public header; app pages have no header. */
 :global(html[data-chrome="app"] main):has(> .home) { margin-top: 0; }
 .weeklyFilm { padding: var(--space-32) var(--gutter) 0; }
-.feature {
+.home .feature {
   border-radius: var(--r);
-  min-height: min(70svh, 680px);
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  min-height: 0;
   padding: var(--space-32) var(--space-24);
 }
+.feature .filmCover { display: block; width: 100%; max-width: 400px; min-width: 0; }
+.filmCover :global(.poster img) { object-fit: contain; }
+/* Keep only this hero's Watchlist trigger clear, including hover and saved states. */
+:global(:root:root:root:root) .home .feature :global([data-action="watchlist"]) { background: transparent; color: var(--ink); }
 .filmTitle { font-size: var(--t-3xl); line-height: var(--lh-tight); letter-spacing: -0.03em; }
-.feature:global(.has-still) .filmTitle { color: #fff; }
 .excerpt { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
 .section { padding: clamp(var(--space-48), 7vw, var(--space-96)) var(--gutter) 0; }
 .home .empty { display: block; margin-top: var(--space-20); text-align: left; padding: var(--space-24); background: var(--surface); border: 0; border-radius: var(--r); }
@@ -30,11 +35,11 @@
 .exploreLink > h3 { font-size: var(--t-lg); }
 .exploreArrow { margin-top: var(--space-8); color: var(--muted); }
 @media (min-width: 900px) {
-  .feature { grid-template-columns: minmax(0, 1fr) 240px; padding: var(--space-48); }
+  .home .feature { grid-template-columns: minmax(0, 400px) minmax(0, 1fr); padding: var(--space-48); }
   .home .directorSpotlight { grid-template-columns: minmax(0, 400px) minmax(0, 1fr); gap: var(--space-40); }
   .explore { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 @media (max-width: 479px) {
-  .feature { padding: var(--space-24) var(--space-16); }
+  .home .feature { padding: var(--space-24) var(--space-16); }
   .explore { grid-template-columns: 1fr; }
 }
