@@ -1,5 +1,3 @@
-import { Suspense } from "react";
-import PopularFilms from "./PopularFilms";
 import CatalogListing from "@/components/CatalogListing";
 import { publicPageMetadata } from "@/lib/seo";
 import { PAGE_COPY } from "@/lib/site";
@@ -19,7 +17,7 @@ export default async function FilmsPage() {
         <h1>Films</h1>
         <p className="lead">{PAGE_COPY.films}</p>
       </header>
-      <FilmBrowser entries={films.map(filmSearchEntry)} afterSearch={<Suspense fallback={null}><PopularFilms films={films} /></Suspense>} fallback={<CatalogListing mode="films" films={films}/>} />
+      <FilmBrowser entries={films.map(filmSearchEntry)} fallback={<CatalogListing mode="films" films={films}/>} />
     </section>
   );
 }

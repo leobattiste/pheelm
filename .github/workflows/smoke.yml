@@ -29,6 +29,7 @@ jobs:
       - run: node scripts/export-auth-emails.mjs
       - run: node tests/email-security.mjs
       - run: node tests/film-submissions.mjs
+      - run: node tests/search-discovery.mjs
       - run: node tests/unified-search.mjs
       - run: node tests/unified-search-data.mjs
       - run: node tests/unified-search-browser.mjs
@@ -296,3 +297,4 @@ jobs:
       - run: psql -v ON_ERROR_STOP=1 -f supabase/member-follows.sql
       - run: psql -v ON_ERROR_STOP=1 -f supabase/member-follows.sql
       - run: psql -v ON_ERROR_STOP=1 -f tests/member-follows.sql
+      - run: psql -v ON_ERROR_STOP=1 -f tests/film-publication.sql

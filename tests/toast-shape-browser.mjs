@@ -1,5 +1,5 @@
 // Toasts: one line of text is a pill; wrapped text gets the rounded corners of cards and modals.
-// Signed out, the menu bar's profile tab opens sign-in and the menu offers only Sign in.
+// Search occupies the fourth main tab; visitors sign in through the expanded menu.
 // Run against a started server: BASE_URL=http://localhost:3000 node tests/toast-shape-browser.mjs
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright-core';
@@ -21,9 +21,10 @@ try {
   const many = await radius();
   assert(many.multi && many.radius === 18, `wrapped text gets card corners ${JSON.stringify(many)}`);
 
-  // Signed out: profile icon in the bar, and only Sign in in the menu.
-  const tab = page.locator('.tab-bar .tab.visitor-only');
-  assert.equal(await tab.getAttribute('aria-label'), 'Sign in');
+  // Search stays in the bar for visitors; Sign in remains in the expanded menu.
+  const tab = page.locator('.tab-bar .tab[aria-label=Search]');
+  assert.equal(await tab.getAttribute('href'), '/search');
+  assert.equal(await page.locator('.tab-bar .tab[aria-label=Profile]').count(),0);
   assert.equal(await page.locator('.tab-bar .tab:visible').count(), 5, 'five tabs');
   await page.locator('.tab-bar button.tab').click();
   await page.waitForSelector('.menu-sheet[open]');

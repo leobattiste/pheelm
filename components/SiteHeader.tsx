@@ -79,9 +79,6 @@ export default function SiteHeader() {
               <Link key={l.href} href={l.href} aria-current={current(l.href)}><Icon name={l.icon} />{l.label}</Link>
             ))}
           </nav>
-          <nav className="menu-more" aria-label="Search">
-            <Link href="/search" aria-current={current("/search")} onClick={() => menu.current?.close()}><Icon name="search" />Search</Link>
-          </nav>
           <AccountMenu onNavigate={() => menu.current?.close()}>
           <nav className="menu-more menu-support" aria-label="Support Pheelm">
             <Link href="/shop" aria-current={current("/shop")}><Icon name="bag" />Shop</Link>

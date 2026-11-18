@@ -11,7 +11,7 @@ import { openSignIn } from "./SignInSheet";
 type Status = "loading" | "signed-out" | "off" | "on";
 
 /** Follow a director: you get a notification when a new film of theirs is added to Pheelm. */
-export default function FollowButton({ personId, name }: { personId: string; name: string }) {
+export default function FollowButton({ personId, name, onChange }: { personId: string; name: string; onChange?: (following: boolean) => void }) {
   const path = usePathname();
   const [status, setStatus] = useState<Status>("loading");
   const [userId, setUserId] = useState<string | null>(null);
@@ -53,6 +53,7 @@ export default function FollowButton({ personId, name }: { personId: string; nam
       toast.error("That didn’t save. Try again.");
       return false;
     }
+    onChange?.(next === "on");
     return true;
   };
   const toggle = async () => {

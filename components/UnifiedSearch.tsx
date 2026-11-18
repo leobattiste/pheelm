@@ -4,8 +4,10 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react';
 import Icon from './Icon';
-import Poster from './Poster';
-import FilmLink from './Transitions';
+import FilmCard, { FilmGrid } from './FilmCard';
+import Row from './Row';
+import FollowButton from './FollowButton';
+import { recentlyAdded } from '@/lib/search-discovery';
 import DirectorCard from './DirectorCard';
 import CommunityTile from './CommunityTile';
 import UserAvatar from './UserAvatar';
@@ -24,6 +26,8 @@ export default function UnifiedSearch({initialData}:{initialData:UnifiedSearchDa
  const router=useRouter();
  const params=useSearchParams().toString();
  const [data,setData]=useState(initialData);
+ const [refreshError,setRefreshError]=useState(false);
+ const retry=()=>{setRefreshError(false);router.refresh();};
  const [state,setState]=useState(()=>cleanUnifiedState(new URLSearchParams(params)));
  const [shown,setShown]=useState(PAGE);
  const [recent,setRecent]=useState<Recent[]>([]);
@@ -40,7 +44,14 @@ export default function UnifiedSearch({initialData}:{initialData:UnifiedSearchDa
  const deferred=useDeferredValue(state);
  const results=useMemo(()=>searchUnified(index,deferred),[index,deferred]);
  const activeFilters=activeUnifiedFilters(state);
- const activeSearch=!!state.q.trim()||activeFilters.length>0;
+ const searching=!!state.q.trim();
+ const activeSearch=searching||activeFilters.length>0;
+ const categoryCounts=useMemo(()=>Object.fromEntries(CATEGORIES.map(category=>[category,searchUnified(indexUnified(data,category),{category,q:state.q.trim()}).length])),[data,state.q]);
+ const recentFilms=useMemo(()=>recentlyAdded(data.films),[data.films]);
+ const popularFilms=(data.popularFilmIds??[]).flatMap(id=>data.films.find(f=>f.id===id)??[]);
+ const suggestedDirectors=data.directors.filter(d=>d.count>=3&&!(data.followedDirectorIds??[]).includes(d.id)).slice(0,12);
+ const community=data.watchlists.filter(w=>w.is_public&&w.filmIds.length>0).sort((a,b)=>b.updated_at.localeCompare(a.updated_at)).slice(0,12);
+ const genres=[...new Set(data.films.flatMap(f=>f.genres))].sort((a,b)=>a.localeCompare(b));
  const options=state.q.trim()?results.slice(0,6):[];
  const recents=state.q.trim()?[]:recent;
  const suggestionCount=options.length+recents.length;
@@ -67,8 +78,8 @@ export default function UnifiedSearch({initialData}:{initialData:UnifiedSearchDa
     const request=++generation;
     pending?.abort();pending=new AbortController();
     // Remove request-private results before the next account's data can arrive.
-    setData(current=>({...current,viewerId,signedIn:!!viewerId,watchlists:current.watchlists.filter(list=>list.is_public),members:current.members.map(member=>({...member,following:false,followsYou:false}))}));
-    void fetch('/api/search',{cache:'no-store',signal:pending.signal}).then(r=>{if(!r.ok)throw Error('Search refresh failed');return r.json();}).then((next:UnifiedSearchData)=>{if(!disposed&&request===generation&&next.viewerId===viewerId)setData(next);}).catch(error=>{if(!disposed&&request===generation&&error.name!=='AbortError')router.refresh();});
+    setData(current=>({...current,viewerId,signedIn:!!viewerId,watchlists:current.watchlists.filter(list=>list.is_public),followedDirectorIds:[],members:current.members.map(member=>({...member,following:false,followsYou:false}))}));
+    void fetch('/api/search',{cache:'no-store',signal:pending.signal}).then(r=>{if(!r.ok)throw Error('Search refresh failed');return r.json();}).then((next:UnifiedSearchData)=>{if(!disposed&&request===generation&&next.viewerId===viewerId)setData(next);}).catch(error=>{if(!disposed&&request===generation&&error.name!=='AbortError')setRefreshError(true);});
    }
   });
   return()=>{disposed=true;pending?.abort();subscription.unsubscribe();};
@@ -113,7 +124,7 @@ export default function UnifiedSearch({initialData}:{initialData:UnifiedSearchDa
   setRecent(next);try{localStorage.setItem(historyKey,JSON.stringify(next));}catch{}
  };
  const visit=(result:UnifiedResult)=>{remember();saveVisit();setSuggestionsOpen(false);router.push(result.href);};
- const submit=()=>{remember();saveVisit();setSuggestionsOpen(false);setActive(-1);field.current?.blur();};
+ const submit=()=>{if(state.q!==state.q.trim()){const next={...state,q:state.q.trim()};latest.current.query=unifiedQuery(next);commit(next);}remember();saveVisit();setSuggestionsOpen(false);setActive(-1);field.current?.blur();};
  const choose=(at:number)=>{if(at<0){submit();return;}if(state.q.trim()&&options[at])visit(options[at]);else if(recents[at]){commit(recents[at].state);setSuggestionsOpen(false);}};
  const correction=useMemo(()=>state.q.trim()&&results.length===0?unifiedCorrection(index,state.q):null,[index,state.q,results.length]);
  const boundsInvalid=(state.from&&state.to&&+state.from>+state.to)||(state.minRuntime&&state.maxRuntime&&+state.minRuntime>+state.maxRuntime)||(state.min&&state.max&&+state.min>+state.max);
@@ -124,14 +135,15 @@ export default function UnifiedSearch({initialData}:{initialData:UnifiedSearchDa
   return key in facets?facets[key as keyof typeof facets].map(value=>[value,unifiedFilterLabel(key,value)]):[];
  };
  return <div className="unified-search" aria-busy={state!==deferred}>
+  {refreshError&&<p className="notice" role="alert">Search could not be refreshed. <button type="button" className="link-button" onClick={retry}>Retry</button></p>}
   <div className="unified-search-field" ref={fieldWrap} onBlur={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node))setSuggestionsOpen(false);}}>
    <form className="unified-search-bar" role="search" onSubmit={e=>{e.preventDefault();choose(suggestionsOpen?active:-1);}}>
     <Icon name="search"/><label htmlFor={id+'-query'} className="visually-hidden">Search {state.category}</label>
-    <input ref={field} id={id+'-query'} type="search" role="combobox" aria-autocomplete="list" aria-expanded={suggestionsOpen&&suggestionCount>0} aria-controls={suggestionsOpen&&suggestionCount>0?id+'-suggestions':undefined} aria-activedescendant={suggestionsOpen&&active>=0?id+'-option-'+active:undefined} placeholder={'Search '+state.category} autoComplete="off" maxLength={200} value={state.q} onFocus={()=>setSuggestionsOpen(true)} onClick={()=>setSuggestionsOpen(true)} onChange={e=>{commit({...state,q:e.target.value});setSuggestionsOpen(true);}} onKeyDown={e=>{
+    <input ref={field} id={id+'-query'} type="search" role="combobox" aria-autocomplete="list" aria-expanded={suggestionsOpen&&suggestionCount>0} aria-controls={suggestionsOpen&&suggestionCount>0?id+'-suggestions':undefined} aria-activedescendant={suggestionsOpen&&active>=0?id+'-option-'+active:undefined} placeholder="Search films, directors, watchlists, and members…" autoComplete="off" maxLength={200} value={state.q} onFocus={()=>setSuggestionsOpen(true)} onClick={()=>setSuggestionsOpen(true)} onChange={e=>{commit({...state,q:e.target.value,category:!state.q.trim()?'films':state.category});setSuggestionsOpen(true);}} onKeyDown={e=>{
      if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();setSuggestionsOpen(true);setActive(n=>suggestionCount?(n<0?(e.key==='ArrowDown'?0:suggestionCount-1):(n+(e.key==='ArrowDown'?1:-1)+suggestionCount)%suggestionCount):-1);}
      if(e.key==='Escape'){e.preventDefault();setSuggestionsOpen(false);setActive(-1);}
     }}/>
-    {state.q&&<button className="unified-clear-query" type="button" aria-label="Clear search text" onClick={()=>{commit({...state,q:''});setSuggestionsOpen(true);field.current?.focus();}}><Icon name="close"/></button>}
+    {state.q&&<button className="unified-clear-query" type="button" aria-label="Clear search" onClick={()=>{commit({category:'films',q:''});setSuggestionsOpen(false);field.current?.focus();}}><Icon name="close"/></button>}
    </form>
    {suggestionsOpen&&suggestionCount>0&&<div className="unified-suggestions">
     {!state.q.trim()&&<div className="unified-suggestion-head"><span>Recent searches</span><button className="link-button" type="button" onClick={()=>{setRecent([]);try{localStorage.removeItem(historyKey);}catch{}}}>Clear history</button></div>}
@@ -141,9 +153,17 @@ export default function UnifiedSearch({initialData}:{initialData:UnifiedSearchDa
     </ul>
    </div>}
   </div>
+  {!searching&&<div className="search-discovery">
+   <Row title="Popular">{popularFilms.map(entry=>entry.film?<FilmCard key={entry.id} film={entry.film} posterOnly/>:null)}{!popularFilms.length&&<li className="muted">Popular films are unavailable right now.</li>}</Row>
+   <Row title="Recently Added">{recentFilms.map(entry=>entry.film?<FilmCard key={entry.id} film={entry.film}/>:null)}</Row>
+   <Row title="Directors to Follow">{suggestedDirectors.map(entry=>entry.director?<DirectorCard key={entry.id} director={entry.director} footer={<FollowButton key={data.viewerId??"visitor"} personId={entry.id} name={entry.title} onChange={following=>setData(current=>current.viewerId!==data.viewerId?current:({...current,followedDirectorIds:following?[...new Set([...(current.followedDirectorIds??[]),entry.id])]:(current.followedDirectorIds??[]).filter(id=>id!==entry.id)}))}/>}/>:null)}{!suggestedDirectors.length&&<li className="muted">You’re following all eligible directors. Check back for new additions.</li>}</Row>
+   <Row title="From the Community">{community.map(list=><CommunityTile key={list.id} c={list.tile} filmCount={list.filmIds.length}/>)}{!community.length&&<li className="muted">No public watchlists yet.</li>}</Row>
+   <Row title="Explore by Genre" className="search-genres">{genres.map(genre=><li key={genre}><Link className="chip" href={"/films?"+new URLSearchParams({genre})}>{genre}</Link></li>)}</Row>
+  </div>}
+  {searching&&<>
   <div className="unified-controls">
-   <div className="unified-mobile-category"><FilterSelect label="Search category" value={state.category} onChange={e=>switchCategory(e.target.value as SearchCategory)}>{CATEGORIES.map(category=><option key={category} value={category}>{CATEGORY_LABELS[category]}</option>)}</FilterSelect></div>
-   <div role="tablist" aria-label="Search category" className="unified-tabs">{CATEGORIES.map((category,i)=><button key={category} type="button" role="tab" id={id+'-tab-'+category} aria-selected={state.category===category} aria-controls={id+'-results'} tabIndex={state.category===category?0:-1} onClick={()=>switchCategory(category)} onKeyDown={e=>{let next=-1;if(e.key==='ArrowRight')next=(i+1)%CATEGORIES.length;if(e.key==='ArrowLeft')next=(i+CATEGORIES.length-1)%CATEGORIES.length;if(e.key==='Home')next=0;if(e.key==='End')next=CATEGORIES.length-1;if(next>=0){e.preventDefault();switchCategory(CATEGORIES[next]);document.getElementById(id+'-tab-'+CATEGORIES[next])?.focus();}}}>{CATEGORY_LABELS[category]}</button>)}</div>
+   <div className="unified-mobile-category"><FilterSelect label="Search category" value={state.category} onChange={e=>switchCategory(e.target.value as SearchCategory)}>{CATEGORIES.map(category=><option key={category} value={category}>{CATEGORY_LABELS[category]} ({categoryCounts[category]})</option>)}</FilterSelect></div>
+   <div role="tablist" aria-label="Search category" className="unified-tabs">{CATEGORIES.map((category,i)=><button key={category} type="button" role="tab" id={id+'-tab-'+category} aria-selected={state.category===category} aria-controls={id+'-results'} tabIndex={state.category===category?0:-1} onClick={()=>switchCategory(category)} onKeyDown={e=>{let next=-1;if(e.key==='ArrowRight')next=(i+1)%CATEGORIES.length;if(e.key==='ArrowLeft')next=(i+CATEGORIES.length-1)%CATEGORIES.length;if(e.key==='Home')next=0;if(e.key==='End')next=CATEGORIES.length-1;if(next>=0){e.preventDefault();switchCategory(CATEGORIES[next]);document.getElementById(id+'-tab-'+CATEGORIES[next])?.focus();}}}>{CATEGORY_LABELS[category]} ({categoryCounts[category]})</button>)}</div>
    <button type="button" className="unified-filter-button" aria-haspopup="dialog" aria-controls={id+'-filters'} aria-expanded={filtersOpen} onClick={()=>{setSuggestionsOpen(false);setFiltersOpen(true);dialog.current?.showModal();}}><Icon name="filter"/><span>Filters</span>{activeFilters.length>0&&<span className="badge" aria-label={activeFilters.length+' active filters'}>{activeFilters.length}</span>}</button>
   </div>
   {activeFilters.length>0&&<ul className="unified-chips" aria-label="Active filters">{activeFilters.map(key=><li key={key}><button className="chip" type="button" aria-label={'Remove '+unifiedFilterLabel(key,state[key]!)} onClick={()=>setFilter(key,'')}>{unifiedFilterLabel(key,state[key]!)}<Icon name="close"/></button></li>)}</ul>}
@@ -151,13 +171,14 @@ export default function UnifiedSearch({initialData}:{initialData:UnifiedSearchDa
   <div id={id+'-results'} className="unified-results" role="tabpanel" aria-label={CATEGORY_LABELS[state.category]+' results'} onClickCapture={e=>{if((e.target as Element).closest('a')){remember();saveVisit();}}}>
    {boundsInvalid&&<p className="notice error" role="alert">The minimum must be no greater than the maximum.</p>}
    {results.length?<>
-    {state.category==='films'&&<ul className="unified-film-grid" aria-label="Films results">{results.slice(0,shown).map((result,i)=>{const film=result.entry?.film;return film?<li className="unified-film-card" key={result.id}><FilmLink href={result.href}><Poster title={film.title} year={film.year} directors={film.directors} src={film.poster_url} priority={i<6} sizes="(min-width: 1200px) 16vw, (min-width: 700px) 23vw, 45vw"/><span className="unified-film-title">{film.title}</span><span className="unified-film-meta">{film.directors.join(' and ')}<span> • {film.year}</span></span></FilmLink></li>:null;})}</ul>}
+    {state.category==='films'&&<FilmGrid films={results.slice(0,shown).flatMap(result=>result.entry?.film?[result.entry.film]:[])} priority={6}/>}
     {state.category==='directors'&&<ul className="director-grid" aria-label="Directors results">{results.slice(0,shown).map(result=>result.entry?.director?<DirectorCard key={result.id} director={result.entry.director}/>:null)}</ul>}
     {state.category==='watchlists'&&<ul className="collection-list" aria-label="Watchlists results">{results.slice(0,shown).map(result=>result.watchlist?<CommunityTile key={result.id} c={result.watchlist.tile} filmCount={result.count} badge={result.watchlist.is_public?undefined:'Private'}/>:null)}</ul>}
     {state.category==='members'&&<ul className="unified-members" aria-label="Members results">{results.slice(0,shown).map(result=>result.member?<li key={result.id}><Link href={result.href} className="unified-member"><UserAvatar person={result.member} size={48}/><span><span className="unified-member-name">{result.title}</span><span className="muted">@{result.member.handle}</span></span></Link>{result.member.id!==data.viewerId&&<MemberFollowButton memberId={result.id} name={result.title} viewerId={data.viewerId} initialFollowing={result.member.following} onChange={following=>setData(current=>({...current,members:current.members.map(member=>member.id===result.id?{...member,following}:member)}))}/>}</li>:null)}</ul>}
     {shown<results.length&&<div className="pagination-controls"><button type="button" className="button ghost" onClick={()=>setShown(n=>n+PAGE)}>Load more</button></div>}
    </>:<div className="empty-state"><Icon name="search" className="empty-icon"/><p>No {state.category} match your search.</p><p className="muted">Check the spelling, try another name{activeFilters.length?' or remove a filter':''}.</p>{correction&&<p>Did you mean <button type="button" className="link-button" onClick={()=>commit({...state,q:correction})}>{correction}</button>?</p>}{activeFilters.length>0&&<button type="button" className="button ghost" onClick={clearFilters}>Search without filters</button>}{state.category==='films'&&<Link href="/submit">Suggest a film</Link>}</div>}
   </div>
+  </>}
   <dialog ref={dialog} id={id+'-filters'} className="modal unified-filter-dialog" aria-labelledby={id+'-filter-title'} onClose={()=>setFiltersOpen(false)} onClick={e=>{if(e.target===dialog.current)dialog.current?.close();}}>
    <div className="modal-head"><span className="sheet-handle" aria-hidden="true"/><h2 id={id+'-filter-title'}>Filters</h2><button type="button" className="icon-button" aria-label="Close filters" onClick={()=>dialog.current?.close()}><Icon name="close"/></button></div>
    <div className="modal-body">

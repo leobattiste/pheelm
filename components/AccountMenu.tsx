@@ -66,6 +66,7 @@ export default function AccountMenu({ onNavigate, children }: { onNavigate: () =
 
   return (
     <><nav className="menu-more menu-account" aria-label="Your account">
+      <Link href={me.handle ? `/@${me.handle}` : "/profile"} aria-current={current(me.handle ? `/@${me.handle}` : "/profile")} onClick={onNavigate}><Icon name="userAccount" />Profile</Link>
       <Link href="/notifications" aria-current={current("/notifications")}>
         <Icon name="bell" />Notifications
         {me.unread > 0 && <span className="badge" aria-label={`${me.unread} new`}>{me.unread > 9 ? "9+" : me.unread}</span>}
