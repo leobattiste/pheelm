@@ -1,5 +1,5 @@
 // Toasts: one line of text is a pill; wrapped text gets the rounded corners of cards and modals.
-// Home leads the menu bar; signed-out visitors can sign in from the expanded menu.
+// Signed out, the menu bar's profile tab opens sign-in and the menu offers only Sign in.
 // Run against a started server: BASE_URL=http://localhost:3000 node tests/toast-shape-browser.mjs
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright-core';
@@ -21,17 +21,14 @@ try {
   const many = await radius();
   assert(many.multi && many.radius === 18, `wrapped text gets card corners ${JSON.stringify(many)}`);
 
-  // Home replaces the old profile/sign-in slot; sign-in lives in the expanded menu.
-  const tab = page.locator('.tab-bar a.tab').first();
-  assert.equal(await tab.getAttribute('aria-label'), 'Home');
-  assert.equal(await tab.getAttribute('href'), '/home');
+  // Signed out: profile icon in the bar, and only Sign in in the menu.
+  const tab = page.locator('.tab-bar .tab.visitor-only');
+  assert.equal(await tab.getAttribute('aria-label'), 'Sign in');
   assert.equal(await page.locator('.tab-bar .tab:visible').count(), 5, 'five tabs');
   await page.locator('.tab-bar button.tab').click();
   await page.waitForSelector('.menu-sheet[open]');
   const items = await page.locator('.menu-sheet .menu-account').innerText();
   assert(items.includes('Sign in') && !/early access/i.test(items), `menu offers only Sign in: ${items}`);
-  await page.locator('.menu-sheet .menu-account').getByRole('button', { name: 'Sign in', exact: true }).click();
-  await page.waitForSelector('.signin-sheet[open]');
   console.log('PASS: one-line toasts are pills, wrapped toasts get card corners; signed out, the menu offers only Sign in.');
 } finally {
   await browser.close();

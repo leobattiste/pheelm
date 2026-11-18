@@ -48,7 +48,7 @@ export default function SignInSheet() {
         </button>
       </div>
       <div className="modal-body">
-        <SignInForm key={mode} mode={mode} next={next ?? (path === "/" ? "/home" : path || "/home")} titleId="signin-title" onDone={() => sheet.current?.close()} />
+        <SignInForm key={mode} mode={mode} next={next ?? (path === "/" ? "/films" : path || "/")} titleId="signin-title" onDone={() => sheet.current?.close()} />
       </div>
     </dialog>
   );

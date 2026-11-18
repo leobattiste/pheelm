@@ -11,7 +11,7 @@ import {
   LinkSquare02Icon, Login03Icon, Logout03Icon, Mail01Icon, Moon02Icon, EllipsisIcon, Notification03Icon,
   PencilEdit02Icon, PinIcon, PlayIcon, Search01Icon, Settings02Icon, Share08Icon, ShuffleIcon, SparklesIcon,
   SquareLock02Icon, ThreadsIcon, Tick02Icon, TranslateIcon, UserAdd01Icon, UserGroupIcon, UserIcon, ViewIcon,
-  UserCircleIcon, UserAccountIcon, UserMultiple02Icon, UserGroup02Icon, Home01Icon,
+  UserCircleIcon, UserAccountIcon, UserMultiple02Icon, UserGroup02Icon,
 } from "@hugeicons/core-free-icons";
 
 import { GalleryHorizontalEndIcon, RectangleVerticalIcon } from "lucide-react";
@@ -19,7 +19,6 @@ import { GalleryHorizontalEndIcon, RectangleVerticalIcon } from "lucide-react";
 type IconData = readonly (readonly [string, Record<string, string | number>])[];
 
 const ICONS = {
-  home: Home01Icon,
   editPhoto: Edit04Icon,
   camera: Camera01Icon,
   trash: Delete02Icon,

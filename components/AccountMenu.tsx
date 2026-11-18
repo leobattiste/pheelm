@@ -10,7 +10,7 @@ import { openSignIn } from "./SignInSheet";
 type Me = { email: string; handle: string | null; name: string | null; isPrivate: boolean | null; unread: number };
 
 /**
- * The account part of the menu. Signed out: Sign in. Signed in: Profile, Notifications (with a
+ * The account part of the menu. Signed out: Sign in. Signed in: Notifications (with a
  * count of new ones), Watchlist, Settings and
  * Log out.
  */
@@ -33,7 +33,7 @@ export default function AccountMenu({ onNavigate, children }: { onNavigate: () =
       const next = { email: user.email ?? "", handle: profile.handle ?? null, name: profile.display_name ?? null, isPrivate: "is_private" in profile ? !!profile.is_private : null, unread: unread.error ? 0 : unread.count ?? 0 };
       if (!active) return;
       setMe(next);
-      // The tab bar shows an unread dot on More.
+      // The tab bar on phones shows your profile and the unread count too.
       (window as { __pheelmMe?: unknown }).__pheelmMe = { handle: next.handle, unread: next.unread };
       window.dispatchEvent(new CustomEvent("pheelm:me", { detail: { handle: next.handle, unread: next.unread } }));
     };
@@ -63,11 +63,9 @@ export default function AccountMenu({ onNavigate, children }: { onNavigate: () =
   }
 
   const current = (href: string) => (path === href ? "page" : undefined);
-  const profile = me.handle ? `/@${me.handle}` : "/profile";
 
   return (
     <><nav className="menu-more menu-account" aria-label="Your account">
-      <Link href={profile} aria-current={current(profile)} onClick={onNavigate}><Icon name="userAccount" />Profile</Link>
       <Link href="/notifications" aria-current={current("/notifications")}>
         <Icon name="bell" />Notifications
         {me.unread > 0 && <span className="badge" aria-label={`${me.unread} new`}>{me.unread > 9 ? "9+" : me.unread}</span>}
