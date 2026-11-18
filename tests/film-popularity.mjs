@@ -100,3 +100,22 @@ console.log('PASS: worldwide TMDB endpoint, six-hour cache, bounded pagination/c
 const ranked = helper.rankPopularFilms([{status:'published',tmdb_id:1},{status:'draft',tmdb_id:2},{status:'published',tmdb_id:3},{status:'published',tmdb_id:null}], [3,2,1,3,999]);
 assert.deepEqual(Array.from(ranked, f=>f.tmdb_id), [3,1]);
 console.log('PASS: worldwide ranking preserves chart order and excludes drafts, unknown IDs, and duplicates');
+
+const film = (id, fields = {}) => ({ status: 'published', tmdb_id: id, title: `Film ${id}`, ...fields });
+const ordinary = Array.from({ length: 14 }, (_, i) => film(i + 1));
+const chartIds = rows => rows.map(film => film.tmdb_id);
+const rankedIds = (rows, chart, limit) => Array.from(helper.rankPopularFilms(rows, chart, limit), film => film.tmdb_id);
+assert.deepEqual(rankedIds(ordinary, chartIds(ordinary)), chartIds(ordinary).slice(0, 10), 'default limit is ten films');
+const spiderFilms = [film(324857), film(569094), film(100, { title: 'Spider-Man' }), film(101, { title: 'The Amazing Spider Man' }), film(102, { title: 'SPIDERMAN 2' }), film(103, { original_title: 'Spider‑Man: No Way Home' }), film(104, { aka: ['Spider—Man: Far From Home'] }), film(105, { slug: 'spider-man-homecoming' }), film(106, { title: 'Spider−Man' }), film(107, { title: 'Spider–Man' })];
+const catalog = [...spiderFilms, ...ordinary];
+const spiderChart = [569094, 1, 324857, ...chartIds(spiderFilms).filter(id => id !== 569094 && id !== 324857), ...chartIds(ordinary).slice(1)];
+assert.deepEqual(rankedIds(catalog, spiderChart), [569094, ...chartIds(ordinary).slice(0, 9)], 'retains the highest worldwide-ranked Spider-Man and backfills ten films after deduplication');
+for (const spider of spiderFilms) {
+  assert.deepEqual(rankedIds([spiderFilms[0], spider], [spider.tmdb_id, 324857]), [spider.tmdb_id], 'recognizes IDs, titles, original titles, aliases, slugs, Unicode hyphens and joined Spiderman');
+}
+const otherFranchise = [film(500, { title: 'Black Panther' }), film(501, { title: 'Black Panther: Wakanda Forever' }), film(502, { title: 'Spider Manatee' })];
+assert.deepEqual(rankedIds(otherFranchise, [500, 501, 502]), [500, 501, 502], 'does not deduplicate other franchises or accidental partial matches');
+assert.deepEqual(rankedIds([film(569094, { status: 'draft' }), film(324857), film(99, { status: 'private' }), film(1)], [569094, 99, 324857, 1]), [324857, 1], 'draft and private entries do not consume the Spider-Man slot');
+assert.deepEqual(rankedIds(catalog, [569094, 324857, 1]), [569094, 1], 'short chart safely shows fewer than ten');
+assert.deepEqual(rankedIds(catalog, spiderChart, 0), [], 'zero result limit remains empty');
+console.log('PASS: ten-film default, one globally ranked Spider-Man, Unicode/name/ID recognition, chart backfill, published-only scope, and unrelated franchises preserved');

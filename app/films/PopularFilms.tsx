@@ -1,6 +1,6 @@
 import Row from "@/components/Row";
-import FilmCard from "@/components/FilmCard";
-import { toCard } from "@/lib/data";
+import Poster from "@/components/Poster";
+import FilmLink from "@/components/Transitions";
 import { getPopularMovieIds, rankPopularFilms } from "@/lib/film-popularity";
 import type { Film } from "@/lib/types";
 import styles from "./popular.module.css";
@@ -13,6 +13,10 @@ export default async function PopularFilms({ films }: { films: Film[] }) {
     <p className="muted">Popular films are unavailable right now.</p>
   </section>;
   return <Row title="Popular" className={styles.carousel}>
-    {popular.map(film => <FilmCard key={film.id} film={toCard(film)} />)}
+    {popular.map(film => <li key={film.id} className={styles.posterItem}>
+      <FilmLink className={styles.posterLink} href={`/films/${film.slug}`} aria-label={`${film.title}, ${film.directors.map(d => d.name).join(" and ")}, ${film.year}`}>
+        <Poster title={film.title} year={film.year} directors={film.directors.map(d => d.name)} src={film.poster_url} />
+      </FilmLink>
+    </li>)}
   </Row>;
 }
