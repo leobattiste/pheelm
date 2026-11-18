@@ -44,13 +44,15 @@ export default function SiteHeader() {
   return (
     <header className="site-header">
       <Link href="/" className="wordmark wordmark-type" aria-label={`${SITE_NAME}, home`}>{WORDMARK}</Link>
-      {/* Visitors (early access): just Sign in. Which set shows is decided before paint (data-auth). */}
+      {/* Which account controls show is decided before paint (data-auth). Search is public. */}
       <div className="header-tools visitor-only">
+        <Link href="/search" className="icon-button" aria-label="Search" title="Search"><Icon name="search" /></Link>
         <button type="button" className="header-signin" onClick={(e) => { if (!openSignIn("signin")) location.href = "/login"; (e.currentTarget as HTMLButtonElement).blur(); }}>
           Sign in
         </button>
       </div>
       <div className="header-tools member-only">
+        <Link href="/search" className="icon-button" aria-label="Search" title="Search"><Icon name="search" /></Link>
         <button type="button" className="icon-button menu-button" aria-expanded={open} aria-controls="menu" aria-label={open ? "Close menu" : "Open menu"} onClick={toggle}>
           <span className="burger" aria-hidden="true"><span /><span /></span>
         </button>
@@ -76,6 +78,9 @@ export default function SiteHeader() {
             {MAIN.map((l) => (
               <Link key={l.href} href={l.href} aria-current={current(l.href)}><Icon name={l.icon} />{l.label}</Link>
             ))}
+          </nav>
+          <nav className="menu-more" aria-label="Search">
+            <Link href="/search" aria-current={current("/search")} onClick={() => menu.current?.close()}><Icon name="search" />Search</Link>
           </nav>
           <AccountMenu onNavigate={() => menu.current?.close()}>
           <nav className="menu-more menu-support" aria-label="Support Pheelm">
