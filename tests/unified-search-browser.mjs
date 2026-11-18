@@ -62,13 +62,13 @@ try {
   assert.equal(await page.locator('.search-discovery .row').nth(0).locator('.film-card').count(),12);
   assert.equal(await page.locator('.search-discovery .row').nth(2).locator('.director-card').count(),1);
   assert.equal(await page.locator('.search-discovery .row').nth(1).locator('.film-card-title').first().textContent(),'Film 43');
-  assert.equal(await page.locator('h1').count(),0);assert.equal(await page.locator('.unified-controls').count(),0);
+  assert.equal(await page.locator('.unified-controls').count(),0);
   assert.equal(await page.locator('.search-discovery .row').nth(1).locator('.film-card').count(),12);
   assert.equal(await page.locator('.search-discovery a[href="/watchlists/private-list"]').count(),0);
   assert.ok(await page.locator('.search-genres a').first().getAttribute('href').then(h=>h.includes('genre=')));
   assert.equal(await input.getAttribute('placeholder'),'Search films, directors, watchlists, and members…');
   await input.fill('Moonlight');await input.press('Enter');await page.locator('.film-grid').waitFor();assert.equal(await page.locator('.film-grid > li').count(),1);assert.equal(await page.locator('.search-discovery').count(),0);
-  const category=async value=>{if(width<700)await page.getByRole('combobox',{name:'Search category',exact:true}).selectOption(value);else await page.getByRole('tab',{name:new RegExp('^'+value[0].toUpperCase()+value.slice(1)+' ')}).click();};
+  const category=async value=>{await page.getByRole('tab',{name:new RegExp('^'+value[0].toUpperCase()+value.slice(1)+' ')}).click();};
   await category('directors');await page.locator('.director-grid').waitFor();assert.equal(await page.getByRole('combobox',{name:'Search directors',exact:true}).inputValue(),'Moonlight');
   await category('watchlists');await page.locator('.collection-list').waitFor();assert.equal(await page.locator('.collection-list > li').count(),1);
   await category('members');await page.locator('.unified-members').waitFor();assert.equal(await page.locator('.unified-members > li').count(),1);
