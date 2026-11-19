@@ -172,6 +172,18 @@ export async function fillPerson(db: SupabaseClient, person: Record<string, any>
   return migrated;
 }
 
+/** Adds one person, or finds them if someone else just did; a taken slug gets the TMDB id added. */
+async function addPerson(db: SupabaseClient, p: Record<string, unknown>) {
+  const find = async () => (await db.from("people").select("*").eq("tmdb_id", p.tmdb_id as number).maybeSingle()).data;
+  for (const slug of [p.slug, `${slugify(p.name as string)}-${p.tmdb_id}`]) {
+    const { data, error } = await db.from("people").insert({ ...p, slug }).select("*").single();
+    if (!error) return data;
+    const existing = await find();
+    if (existing) return existing;
+  }
+  return null;
+}
+
 /**
  * Saves a film's cast and crew in a few round trips instead of one per person: finds who's already
  * here (by TMDB id, then by name, so the starter catalog's people get linked, not duplicated),
@@ -207,10 +219,25 @@ async function savePeople(db: SupabaseClient, filmId: string, m: ImportedFilm) {
         fresh.push({ slug: match ? `${slug}-${id}` : slug, name: p.name, tmdb_id: id, photo_url: p.photo });
       }
     }));
+    // Two newcomers can share a name: only the first keeps the plain slug.
+    const used = new Set<string>();
+    for (const p of fresh) {
+      if (used.has(p.slug as string)) p.slug = `${p.slug}-${p.tmdb_id}`;
+      used.add(p.slug as string);
+    }
     if (fresh.length) {
       const { data: created, error } = await db.from("people").insert(fresh).select("*");
-      if (error) throw new Error(`Couldn't add cast and crew: ${error.message}`);
-      for (const p of created ?? []) { idFor.set(p.tmdb_id, p.id); rows.push(p); }
+      if (!error) {
+        for (const p of created ?? []) { idFor.set(p.tmdb_id, p.id); rows.push(p); }
+      } else {
+        // Usually another film added the same person a moment ago: add one at a time instead.
+        for (const p of fresh) {
+          const person = await addPerson(db, p);
+          if (!person) throw new Error(`Couldn't add cast and crew: ${error.message}`);
+          idFor.set(person.tmdb_id, person.id);
+          rows.push(person);
+        }
+      }
     }
   }
 
