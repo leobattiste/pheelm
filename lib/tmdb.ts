@@ -224,7 +224,7 @@ function parseWatch(providers: Record<string, any>): WatchOption[] {
 const NOT_A_FILM = /(the play|\blive\b|in concert|concert for|making (of|the)|video collection|\bvol(ume)?\.? ?\d|special|behind the scenes|comedy jam|all def|sesame street|young indiana jones|pavarotti|^(dave chappelle|chappelle's|katt williams|bernie mac|cedric the entertainer|ms\. pat|bill cosby|amanda seales|mo amer|earthquake|jerrod carmichael|john leguizamo|eddie murphy|kevin hart|chris rock|robert townsend: partners)\b|anniversary|: the reunion|^untold:)/i;
 
 /** Released films a person directed, with a poster (TMDB lists plenty of unfinished or posterless entries). */
-export async function getDirectedMovies(personId: number): Promise<{ id: number; title: string; year: number }[]> {
+export async function getDirectedMovies(personId: number, minVotes = 20): Promise<{ id: number; title: string; year: number }[]> {
   const r = await get<{ crew?: { id: number; job: string; title: string; release_date?: string; poster_path?: string | null; adult?: boolean; vote_count?: number }[] }>(`/person/${personId}/movie_credits`, { language: "en-US" }, AbortSignal.timeout(8000));
   const today = new Date().toISOString().slice(0, 10);
   const seen = new Set<number>();
@@ -232,10 +232,22 @@ export async function getDirectedMovies(personId: number): Promise<{ id: number;
     if (m.job !== "Director" || m.adult || !m.poster_path || !m.release_date || m.release_date > today || seen.has(m.id)) return [];
     // Films people actually watch: enough TMDB votes, and not a recorded special, concert, stage
     // play, TV episode or featurette, which TMDB also files under a director's films.
-    if ((m.vote_count ?? 0) < 20 || NOT_A_FILM.test(m.title)) return [];
+    if ((m.vote_count ?? 0) < minVotes || NOT_A_FILM.test(m.title)) return [];
     seen.add(m.id);
     return [{ id: m.id, title: m.title, year: Number(m.release_date.slice(0, 4)) }];
   });
+}
+
+const plain = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+
+/** The TMDB person with exactly this name who is known for directing, or null when unclear. */
+export async function findDirector(name: string): Promise<{ id: number; name: string } | null> {
+  const r = await get<{ results?: { id: number; name: string; known_for_department?: string; popularity?: number }[] }>("/search/person", { query: name, include_adult: "false" }, AbortSignal.timeout(8000));
+  const same = (r.results ?? []).filter((p) => plain(p.name) === plain(name));
+  const directing = same.filter((p) => p.known_for_department === "Directing");
+  // Exactly one director by that name, or one person by that name at all: anything else is ambiguous.
+  const pick = directing.length === 1 ? directing[0] : same.length === 1 ? same[0] : null;
+  return pick ? { id: pick.id, name: pick.name } : null;
 }
 
 /** The film's IMDb id from TMDB, or null. */
