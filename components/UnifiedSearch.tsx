@@ -37,6 +37,8 @@ export default function UnifiedSearch({initialData}:{initialData:UnifiedSearchDa
  const [active,setActive]=useState(-1);
  const [filtersOpen,setFiltersOpen]=useState(false);
  const field=useRef<HTMLInputElement>(null);
+ // Touch browsers blur the input before a tap on the panel lands; that must not close it.
+ const pressing=useRef(false);
  const fieldWrap=useRef<HTMLDivElement>(null);
  const dialog=useRef<HTMLDialogElement>(null);
  const id=useId();
@@ -174,7 +176,7 @@ export default function UnifiedSearch({initialData}:{initialData:UnifiedSearchDa
  const filmCategory=state.category==='all'||state.category==='films';
  return <div className="unified-search" aria-busy={state!==deferred}>
   {refreshError&&<p className="notice" role="alert">Search could not be refreshed. <button type="button" className="link-button" onClick={retry}>Retry</button></p>}
-  <div className="toolbar catalog-toolbar"><div className="catalog-search-control unified-search-field" ref={fieldWrap} onBlur={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node))setSuggestionsOpen(false);}}>
+  <div className="toolbar catalog-toolbar"><div className="catalog-search-control unified-search-field" ref={fieldWrap} onBlur={e=>{if(!pressing.current&&!e.currentTarget.contains(e.relatedTarget as Node))setSuggestionsOpen(false);}}>
    <form className="search-bar" role="search" onSubmit={e=>{e.preventDefault();choose(suggestionsOpen?active:-1);}}>
     <Icon name="search"/><label htmlFor={id+'-query'} className="visually-hidden">Search {state.category==='all'?'everything':state.category}</label>
     <input ref={field} id={id+'-query'} type="search" role="combobox" aria-autocomplete="list" aria-expanded={suggestionsOpen&&suggestionCount>0} aria-controls={suggestionsOpen&&suggestionCount>0?id+'-suggestions':undefined} aria-activedescendant={suggestionsOpen&&active>=0?id+'-option-'+active:undefined} placeholder="Search films, directors, watchlists, and members…" autoComplete="off" maxLength={200} value={state.q} onFocus={()=>setSuggestionsOpen(true)} onClick={()=>setSuggestionsOpen(true)} onChange={e=>{const q=e.target.value;commit({...state,q,category:!state.q.trim()&&q.trim()?'all':!q.trim()?'films':state.category});setSuggestionsOpen(true);}} onKeyDown={e=>{
@@ -183,7 +185,7 @@ export default function UnifiedSearch({initialData}:{initialData:UnifiedSearchDa
     }}/>
     {state.q&&<button className="catalog-clear-query" type="button" aria-label="Clear search" onClick={()=>{commit({category:'films',q:''});setSuggestionsOpen(false);field.current?.focus();}}><Icon name="close"/></button>}
    </form>
-   {suggestionsOpen&&suggestionCount>0&&<div className="catalog-suggestions" onPointerDown={e=>{if(!(e.target as Element).closest('a'))e.preventDefault();}}>
+   {suggestionsOpen&&suggestionCount>0&&<div className="catalog-suggestions" onPointerDown={()=>{pressing.current=true;setTimeout(()=>{pressing.current=false;},600);}}>
     {!state.q.trim()&&<div className="catalog-suggestion-head"><span>Recent searches</span><button className="link-button" type="button" onClick={()=>{setRecent([]);setActive(-1);setSuggestionsOpen(false);try{localStorage.removeItem(historyKey);}catch{}}}>Clear history</button></div>}
     <ul id={id+'-suggestions'} role="listbox" aria-label={state.q.trim()?'Search suggestions':'Recent searches'}>
      {options.map((result,i)=><li key={result.category+result.id} id={id+'-option-'+i} role="option" aria-selected={active===i}>

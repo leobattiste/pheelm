@@ -80,7 +80,7 @@ function SearchField({ mode, value, onChange, results, history, onClearHistory, 
     } }}/>
    {value && <button type="button" className="catalog-clear-query" aria-label="Clear search text" onClick={() => { onChange(''); setOpen(true); setActive(-1); input.current?.focus(); }}><Icon name="close"/></button>}
   </form>
-  {open && count > 0 && <div className="catalog-suggestions" onPointerDown={e => { if (!(e.target as Element).closest("a")) e.preventDefault(); }}>
+  {open && count > 0 && <div className="catalog-suggestions">
    {!value.trim() && <div className="catalog-suggestion-head"><span>Recent searches on this device</span><button type="button" className="link-button" onClick={onClearHistory}>Clear history</button></div>}
    <ul id={id + '-suggestions'} role="listbox" aria-label={value.trim() ? 'Search suggestions' : 'Recent searches'}>
     {proposal && <li id={id + '-option-0'} role="option" aria-selected={active === 0}><button type="button" className="catalog-suggestion" onClick={() => { onSubmit(); setOpen(false); }}><Icon name="filter"/><span>Use filters<span className="muted">{Object.entries(proposal).filter(([k, v]) => k !== 'q' && v).map(([k, v]) => filterLabel(k as SearchKey, v!)).join(' · ')}</span></span></button></li>}
