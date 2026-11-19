@@ -13,9 +13,9 @@ $$;
 revoke all on function public.worker_secret_ok(text) from public, anon, authenticated;
 grant execute on function public.worker_secret_ok(text) to service_role;
 
--- Every 10 minutes: add up to 6 queued films (matched on TMDB, director checked, published).
-select cron.schedule('pheelm-film-queue', '*/10 * * * *', $$
-  select net.http_post(url := 'https://pheelm.com/api/internal/queue?limit=6',
+-- Every minute: add up to 20 queued films (matched on TMDB, director checked, published).
+select cron.schedule('pheelm-film-queue', '* * * * *', $$
+  select net.http_post(url := 'https://pheelm.com/api/internal/queue?limit=20',
     headers := jsonb_build_object('Content-Type', 'application/json', 'Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'pheelm_worker_secret')),
     body := '{}'::jsonb, timeout_milliseconds := 120000);
 $$);
