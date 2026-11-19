@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { processQueue, type QueueItem } from "@/lib/film-queue";
 import { tmdbEnabled } from "@/lib/tmdb";
 import { serviceClient } from "@/lib/supabase/service";
-import { workerAuthorized } from "@/lib/worker-auth";
+import { workerCheck } from "@/lib/worker-auth";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -21,7 +21,8 @@ const json = (data: Record<string, unknown>, status = 200) =>
  */
 export async function POST(request: NextRequest) {
   const db = serviceClient();
-  if (!(await workerAuthorized(request, db))) return json({ error: "Not allowed." }, 401);
+  const check = await workerCheck(request, db);
+  if (check !== "ok") return json({ error: "Not allowed.", reason: check }, 401);
   if (!db) return json({ error: "Supabase is not configured." }, 503);
   if (!tmdbEnabled) return json({ error: "TMDB_API_KEY is not set." }, 503);
   const limit = Math.min(20, Math.max(1, Number(request.nextUrl.searchParams.get("limit")) || 20));
