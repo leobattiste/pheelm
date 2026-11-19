@@ -57,10 +57,10 @@ try {
  for(const width of [320,390,1440])for(const theme of ['light','dark']) {
   const page=await browser.newPage({viewport:{width,height:900},reducedMotion:'reduce'});const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.route('https://pheelm.test/**',r=>r.fulfill({contentType:'text/html',body:`<html data-theme="${theme}" data-chrome="app"><meta charset="utf-8"><style>${css}</style><main class="page unified-search-page" id="root"></main><script>${script}</script></html>`}));
-  await page.goto('https://pheelm.test/search');const input=page.getByRole('combobox',{name:'Search films',exact:true});await input.waitFor();
-  assert.deepEqual(await page.locator('.search-discovery h2').allTextContents(),['Popular','Recently Added','Directors to Follow','From the Community','Explore by Genre']);
+  await page.goto('https://pheelm.test/search');const input=page.locator('input[type=search]');await input.waitFor();
+  assert.deepEqual(await page.locator('.search-discovery h2').allTextContents(),['Popular','Recently Added','Explore by Theme','Directors to Follow','From the Community','Explore by Genre']);
   assert.equal(await page.locator('.search-discovery .row').nth(0).locator('.film-card').count(),12);
-  assert.equal(await page.locator('.search-discovery .row').nth(2).locator('.director-card').count(),1);
+  assert.equal(await page.locator('.search-discovery .row').nth(3).locator('.director-card').count(),1);
   assert.equal(await page.locator('.search-discovery .row').nth(1).locator('.film-card-title').first().textContent(),'Film 43');
   assert.equal(await page.locator('.unified-controls').count(),0);
   assert.equal(await page.locator('.search-discovery .row').nth(1).locator('.film-card').count(),12);
@@ -69,11 +69,11 @@ try {
   assert.equal(await input.getAttribute('placeholder'),'Search films, directors, watchlists, and members…');
   await input.fill('Moonlight');await input.press('Enter');await page.locator('.film-grid').waitFor();assert.equal(await page.locator('.film-grid > li').count(),1);assert.equal(await page.locator('.search-discovery').count(),0);
   const category=async value=>{await page.getByRole('tab',{name:new RegExp('^'+value[0].toUpperCase()+value.slice(1)+' ')}).click();};
-  await category('directors');await page.locator('.director-grid').waitFor();assert.equal(await page.getByRole('combobox',{name:'Search directors',exact:true}).inputValue(),'Moonlight');
+  await category('directors');await page.locator('.director-grid').waitFor();assert.equal(await input.inputValue(),'Moonlight');
   await category('watchlists');await page.locator('.collection-list').waitFor();assert.equal(await page.locator('.collection-list > li').count(),1);
   await category('members');await page.locator('.unified-members').waitFor();assert.equal(await page.locator('.unified-members > li').count(),1);
   await page.getByRole('button',{name:'Clear search',exact:true}).click();await page.locator('.search-discovery').waitFor();assert.equal(await input.inputValue(),'');
-  await input.fill('zzzzzzzzzzzzzzzz');await input.press('Enter');await page.getByText('No films match your search.',{exact:true}).waitFor();
+  await input.fill('zzzzzzzzzzzzzzzz');await input.press('Enter');await page.getByText('Nothing matches your search.',{exact:true}).waitFor();
   assert.equal(new URL(page.url()).searchParams.get('q'),'zzzzzzzzzzzzzzzz');
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));assert.deepEqual(errors,[]);await page.close();
  }

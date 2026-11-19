@@ -35,3 +35,33 @@ html:root:root:root:root:root .unified-tabs .chip[aria-selected="true"] .chip-co
 .search-genres .row-track { grid-auto-columns:max-content; }
 .search-genres .chip { white-space:nowrap; }
 .search-discovery .director-card > .follow, .search-discovery .director-card > .button { margin-top:var(--space-12); }
+
+/* Quick filters: one tap each, in a row that scrolls sideways. */
+.quick-filters { flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; margin:0 calc(-1 * var(--gutter)) var(--space-16); padding:0 var(--gutter); list-style:none; }
+.quick-filters::-webkit-scrollbar { display:none; }
+.quick-filters li { flex:none; }
+.quick-filters .chip { white-space:nowrap; }
+html:root:root:root:root:root .quick-filters .chip[aria-pressed="true"] { background:var(--ink) !important; color:var(--on-ink) !important; border-color:var(--ink) !important; }
+
+/* All: the best few of each kind, each with a way to see the rest. */
+.all-results { display:grid; gap:var(--space-40); }
+.all-section .row-head { display:flex; align-items:baseline; justify-content:space-between; gap:var(--space-16); margin-bottom:var(--space-16); }
+.all-section h2 { font-size:var(--t-xl, 22px); }
+
+/* Why a result matched. */
+.match-reason { margin-top:var(--space-8); color:var(--muted); font-size:var(--t-sm); }
+.film-card-extra { color:var(--muted); font-size:var(--t-sm); }
+
+/* Suggestions grouped by kind. */
+.suggestion-group { display:block; padding:var(--space-12) var(--space-12) var(--space-4, 4px); color:var(--muted); font-size:var(--t-xs); }
+.catalog-suggestion > img.is-round { width:40px; height:40px; border-radius:50%; }
+
+/* Themes: bordered tiles, like the other cards. */
+.search-themes .row-track { grid-auto-columns:minmax(180px, 220px); }
+.theme-tile { display:grid; align-content:space-between; gap:var(--space-24); min-height:120px; padding:var(--space-16); border:1px solid var(--line); border-radius:var(--r); background:var(--bg); color:inherit; text-decoration:none; }
+.theme-tile:hover { border-color:var(--muted); }
+.theme-title { font-weight:700; font-size:var(--t-lg); line-height:var(--lh-snug); }
+
+.services-picker { display:grid; gap:var(--space-8); border:0; padding:0; margin:0; min-width:0; }
+.services-picker legend { font-weight:700; margin-bottom:var(--space-4, 4px); }
+.unified-results .film-card-extra { display:block !important; }

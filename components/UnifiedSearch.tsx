@@ -15,11 +15,12 @@ import MemberFollowButton from './MemberFollowButton';
 import FilterSelect from './FilterSelect';
 import { getBrowserClient } from '@/lib/supabase/client';
 import { countryName } from '@/lib/format';
-import { CATEGORY_LABELS, CATEGORIES, CATEGORY_FILTERS, UNIFIED_SORTS, activeUnifiedFilters, cleanUnifiedState, indexUnified, searchUnified, unifiedCorrection, unifiedFacets, unifiedFilterLabel, unifiedQuery, type SearchCategory, type UnifiedFilter, type UnifiedResult, type UnifiedSearchData, type UnifiedSearchState } from '@/lib/unified-search';
+import { QUICK_FILTERS, SERVICES_KEY, THEMES, matchReason, naturalFilters, quickActive, recommendations, toggleQuick } from '@/lib/search-extras';
+import { VIEWS, defaultView, type SearchView, CATEGORY_LABELS, CATEGORIES, CATEGORY_FILTERS, UNIFIED_SORTS, activeUnifiedFilters, cleanUnifiedState, indexUnified, searchUnified, unifiedCorrection, unifiedFacets, unifiedFilterLabel, unifiedQuery, type SearchCategory, type UnifiedFilter, type UnifiedResult, type UnifiedSearchData, type UnifiedSearchState } from '@/lib/unified-search';
 
 const PAGE = 36;
 type Recent = {label:string;state:UnifiedSearchState};
-const FILTER_LABELS:Record<UnifiedFilter,string>={genre:'Genre',country:'Country',language:'Language',from:'From year',to:'Through year',minRuntime:'Minimum runtime',maxRuntime:'Maximum runtime',type:'Film type',award:'Awards',festival:'Award or festival',provider:'Provider',region:'Region',availability:'Availability',min:'Minimum films',max:'Maximum films',updated:'Recently updated',following:'Members you follow',followsYou:'Members following you'};
+const FILTER_LABELS:Record<UnifiedFilter,string>={genre:'Genre',country:'Country',language:'Language',from:'From year',to:'Through year',minRuntime:'Minimum runtime',maxRuntime:'Maximum runtime',type:'Film type',award:'Awards',festival:'Award or festival',provider:'Provider',region:'Region',availability:'Availability',min:'Minimum films',max:'Maximum films',updated:'Recently updated',services:'On my services',following:'Members you follow',followsYou:'Members following you'};
 const NUMERIC = new Set(['from','to','minRuntime','maxRuntime','min','max']);
 
 export default function UnifiedSearch({initialData}:{initialData:UnifiedSearchData}) {
@@ -39,20 +40,36 @@ export default function UnifiedSearch({initialData}:{initialData:UnifiedSearchDa
  const dialog=useRef<HTMLDialogElement>(null);
  const id=useId();
  const historyKey='pheelm:search:v1:'+(data.viewerId??'visitor');
- const index=useMemo(()=>indexUnified(data,state.category),[data,state.category]);
+ // Every category is indexed once per data change, not once per keystroke.
+ const indexes=useMemo(()=>Object.fromEntries(CATEGORIES.map(c=>[c,indexUnified(data,c)])) as Record<SearchCategory,ReturnType<typeof indexUnified>>,[data]);
+ const dataView:SearchCategory=state.category==='all'?'films':state.category;
+ const index=indexes[dataView];
  const facets=useMemo(()=>unifiedFacets(index),[index]);
+ const filmFacets=useMemo(()=>unifiedFacets(indexes.films),[indexes]);
+ const [services,setServices]=useState<string[]>([]);
+ useEffect(()=>{try{const v:unknown=JSON.parse(localStorage.getItem(SERVICES_KEY)??'[]');setServices(Array.isArray(v)?v.filter(x=>typeof x==='string').slice(0,40):[]);}catch{}},[]);
+ const saveServices=(next:string[])=>{setServices(next);try{localStorage.setItem(SERVICES_KEY,JSON.stringify(next));}catch{}};
  const deferred=useDeferredValue(state);
- const results=useMemo(()=>searchUnified(index,deferred),[index,deferred]);
+ const results=useMemo(()=>deferred.category==='all'?[]:searchUnified(indexes[deferred.category],deferred,Date.now(),services),[indexes,deferred,services]);
+ // The words alone, in every category: for the All view, tab counts and suggestions.
+ const perCategory=useMemo(()=>Object.fromEntries(CATEGORIES.map(c=>[c,deferred.q.trim()?searchUnified(indexes[c],{category:c,q:deferred.q.trim()}):[]])) as Record<SearchCategory,UnifiedResult[]>,[indexes,deferred.q]);
  const activeFilters=activeUnifiedFilters(state);
  const searching=!!state.q.trim();
  const activeSearch=searching||activeFilters.length>0;
- const categoryCounts=useMemo(()=>Object.fromEntries(CATEGORIES.map(category=>[category,searchUnified(indexUnified(data,category),{category,q:state.q.trim()}).length])),[data,state.q]);
+ const total=CATEGORIES.reduce((n,c)=>n+perCategory[c].length,0);
+ const categoryCounts:Record<SearchView,number>={all:total,...Object.fromEntries(CATEGORIES.map(c=>[c,perCategory[c].length]))} as Record<SearchView,number>;
+ const empty=state.category==='all'?total===0:results.length===0;
+ const recs=useMemo(()=>data.signedIn?recommendations(data):null,[data]);
+ const themes=useMemo(()=>THEMES.map(t=>({...t,count:searchUnified(indexes.films,{category:'films',q:'',...t.filters}).length})).filter(t=>t.count>=3),[indexes]);
+ const natural=useMemo(()=>(state.category==='all'||state.category==='films')&&deferred.q.trim()?naturalFilters(deferred.q,data.films as never):null,[deferred.q,state.category,data.films]);
  const recentFilms=useMemo(()=>recentlyAdded(data.films),[data.films]);
  const popularFilms=(data.popularFilmIds??[]).flatMap(id=>data.films.find(f=>f.id===id)??[]);
  const suggestedDirectors=data.directors.filter(d=>d.count>=3&&!(data.followedDirectorIds??[]).includes(d.id)).slice(0,12);
  const community=data.watchlists.filter(w=>w.is_public&&w.filmIds.length>0).sort((a,b)=>b.updated_at.localeCompare(a.updated_at)).slice(0,12);
  const genres=[...new Set(data.films.flatMap(f=>f.genres))].sort((a,b)=>a.localeCompare(b));
- const options=state.q.trim()?results.slice(0,6):[];
+ // Suggestions: a few from each category, in one list the arrow keys move through.
+ const SUGGEST:Record<SearchCategory,number>={films:4,directors:2,watchlists:2,members:2};
+ const options=state.q.trim()?CATEGORIES.flatMap(c=>perCategory[c].slice(0,SUGGEST[c]).map(r=>({...r,category:c}))):[];
  const recents=state.q.trim()?[]:recent;
  const suggestionCount=options.length+recents.length;
  const mounted=useRef(false);
@@ -116,7 +133,7 @@ export default function UnifiedSearch({initialData}:{initialData:UnifiedSearchDa
   if(clean.q!==state.q)urlTimer.current=setTimeout(update,600);else update();
  };
  const setFilter=(key:UnifiedFilter,value:string)=>commit({...state,[key]:value||undefined});
- const switchCategory=(category:SearchCategory)=>{commit({category,q:state.q});setSuggestionsOpen(false);};
+ const switchCategory=(category:SearchView)=>{commit({category,q:state.q});setSuggestionsOpen(false);};
  const clearFilters=()=>commit({category:state.category,q:state.q,sort:state.sort});
  const remember=()=>{
   if(!state.q.trim())return;
@@ -126,7 +143,13 @@ export default function UnifiedSearch({initialData}:{initialData:UnifiedSearchDa
  const visit=(result:UnifiedResult)=>{remember();saveVisit();setSuggestionsOpen(false);router.push(result.href);};
  const submit=()=>{if(state.q!==state.q.trim()){const next={...state,q:state.q.trim()};latest.current.query=unifiedQuery(next);commit(next);}remember();saveVisit();setSuggestionsOpen(false);setActive(-1);field.current?.blur();};
  const choose=(at:number)=>{if(at<0){submit();return;}if(state.q.trim()&&options[at])visit(options[at]);else if(recents[at]){commit(recents[at].state);setSuggestionsOpen(false);}};
- const correction=useMemo(()=>state.q.trim()&&results.length===0?unifiedCorrection(index,state.q):null,[index,state.q,results.length]);
+ const correction=useMemo(()=>state.q.trim()&&empty?unifiedCorrection(index,state.q):null,[index,state.q,empty]);
+ // Searches that find nothing are counted (no account details) so admins can see what's missing.
+ const logged=useRef(new Set<string>());
+ useEffect(()=>{const q=deferred.q.trim().toLowerCase();if(q.length<3||total>0||logged.current.has(q))return;const t=setTimeout(()=>{logged.current.add(q);const db=getBrowserClient();void db?.rpc('log_search_miss',{q}).then(()=>{},()=>{});},2500);return()=>clearTimeout(t);},[deferred.q,total]);
+ // More results load as you reach the end of the list.
+ const sentinel=useRef<HTMLDivElement>(null);
+ useEffect(()=>{const el=sentinel.current;if(!el||typeof IntersectionObserver==='undefined')return;const io=new IntersectionObserver(e=>{if(e[0]?.isIntersecting)setShown(n=>n+PAGE);},{rootMargin:'600px'});io.observe(el);return()=>io.disconnect();});
  const boundsInvalid=(state.from&&state.to&&+state.from>+state.to)||(state.minRuntime&&state.maxRuntime&&+state.minRuntime>+state.maxRuntime)||(state.min&&state.max&&+state.min>+state.max);
  const filterOptions=(key:UnifiedFilter):[string,string][]=>{
   if(key==='award')return[['won','Award winners'],['nominated','Award nominees']];
@@ -134,12 +157,23 @@ export default function UnifiedSearch({initialData}:{initialData:UnifiedSearchDa
   if(key==='updated')return[['7','Last 7 days'],['30','Last 30 days'],['90','Last 90 days']];
   return key in facets?facets[key as keyof typeof facets].map(value=>[value,unifiedFilterLabel(key,value)]):[];
  };
+ const extrasFor=(list:UnifiedResult[])=>Object.fromEntries(list.flatMap(r=>{const why=matchReason(r,deferred.q);return why?[[r.id,why]]:[];}));
+ const reasonLine=(r:UnifiedResult)=>{const why=matchReason(r,deferred.q);return why?<p className="match-reason">{why}</p>:null;};
+ const renderList=(category:SearchCategory,list:UnifiedResult[])=>{
+  if(category==='films')return <FilmGrid films={list.flatMap(r=>r.entry?.film?[r.entry.film]:[])} priority={6} extras={extrasFor(list)}/>;
+  if(category==='directors')return <ul className="director-grid" aria-label="Directors results">{list.map(r=>r.entry?.director?<DirectorCard key={r.id} director={r.entry.director} footer={reasonLine(r)}/>:null)}</ul>;
+  if(category==='watchlists')return <ul className="collection-list" aria-label="Watchlists results">{list.map(r=>r.watchlist?<CommunityTile key={r.id} c={r.watchlist.tile} filmCount={r.count} badge={r.watchlist.is_public?undefined:'Private'}/>:null)}</ul>;
+  return <ul className="unified-members" aria-label="Members results">{list.map(r=>r.member?<li key={r.id}><Link href={r.href} className="unified-member"><UserAvatar person={r.member} size={48}/><span><span className="unified-member-name">{r.title}</span><span className="muted">@{r.member.handle}{matchReason(r,deferred.q)?' • '+matchReason(r,deferred.q):''}</span></span></Link>{r.member.id!==data.viewerId&&<MemberFollowButton memberId={r.id} name={r.title} viewerId={data.viewerId} initialFollowing={r.member.following} onChange={following=>setData(current=>({...current,members:current.members.map(m=>m.id===r.id?{...m,following}:m)}))}/>}</li>:null)}</ul>;
+ };
+ const ALL_LIMIT:Record<SearchCategory,number>={films:8,directors:3,watchlists:3,members:4};
+ const quick=QUICK_FILTERS.filter(f=>!(f.id==='free'||f.id==='stream')||filmFacets.provider.length>0);
+ const filmCategory=state.category==='all'||state.category==='films';
  return <div className="unified-search" aria-busy={state!==deferred}>
   {refreshError&&<p className="notice" role="alert">Search could not be refreshed. <button type="button" className="link-button" onClick={retry}>Retry</button></p>}
   <div className="toolbar catalog-toolbar"><div className="catalog-search-control unified-search-field" ref={fieldWrap} onBlur={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node))setSuggestionsOpen(false);}}>
    <form className="search-bar" role="search" onSubmit={e=>{e.preventDefault();choose(suggestionsOpen?active:-1);}}>
-    <Icon name="search"/><label htmlFor={id+'-query'} className="visually-hidden">Search {state.category}</label>
-    <input ref={field} id={id+'-query'} type="search" role="combobox" aria-autocomplete="list" aria-expanded={suggestionsOpen&&suggestionCount>0} aria-controls={suggestionsOpen&&suggestionCount>0?id+'-suggestions':undefined} aria-activedescendant={suggestionsOpen&&active>=0?id+'-option-'+active:undefined} placeholder="Search films, directors, watchlists, and members…" autoComplete="off" maxLength={200} value={state.q} onFocus={()=>setSuggestionsOpen(true)} onClick={()=>setSuggestionsOpen(true)} onChange={e=>{commit({...state,q:e.target.value,category:!state.q.trim()?'films':state.category});setSuggestionsOpen(true);}} onKeyDown={e=>{
+    <Icon name="search"/><label htmlFor={id+'-query'} className="visually-hidden">Search {state.category==='all'?'everything':state.category}</label>
+    <input ref={field} id={id+'-query'} type="search" role="combobox" aria-autocomplete="list" aria-expanded={suggestionsOpen&&suggestionCount>0} aria-controls={suggestionsOpen&&suggestionCount>0?id+'-suggestions':undefined} aria-activedescendant={suggestionsOpen&&active>=0?id+'-option-'+active:undefined} placeholder="Search films, directors, watchlists, and members…" autoComplete="off" maxLength={200} value={state.q} onFocus={()=>setSuggestionsOpen(true)} onClick={()=>setSuggestionsOpen(true)} onChange={e=>{const q=e.target.value;commit({...state,q,category:!state.q.trim()&&q.trim()?'all':!q.trim()?'films':state.category});setSuggestionsOpen(true);}} onKeyDown={e=>{
      if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();setSuggestionsOpen(true);setActive(n=>suggestionCount?(n<0?(e.key==='ArrowDown'?0:suggestionCount-1):(n+(e.key==='ArrowDown'?1:-1)+suggestionCount)%suggestionCount):-1);}
      if(e.key==='Escape'){e.preventDefault();setSuggestionsOpen(false);setActive(-1);}
     }}/>
@@ -148,43 +182,56 @@ export default function UnifiedSearch({initialData}:{initialData:UnifiedSearchDa
    {suggestionsOpen&&suggestionCount>0&&<div className="catalog-suggestions">
     {!state.q.trim()&&<div className="catalog-suggestion-head"><span>Recent searches</span><button className="link-button" type="button" onClick={()=>{setRecent([]);try{localStorage.removeItem(historyKey);}catch{}}}>Clear history</button></div>}
     <ul id={id+'-suggestions'} role="listbox" aria-label={state.q.trim()?'Search suggestions':'Recent searches'}>
-     {options.map((result,i)=><li key={result.id} id={id+'-option-'+i} role="option" aria-selected={active===i}><Link href={result.href} className="catalog-suggestion" onClick={()=>{remember();saveVisit();setSuggestionsOpen(false);}}>{result.image?<img src={result.image} width={36} height={54} alt=""/>:<span className="catalog-suggestion-placeholder"><Icon name={state.category==='films'?'film':state.category==='watchlists'?'stack':'user'}/></span>}<span>{result.title}<span className="muted">{result.subtitle}</span></span></Link></li>)}
+     {options.map((result,i)=><li key={result.category+result.id} id={id+'-option-'+i} role="option" aria-selected={active===i}>
+      {(i===0||options[i-1].category!==result.category)&&<span className="suggestion-group" aria-hidden="true">{CATEGORY_LABELS[result.category]}</span>}
+      <Link href={result.href} className="catalog-suggestion" onClick={()=>{remember();saveVisit();setSuggestionsOpen(false);}}>{result.image?<img src={result.image} width={36} height={54} alt="" className={result.category==='members'||result.category==='directors'?'is-round':undefined}/>:<span className="catalog-suggestion-placeholder"><Icon name={result.category==='films'?'film':result.category==='watchlists'?'stack':'user'}/></span>}<span>{result.title}<span className="muted">{matchReason(result,state.q)??result.subtitle}</span></span></Link></li>)}
      {recents.map((item,i)=><li key={unifiedQuery(item.state)} id={id+'-option-'+i} role="option" aria-selected={active===i}><button className="catalog-suggestion" type="button" onClick={()=>choose(i)}><Icon name="search"/><span>{item.label}<span className="muted">{CATEGORY_LABELS[item.state.category]}</span></span></button></li>)}
     </ul>
    </div>}
   </div>
-  {searching&&<button type="button" className={"button ghost filter-button"+(activeFilters.length?" has-count":"")} aria-haspopup="dialog" aria-controls={id+'-filters'} aria-expanded={filtersOpen} onClick={()=>{setSuggestionsOpen(false);setFiltersOpen(true);dialog.current?.showModal();}}><Icon name="filter"/><span className="filter-label">Filters</span>{activeFilters.length>0&&<span className="badge" aria-label={activeFilters.length+' active filters'}>{activeFilters.length}</span>}</button>}
+  {searching&&state.category!=='all'&&<button type="button" className={"button ghost filter-button"+(activeFilters.length?" has-count":"")} aria-haspopup="dialog" aria-controls={id+'-filters'} aria-expanded={filtersOpen} onClick={()=>{setSuggestionsOpen(false);setFiltersOpen(true);dialog.current?.showModal();}}><Icon name="filter"/><span className="filter-label">Filters</span>{activeFilters.length>0&&<span className="badge" aria-label={activeFilters.length+' active filters'}>{activeFilters.length}</span>}</button>}
   </div>
-  {!searching&&<div className="search-discovery">
+  {!activeSearch&&<div className="search-discovery">
+   {recs&&recs.byFollowed.length>0&&<Row title="From directors you follow">{recs.byFollowed.map(e=>e.film?<FilmCard key={e.id} film={e.film}/>:null)}</Row>}
+   {recs&&recs.fromPeople.length>0&&<Row title="Saved by people you follow">{recs.fromPeople.map(e=>e.film?<FilmCard key={e.id} film={e.film}/>:null)}</Row>}
    <Row title="Popular">{popularFilms.map(entry=>entry.film?<FilmCard key={entry.id} film={entry.film}/>:null)}{!popularFilms.length&&<li className="muted">Popular films are unavailable right now.</li>}</Row>
    <Row title="Recently Added">{recentFilms.map(entry=>entry.film?<FilmCard key={entry.id} film={entry.film}/>:null)}</Row>
+   {themes.length>0&&<Row title="Explore by Theme" className="search-themes">{themes.map(t=><li key={t.id}><Link className="theme-tile" href={'/search?'+unifiedQuery({category:'films',q:'',...t.filters})} onClick={e=>{e.preventDefault();commit({category:'films',q:'',...t.filters});window.scrollTo(0,0);}}><span className="theme-title">{t.title}</span><span className="muted">{t.count} films</span></Link></li>)}</Row>}
    <Row title="Directors to Follow">{suggestedDirectors.map(entry=>entry.director?<DirectorCard key={entry.id} director={entry.director} footer={<FollowButton key={data.viewerId??"visitor"} personId={entry.id} name={entry.title} onChange={following=>setData(current=>current.viewerId!==data.viewerId?current:({...current,followedDirectorIds:following?[...new Set([...(current.followedDirectorIds??[]),entry.id])]:(current.followedDirectorIds??[]).filter(id=>id!==entry.id)}))}/>}/>:null)}{!suggestedDirectors.length&&<li className="muted">You’re following all eligible directors. Check back for new additions.</li>}</Row>
    <Row title="From the Community">{community.map(list=><CommunityTile key={list.id} c={list.tile} filmCount={list.filmIds.length}/>)}{!community.length&&<li className="muted">No public watchlists yet.</li>}</Row>
    <Row title="Explore by Genre" className="search-genres">{genres.map(genre=><li key={genre}><Link className="chip" href={"/films?"+new URLSearchParams({genre})}>{genre}</Link></li>)}</Row>
   </div>}
-  {searching&&<>
+  {activeSearch&&<>
   <div className="unified-controls">
-   <div role="tablist" aria-label="Search category" className="unified-tabs chip-row">{CATEGORIES.map((category,i)=><button key={category} type="button" role="tab" id={id+'-tab-'+category} aria-selected={state.category===category} aria-controls={id+'-results'} tabIndex={state.category===category?0:-1} className="chip" onClick={()=>switchCategory(category)} onKeyDown={e=>{let next=-1;if(e.key==='ArrowRight')next=(i+1)%CATEGORIES.length;if(e.key==='ArrowLeft')next=(i+CATEGORIES.length-1)%CATEGORIES.length;if(e.key==='Home')next=0;if(e.key==='End')next=CATEGORIES.length-1;if(next>=0){e.preventDefault();switchCategory(CATEGORIES[next]);document.getElementById(id+'-tab-'+CATEGORIES[next])?.focus();}}}>{CATEGORY_LABELS[category]} <span className="chip-count">{categoryCounts[category]}</span></button>)}</div>
+   <div role="tablist" aria-label="Search category" className="unified-tabs chip-row">{VIEWS.filter(v=>v!=='all'||searching).map((category,i,views)=><button key={category} type="button" role="tab" id={id+'-tab-'+category} aria-selected={state.category===category} aria-controls={id+'-results'} tabIndex={state.category===category?0:-1} className="chip" onClick={()=>switchCategory(category)} onKeyDown={e=>{let next=-1;if(e.key==='ArrowRight')next=(i+1)%views.length;if(e.key==='ArrowLeft')next=(i+views.length-1)%views.length;if(e.key==='Home')next=0;if(e.key==='End')next=views.length-1;if(next>=0){e.preventDefault();switchCategory(views[next]);document.getElementById(id+'-tab-'+views[next])?.focus();}}}>{CATEGORY_LABELS[category]}{searching&&<> <span className="chip-count">{categoryCounts[category]}</span></>}</button>)}</div>
   </div>
+  {filmCategory&&<ul className="chip-row quick-filters" aria-label="Quick filters">
+   {services.length>0&&<li><button type="button" className="chip" aria-pressed={state.category==='films'&&state.services==='1'} onClick={()=>commit(toggleQuick(state,{services:'1'}))}>On my services</button></li>}
+   {quick.map(f=><li key={f.id}><button type="button" className="chip" aria-pressed={state.category==='films'&&quickActive(state,f.filters)} onClick={()=>commit(toggleQuick(state,f.filters))}>{f.label}</button></li>)}
+  </ul>}
+  {natural&&<div className="catalog-interpretation"><span>Search with filters: {Object.entries(natural.filters).map(([k,v])=>unifiedFilterLabel(k as UnifiedFilter,v!)).join(', ')}{natural.q?' and “'+natural.q+'”':''}</span><button type="button" className="button ghost" onClick={()=>commit({category:'films',q:natural.q,...natural.filters})}>Apply filters</button></div>}
   {activeFilters.length>0&&<ul className="chip-list catalog-active-filters" aria-label="Active filters">{activeFilters.map(key=><li key={key}><button className="chip" type="button" aria-label={'Remove '+unifiedFilterLabel(key,state[key]!)} onClick={()=>setFilter(key,'')}>{unifiedFilterLabel(key,state[key]!)}<Icon name="close" className="x"/></button></li>)}</ul>}
-  {activeSearch&&<div className="result-bar catalog-results-summary" aria-live="polite">{activeFilters.length>0&&<button type="button" className="link-button" onClick={clearFilters}>Clear</button>}<span className="result-count">{results.length} {results.length===1?'result':'results'}</span></div>}
+  {state.category!=='all'&&<div className="result-bar catalog-results-summary" aria-live="polite">{activeFilters.length>0&&<button type="button" className="link-button" onClick={clearFilters}>Clear</button>}<span className="result-count">{results.length} {results.length===1?'result':'results'}</span></div>}
   <div id={id+'-results'} className="unified-results" role="tabpanel" aria-label={CATEGORY_LABELS[state.category]+' results'} onClickCapture={e=>{if((e.target as Element).closest('a')){remember();saveVisit();}}}>
    {boundsInvalid&&<p className="notice error" role="alert">The minimum must be no greater than the maximum.</p>}
-   {results.length?<>
-    {state.category==='films'&&<FilmGrid films={results.slice(0,shown).flatMap(result=>result.entry?.film?[result.entry.film]:[])} priority={6}/>}
-    {state.category==='directors'&&<ul className="director-grid" aria-label="Directors results">{results.slice(0,shown).map(result=>result.entry?.director?<DirectorCard key={result.id} director={result.entry.director}/>:null)}</ul>}
-    {state.category==='watchlists'&&<ul className="collection-list" aria-label="Watchlists results">{results.slice(0,shown).map(result=>result.watchlist?<CommunityTile key={result.id} c={result.watchlist.tile} filmCount={result.count} badge={result.watchlist.is_public?undefined:'Private'}/>:null)}</ul>}
-    {state.category==='members'&&<ul className="unified-members" aria-label="Members results">{results.slice(0,shown).map(result=>result.member?<li key={result.id}><Link href={result.href} className="unified-member"><UserAvatar person={result.member} size={48}/><span><span className="unified-member-name">{result.title}</span><span className="muted">@{result.member.handle}</span></span></Link>{result.member.id!==data.viewerId&&<MemberFollowButton memberId={result.id} name={result.title} viewerId={data.viewerId} initialFollowing={result.member.following} onChange={following=>setData(current=>({...current,members:current.members.map(member=>member.id===result.id?{...member,following}:member)}))}/>}</li>:null)}</ul>}
-    {shown<results.length&&<div className="pagination-controls"><button type="button" className="button ghost" onClick={()=>setShown(n=>n+PAGE)}>Load more</button></div>}
-   </>:<div className="empty-state"><Icon name="search" className="empty-icon"/><p>No {state.category} match your search.</p><p className="muted">Check the spelling, try another name{activeFilters.length?' or remove a filter':''}.</p>{correction&&<p>Did you mean <button type="button" className="link-button" onClick={()=>commit({...state,q:correction})}>{correction}</button>?</p>}{activeFilters.length>0&&<button type="button" className="button ghost" onClick={clearFilters}>Search without filters</button>}{state.category==='films'&&<Link href="/submit">Suggest a film</Link>}</div>}
+   {!empty?(state.category==='all'?<div className="all-results">
+     {CATEGORIES.filter(c=>perCategory[c].length).map(c=><section key={c} className="all-section" aria-labelledby={id+'-all-'+c}>
+      <div className="row-head"><h2 id={id+'-all-'+c}>{CATEGORY_LABELS[c]}</h2>{perCategory[c].length>ALL_LIMIT[c]&&<button type="button" className="link-button" onClick={()=>{switchCategory(c);window.scrollTo(0,0);}}>See all {perCategory[c].length}</button>}</div>
+      {renderList(c,perCategory[c].slice(0,ALL_LIMIT[c]))}
+     </section>)}
+    </div>:<>
+    {renderList(state.category,results.slice(0,shown))}
+    {shown<results.length&&<div className="pagination-controls" ref={sentinel}><button type="button" className="button ghost" onClick={()=>setShown(n=>n+PAGE)}>Load more</button></div>}
+   </>):<div className="empty-state"><Icon name="search" className="empty-icon"/><p>{state.category==='all'?'Nothing matches your search.':'No '+state.category+' match your search.'}</p><p className="muted">Check the spelling, try another name{activeFilters.length?' or remove a filter':''}.</p>{correction&&<p>Did you mean <button type="button" className="link-button" onClick={()=>commit({...state,q:correction})}>{correction}</button>?</p>}{activeFilters.length>0&&<button type="button" className="button ghost" onClick={clearFilters}>Search without filters</button>}{dataView==='films'&&<Link href="/submit">Suggest a film</Link>}</div>}
   </div>
   </>}
   <dialog ref={dialog} id={id+'-filters'} className="modal unified-filter-dialog" aria-labelledby={id+'-filter-title'} onClose={()=>setFiltersOpen(false)} onClick={e=>{if(e.target===dialog.current)dialog.current?.close();}}>
    <div className="modal-head"><span className="sheet-handle" aria-hidden="true"/><h2 id={id+'-filter-title'}>Filters</h2><button type="button" className="icon-button" aria-label="Close filters" onClick={()=>dialog.current?.close()}><Icon name="close"/></button></div>
    <div className="modal-body">
-    <FilterSelect label="Sort by" value={state.sort??(state.q.trim()?'relevance':UNIFIED_SORTS[state.category][0][0])} onChange={e=>commit({...state,sort:e.target.value})}>{state.q.trim()&&<option value="relevance">Relevance</option>}{UNIFIED_SORTS[state.category].map(([value,label])=><option key={value} value={value}>{label}</option>)}</FilterSelect>
+    <FilterSelect label="Sort by" value={state.sort??(state.q.trim()?'relevance':UNIFIED_SORTS[state.category][0]?.[0]??'')} onChange={e=>commit({...state,sort:e.target.value})}>{state.q.trim()&&<option value="relevance">Relevance</option>}{UNIFIED_SORTS[state.category].map(([value,label])=><option key={value} value={value}>{label}</option>)}</FilterSelect>
     {state.category==='members'&&!data.signedIn&&<p className="muted">Sign in to filter by members you follow and members following you.</p>}
-    {CATEGORY_FILTERS[state.category].map(key=>key==='following'||key==='followsYou'?<label key={key} className="unified-checkbox"><span>{FILTER_LABELS[key]}</span><input type="checkbox" disabled={!data.signedIn} checked={state[key]==='1'} onChange={e=>setFilter(key,e.target.checked?'1':'')}/></label>:NUMERIC.has(key)?<label key={key} className="field filter-field"><span>{FILTER_LABELS[key]}</span><input aria-label={FILTER_LABELS[key]} type="number" inputMode="numeric" min={key==='from'||key==='to'?1880:0} max={key==='from'||key==='to'?2199:99999} placeholder="Any" key={state.category+':'+key+':'+(state[key]??'')} defaultValue={state[key]??''} onBlur={e=>setFilter(key,e.target.value)} onKeyDown={e=>{if(e.key==='Enter')e.currentTarget.blur();}}/></label>:<FilterSelect key={key} label={FILTER_LABELS[key]} value={state[key]??''} onChange={e=>setFilter(key,e.target.value)}><option value="">Any</option>{state[key]&&!filterOptions(key).some(([v])=>v===state[key])&&<option value={state[key]}>{unifiedFilterLabel(key,state[key]!)}</option>}{filterOptions(key).map(([value,label])=><option key={value} value={value}>{key==='country'||key==='region'?countryName(value):label}</option>)}</FilterSelect>)}
+    {CATEGORY_FILTERS[state.category].map(key=>key==='services'?null:key==='following'||key==='followsYou'?<label key={key} className="unified-checkbox"><span>{FILTER_LABELS[key]}</span><input type="checkbox" disabled={!data.signedIn} checked={state[key]==='1'} onChange={e=>setFilter(key,e.target.checked?'1':'')}/></label>:NUMERIC.has(key)?<label key={key} className="field filter-field"><span>{FILTER_LABELS[key]}</span><input aria-label={FILTER_LABELS[key]} type="number" inputMode="numeric" min={key==='from'||key==='to'?1880:0} max={key==='from'||key==='to'?2199:99999} placeholder="Any" key={state.category+':'+key+':'+(state[key]??'')} defaultValue={state[key]??''} onBlur={e=>setFilter(key,e.target.value)} onKeyDown={e=>{if(e.key==='Enter')e.currentTarget.blur();}}/></label>:<FilterSelect key={key} label={FILTER_LABELS[key]} value={state[key]??''} onChange={e=>setFilter(key,e.target.value)}><option value="">Any</option>{state[key]&&!filterOptions(key).some(([v])=>v===state[key])&&<option value={state[key]}>{unifiedFilterLabel(key,state[key]!)}</option>}{filterOptions(key).map(([value,label])=><option key={value} value={value}>{key==='country'||key==='region'?countryName(value):label}</option>)}</FilterSelect>)}
+    {state.category==='films'&&filmFacets.provider.length>0&&<fieldset className="services-picker"><legend>My streaming services</legend><p className="muted">Pick the services you have. “On my services” then shows only films you can watch on them. Saved on this device.</p><div className="chip-row filter-choices">{filmFacets.provider.map(p=><button key={p} type="button" className="button ghost" aria-pressed={services.includes(p)} onClick={()=>saveServices(services.includes(p)?services.filter(x=>x!==p):[...services,p])}>{p}</button>)}</div></fieldset>}
     {boundsInvalid&&<p className="notice error" role="alert">The minimum must be no greater than the maximum.</p>}
    </div>
    <div className="modal-foot"><button type="button" className="button ghost" onClick={()=>commit({category:state.category,q:state.q})}>Reset</button><button type="button" className="button" onClick={()=>dialog.current?.close()}>Show {activeSearch?results.length+' ':''}{state.category}</button></div>

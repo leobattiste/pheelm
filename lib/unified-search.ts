@@ -4,7 +4,9 @@ import type { CollectionTileData } from './types';
 
 export const CATEGORIES = ['films', 'directors', 'watchlists', 'members'] as const;
 export type SearchCategory = typeof CATEGORIES[number];
-export const CATEGORY_LABELS: Record<SearchCategory, string> = {films:'Films', directors:'Directors', watchlists:'Watchlists', members:'Members'};
+export type SearchView = SearchCategory | 'all';
+export const VIEWS: SearchView[] = ['all', ...CATEGORIES];
+export const CATEGORY_LABELS: Record<SearchView, string> = {all:'All', films:'Films', directors:'Directors', watchlists:'Watchlists', members:'Members'};
 export type SearchWatchlist = {
  id:string; slug?:string; title:string; description:string|null; is_public:boolean; featured:boolean; staff_pick:boolean;
  owner:{id:string;handle:string;display_name:string|null}|null; filmIds:string[]; tile:CollectionTileData;
@@ -14,12 +16,13 @@ export type SearchMember = {id:string;handle:string;display_name:string|null;ava
 export type UnifiedSearchEntry = Omit<SearchEntry,'filmography'> & {filmography:{year:number;type:string;genres?:string[]}[]};
 export type UnifiedSearchData = {films:UnifiedSearchEntry[];directors:UnifiedSearchEntry[];watchlists:SearchWatchlist[];members:SearchMember[];signedIn:boolean;viewerId:string|null;popularFilmIds?:string[];followedDirectorIds?:string[]};
 export const CATEGORY_FILTERS = {
- films:['genre','country','language','from','to','minRuntime','maxRuntime','type','award','festival','provider','region','availability'],
+ all:[], films:['genre','country','language','from','to','minRuntime','maxRuntime','type','award','festival','provider','region','availability','services'],
  directors:['country','genre','from','to'], watchlists:['genre','min','max','updated'], members:['following','followsYou'],
 } as const;
-export type UnifiedFilter = typeof CATEGORY_FILTERS[SearchCategory][number];
-export type UnifiedSearchState = {category:SearchCategory;q:string;sort?:string}&Partial<Record<UnifiedFilter,string>>;
-export const UNIFIED_SORTS:Record<SearchCategory,[string,string][]> = {
+export type UnifiedFilter = typeof CATEGORY_FILTERS[SearchView][number];
+export type UnifiedSearchState = {category:SearchView;q:string;sort?:string}&Partial<Record<UnifiedFilter,string>>;
+export const UNIFIED_SORTS:Record<SearchView,[string,string][]> = {
+ all:[],
  films:[['newest','Newest films'],['oldest','Oldest films'],['title','A to Z'],['added','Latest added'],['awards','Most awarded']],
  directors:[['title','A to Z'],['count','Most films'],['newest','Most recent films']],
  watchlists:[['updated','Recently updated'],['added','Newest watchlists'],['count','Most films'],['title','A to Z']],
@@ -27,15 +30,16 @@ export const UNIFIED_SORTS:Record<SearchCategory,[string,string][]> = {
 };
 const allFilters = [...new Set(Object.values(CATEGORY_FILTERS).flat())];
 export function cleanUnifiedState(params:URLSearchParams):UnifiedSearchState {
- const category=CATEGORIES.includes(params.get('category') as SearchCategory)?params.get('category') as SearchCategory:'films';
- const state:UnifiedSearchState={category,q:(params.get('q')??'').slice(0,200)};
+ const q=(params.get('q')??'').slice(0,200);
+ const category=VIEWS.includes(params.get('category') as SearchView)?params.get('category') as SearchView:defaultView(q);
+ const state:UnifiedSearchState={category,q};
  const sort=params.get('sort');
  if(sort&&(sort==='relevance'&&!!state.q.trim()||UNIFIED_SORTS[category].some(([s])=>s===sort)))state.sort=sort;
  for(const key of CATEGORY_FILTERS[category]) {
   const value=params.get(key)?.trim().slice(0,120); if(!value)continue;
   if(['from','to'].includes(key)&&(!/^\d{4}$/.test(value)||+value<1880||+value>2199))continue;
   if(['minRuntime','maxRuntime','min','max'].includes(key)&&(!/^\d{1,5}$/.test(value)||+value<0))continue;
-  if(['following','followsYou'].includes(key)&&value!=='1')continue;
+  if(['following','followsYou','services'].includes(key)&&value!=='1')continue;
   if(key==='updated'&&!['7','30','90'].includes(value))continue;
   if(key==='award'&&!['won','nominated'].includes(value))continue;
   if(key==='availability'&&!['stream','rent','buy','free'].includes(value))continue;
@@ -43,8 +47,10 @@ export function cleanUnifiedState(params:URLSearchParams):UnifiedSearchState {
  }
  return state;
 }
+/** With words typed, search starts on All; with none, on Films (discovery). */
+export const defaultView=(q:string):SearchView=>q.trim()?'all':'films';
 export function unifiedQuery(state:UnifiedSearchState) {
- const params=new URLSearchParams(); if(state.category!=='films')params.set('category',state.category);
+ const params=new URLSearchParams(); if(state.category!==defaultView(state.q))params.set('category',state.category);
  if(state.q)params.set('q',state.q);if(state.sort)params.set('sort',state.sort);
  for(const key of allFilters)if(state[key])params.set(key,state[key]!);
  return params.toString();
@@ -56,6 +62,7 @@ export function unifiedFilterLabel(key:UnifiedFilter,value:string) {
  if(key==='minRuntime')return value+'+ min';if(key==='maxRuntime')return 'Up to '+value+' min';
  if(key==='min')return value+'+ films';if(key==='max')return 'Up to '+value+' films';
  if(key==='updated')return 'Updated in last '+value+' days';
+ if(key==='services')return 'On my services';
  if(key==='following')return 'Members you follow';if(key==='followsYou')return 'Members following you';
  if(key==='award')return value==='won'?'Award winners':'Award nominees';
  if(key==='type')return ({feature:'Feature',documentary:'Documentary',short:'Short',animation:'Animation'} as Record<string,string>)[value]??value;
@@ -78,7 +85,7 @@ function indexedResult(result:UnifiedResult) {
 export function indexUnified(data:UnifiedSearchData,category:SearchCategory) {
  return unifiedResults(data,category).map(result=>({result,index:indexedResult(result)}));
 }
-export function searchUnified(index:ReturnType<typeof indexUnified>,state:UnifiedSearchState,now=Date.now()):UnifiedResult[] {
+export function searchUnified(index:ReturnType<typeof indexUnified>,state:UnifiedSearchState,now=Date.now(),services:string[]=[]):UnifiedResult[] {
  const sort=state.sort??(state.q.trim()?'relevance':state.category==='films'?'newest':state.category==='watchlists'?'updated':'title');
  return index.filter(({result:r})=>{
   const e=r.entry;
@@ -88,6 +95,7 @@ export function searchUnified(index:ReturnType<typeof indexUnified>,state:Unifie
   if(state.minRuntime&&(e?.runtime==null||e.runtime<+state.minRuntime)||state.maxRuntime&&(e?.runtime==null||e.runtime>+state.maxRuntime))return false;
   if(state.award==='won'&&!e?.wins||state.award==='nominated'&&!e?.nominations||state.festival&&!e?.awards.includes(state.festival))return false;
   if((state.provider||state.region||state.availability)&&!e?.availability.some(a=>(!state.provider||a.provider===state.provider)&&(!state.region||a.region===state.region)&&(!state.availability||a.kind===state.availability)))return false;
+  if(state.services&&!e?.availability.some(a=>services.includes(a.provider)))return false;
   if(state.min&&r.count<+state.min||state.max&&r.count>+state.max)return false;
   if(state.updated&&r.updated<now-+state.updated*86400000)return false;
   if(state.following&&!r.member?.following||state.followsYou&&!r.member?.followsYou)return false;

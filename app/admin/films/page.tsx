@@ -111,6 +111,7 @@ export default async function AdminFilms({ searchParams }: { searchParams: Promi
           <AdminMenu>
             <Link href="/admin/submissions">Suggestions from members{!!suggestions.count && <span className="admin-count">{suggestions.count}</span>}</Link>
             <Link href="/admin/automation">Fill missing details from TMDB</Link>
+            <Link href="/admin/searches">Searches with no results</Link>
           </AdminMenu>
           <Link className="button" href="/admin/films/add">Add films</Link>
         </>} />

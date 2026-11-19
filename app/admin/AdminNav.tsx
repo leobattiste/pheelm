@@ -16,7 +16,7 @@ type Section = { label: string; href: string; icon: IconName; badges?: (keyof Ad
  */
 export const ADMIN_SECTIONS: Section[] = [
   { label: "Dashboard", href: "/admin", icon: "dashboardSettings", routes: ["/admin/analytics"] },
-  { label: "Films", href: "/admin/films", icon: "film", badges: ["submissions"], routes: ["/admin/submissions", "/admin/quality", "/admin/automation", "/admin/editorial"] },
+  { label: "Films", href: "/admin/films", icon: "film", badges: ["submissions"], routes: ["/admin/submissions", "/admin/quality", "/admin/automation", "/admin/editorial", "/admin/searches"] },
   { label: "Directors", href: "/admin/people", icon: "users", routes: [] },
   { label: "Watchlists", href: "/admin/community/watchlists", icon: "stack", badges: ["reports"], routes: ["/admin/community/comments"] },
   { label: "Members", href: "/admin/members", icon: "user", routes: [] },
