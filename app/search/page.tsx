@@ -7,5 +7,5 @@ export const dynamic = "force-dynamic";
 export const metadata = privateMetadata("Search");
 
 export default async function SearchPage() {
-  return <section className="page unified-search-page"><header className="page-head intro-head"><h1>Search</h1><p className="lead">Find films, directors, watchlists and members, or browse what’s new.</p></header><UnifiedSearch initialData={await getUnifiedSearchData()} /></section>;
+  return <section className="page unified-search-page"><h1 className="visually-hidden">Search</h1><UnifiedSearch initialData={await getUnifiedSearchData()} /></section>;
 }

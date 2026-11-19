@@ -3370,5 +3370,3 @@ html:root:root:root:root:root:root .product-option .button.ghost:not([aria-press
 :root:root[data-grid="list"] .film-grid:not(:where(.watched-films-dialog *)) .film-card-col { display: none; }
 
 /* Sideways rows keep full posters whatever the grid switch says; it only changes grids. */
-/* Search keeps its title and intro when signed in. */
-html[data-auth="in"] .unified-search-page .intro-head { position: static; width: auto; height: auto; overflow: visible; clip: auto; clip-path: none; white-space: normal; margin-bottom: var(--space-24); }
