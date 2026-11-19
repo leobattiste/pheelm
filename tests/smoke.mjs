@@ -42,9 +42,8 @@ await check("films page lists films and filters them", async () => {
   await page.goto(BASE + "/films", { waitUntil: "networkidle" });
   const all = (await page.$$(".film-grid .film-card")).length;
   expect(all > 0, "no films");
-  await page.click("button.catalog-filters");
-  const country = await page.$eval(".catalog-filter-dialog select[aria-label='Country']", (s) => [...s.options].map((o) => o.value).find(Boolean));
-  await page.selectOption(".catalog-filter-dialog select[aria-label='Country']", country);
+  const country = await page.$eval(".catalog-pills select[aria-label='Country']", (s) => [...s.options].map((o) => o.value).find(Boolean));
+  await page.selectOption(".catalog-pills select[aria-label='Country']", country);
   await page.waitForTimeout(300);
   const some = (await page.$$(".film-grid .film-card")).length;
   expect(some > 0 && some <= all, `filter gave ${some} of ${all}`);

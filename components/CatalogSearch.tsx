@@ -35,8 +35,6 @@ function Browser({ entries, mode, afterSearch }: {
     const [history, setHistory] = useState<HistoryItem[]>([]);
     const [filtersOpen, setFiltersOpen] = useState(false);
     const modal = useRef<HTMLDialogElement>(null);
-    const sortSheet = useRef<HTMLDialogElement>(null);
-    const [sortOpen, setSortOpen] = useState(false);
     const inputId = useId();
     const historyKey = 'pheelm:catalog-search:' + mode + ':v1';
     useEffect(() => { setState(cleanState(new URLSearchParams(params), mode)); setShown(PAGE); }, [params, mode]);
@@ -130,10 +128,10 @@ function Browser({ entries, mode, afterSearch }: {
         { saveVisit(); remember(state); } }}>
   <div className="toolbar catalog-toolbar">
    {mode === 'films'
-    ? <>
-      <button type="button" className={"button ghost catalog-filters" + (active.length ? " has-count" : "")} aria-haspopup="dialog" aria-controls={inputId+'-dialog'} aria-expanded={filtersOpen} onClick={() => { setFiltersOpen(true); modal.current?.showModal(); }}><Icon name="filter"/><span>Filters</span>{active.length > 0 && <span className="badge" aria-label={active.length + " active filters"}>{active.length}</span>}</button>
-      <button type="button" className="button ghost filter-button sort-button" aria-label="Sort films" aria-haspopup="dialog" aria-controls={inputId+'-sort'} aria-expanded={sortOpen} onClick={() => { setSortOpen(true); sortSheet.current?.showModal(); }}><Icon name="sort"/><span className="filter-label">{SORTS[mode].find(([v]) => v === (state.sort ?? sortDefault))?.[1] ?? 'Sort'}</span></button>
-    </>
+    ? <div className="catalog-pills" role="group" aria-label="Sort and filter films">
+      <label className="chip catalog-pill"><span>{SORTS[mode].find(([v]) => v === (state.sort ?? sortDefault))?.[1] ?? 'Sort'}</span><Icon name="arrowDown"/><select aria-label="Sort by" value={state.sort ?? sortDefault} onChange={e => set('sort', e.target.value)}>{SORTS[mode].map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></label>
+      {filters.map(k => <label key={k} className={"chip catalog-pill" + (state[k] ? " is-set" : "")}><span>{state[k] ? filterLabel(k, state[k]!) : titles[k] ?? k}</span><Icon name="arrowDown"/><select aria-label={titles[k] ?? k} value={state[k] ?? ''} onChange={e => set(k, e.target.value)}><option value="">Any {(titles[k] ?? k).toLowerCase()}</option>{state[k] && !options(k).some(([v]) => v === state[k]) && <option value={state[k]}>{filterLabel(k, state[k]!)}</option>}{options(k).map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></label>)}
+     </div>
     : <>
       <div className="feed-tabs" role="group" aria-label="Directors to show">
        {FEEDS.map(o => <button key={o.value} type="button" className={"chip" + (o.value === 'all' ? " feed-all" : "")} aria-pressed={feed === o.value} onClick={() => chooseFeed(o.value)}>{o.label}</button>)}
@@ -142,7 +140,7 @@ function Browser({ entries, mode, afterSearch }: {
     </>}
   </div>
   {afterSearch}
-  {active.length > 0 && <ul className="chip-list catalog-active-filters" aria-label="Active filters">{active.map(k => <li key={k}><button type="button" className="chip" aria-label={'Remove ' + filterLabel(k, state[k]!)} onClick={() => set(k, '')}>{filterLabel(k, state[k]!)}<Icon name="close" className="x"/></button></li>)}</ul>}
+  {mode === 'directors' && active.length > 0 && <ul className="chip-list catalog-active-filters" aria-label="Active filters">{active.map(k => <li key={k}><button type="button" className="chip" aria-label={'Remove ' + filterLabel(k, state[k]!)} onClick={() => set(k, '')}>{filterLabel(k, state[k]!)}<Icon name="close" className="x"/></button></li>)}</ul>}
   {(!!state.q?.trim() || active.length > 0) && <div className="result-bar catalog-results-summary" aria-live="polite">
    {active.length > 0 && <button type="button" className="link-button" onClick={clearFilters}>Clear</button>}
    <span className="result-count">{results.length} {results.length === 1 ? 'result' : 'results'}</span>
@@ -154,7 +152,7 @@ function Browser({ entries, mode, afterSearch }: {
    {mode === 'films' ? <FilmGrid films={results.slice(0, shown).flatMap(e => e.film ? [e.film] : [])} priority={6}/> : <ul className="director-grid">{results.slice(0, shown).map(e => e.director && <DirectorCard key={e.id} director={e.director}/>)}</ul>}
    {shown < results.length && <div className="pagination-controls"><button type="button" className="button ghost more" onClick={() => setShown(n => n + PAGE)}>Load more</button><BackToTopButton /></div>}
   </> : <div className="empty-state"><Icon name="search" className="empty-icon"/><p>No {mode} match your search.</p><p className="muted">{relaxed ? 'Your search has ' + relaxed + ' matches without these filters.' : 'Check the spelling, try another name or remove a filter.'}</p>{active.length > 0 && <button type="button" className="button ghost" onClick={clearFilters}>Search without filters</button>}<button type="button" className="button ghost" onClick={() => commit({})}>Clear search and filters</button>{mode === 'films' && <Link href="/submit">Suggest a missing film</Link>}</div>}
-  <dialog ref={modal} id={inputId+'-dialog'} className="modal catalog-filter-dialog" onClose={() => setFiltersOpen(false)} aria-labelledby={inputId + '-title'} onClick={e => { if (e.target === modal.current)
+  {mode === 'directors' && <dialog ref={modal} id={inputId+'-dialog'} className="modal catalog-filter-dialog" onClose={() => setFiltersOpen(false)} aria-labelledby={inputId + '-title'} onClick={e => { if (e.target === modal.current)
         modal.current?.close(); }}>
    <div className="modal-head"><span className="sheet-handle" aria-hidden="true"/><h2 id={inputId + '-title'}>Filters</h2><button type="button" className="icon-button" aria-label="Close filters" onClick={() => modal.current?.close()}><Icon name="close"/></button></div>
    <div className="modal-body">
@@ -162,10 +160,6 @@ function Browser({ entries, mode, afterSearch }: {
     {filters.map(k => ['year', 'from', 'to', 'minRuntime', 'maxRuntime'].includes(k) ? <label key={k} className="field filter-field">{titles[k]}<input type="number" inputMode="numeric" min={k === 'minRuntime' || k === 'maxRuntime' ? 1 : 1890} max={k === 'minRuntime' || k === 'maxRuntime' ? 9999 : 2199} key={k + ':' + (state[k] ?? '')} defaultValue={state[k] ?? ''} onBlur={e => set(k, e.target.value)} onKeyDown={e => { if (e.key === 'Enter')
         e.currentTarget.blur(); }} placeholder="Any"/></label> : <FilterSelect key={k} label={titles[k]??k} value={state[k] ?? ''} onChange={e => set(k, e.target.value)}><option value="">Any</option>{state[k] && !options(k).some(([v]) => v === state[k]) && <option value={state[k]}>{filterLabel(k, state[k]!)}</option>}{options(k).map(([v, l]) => <option key={v} value={v}>{l}{active.length > 0 ? ` (${countFor(k, v)})` : ''}</option>)}</FilterSelect>)}
    </div><div className="modal-foot"><button type="button" className="button ghost" disabled={!active.length && !state.sort} onClick={() => commit({ q: state.q })}>Reset</button><button type="button" className="button" onClick={() => { remember(state); modal.current?.close(); }}>Show {active.length > 0 || state.q?.trim() ? `${results.length} ` : ''}{mode}</button></div>
-  </dialog>
-  {mode === 'films' && <dialog ref={sortSheet} id={inputId+'-sort'} className="modal sort-dialog" aria-labelledby={inputId + '-sort-title'} onClose={() => setSortOpen(false)} onClick={e => { if (e.target === sortSheet.current) sortSheet.current?.close(); }}>
-   <div className="modal-head"><span className="sheet-handle" aria-hidden="true"/><h2 id={inputId + '-sort-title'}>Sort by</h2><button type="button" className="icon-button" aria-label="Close" onClick={() => sortSheet.current?.close()}><Icon name="close"/></button></div>
-   <div className="modal-body"><div className="chip-row sort-choices" role="group" aria-label="Sort by">{SORTS[mode].map(([v, l]) => <button key={v} type="button" className="button ghost" aria-pressed={(state.sort ?? sortDefault) === v} onClick={() => { set('sort', v); sortSheet.current?.close(); }}><span>{l}</span>{(state.sort ?? sortDefault) === v && <Icon name="check"/>}</button>)}</div></div>
   </dialog>}
  </div>;
 }

@@ -8,20 +8,16 @@ async function until(fn,message){for(let i=0;i<80;i++){if(await fn())return;awai
 const settledCatalog=()=>page.locator('.catalog-browser[aria-busy="false"]').waitFor();
 try{
  await page.waitForLoadState('networkidle');await page.goto(BASE+'/films');await page.locator('.catalog-browser').waitFor();
- // No search bar here any more: Filters and Sort are the two controls.
+ // No search bar or Filters button: sort and each filter are pickers in one row.
  assert.equal(await page.locator('.catalog-browser input[type=search]').count(),0);
- const filtersButton=page.getByRole('button',{name:'Filters',exact:true});await filtersButton.waitFor();
- await filtersButton.click();
- const modal=page.getByRole('dialog',{name:'Filters',exact:true});
- assert.equal(await modal.getByLabel('Sort by',{exact:true}).count(),0);
- assert.equal(await modal.getByRole('button',{name:/^Show/}).count(),1);
- await modal.getByLabel('Country',{exact:true}).selectOption('US');await settledCatalog();
- await until(async()=>/Show \d+ films/.test(await modal.locator('.modal-foot').textContent()),'filtered count missing');
- await modal.getByRole('button',{name:'Close filters'}).click();
- await page.locator('.catalog-toolbar .sort-button').click();
- const sort=page.getByRole('dialog',{name:'Sort by',exact:true});
- await sort.getByRole('button').nth(1).click();await until(()=>new URL(page.url()).searchParams.has('sort'),'Films sort did not update');
+ const pills=page.getByRole('group',{name:'Sort and filter films'});await pills.waitFor();
+ for(const label of ['Sort by','Genre','Type','Country','Decade','Language','Where to watch'])assert.equal(await pills.getByLabel(label,{exact:true}).count(),1,label+' missing');
+ await pills.getByLabel('Country',{exact:true}).selectOption('US');await settledCatalog();
+ await until(()=>new URL(page.url()).searchParams.get('country')==='US','Films country did not update');
+ assert.equal(await pills.locator('.catalog-pill.is-set').count(),1);
+ await pills.getByLabel('Sort by',{exact:true}).selectOption('title');await until(()=>new URL(page.url()).searchParams.get('sort')==='title','Films sort did not update');
  assert.equal(new URL(page.url()).searchParams.get('country'),'US');
+ assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),'pills overflow the page');
  await page.goto(BASE+'/directors');await page.locator('.catalog-browser').waitFor();
  assert.equal(await page.locator('.catalog-browser input[type=search]').count(),0);
  for(const name of ['All','Featured','Following'])assert.equal(await page.getByRole('group',{name:'Directors to show'}).getByRole('button',{name,exact:true}).count(),1);
@@ -51,5 +47,5 @@ try{
  assert.equal(new URL(page.url()).searchParams.get('feed'),'featured');
  const legacy=await page.request.get(BASE+'/collections?feed=featured&sort=new',{maxRedirects:0});
  assert.equal(legacy.status(),308);assert.equal(legacy.headers().location,'/watchlists?feed=featured&sort=new');
- assert.deepEqual(errors.filter(e=>!/access control checks/.test(e)),[]);console.log('PASS: Films filters and sort, Directors feeds and filters, no search bars, Watchlists sort, responsive layouts');
+ assert.deepEqual(errors.filter(e=>!/access control checks/.test(e)),[]);console.log('PASS: Films sort and filter pickers, Directors feeds and filters, no search bars, Watchlists sort, responsive layouts');
 }finally{await browser.close();}
