@@ -49,6 +49,7 @@ assert.equal((await action('people', [ids[0]]))[0].ok, true);
 let patch, writeError = null;
 const fill = load('lib/import.ts', name => {
   if (name === 'server-only' || name === 'sharp' || name === './format') return {};
+  if (name === './awards') return {wikidataAwards: async () => null, withWikidata: () => null};
   if (name === './tmdb') return {getPersonDetails: async () => ({bio:'TMDB bio', photo_url:'TMDB photo', birth_year:1970})};
   throw Error(name);
 }).fillPerson;
