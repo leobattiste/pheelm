@@ -1,13 +1,14 @@
 import "server-only";
 import { unstable_cache } from "next/cache";
 import { avoidPrevious, mondayWeek, RECOGNIZED_FILMS, weeklyPopular } from "./search-discovery";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { getFilms, getDirectors } from "./data";
 import { getPopularMovieIds, rankPopularFilms } from "./film-popularity";
 import { filmSearchEntry, directorSearchEntry } from "./search-data";
 import { getServerClient } from "./supabase/server";
+import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseEnabled } from "./supabase/config";
 import type { Film } from "./types";
-import type { UnifiedSearchData, SearchWatchlist, SearchMember } from "./unified-search";
+import type { UnifiedSearchData, SearchWatchlist } from "./unified-search";
 
 type PublicMember = {
   id: string;
@@ -87,50 +88,31 @@ function watchlist(row: ListRow, films: Map<string, Film>, owners: Map<string, L
   };
 }
 
+type PublicSearchData = Omit<UnifiedSearchData, "followedDirectorIds" | "viewerId" | "signedIn"> & {
+  // Kept on the server only: lets a private viewer's own public lists show their name.
+  listOwners: Record<string, string>;
+};
+
 /**
- * Public catalog plus request-private social data. Do not put this function in a module cache:
- * social relationships must never survive into another viewer's response. Explicit public
- * predicates also constrain admins' broader RLS access.
+ * Everything on Search that is the same for every visitor: films, directors, public watchlists
+ * and public members. Built with the anonymous key, so only public rows can be read, and kept for
+ * five minutes so most visits skip downloading the catalog. Nothing about the viewer goes in here.
  */
-export async function getUnifiedSearchData(): Promise<UnifiedSearchData> {
-  const db = await getServerClient();
-  const user = db ? (await db.auth.getUser()).data.user : null;
-  const viewerId = user?.id ?? null;
-  const [catalog, directors, publicLists, profiles, ownProfiles, following, followers, followedDirectors] = await Promise.all([
+const publicSearchData = unstable_cache(async (): Promise<PublicSearchData> => {
+  const db = supabaseEnabled ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: false } }) : null;
+  const [catalog, directors, publicLists, profiles] = await Promise.all([
     getFilms(),
     getDirectors(),
     db ? rows<ListRow>(db, "lists", LIST_COLUMNS, query => query.eq("is_public", true).eq("hidden", false)) : [],
     db ? rows<PublicMember>(db, "member_profiles", MEMBER_COLUMNS, query => query.eq("is_private", false)) : [],
-    db && viewerId ? rows<ListOwner>(db, "profiles", "id,handle,display_name", query => query.eq("id", viewerId)) : [],
-    db && viewerId ? rows<{ followed_id: string }>(db, "member_follows", "followed_id", query => query.eq("follower_id", viewerId), "followed_id") : [],
-    db && viewerId ? rows<{ follower_id: string }>(db, "member_follows", "follower_id", query => query.eq("followed_id", viewerId), "follower_id") : [],
-    db && viewerId ? rows<{ person_id: string }>(db, "follows", "person_id", query => query.eq("user_id", viewerId), "person_id") : [],
   ]);
   const published = catalog.filter(film => film.status === "published");
   const filmById = new Map(published.map(film => [film.id, film]));
   const publicMembers = profiles.filter(profile => profile.is_private === false && typeof profile.handle === "string" && /^[a-z0-9_]{3,24}$/i.test(profile.handle));
   const memberById = new Map<string, ListOwner>(publicMembers.map(profile => [profile.id, profile]));
-  // A private viewer still sees their own curator label. This minimal own-profile read is
-  // used only for list ownership; it never adds a private member to directory results.
-  const ownProfile = ownProfiles.find(profile => profile.id === viewerId && typeof profile.handle === "string" && /^[a-z0-9_]{3,24}$/i.test(profile.handle));
-  if (ownProfile) memberById.set(ownProfile.id, { id: ownProfile.id, handle: ownProfile.handle, display_name: ownProfile.display_name });
-  const followingIds = new Set(following.map(row => row.followed_id));
-  const followerIds = new Set(followers.map(row => row.follower_id));
-  // Defense in depth: even if a privileged session can see collaborator/admin-only records,
-  // those are not part of search. Only public lists qualify.
   const visibleLists = [...new Map(publicLists
     .filter(list => list.hidden === false && list.is_public === true)
     .map(list => [list.id, list])).values()];
-  const members: SearchMember[] = publicMembers.map(profile => ({
-    id: profile.id,
-    handle: profile.handle,
-    display_name: profile.display_name,
-    avatar_url: profile.avatar_url,
-    country: profile.country,
-    bio: profile.bio,
-    following: followingIds.has(profile.id),
-    followsYou: followerIds.has(profile.id),
-  }));
   const visibleDirectors = directors.map(director => ({ ...director, films: director.films.filter(film => filmById.has(film.id)) }))
     .filter(director => director.in_directory !== false && director.films.length > 0);
   const now = new Date();
@@ -143,7 +125,6 @@ export async function getUnifiedSearchData(): Promise<UnifiedSearchData> {
     // Popular worldwide right now (TMDB's global chart), then well-known classics if the chart
     // has too few of the catalog's films.
     popularFilmIds: [...new Set([...rankPopularFilms(published, await getPopularMovieIds(), 12).map(f=>f.id), ...weeklyIds.filter(id=>filmById.has(id))])].slice(0,12),
-    followedDirectorIds: followedDirectors.map(row=>row.person_id),
     films: published.map(film=>({...filmSearchEntry(film),added:Date.parse(film.published_at??film.created_at??"")||0})),
     directors: visibleDirectors.map(director => ({
       ...directorSearchEntry(director),
@@ -152,7 +133,41 @@ export async function getUnifiedSearchData(): Promise<UnifiedSearchData> {
       filmography: director.films.filter(film => film.status === "published").map(film => ({ year: film.year, type: film.type, genres: film.genres, countries: film.countries, languages: film.languages })),
     })),
     watchlists: visibleLists.map(list => watchlist(list, filmById, memberById)),
-    members,
+    listOwners: Object.fromEntries(visibleLists.map(list => [list.id, list.user_id])),
+    members: publicMembers.map(profile => ({
+      id: profile.id, handle: profile.handle, display_name: profile.display_name, avatar_url: profile.avatar_url,
+      country: profile.country, bio: profile.bio, following: false, followsYou: false,
+    })),
+  };
+}, ["unified-search-public-v1"], { revalidate: 300, tags: ["search-public"] });
+
+/**
+ * The shared public data above, plus what only this viewer may see: who they follow, who follows
+ * them, the directors they follow and their own name on their lists. That part is read with the
+ * viewer's own session on every request and never cached.
+ */
+export async function getUnifiedSearchData(): Promise<UnifiedSearchData> {
+  const db = await getServerClient();
+  const [base, user] = await Promise.all([publicSearchData(), db ? db.auth.getUser().then(r => r.data.user) : Promise.resolve(null)]);
+  const viewerId = user?.id ?? null;
+  const [ownProfiles, following, followers, followedDirectors] = db && viewerId ? await Promise.all([
+    rows<ListOwner>(db, "profiles", "id,handle,display_name", query => query.eq("id", viewerId)),
+    rows<{ followed_id: string }>(db, "member_follows", "followed_id", query => query.eq("follower_id", viewerId), "followed_id"),
+    rows<{ follower_id: string }>(db, "member_follows", "follower_id", query => query.eq("followed_id", viewerId), "follower_id"),
+    rows<{ person_id: string }>(db, "follows", "person_id", query => query.eq("user_id", viewerId), "person_id"),
+  ]) : [[], [], [], []];
+  const followingIds = new Set(following.map(row => row.followed_id));
+  const followerIds = new Set(followers.map(row => row.follower_id));
+  // A private viewer still sees their own curator label; it never adds them to member results.
+  const ownProfile = ownProfiles.find(profile => profile.id === viewerId && typeof profile.handle === "string" && /^[a-z0-9_]{3,24}$/i.test(profile.handle));
+  const own = ownProfile ? { id: ownProfile.id, handle: ownProfile.handle, display_name: ownProfile.display_name } : null;
+  const { listOwners, ...shared } = base;
+  return {
+    ...shared,
+    watchlists: own ? shared.watchlists.map(list => !list.owner && listOwners[list.id] === viewerId
+      ? { ...list, owner: own, tile: { ...list.tile, owner: own } } : list) : shared.watchlists,
+    members: viewerId ? shared.members.map(member => ({ ...member, following: followingIds.has(member.id), followsYou: followerIds.has(member.id) })) : shared.members,
+    followedDirectorIds: followedDirectors.map(row => row.person_id),
     viewerId,
     signedIn: !!viewerId,
   };

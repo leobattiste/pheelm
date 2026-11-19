@@ -60,6 +60,8 @@ vm.runInNewContext(compile('lib/unified-search-data.ts'), { exports: loader, req
   if (name === './search-discovery') return {avoidPrevious:ids=>ids,weeklyPopular:()=>[],mondayWeek:()=>1,RECOGNIZED_FILMS:[]};
   if (name === './film-popularity') return {getPopularMovieIds:async()=>[],rankPopularFilms:()=>[]};
   if (name === './supabase/server') return { getServerClient: async () => state.enabled ? db : null };
+  if (name === '@supabase/supabase-js') return { createClient: () => db };
+  if (name === './supabase/config') return { SUPABASE_URL: 'https://x', SUPABASE_ANON_KEY: 'k', get supabaseEnabled() { return state.enabled; } };
   if (name === './data') return { getFilms: async () => films, getDirectors: async () => [{ id: 'director', slug: 'director', name: 'Director', bio: 'Biography', country: 'SN', photo_url: null, films }, { id: 'excluded', in_directory: false, films }] };
   if (name === './search-data') return searchEntries;
   throw Error(`Unexpected dependency ${name}`);

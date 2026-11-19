@@ -15,17 +15,31 @@ type Raw = {
   collection_films: { collection_id: string; film_id: string; sort: number }[];
 };
 
-/** Supabase returns at most 1,000 rows per request, so read big tables in pages. */
+/**
+ * Supabase returns at most 1,000 rows per request, so read big tables in pages. The first page
+ * also returns the row count, and the remaining pages are then fetched together, not one by one.
+ */
+// A fixed order keeps pages from overlapping or skipping rows.
+const ORDER: Record<string, string[]> = { credits: ["film_id", "person_id", "role"], collection_films: ["collection_id", "film_id"] };
+
 async function readAll<T>(db: SupabaseClient, table: string, filter?: (q: any) => any): Promise<T[]> {
-  const out: T[] = [];
-  for (let from = 0; ; from += 1000) {
-    let q = db.from(table).select("*").range(from, from + 999);
+  const page = (from: number, count = false) => {
+    let q = db.from(table).select("*", count ? { count: "exact" } : undefined);
+    for (const column of ORDER[table] ?? ["id"]) q = q.order(column);
+    q = q.range(from, from + 999);
     if (filter) q = filter(q);
-    const { data, error } = await q;
-    if (error) throw new Error(`Could not load ${table} from Supabase: ${error.message}`);
-    out.push(...(data as T[]));
-    if (!data || data.length < 1000) return out;
+    return q;
+  };
+  const first = await page(0, true);
+  if (first.error) throw new Error(`Could not load ${table} from Supabase: ${first.error.message}`);
+  const total = first.count ?? first.data?.length ?? 0;
+  const rest = await Promise.all(Array.from({ length: Math.max(0, Math.ceil(total / 1000) - 1) }, (_, i) => page((i + 1) * 1000)));
+  const out = [...(first.data as T[])];
+  for (const r of rest) {
+    if (r.error) throw new Error(`Could not load ${table} from Supabase: ${r.error.message}`);
+    out.push(...(r.data as T[]));
   }
+  return out;
 }
 
 /**

@@ -3,7 +3,7 @@
 import { safeInternalPath } from "@/lib/safe-navigation";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { adminClient, ownerClient } from "@/lib/admin";
 import { logAdminActivity } from "@/lib/admin-activity";
@@ -22,7 +22,8 @@ const int = (f: FormData, k: string) => {
   return v && Number.isFinite(Number(v)) ? Math.round(Number(v)) : null;
 };
 const list = (f: FormData, k: string) => str(f, k).split(",").map((s) => s.trim()).filter(Boolean);
-const refresh = () => revalidatePath("/", "layout");
+// Search keeps a five-minute shared copy of the catalog; admin saves clear it too.
+const refresh = () => { revalidatePath("/", "layout"); revalidateTag("search-public", "max"); };
 const fail = (e: unknown): Result => ({ ok: false, message: e instanceof Error ? e.message : "Something went wrong." });
 
 /** Uploads an image to the public "images" bucket and returns its address. */
