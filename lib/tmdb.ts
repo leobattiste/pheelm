@@ -221,6 +221,18 @@ function parseWatch(providers: Record<string, any>): WatchOption[] {
 }
 
 /** Just a film's where-to-watch options, for refreshing them without a full import. */
+/** Released films a person directed, with a poster (TMDB lists plenty of unfinished or posterless entries). */
+export async function getDirectedMovies(personId: number): Promise<{ id: number; title: string; year: number }[]> {
+  const r = await get<{ crew?: { id: number; job: string; title: string; release_date?: string; poster_path?: string | null; adult?: boolean }[] }>(`/person/${personId}/movie_credits`, { language: "en-US" }, AbortSignal.timeout(8000));
+  const today = new Date().toISOString().slice(0, 10);
+  const seen = new Set<number>();
+  return (r.crew ?? []).flatMap((m) => {
+    if (m.job !== "Director" || m.adult || !m.poster_path || !m.release_date || m.release_date > today || seen.has(m.id)) return [];
+    seen.add(m.id);
+    return [{ id: m.id, title: m.title, year: Number(m.release_date.slice(0, 4)) }];
+  });
+}
+
 /** The film's IMDb id from TMDB, or null. */
 export async function getImdbId(id: number): Promise<string | null> {
   try { const r = await get<{ imdb_id?: string | null }>(`/movie/${id}/external_ids`, {}, AbortSignal.timeout(6000)); return r.imdb_id || null; } catch { return null; }
