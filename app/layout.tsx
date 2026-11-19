@@ -3,7 +3,6 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { Analytics } from "@vercel/analytics/next";
 import Link from "next/link";
-import Script from "next/script";
 import BackToTop from "@/components/BackToTop";
 import NewsletterForm from "@/components/NewsletterForm";
 import Search from "@/components/Search";
@@ -50,6 +49,19 @@ const bethEllen = localFont({
   display: "block",
 });
 
+const FOCUS_INPUT_SCRIPT = `(() => {
+            const root = document.documentElement;
+            document.addEventListener("pointerdown", (event) => {
+              if (event.pointerType === "touch") root.dataset.focusInput = "touch";
+              else delete root.dataset.focusInput;
+            }, true);
+            document.addEventListener("keydown", (event) => {
+              if (!event.altKey && !event.ctrlKey && !event.metaKey) {
+                delete root.dataset.focusInput;
+              }
+            }, true);
+          })();`;
+
 export const metadata: Metadata = {
   ...publicPageMetadata("/"),
   metadataBase: new URL(SITE_URL),
@@ -82,25 +94,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://cdn.fontshare.com" crossOrigin="" />
         <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=switzer@300,400,500,600,700,800&display=swap" />
         <link rel="preconnect" href="https://image.tmdb.org" />
+        {/* Plain inline scripts, so they run before the first paint: next/script's beforeInteractive
+            only runs once the page's JavaScript starts, which showed "Sign in" to members while a
+            page was still loading. */}
+        <script id="theme" dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script id="focus-input" dangerouslySetInnerHTML={{ __html: FOCUS_INPUT_SCRIPT }} />
       </head>
       <body>
-        <Script id="focus-input" strategy="beforeInteractive">
-          {`(() => {
-            const root = document.documentElement;
-            document.addEventListener("pointerdown", (event) => {
-              if (event.pointerType === "touch") root.dataset.focusInput = "touch";
-              else delete root.dataset.focusInput;
-            }, true);
-            document.addEventListener("keydown", (event) => {
-              if (!event.altKey && !event.ctrlKey && !event.metaKey) {
-                delete root.dataset.focusInput;
-              }
-            }, true);
-          })();`}
-        </Script>
-        <Script id="theme" strategy="beforeInteractive">
-          {themeScript}
-        </Script>
         <a className="skip" href="#main">Skip to content</a>
         <SiteHeader />
         <main id="main" tabIndex={-1}>{children}</main>

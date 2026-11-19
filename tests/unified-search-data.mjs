@@ -53,6 +53,12 @@ vm.runInNewContext(compile('lib/search-data.ts'), { exports: searchEntries, requ
   if (name === './format') return { countryName: country => country };
   throw Error(`Unexpected dependency ${name}`);
 } });
+const unified = {};
+vm.runInNewContext(compile('lib/unified-search.ts'), { exports: unified, require(name) {
+  if (name === './catalog-search') return {};
+  if (name === './format') return { countryName: country => country };
+  throw Error(`Unexpected dependency ${name}`);
+} });
 const loader = {};
 vm.runInNewContext(compile('lib/unified-search-data.ts'), { exports: loader, require(name) {
   if (name === 'server-only') return {};
@@ -64,6 +70,7 @@ vm.runInNewContext(compile('lib/unified-search-data.ts'), { exports: loader, req
   if (name === './supabase/config') return { SUPABASE_URL: 'https://x', SUPABASE_ANON_KEY: 'k', get supabaseEnabled() { return state.enabled; } };
   if (name === './data') return { getFilms: async () => films, getDirectors: async () => [{ id: 'director', slug: 'director', name: 'Director', bio: 'Biography', country: 'SN', photo_url: null, films }, { id: 'excluded', in_directory: false, films }] };
   if (name === './search-data') return searchEntries;
+  if (name === './unified-search') return unified;
   throw Error(`Unexpected dependency ${name}`);
 } });
 
@@ -121,14 +128,19 @@ assert.deepEqual(ids(starter.watchlists), []);
 assert.deepEqual(ids(starter.members), []);
 
 const endpoint = {};
-vm.runInNewContext(compile('app/api/search/route.ts'), { exports: endpoint, Response, require() { return { getUnifiedSearchData: loader.getUnifiedSearchData }; } });
-const response = await endpoint.GET();
+vm.runInNewContext(compile('app/api/search/route.ts'), { exports: endpoint, Response, require() { return { getUnifiedSearchData: loader.getUnifiedSearchData, getViewerSearchData: loader.getViewerSearchData }; } });
+const req = (q = '') => ({ nextUrl: new URL('https://x/api/search' + q) });
+const response = await endpoint.GET(req());
+const viewerResponse = await endpoint.GET(req('?viewer=1'));
+assert.equal(viewerResponse.headers.get('cache-control'), 'private, no-store');
+const viewerBody = await viewerResponse.json();
+assert.equal('films' in viewerBody, false, 'the viewer endpoint returns only the viewer\'s own part');
 assert.equal(response.headers.get('cache-control'), 'private, no-store');
 assert.equal(response.headers.get('vary'), 'Cookie');
 assert.equal(response.status, 200);
 const failingEndpoint = {};
 vm.runInNewContext(compile('app/api/search/route.ts'), { exports: failingEndpoint, Response, require() { return { getUnifiedSearchData: async () => { throw Error('private request details'); } }; } });
-const failedResponse = await failingEndpoint.GET();
+const failedResponse = await failingEndpoint.GET(req());
 assert.equal(failedResponse.status, 503);
 assert.equal(failedResponse.headers.get('cache-control'), 'private, no-store');
 assert.equal((await failedResponse.text()).includes('private request details'), false, 'error payloads never expose internal data or credential-bearing request details');

@@ -15,6 +15,31 @@ export type SearchWatchlist = {
 export type SearchMember = {id:string;handle:string;display_name:string|null;avatar_url:string|null;country:string|null;bio:string|null;following:boolean;followsYou:boolean};
 export type UnifiedSearchEntry = Omit<SearchEntry,'filmography'> & {filmography:{year:number;type:string;genres?:string[]}[]};
 export type UnifiedSearchData = {films:UnifiedSearchEntry[];directors:UnifiedSearchEntry[];watchlists:SearchWatchlist[];members:SearchMember[];signedIn:boolean;viewerId:string|null;popularFilmIds?:string[];followedDirectorIds?:string[]};
+/** What is only one viewer's own on Search: fetched from /api/search?viewer=1 after the cached page opens. */
+export type ViewerSearchData = {
+  viewerId: string | null;
+  followedDirectorIds: string[];
+  followingIds: string[];
+  followerIds: string[];
+  own: { id: string; handle: string; display_name: string | null } | null;
+  ownListIds: string[];
+};
+
+/** Puts a viewer's own data onto the shared public data. */
+export function withViewer(shared: UnifiedSearchData, v: ViewerSearchData): UnifiedSearchData {
+  const following = new Set(v.followingIds), followers = new Set(v.followerIds), mine = new Set(v.ownListIds);
+  const own = v.own;
+  return {
+    ...shared,
+    watchlists: own ? shared.watchlists.map(list => !list.owner && mine.has(list.id)
+      ? { ...list, owner: own, tile: { ...list.tile, owner: own } } : list) : shared.watchlists,
+    members: shared.members.map(member => ({ ...member, following: following.has(member.id), followsYou: followers.has(member.id) })),
+    followedDirectorIds: v.followedDirectorIds,
+    viewerId: v.viewerId,
+    signedIn: !!v.viewerId,
+  };
+}
+
 export const CATEGORY_FILTERS = {
  all:[], films:['genre','country','language','from','to','minRuntime','maxRuntime','type','award','festival','provider','region','availability','services'],
  directors:['country','genre','from','to'], watchlists:['genre','min','max','updated'], members:['following','followsYou'],

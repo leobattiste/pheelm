@@ -8,7 +8,7 @@ import { filmSearchEntry, directorSearchEntry } from "./search-data";
 import { getServerClient } from "./supabase/server";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseEnabled } from "./supabase/config";
 import type { Film } from "./types";
-import type { UnifiedSearchData, SearchWatchlist } from "./unified-search";
+import { withViewer, type UnifiedSearchData, type SearchWatchlist, type ViewerSearchData } from "./unified-search";
 
 type PublicMember = {
   id: string;
@@ -142,33 +142,48 @@ const publicSearchData = unstable_cache(async (): Promise<PublicSearchData> => {
 }, ["unified-search-public-v1"], { revalidate: 300, tags: ["search-public"] });
 
 /**
+ * What every visitor sees, with no viewer: lets the Search page be cached and prefetched like
+ * the other pages. A signed-in member's follows and own lists load from /api/search after.
+ */
+export async function getPublicUnifiedSearchData(): Promise<UnifiedSearchData> {
+  const { listOwners: _owners, ...shared } = await publicSearchData();
+  return { ...shared, followedDirectorIds: [], viewerId: null, signedIn: false };
+}
+
+/**
  * The shared public data above, plus what only this viewer may see: who they follow, who follows
  * them, the directors they follow and their own name on their lists. That part is read with the
  * viewer's own session on every request and never cached.
  */
-export async function getUnifiedSearchData(): Promise<UnifiedSearchData> {
+/** Only what is this viewer's own, read with their session and never cached. Small enough to
+ * fetch after the cached Search page opens. */
+export async function getViewerSearchData(): Promise<ViewerSearchData> {
   const db = await getServerClient();
-  const [base, user] = await Promise.all([publicSearchData(), db ? db.auth.getUser().then(r => r.data.user) : Promise.resolve(null)]);
+  const user = db ? (await db.auth.getUser()).data.user : null;
   const viewerId = user?.id ?? null;
-  const [ownProfiles, following, followers, followedDirectors] = db && viewerId ? await Promise.all([
+  if (!db || !viewerId) return { viewerId: null, followedDirectorIds: [], followingIds: [], followerIds: [], own: null, ownListIds: [] };
+  const [ownProfiles, following, followers, followedDirectors, ownLists] = await Promise.all([
     rows<ListOwner>(db, "profiles", "id,handle,display_name", query => query.eq("id", viewerId)),
     rows<{ followed_id: string }>(db, "member_follows", "followed_id", query => query.eq("follower_id", viewerId), "followed_id"),
     rows<{ follower_id: string }>(db, "member_follows", "follower_id", query => query.eq("followed_id", viewerId), "follower_id"),
     rows<{ person_id: string }>(db, "follows", "person_id", query => query.eq("user_id", viewerId), "person_id"),
-  ]) : [[], [], [], []];
-  const followingIds = new Set(following.map(row => row.followed_id));
-  const followerIds = new Set(followers.map(row => row.follower_id));
+    rows<{ id: string; user_id: string; is_public: boolean; hidden: boolean }>(db, "lists", "id,user_id,is_public,hidden", query => query.eq("user_id", viewerId).eq("is_public", true).eq("hidden", false)),
+  ]);
   // A private viewer still sees their own curator label; it never adds them to member results.
   const ownProfile = ownProfiles.find(profile => profile.id === viewerId && typeof profile.handle === "string" && /^[a-z0-9_]{3,24}$/i.test(profile.handle));
-  const own = ownProfile ? { id: ownProfile.id, handle: ownProfile.handle, display_name: ownProfile.display_name } : null;
-  const { listOwners, ...shared } = base;
   return {
-    ...shared,
-    watchlists: own ? shared.watchlists.map(list => !list.owner && listOwners[list.id] === viewerId
-      ? { ...list, owner: own, tile: { ...list.tile, owner: own } } : list) : shared.watchlists,
-    members: viewerId ? shared.members.map(member => ({ ...member, following: followingIds.has(member.id), followsYou: followerIds.has(member.id) })) : shared.members,
-    followedDirectorIds: followedDirectors.map(row => row.person_id),
     viewerId,
-    signedIn: !!viewerId,
+    followedDirectorIds: followedDirectors.map(row => row.person_id),
+    followingIds: following.map(row => row.followed_id),
+    followerIds: followers.map(row => row.follower_id),
+    own: ownProfile ? { id: ownProfile.id, handle: ownProfile.handle, display_name: ownProfile.display_name } : null,
+    // Checked again here: broader access (an admin's) must never label someone else's list.
+    ownListIds: ownLists.filter(row => row.user_id === viewerId && row.is_public === true && row.hidden === false).map(row => row.id),
   };
+}
+
+/** The shared public data plus this viewer's own (see getViewerSearchData). */
+export async function getUnifiedSearchData(): Promise<UnifiedSearchData> {
+  const [shared, viewer] = await Promise.all([getPublicUnifiedSearchData(), getViewerSearchData()]);
+  return withViewer(shared, viewer);
 }

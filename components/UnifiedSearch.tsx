@@ -15,7 +15,7 @@ import FilterSelect from './FilterSelect';
 import { getBrowserClient } from '@/lib/supabase/client';
 import { countryName } from '@/lib/format';
 import { SERVICES_KEY, matchReason, naturalFilters, recommendations } from '@/lib/search-extras';
-import { VIEWS, defaultView, type SearchView, CATEGORY_LABELS, CATEGORIES, CATEGORY_FILTERS, UNIFIED_SORTS, activeUnifiedFilters, cleanUnifiedState, indexUnified, searchUnified, unifiedCorrection, unifiedFacets, unifiedFilterLabel, unifiedQuery, type SearchCategory, type UnifiedFilter, type UnifiedResult, type UnifiedSearchData, type UnifiedSearchState } from '@/lib/unified-search';
+import { VIEWS, defaultView, type SearchView, CATEGORY_LABELS, CATEGORIES, CATEGORY_FILTERS, UNIFIED_SORTS, activeUnifiedFilters, cleanUnifiedState, indexUnified, searchUnified, unifiedCorrection, unifiedFacets, unifiedFilterLabel, unifiedQuery, type SearchCategory, type UnifiedFilter, type UnifiedResult, type UnifiedSearchData, type UnifiedSearchState, type ViewerSearchData, withViewer } from '@/lib/unified-search';
 
 const PAGE = 36;
 /** Which era's look a decade card gets. */
@@ -103,7 +103,9 @@ export default function UnifiedSearch({initialData}:{initialData:UnifiedSearchDa
     pending?.abort();pending=new AbortController();
     // Remove request-private results before the next account's data can arrive.
     setData(current=>({...current,viewerId,signedIn:!!viewerId,watchlists:current.watchlists.filter(list=>list.is_public),followedDirectorIds:[],members:current.members.map(member=>({...member,following:false,followsYou:false}))}));
-    void fetch('/api/search',{cache:'no-store',signal:pending.signal}).then(r=>{if(!r.ok)throw Error('Search refresh failed');return r.json();}).then((next:UnifiedSearchData)=>{if(!disposed&&request===generation&&next.viewerId===viewerId)setData(next);}).catch(error=>{if(!disposed&&request===generation&&error.name!=='AbortError')setRefreshError(true);});
+    if(!viewerId)return;
+    // The page itself is the same for everyone; only the member's own part is fetched.
+    void fetch('/api/search?viewer=1',{cache:'no-store',signal:pending.signal}).then(r=>{if(!r.ok)throw Error('Search refresh failed');return r.json();}).then((next:ViewerSearchData)=>{if(!disposed&&request===generation&&next.viewerId===viewerId)setData(current=>withViewer({...current,watchlists:initialData.watchlists},next));}).catch(error=>{if(!disposed&&request===generation&&error.name!=='AbortError')setRefreshError(true);});
    }
   });
   return()=>{disposed=true;pending?.abort();subscription.unsubscribe();};
