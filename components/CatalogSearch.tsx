@@ -17,84 +17,6 @@ type HistoryItem = {
 };
 const PAGE = 24;
 let documentVisitId: string | undefined;
-function SearchField({ mode, value, onChange, results, history, onClearHistory, onHistory, onSubmit, onVisit, proposal }: {
-    mode: SearchMode;
-    value: string;
-    onChange: (q: string) => void;
-    results: SearchEntry[];
-    history: HistoryItem[];
-    onClearHistory: () => void;
-    onHistory: (s: SearchState) => void;
-    onSubmit: () => void;
-    onVisit: () => void;
-    proposal: SearchState | null;
-}) {
-    const [open, setOpen] = useState(false);
-    const [active, setActive] = useState(-1);
-    const id = useId();
-    const router = useRouter();
-    const container = useRef<HTMLDivElement>(null);
-    const input = useRef<HTMLInputElement>(null);
-    const options = value.trim() ? results.slice(0, 6) : [];
-    const recent = value.trim() ? [] : history;
-    const count = options.length + recent.length + (proposal ? 1 : 0);
-    const choose = (n: number) => { if (n < 0) {
-        onSubmit();
-        setOpen(false);
-        return;
-    } if (proposal && n === 0) {
-        onSubmit();
-        setOpen(false);
-        return;
-    } const at = n - (proposal ? 1 : 0); if (value.trim()) {
-        const item = options[at];
-        if (item) {
-            onVisit();
-            router.push('/' + (mode === 'films' ? 'films' : 'directors') + '/' + item.slug);
-        }
-    }
-    else if (recent[at]) {
-        onHistory(recent[at].state);
-        setOpen(false);
-    } };
-    useEffect(() => {
-        const dismiss = (event: PointerEvent) => { if (!container.current?.contains(event.target as Node)) setOpen(false); };
-        document.addEventListener('pointerdown', dismiss, true);
-        return () => document.removeEventListener('pointerdown', dismiss, true);
-    }, []);
-    useEffect(() => setActive(-1), [value]);
-    useEffect(() => { if (open && active >= 0)
-        document.getElementById(id + '-option-' + active)?.scrollIntoView({ block: 'nearest' }); }, [active, open, id]);
-    return <div ref={container} className="catalog-search-control" onKeyDownCapture={e => { if (e.key === 'Tab') requestAnimationFrame(() => { if (!container.current?.contains(document.activeElement)) setOpen(false); }); }}>
-  <form className="search-bar" role="search" onSubmit={e => { e.preventDefault(); choose(open ? active : -1); }}>
-   <Icon name="search"/><label htmlFor={id} className="visually-hidden">Search {mode}</label>
-   <input ref={input} id={id} type="search" role="combobox" aria-autocomplete="list" aria-expanded={open && count > 0} aria-controls={id + '-suggestions'} aria-activedescendant={open && active >= 0 ? id + '-option-' + active : undefined} autoComplete="off" placeholder={'Search ' + mode} value={value} maxLength={200} onFocus={() => setOpen(true)} onClick={() => setOpen(true)} onChange={e => { onChange(e.target.value); setOpen(true); setActive(-1); }} onKeyDown={e => { if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-        e.preventDefault();
-        setOpen(true);
-        setActive(n => count ? (n < 0 ? (e.key === 'ArrowDown' ? 0 : count - 1) : (n + (e.key === 'ArrowDown' ? 1 : -1) + count) % count) : -1);
-    }
-    else if (e.key === 'Escape') {
-        e.preventDefault();
-        setOpen(false);
-        setActive(-1);
-    } }}/>
-   {value && <button type="button" className="catalog-clear-query" aria-label="Clear search text" onClick={() => { onChange(''); setOpen(true); setActive(-1); input.current?.focus(); }}><Icon name="close"/></button>}
-  </form>
-  {open && count > 0 && <div className="catalog-suggestions">
-   {!value.trim() && <div className="catalog-suggestion-head"><span>Recent searches on this device</span><button type="button" className="link-button" onClick={onClearHistory}>Clear history</button></div>}
-   <ul id={id + '-suggestions'} role="listbox" aria-label={value.trim() ? 'Search suggestions' : 'Recent searches'}>
-    {proposal && <li id={id + '-option-0'} role="option" aria-selected={active === 0}><button type="button" className="catalog-suggestion" onClick={() => { onSubmit(); setOpen(false); }}><Icon name="filter"/><span>Use filters<span className="muted">{Object.entries(proposal).filter(([k, v]) => k !== 'q' && v).map(([k, v]) => filterLabel(k as SearchKey, v!)).join(' · ')}</span></span></button></li>}
-    {options.map((item, i) => {
-                const n = i + (proposal ? 1 : 0);
-                return <li key={item.id} id={id + '-option-' + n} role="option" aria-selected={active === n}><Link className="catalog-suggestion" href={'/' + (mode === 'films' ? 'films' : 'directors') + '/' + item.slug} onClick={() => { onVisit(); setOpen(false); }}>
-      {item.image ? <img src={item.image} alt="" width={36} height={54}/> : <span className="catalog-suggestion-placeholder"><Icon name={mode === 'films' ? 'film' : 'user'}/></span>}<span>{item.title}<span className="muted">{item.subtitle}</span></span>
-     </Link></li>;
-            })}
-    {recent.map((item, i) => <li key={stateQuery(item.state)} id={id + '-option-' + i} role="option" aria-selected={active === i}><button type="button" className="catalog-suggestion" onClick={() => { onHistory(item.state); setOpen(false); }}><Icon name="search"/><span>{item.label}</span></button></li>)}
-   </ul>
-  </div>}
- </div>;
-}
 function Browser({ entries, mode, afterSearch }: {
     entries: SearchEntry[];
     mode: SearchMode;
@@ -108,6 +30,8 @@ function Browser({ entries, mode, afterSearch }: {
     const [history, setHistory] = useState<HistoryItem[]>([]);
     const [filtersOpen, setFiltersOpen] = useState(false);
     const modal = useRef<HTMLDialogElement>(null);
+    const sortSheet = useRef<HTMLDialogElement>(null);
+    const [sortOpen, setSortOpen] = useState(false);
     const inputId = useId();
     const historyKey = 'pheelm:catalog-search:' + mode + ':v1';
     useEffect(() => { setState(cleanState(new URLSearchParams(params), mode)); setShown(PAGE); }, [params, mode]);
@@ -161,10 +85,6 @@ function Browser({ entries, mode, afterSearch }: {
         localStorage.setItem(historyKey, JSON.stringify(next));
     }
     catch { } };
-    const clearHistory = () => { setHistory([]); try {
-        localStorage.removeItem(historyKey);
-    }
-    catch { } };
     const submit = () => { const next = proposal ? { ...state, q: undefined, ...proposal } : state; commit(next); remember(next); };
     const clearFilters = () => commit({ q: state.q, sort: state.sort });
     // With text in the search box and no sort chosen, the closest matches come first.
@@ -190,8 +110,10 @@ function Browser({ entries, mode, afterSearch }: {
     return <div className="browser catalog-browser" data-shuffle-ready={visitReady} aria-busy={state !== deferred} onClickCapture={e => { if ((e.target as Element).closest(".film-grid a, .director-grid a"))
         { saveVisit(); remember(state); } }}>
   <div className="toolbar catalog-toolbar">
-   <SearchField mode={mode} value={state.q ?? ''} onChange={q => set('q', q)} results={results} history={history} onClearHistory={clearHistory} onHistory={s => { commit(s); remember(s); }} onSubmit={submit} onVisit={() => { saveVisit(); remember(state); }} proposal={proposal}/>
-   <button type="button" className={"button ghost filter-button" + (active.length ? " has-count" : "")} aria-haspopup="dialog" aria-controls={inputId+'-dialog'} aria-expanded={filtersOpen} onClick={() => { setFiltersOpen(true); modal.current?.showModal(); }}><Icon name="filter"/><span className="filter-label">Filters</span>{active.length > 0 && <span className="badge" aria-label={active.length + " active filters"}>{active.length}</span>}</button>
+   {mode === 'films'
+    ? <button type="button" className={"button ghost catalog-filters" + (active.length ? " has-count" : "")} aria-haspopup="dialog" aria-controls={inputId+'-dialog'} aria-expanded={filtersOpen} onClick={() => { setFiltersOpen(true); modal.current?.showModal(); }}><Icon name="filter"/><span>Filters</span>{active.length > 0 && <span className="badge" aria-label={active.length + " active filters"}>{active.length}</span>}</button>
+    : <label className="catalog-country"><span className="visually-hidden">Country</span><select aria-label="Country" value={state.country ?? ''} onChange={e => set('country', e.target.value)}><option value="">All countries</option>{state.country && !options('country').some(([v]) => v === state.country) && <option value={state.country}>{filterLabel('country', state.country)}</option>}{options('country').map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select><Icon name="arrowDown"/></label>}
+   <button type="button" className="button ghost filter-button sort-button" aria-label={'Sort ' + mode} aria-haspopup="dialog" aria-controls={inputId+'-sort'} aria-expanded={sortOpen} onClick={() => { setSortOpen(true); sortSheet.current?.showModal(); }}><Icon name="sort"/><span className="filter-label">{SORTS[mode].find(([v]) => v === (state.sort ?? sortDefault))?.[1] ?? 'Sort'}</span></button>
   </div>
   {afterSearch}
   {active.length > 0 && <ul className="chip-list catalog-active-filters" aria-label="Active filters">{active.map(k => <li key={k}><button type="button" className="chip" aria-label={'Remove ' + filterLabel(k, state[k]!)} onClick={() => set(k, '')}>{filterLabel(k, state[k]!)}<Icon name="close" className="x"/></button></li>)}</ul>}
@@ -206,13 +128,17 @@ function Browser({ entries, mode, afterSearch }: {
    {mode === 'films' ? <FilmGrid films={results.slice(0, shown).flatMap(e => e.film ? [e.film] : [])} priority={6}/> : <ul className="director-grid">{results.slice(0, shown).map(e => e.director && <DirectorCard key={e.id} director={e.director}/>)}</ul>}
    {shown < results.length && <div className="pagination-controls"><button type="button" className="button ghost more" onClick={() => setShown(n => n + PAGE)}>Load more</button><BackToTopButton /></div>}
   </> : <div className="empty-state"><Icon name="search" className="empty-icon"/><p>No {mode} match your search.</p><p className="muted">{relaxed ? 'Your search has ' + relaxed + ' matches without these filters.' : 'Check the spelling, try another name or remove a filter.'}</p>{active.length > 0 && <button type="button" className="button ghost" onClick={clearFilters}>Search without filters</button>}<button type="button" className="button ghost" onClick={() => commit({})}>Clear search and filters</button>{mode === 'films' && <Link href="/submit">Suggest a missing film</Link>}</div>}
-  <dialog ref={modal} id={inputId+'-dialog'} className="modal catalog-filter-dialog" onClose={() => setFiltersOpen(false)} aria-labelledby={inputId + '-title'} onClick={e => { if (e.target === modal.current)
+  {mode === 'films' && <dialog ref={modal} id={inputId+'-dialog'} className="modal catalog-filter-dialog" onClose={() => setFiltersOpen(false)} aria-labelledby={inputId + '-title'} onClick={e => { if (e.target === modal.current)
         modal.current?.close(); }}>
    <div className="modal-head"><span className="sheet-handle" aria-hidden="true"/><h2 id={inputId + '-title'}>Filters</h2><button type="button" className="icon-button" aria-label="Close filters" onClick={() => modal.current?.close()}><Icon name="close"/></button></div>
-   <div className="modal-body"><FilterSelect label="Sort by" value={state.sort ?? sortDefault} onChange={e => set('sort', e.target.value)}>{SORTS[mode].map(([v, l]) => <option key={v} value={v}>{l}</option>)}</FilterSelect>
+   <div className="modal-body">
     {filters.map(k => ['year', 'from', 'to', 'minRuntime', 'maxRuntime'].includes(k) ? <label key={k} className="field filter-field">{titles[k]}<input type="number" inputMode="numeric" min={k === 'minRuntime' || k === 'maxRuntime' ? 1 : 1890} max={k === 'minRuntime' || k === 'maxRuntime' ? 9999 : 2199} key={k + ':' + (state[k] ?? '')} defaultValue={state[k] ?? ''} onBlur={e => set(k, e.target.value)} onKeyDown={e => { if (e.key === 'Enter')
         e.currentTarget.blur(); }} placeholder="Any"/></label> : <FilterSelect key={k} label={titles[k]??k} value={state[k] ?? ''} onChange={e => set(k, e.target.value)}><option value="">Any</option>{state[k] && !options(k).some(([v]) => v === state[k]) && <option value={state[k]}>{filterLabel(k, state[k]!)}</option>}{options(k).map(([v, l]) => <option key={v} value={v}>{l}{active.length > 0 ? ` (${countFor(k, v)})` : ''}</option>)}</FilterSelect>)}
    </div><div className="modal-foot"><button type="button" className="button ghost" disabled={!active.length && !state.sort} onClick={() => commit({ q: state.q })}>Reset</button><button type="button" className="button" onClick={() => { remember(state); modal.current?.close(); }}>Show {active.length > 0 || state.q?.trim() ? `${results.length} ` : ''}{mode}</button></div>
+  </dialog>}
+  <dialog ref={sortSheet} id={inputId+'-sort'} className="modal sort-dialog" aria-labelledby={inputId + '-sort-title'} onClose={() => setSortOpen(false)} onClick={e => { if (e.target === sortSheet.current) sortSheet.current?.close(); }}>
+   <div className="modal-head"><span className="sheet-handle" aria-hidden="true"/><h2 id={inputId + '-sort-title'}>Sort by</h2><button type="button" className="icon-button" aria-label="Close" onClick={() => sortSheet.current?.close()}><Icon name="close"/></button></div>
+   <div className="modal-body"><div className="chip-row sort-choices" role="group" aria-label="Sort by">{SORTS[mode].map(([v, l]) => <button key={v} type="button" className="button ghost" aria-pressed={(state.sort ?? sortDefault) === v} onClick={() => { set('sort', v); sortSheet.current?.close(); }}><span>{l}</span>{(state.sort ?? sortDefault) === v && <Icon name="check"/>}</button>)}</div></div>
   </dialog>
  </div>;
 }

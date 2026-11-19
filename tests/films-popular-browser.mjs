@@ -24,6 +24,6 @@ try{for(const width of [320,390,1440])for(const theme of ['dark','light']){
  assert.equal(await page.locator('.film-grid .film-card').count(),16);
  const toggle=page.getByRole('radiogroup',{name:'Grid',exact:true});
  for(const [i,view] of ['large','small','list'].entries()){await toggle.getByRole('radio').nth(i).click();assert.equal(await page.evaluate(()=>document.documentElement.dataset.grid),view);}
- await page.locator('.search-bar input').fill('Film 15');await page.waitForFunction(()=>document.querySelectorAll('.film-grid .film-card').length===1);
+ assert.equal(await page.locator('.catalog-browser .search-bar').count(),0);assert.equal(await page.getByRole('button',{name:'Filters',exact:true}).count(),1);assert.equal(await page.locator('.catalog-toolbar .sort-button').count(),1);
  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));assert.deepEqual(errors,[]);await page.close();
-}console.log('PASS: Films grid and search remain without Popular or Explore');}finally{await browser.close();}
+}console.log('PASS: Films grid, Filters and Sort remain without Popular or Explore');}finally{await browser.close();}

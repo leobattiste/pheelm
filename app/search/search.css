@@ -113,3 +113,6 @@ html:root:root:root:root:root .quick-filters .chip[aria-pressed="true"] { backgr
 .era-20s { background:var(--bg); color:var(--ink); border:1px solid var(--line); }
 .era-20s .decade-name { font-weight:800; }
 .era-20s .decade-count { color:var(--muted); opacity:1; }
+
+/* Members use the same 2:3 photo frame as directors and films. */
+.unified-member > .portrait { flex:none; width:40px; height:60px; border-radius:var(--r-media); }

@@ -7,52 +7,30 @@ async function until(fn,message){for(let i=0;i<80;i++){if(await fn())return;awai
 // URL/chips update before useDeferredValue finishes rendering the matching cards.
 const settledCatalog=()=>page.locator('.catalog-browser[aria-busy="false"]').waitFor();
 try{
- // Safari can blur the input to body before a tapped dropdown item receives click.
- if (process.env.SAFARI_BLUR_REGRESSION !== '0') await page.addInitScript(() => document.addEventListener('pointerdown', event => { if (event.target.closest?.('.catalog-suggestions')) { const input = document.querySelector('.catalog-search-control input'); input?.dispatchEvent(new FocusEvent('focusout', {bubbles:true,relatedTarget:document.body})); } }, true));
- await page.waitForLoadState('networkidle');await page.goto(BASE+'/films');await page.locator('.catalog-browser').waitFor();assert.equal(await page.locator('.result-count').count(),0);assert.equal(await page.locator('.catalog-search-hint').count(),0);assert.equal(await page.getByRole('button',{name:'Share search',exact:true}).count(),0);await page.getByRole('button',{name:'Filters',exact:true}).click();
+ await page.waitForLoadState('networkidle');await page.goto(BASE+'/films');await page.locator('.catalog-browser').waitFor();
+ // No search bar here any more: Filters and Sort are the two controls.
+ assert.equal(await page.locator('.catalog-browser input[type=search]').count(),0);
+ const filtersButton=page.getByRole('button',{name:'Filters',exact:true});await filtersButton.waitFor();
+ await filtersButton.click();
  const modal=page.getByRole('dialog',{name:'Filters',exact:true});
- assert.equal(await modal.getByRole('button',{name:'Show films',exact:true}).count(),1);
- for(const label of ['Viewing region','Minimum runtime (minutes)','Maximum runtime (minutes)','Awards','Award or festival'])assert.equal(await modal.getByLabel(label,{exact:true}).count(),0);
- assert.ok((await modal.getByLabel('Country',{exact:true}).locator('option').allTextContents()).every(t=>! /\(\d+\)/.test(t)));
- for(const theme of ['light','dark']){
-  await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
-  // Colours animate between themes; wait for the button to finish rather than a fixed time.
-  await until(async()=>(await modal.getByRole('button',{name:'Show films',exact:true}).evaluate(e=>{const s=document.createElement('span');s.style.color='var(--on-ink)';document.body.append(s);const want=getComputedStyle(s).color;s.remove();return getComputedStyle(e).color===want&&!e.getAnimations().length;})),`Show films colour never settled in ${theme} theme`);
-  for(const control of [modal.getByRole('button',{name:'Show films',exact:true})]){
-   const style=await control.evaluate(e=>({bg:getComputedStyle(e).backgroundColor,color:getComputedStyle(e).color,blur:getComputedStyle(e).backdropFilter}));
-   assert.notEqual(style.bg,'rgba(0, 0, 0, 0)');assert.equal(style.blur,'none');assert.equal(style.color,await page.evaluate(()=>{const span=document.createElement('span');span.style.color='var(--on-ink)';document.body.append(span);const color=getComputedStyle(span).color;span.remove();return color;}));
-  }
- }
- {const [fieldBg,sheetBg]=await modal.getByLabel('Sort by',{exact:true}).evaluate(e=>[getComputedStyle(e).backgroundColor,getComputedStyle(e.closest('dialog, .modal, .menu-sheet')||document.body).backgroundColor]);assert.notEqual(fieldBg,'rgba(0, 0, 0, 0)');void sheetBg;}
- await modal.getByLabel('Country',{exact:true}).selectOption('US');
- await settledCatalog();
+ assert.equal(await modal.getByLabel('Sort by',{exact:true}).count(),0);
+ assert.equal(await modal.getByRole('button',{name:/^Show/}).count(),1);
+ await modal.getByLabel('Country',{exact:true}).selectOption('US');await settledCatalog();
  await until(async()=>/Show \d+ films/.test(await modal.locator('.modal-foot').textContent()),'filtered count missing');
- await modal.getByRole('button',{name:'Reset',exact:true}).click();
  await modal.getByRole('button',{name:'Close filters'}).click();
- const input=page.getByRole('combobox',{name:'Search films'});await input.fill('Denzel Washington');await settledCatalog();await until(async()=>await page.locator('.film-grid .film-card').count()>0,'cast search has no films');
- await input.fill('Moonlight');await until(async()=>(await page.locator('.film-grid .film-card-title').first().textContent())==='Moonlight','exact title not first');await until(async()=>await page.getByRole('listbox').isVisible(),'suggestions missing');assert.match(await page.locator('.result-count').textContent(),/\d+ results?/);const material=await page.evaluate(()=>{const popup=getComputedStyle(document.querySelector('.catalog-suggestions')),menu=getComputedStyle(document.querySelector('.menu-sheet')),toolbar=getComputedStyle(document.querySelector('.catalog-toolbar'));return {popup:popup.backgroundColor,menu:menu.backgroundColor,blur:popup.backdropFilter,menuBlur:menu.backdropFilter,toolbarBlur:toolbar.backdropFilter};});assert.equal(material.popup,material.menu);assert.equal(material.blur,material.menuBlur);assert.equal(material.toolbarBlur,'none');await input.press('ArrowDown');assert.ok(await input.getAttribute('aria-activedescendant'));await input.press('Escape');assert.equal(await input.getAttribute('aria-expanded'),'false');await input.press('Enter');await input.tap();await page.locator('.catalog-suggestions a').first().tap();await until(()=>page.url().includes('/films/moonlight'),'film suggestion tap did not navigate');await page.waitForLoadState('networkidle');await page.goBack();await input.waitFor();
- await input.fill('Senegalese dramas in the 1990s');await page.getByRole('button',{name:'Apply filters',exact:true}).click();await until(()=>page.url().includes('decade=1990s'),'natural filters not applied');assert.ok(page.url().includes('country=SN'));assert.ok(page.url().includes('genre=Drama'));assert.ok(await page.getByRole('button',{name:'Remove Senegal',exact:true}).isVisible());await settledCatalog();
- // Inspect both alternatives in one DOM snapshot: separate awaits can span the deferred render.
- const naturalResults=await page.locator('.catalog-browser').evaluate(browser=>({
-  films:browser.querySelectorAll('.film-grid .film-card').length,
-  empty:[...browser.querySelectorAll('.empty-state p')].some(node=>node.textContent==='No films match your search.'&&node.getClientRects().length>0&&getComputedStyle(node).visibility!=='hidden'),
- }));
- assert.ok(naturalResults.films>0||naturalResults.empty,'settled natural-language filters show film cards or the visible empty state');
- const chipRow=page.locator('.catalog-active-filters');const chipPositions=await chipRow.locator('li').evaluateAll(els=>els.map(el=>el.getBoundingClientRect().top));assert.ok(chipPositions.every(y=>Math.abs(y-chipPositions[0])<1));assert.equal(await chipRow.evaluate(el=>getComputedStyle(el).scrollbarWidth),'none');const chipBounds=await chipRow.boundingBox(),clearBounds=await page.getByRole('button',{name:'Clear',exact:true}).boundingBox(),countBounds=await page.locator('.catalog-results-summary .result-count').boundingBox();assert.ok(chipBounds.y+chipBounds.height<=clearBounds.y);assert.ok(clearBounds.x<countBounds.x);assert.ok(Math.abs(clearBounds.y+clearBounds.height/2-countBounds.y-countBounds.height/2)<2);await chipRow.evaluate(el=>el.scrollLeft=el.scrollWidth);assert.ok(await chipRow.evaluate(el=>el.scrollLeft>0));const saved=page.url();await page.reload();await until(async()=>await page.getByRole('button',{name:'Remove Senegal',exact:true}).isVisible(),'shared filters lost on reload');
- await page.getByRole('button',{name:'Clear',exact:true}).click();await input.fill('Us');await input.press('Enter');await until(async()=>(await page.locator('.film-grid .film-card-title').first().textContent())==='Us','literal Us misinterpreted');assert.equal(new URL(page.url()).searchParams.get('country'),null);
- await input.fill('');await input.focus();await until(async()=>await page.getByRole('button',{name:'Clear history'}).isVisible(),'history missing');await page.getByRole('button',{name:'Us',exact:true}).tap();await until(async()=>(await input.inputValue())==='Us','history tap did not restore search');assert.equal(new URL(page.url()).searchParams.get('q'),'Us');await page.getByRole('button',{name:'Clear search text'}).tap();assert.equal(await input.inputValue(),'');await page.getByRole('button',{name:'Clear history'}).tap();assert.equal(await page.evaluate(()=>localStorage.getItem('pheelm:catalog-search:films:v1')),null);
- await page.waitForLoadState('networkidle');await page.goto(saved);await page.getByRole('button',{name:'Filters',exact:false}).first().click();{const sheet=page.getByRole('dialog',{name:'Filters',exact:true});for(const label of ['Release year','Viewing option','Length','Film type'])assert.equal(await sheet.getByLabel(label,{exact:true}).count(),0);assert.equal(await sheet.getByText('Viewing availability varies',{exact:false}).count(),0);const labels=await sheet.locator('.filter-field > span:first-child').allTextContents();assert.deepEqual(labels.slice(0,3),['Sort by','Genre','Type']);const sorts=await sheet.getByLabel('Sort by',{exact:true}).locator('option').allTextContents();assert.ok(sorts.includes('Latest added'));assert.ok(!sorts.includes('Best match'));}await page.getByRole('button',{name:'Close filters'}).click();
- await page.waitForLoadState('networkidle');await page.goto(BASE+'/films?q=Dust&country=SN');await page.getByRole('button',{name:'Clear search text'}).tap();assert.equal(await input.inputValue(),'');assert.equal(new URL(page.url()).searchParams.get('country'),'SN');assert.equal(new URL(page.url()).searchParams.get('q'),null);assert.equal(await page.locator('.filter-button .badge').textContent(),'1');await page.getByRole('button',{name:'Clear',exact:true}).tap();assert.equal(await page.locator('.filter-button .badge').count(),0);
- await page.waitForLoadState('networkidle');await page.goto(BASE+'/directors');await page.locator('.catalog-browser').waitFor();assert.equal(await page.locator('.result-count').count(),0);assert.equal(await page.locator('.catalog-search-hint').count(),0);assert.equal(await page.getByRole('button',{name:'Share search',exact:true}).count(),0);await page.getByRole('button',{name:'Filters',exact:true}).click();
- assert.equal(await page.getByRole('button',{name:'Show directors',exact:true}).count(),1);
- for(const label of ['Films from year','Films through year','Films in the directory'])assert.equal(await page.getByLabel(label,{exact:true}).count(),0);assert.equal(await page.getByText('Film-type filters refer',{exact:false}).count(),0);assert.ok((await page.getByLabel('Sort by',{exact:true}).locator('option').allTextContents()).includes('Latest added'));
- await page.getByRole('button',{name:'Close filters'}).click();
+ await page.locator('.catalog-toolbar .sort-button').click();
+ const sort=page.getByRole('dialog',{name:'Sort by',exact:true});
+ await sort.getByRole('button').nth(1).click();await until(()=>new URL(page.url()).searchParams.has('sort'),'Films sort did not update');
+ assert.equal(new URL(page.url()).searchParams.get('country'),'US');
+ await page.goto(BASE+'/directors');await page.locator('.catalog-browser').waitFor();
+ assert.equal(await page.locator('.catalog-browser input[type=search]').count(),0);
+ const country=page.getByRole('combobox',{name:'Country',exact:true});await country.waitFor();
+ await country.selectOption('US');await until(()=>new URL(page.url()).searchParams.get('country')==='US','Directors country did not update');
+ await page.locator('.catalog-toolbar .sort-button').click();
+ await page.getByRole('dialog',{name:'Sort by',exact:true}).getByRole('button').nth(1).click();await until(()=>new URL(page.url()).searchParams.has('sort'),'Directors sort did not update');
  assert.equal(await page.locator('.director-card .portrait').first().evaluate(e=>getComputedStyle(e).borderRadius),'8px');
- const people=page.getByRole('combobox',{name:'Search directors'});await people.fill('Moonlight');await until(async()=>await page.locator('.director-card-name').first().textContent()==='Barry Jenkins','film title did not find director');await people.press('Enter');await people.tap();await page.locator('.catalog-suggestions a').first().tap();await until(()=>page.url().includes('/directors/barry-jenkins'),'director suggestion tap did not navigate');await page.waitForLoadState('networkidle');await page.goBack();await people.waitFor();const before=page.url();await page.waitForLoadState('networkidle');await page.goto(BASE+'/directors?q=Sembane');await until(async()=>await page.locator('.director-card-name').first().textContent()==='Ousmane Sembène','accent/typo matching failed');await page.waitForLoadState('networkidle');await page.goBack();await until(async()=>(await people.inputValue())==='Moonlight','back navigation lost query');assert.equal(page.url(),before);
- await page.getByRole('button',{name:'Clear search text'}).tap();await page.getByRole('button',{name:'Moonlight',exact:true}).tap();assert.equal(await people.inputValue(),'Moonlight');await page.getByRole('button',{name:'Clear search text'}).tap();await page.getByRole('button',{name:'Clear history'}).tap();assert.equal(await page.evaluate(()=>localStorage.getItem('pheelm:catalog-search:directors:v1')),null);
- await people.fill('Nigerian directors');await page.getByRole('button',{name:'Apply filters',exact:true}).click();assert.ok(page.url().includes('country=NG'));assert.equal(new URL(page.url()).searchParams.get('from'),null);
- await page.setViewportSize({width:1440,height:1000});await page.waitForLoadState('networkidle');await page.goto(BASE+'/films?q=Moonlight');await input.focus();await page.screenshot({path:'/tmp/pheelm-search-desktop.png'});const bounds=await page.locator('.catalog-search-control').boundingBox();assert.ok(bounds.width>1000);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth));
- await page.setViewportSize({width:390,height:844});await page.screenshot({path:'/tmp/pheelm-search-mobile.png'});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth));await page.goto(BASE+'/watchlists?feed=featured');
+ await page.setViewportSize({width:1440,height:1000});await page.goto(BASE+'/films');await page.locator('.catalog-browser').waitFor();assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth));
+ await page.setViewportSize({width:390,height:844});await page.goto(BASE+'/watchlists?feed=featured');
  await page.getByRole('heading',{name:'Watchlists',exact:true}).waitFor();
  assert.equal(await page.getByRole('button',{name:'Following',exact:true}).locator('svg').count(),0);
  await page.locator('.collections-toolbar .filter-button').click();
@@ -68,5 +46,5 @@ try{
  assert.equal(new URL(page.url()).searchParams.get('feed'),'featured');
  const legacy=await page.request.get(BASE+'/collections?feed=featured&sort=new',{maxRedirects:0});
  assert.equal(legacy.status(),308);assert.equal(legacy.headers().location,'/watchlists?feed=featured&sort=new');
- assert.deepEqual(errors,[]);console.log('PASS: cast search, ranking, suggestions/keyboard, natural filters, URLs/reload/back, history/clear, numeric filters, filmography, typo matching, responsive layouts');
+ assert.deepEqual(errors,[]);console.log('PASS: Films filters and sort, Directors country and sort, no search bars, Watchlists sort, responsive layouts');
 }finally{await browser.close();}

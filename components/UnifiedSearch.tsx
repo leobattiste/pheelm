@@ -14,7 +14,7 @@ import MemberFollowButton from './MemberFollowButton';
 import FilterSelect from './FilterSelect';
 import { getBrowserClient } from '@/lib/supabase/client';
 import { countryName } from '@/lib/format';
-import { QUICK_FILTERS, SERVICES_KEY, matchReason, naturalFilters, quickActive, recommendations, toggleQuick } from '@/lib/search-extras';
+import { SERVICES_KEY, matchReason, naturalFilters, recommendations } from '@/lib/search-extras';
 import { VIEWS, defaultView, type SearchView, CATEGORY_LABELS, CATEGORIES, CATEGORY_FILTERS, UNIFIED_SORTS, activeUnifiedFilters, cleanUnifiedState, indexUnified, searchUnified, unifiedCorrection, unifiedFacets, unifiedFilterLabel, unifiedQuery, type SearchCategory, type UnifiedFilter, type UnifiedResult, type UnifiedSearchData, type UnifiedSearchState } from '@/lib/unified-search';
 
 const PAGE = 36;
@@ -169,11 +169,9 @@ export default function UnifiedSearch({initialData}:{initialData:UnifiedSearchDa
   if(category==='films')return <FilmGrid films={list.flatMap(r=>r.entry?.film?[r.entry.film]:[])} priority={6} extras={extrasFor(list)}/>;
   if(category==='directors')return <ul className="director-grid" aria-label="Directors results">{list.map(r=>r.entry?.director?<DirectorCard key={r.id} director={r.entry.director}/>:null)}</ul>;
   if(category==='watchlists')return <ul className="collection-list" aria-label="Watchlists results">{list.map(r=>r.watchlist?<CommunityTile key={r.id} c={r.watchlist.tile} filmCount={r.count} badge={r.watchlist.is_public?undefined:'Private'}/>:null)}</ul>;
-  return <ul className="unified-members" aria-label="Members results">{list.map(r=>r.member?<li key={r.id}><Link href={r.href} className="unified-member"><UserAvatar person={r.member} size={48}/><span><span className="unified-member-name">{r.title}</span><span className="muted">@{r.member.handle}{matchReason(r,deferred.q)?' • '+matchReason(r,deferred.q):''}</span></span></Link>{r.member.id!==data.viewerId&&<MemberFollowButton memberId={r.id} name={r.title} viewerId={data.viewerId} initialFollowing={r.member.following} onChange={following=>setData(current=>({...current,members:current.members.map(m=>m.id===r.id?{...m,following}:m)}))}/>}</li>:null)}</ul>;
+  return <ul className="unified-members" aria-label="Members results">{list.map(r=>r.member?<li key={r.id}><Link href={r.href} className="unified-member"><UserAvatar person={r.member} className="portrait"/><span><span className="unified-member-name">{r.title}</span><span className="muted">@{r.member.handle}{matchReason(r,deferred.q)?' • '+matchReason(r,deferred.q):''}</span></span></Link>{r.member.id!==data.viewerId&&<MemberFollowButton memberId={r.id} name={r.title} viewerId={data.viewerId} initialFollowing={r.member.following} onChange={following=>setData(current=>({...current,members:current.members.map(m=>m.id===r.id?{...m,following}:m)}))}/>}</li>:null)}</ul>;
  };
  const ALL_LIMIT:Record<SearchCategory,number>={films:8,directors:3,watchlists:3,members:4};
- const quick=QUICK_FILTERS.filter(f=>!(f.id==='free'||f.id==='stream')||filmFacets.provider.length>0);
- const filmCategory=state.category==='all'||state.category==='films';
  return <div className="unified-search" aria-busy={state!==deferred}>
   {refreshError&&<p className="notice" role="alert">Search could not be refreshed. <button type="button" className="link-button" onClick={retry}>Retry</button></p>}
   <div className="toolbar catalog-toolbar"><div className="catalog-search-control unified-search-field" ref={fieldWrap} onBlur={e=>{if(!pressing.current&&!e.currentTarget.contains(e.relatedTarget as Node))setSuggestionsOpen(false);}}>
@@ -212,10 +210,6 @@ export default function UnifiedSearch({initialData}:{initialData:UnifiedSearchDa
   <div className="unified-controls">
    <div role="tablist" aria-label="Search category" className="unified-tabs chip-row">{VIEWS.filter(v=>v!=='all'||searching).map((category,i,views)=><button key={category} type="button" role="tab" id={id+'-tab-'+category} aria-selected={state.category===category} aria-controls={id+'-results'} tabIndex={state.category===category?0:-1} className="chip" onClick={()=>switchCategory(category)} onKeyDown={e=>{let next=-1;if(e.key==='ArrowRight')next=(i+1)%views.length;if(e.key==='ArrowLeft')next=(i+views.length-1)%views.length;if(e.key==='Home')next=0;if(e.key==='End')next=views.length-1;if(next>=0){e.preventDefault();switchCategory(views[next]);document.getElementById(id+'-tab-'+views[next])?.focus();}}}>{CATEGORY_LABELS[category]}{searching&&<> <span className="chip-count">{categoryCounts[category]}</span></>}</button>)}</div>
   </div>
-  {filmCategory&&<ul className="chip-row quick-filters" aria-label="Quick filters">
-   {services.length>0&&<li><button type="button" className="chip" aria-pressed={state.category==='films'&&state.services==='1'} onClick={()=>commit(toggleQuick(state,{services:'1'}))}>On my services</button></li>}
-   {quick.map(f=><li key={f.id}><button type="button" className="chip" aria-pressed={state.category==='films'&&quickActive(state,f.filters)} onClick={()=>commit(toggleQuick(state,f.filters))}>{f.label}</button></li>)}
-  </ul>}
   {natural&&<div className="catalog-interpretation"><span>Search with filters: {Object.entries(natural.filters).map(([k,v])=>unifiedFilterLabel(k as UnifiedFilter,v!)).join(', ')}{natural.q?' and “'+natural.q+'”':''}</span><button type="button" className="button ghost" onClick={()=>commit({category:'films',q:natural.q,...natural.filters})}>Apply filters</button></div>}
   {activeFilters.length>0&&<ul className="chip-list catalog-active-filters" aria-label="Active filters">{activeFilters.map(key=><li key={key}><button className="chip" type="button" aria-label={'Remove '+unifiedFilterLabel(key,state[key]!)} onClick={()=>setFilter(key,'')}>{unifiedFilterLabel(key,state[key]!)}<Icon name="close" className="x"/></button></li>)}</ul>}
   {state.category!=='all'&&<div className="result-bar catalog-results-summary" aria-live="polite">{activeFilters.length>0&&<button type="button" className="link-button" onClick={clearFilters}>Clear</button>}<span className="result-count">{results.length} {results.length===1?'result':'results'}</span></div>}
