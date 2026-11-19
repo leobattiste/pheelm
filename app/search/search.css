@@ -18,10 +18,11 @@ html:root:root:root:root:root .unified-tabs .chip[aria-selected="true"] .chip-co
 /* Members: one bordered card per person, like the director cards. */
 .unified-members { display:grid; gap:var(--space-12); }
 @media (min-width:900px) { .unified-members { grid-template-columns:repeat(2, minmax(0,1fr)); } }
-.unified-members > li { display:flex; align-items:center; justify-content:space-between; gap:var(--space-12); min-width:0; padding:var(--space-12) var(--space-16); border:1px solid var(--line); border-radius:var(--r); background:var(--bg); }
+.unified-members > li { display:flex; align-items:center; justify-content:space-between; gap:var(--space-12); min-width:0; padding:var(--space-12); border:1px solid var(--line); border-radius:var(--r); background:var(--bg); }
 .unified-member { display:flex; flex:1; align-items:center; gap:var(--space-12); min-width:0; color:inherit; text-decoration:none; }
 .unified-member > .avatar { flex:none; }
-.unified-member > span:last-child { display:grid; min-width:0; overflow-wrap:anywhere; }
+.unified-member > span:last-child { display:grid; min-width:0; overflow-wrap:break-word; }
+.unified-members > li { flex-wrap:wrap; }
 .unified-member-name { font-size:var(--t-name); font-weight:600; line-height:var(--lh-snug); }
 .unified-members .button { flex:none; }
 [data-grid="list"] .unified-members { grid-template-columns:1fr; }

@@ -3396,3 +3396,8 @@ html:root:root:root:root:root:root .product-option .button.ghost:not([aria-press
 .admin-skeleton { padding: var(--space-24) 0; }
 .admin-skeleton .admin-row { display: block; padding: var(--space-16); }
 .admin-skeleton .admin-row-main { display: grid; gap: var(--space-8); }
+
+/* List view: a film is one bordered card like a director or watchlist. The card itself carries the
+   12px padding; the list item adds none, so films line up with those pages and the gap is 8px. */
+:root:root:root[data-grid="list"] .film-grid:not(:where(.watched-films-dialog *)) > .film-card:not(.row-track *) { padding: 0; margin: 0; }
+:root:root:root[data-grid="list"] .film-grid:not(:where(.watched-films-dialog *)) { gap: var(--space-8); padding: 0; }

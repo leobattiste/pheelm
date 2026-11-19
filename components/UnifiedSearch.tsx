@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useDeferredValue, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import Icon from './Icon';
 import FilmCard, { FilmGrid } from './FilmCard';
 import Row from './Row';
@@ -40,6 +40,8 @@ export default function UnifiedSearch({initialData}:{initialData:UnifiedSearchDa
  const fieldWrap=useRef<HTMLDivElement>(null);
  const dialog=useRef<HTMLDialogElement>(null);
  const id=useId();
+ // Search results are always list cards; the saved grid choice is put back when you leave.
+ useLayoutEffect(()=>{const root=document.documentElement;const before=root.dataset.grid;root.dataset.grid='list';return()=>{if(before)root.dataset.grid=before;else delete root.dataset.grid;};},[]);
  const historyKey='pheelm:search:v1:'+(data.viewerId??'visitor');
  // Every category is indexed once per data change, not once per keystroke.
  const indexes=useMemo(()=>Object.fromEntries(CATEGORIES.map(c=>[c,indexUnified(data,c)])) as Record<SearchCategory,ReturnType<typeof indexUnified>>,[data]);
