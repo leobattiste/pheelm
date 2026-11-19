@@ -58,7 +58,6 @@ html:root:root:root:root:root .quick-filters .chip[aria-pressed="true"] { backgr
 
 .services-picker { display:grid; gap:var(--space-8); border:0; padding:0; margin:0; min-width:0; }
 .services-picker legend { font-weight:700; margin-bottom:var(--space-4, 4px); }
-.unified-results .film-card-extra { display:block !important; }
 .unified-search-page { padding-top:var(--space-24); }
 
 /* Genres sit right under the search bar, one scrolling line, no heading. */

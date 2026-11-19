@@ -161,10 +161,9 @@ export default function UnifiedSearch({initialData}:{initialData:UnifiedSearchDa
   return key in facets?facets[key as keyof typeof facets].map(value=>[value,unifiedFilterLabel(key,value)]):[];
  };
  const extrasFor=(list:UnifiedResult[])=>Object.fromEntries(list.flatMap(r=>{const why=matchReason(r,deferred.q);return why?[[r.id,why]]:[];}));
- const reasonLine=(r:UnifiedResult)=>{const why=matchReason(r,deferred.q);return why?<p className="match-reason">{why}</p>:null;};
- const renderList=(category:SearchCategory,list:UnifiedResult[])=>{
+  const renderList=(category:SearchCategory,list:UnifiedResult[])=>{
   if(category==='films')return <FilmGrid films={list.flatMap(r=>r.entry?.film?[r.entry.film]:[])} priority={6} extras={extrasFor(list)}/>;
-  if(category==='directors')return <ul className="director-grid" aria-label="Directors results">{list.map(r=>r.entry?.director?<DirectorCard key={r.id} director={r.entry.director} footer={reasonLine(r)}/>:null)}</ul>;
+  if(category==='directors')return <ul className="director-grid" aria-label="Directors results">{list.map(r=>r.entry?.director?<DirectorCard key={r.id} director={r.entry.director}/>:null)}</ul>;
   if(category==='watchlists')return <ul className="collection-list" aria-label="Watchlists results">{list.map(r=>r.watchlist?<CommunityTile key={r.id} c={r.watchlist.tile} filmCount={r.count} badge={r.watchlist.is_public?undefined:'Private'}/>:null)}</ul>;
   return <ul className="unified-members" aria-label="Members results">{list.map(r=>r.member?<li key={r.id}><Link href={r.href} className="unified-member"><UserAvatar person={r.member} size={48}/><span><span className="unified-member-name">{r.title}</span><span className="muted">@{r.member.handle}{matchReason(r,deferred.q)?' • '+matchReason(r,deferred.q):''}</span></span></Link>{r.member.id!==data.viewerId&&<MemberFollowButton memberId={r.id} name={r.title} viewerId={data.viewerId} initialFollowing={r.member.following} onChange={following=>setData(current=>({...current,members:current.members.map(m=>m.id===r.id?{...m,following}:m)}))}/>}</li>:null)}</ul>;
  };
@@ -182,8 +181,8 @@ export default function UnifiedSearch({initialData}:{initialData:UnifiedSearchDa
     }}/>
     {state.q&&<button className="catalog-clear-query" type="button" aria-label="Clear search" onClick={()=>{commit({category:'films',q:''});setSuggestionsOpen(false);field.current?.focus();}}><Icon name="close"/></button>}
    </form>
-   {suggestionsOpen&&suggestionCount>0&&<div className="catalog-suggestions">
-    {!state.q.trim()&&<div className="catalog-suggestion-head"><span>Recent searches</span><button className="link-button" type="button" onClick={()=>{setRecent([]);try{localStorage.removeItem(historyKey);}catch{}}}>Clear history</button></div>}
+   {suggestionsOpen&&suggestionCount>0&&<div className="catalog-suggestions" onPointerDown={e=>{if(!(e.target as Element).closest('a'))e.preventDefault();}}>
+    {!state.q.trim()&&<div className="catalog-suggestion-head"><span>Recent searches</span><button className="link-button" type="button" onClick={()=>{setRecent([]);setActive(-1);setSuggestionsOpen(false);try{localStorage.removeItem(historyKey);}catch{}}}>Clear history</button></div>}
     <ul id={id+'-suggestions'} role="listbox" aria-label={state.q.trim()?'Search suggestions':'Recent searches'}>
      {options.map((result,i)=><li key={result.category+result.id} id={id+'-option-'+i} role="option" aria-selected={active===i}>
       {(i===0||options[i-1].category!==result.category)&&<span className="suggestion-group" aria-hidden="true">{CATEGORY_LABELS[result.category]}</span>}
