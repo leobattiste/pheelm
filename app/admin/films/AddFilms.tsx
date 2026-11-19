@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Icon, { type IconName } from "@/components/Icon";
 import { parseList } from "@/lib/parse-list";
@@ -71,11 +71,19 @@ export default function AddFilms({ queue, collections, initial }: { queue: Queue
     setRunning(false); setProgress("");
   };
 
+  const background = publish && !collection;
   const saveList = () => start(async () => {
     const r = await saveToQueue(list);
-    setNote(r.message);
+    setNote(r.ok ? `${r.message} They're being added in the background, about 20 a minute. You can close this page.` : r.message);
     if (r.ok) { setText(""); router.refresh(); }
   });
+
+  // While the queue is showing, keep it current as the background job works through it.
+  useEffect(() => {
+    if (method !== "queue" || running || !queue.length) return;
+    const t = setInterval(() => router.refresh(), 20000);
+    return () => clearInterval(t);
+  }, [method, running, queue.length, router]);
 
   const addQueue = async () => {
     setRunning(true); setLog([]);
@@ -141,11 +149,13 @@ export default function AddFilms({ queue, collections, initial }: { queue: Queue
               <Publish value={publish} onChange={setPublish} />
             </div>
             <div className="actions">
-              <button className="button" type="button" onClick={() => void addList()} disabled={running || !list.length}>
-                {running ? progress : list.length ? `Add ${list.length} ${list.length === 1 ? "film" : "films"} now` : "Add films now"}
+              {/* With no collection and publishing on, the server adds the films in the background
+                  (about 20 a minute), so this page can be closed. A collection still needs this page. */}
+              <button className="button" type="button" onClick={() => (background ? saveList() : void addList())} disabled={running || pending || !list.length}>
+                {running ? progress : list.length ? `Add ${list.length} ${list.length === 1 ? "film" : "films"}` : "Add films"}
               </button>
-              <button className="button ghost" type="button" onClick={saveList} disabled={running || pending || !list.length}>Save to queue</button>
             </div>
+            {!background && list.length > 0 && <p className="hint">Adding to a collection, or as drafts, runs on this page: keep it open until it finishes.</p>}
             {note && <p className="notice ok" role="status">{note}</p>}
             <Results log={log} running={running} />
           </>
@@ -153,13 +163,13 @@ export default function AddFilms({ queue, collections, initial }: { queue: Queue
 
         {method === "queue" && (
           queue.length === 0 && !log.length ? (
-            <p className="empty">The queue is empty. Paste a list and choose &ldquo;Save to queue&rdquo; to line films up for later.</p>
+            <p className="empty">The queue is empty. Paste a list under &ldquo;A list&rdquo; and press Add.</p>
           ) : (
             <>
               <div className="add-queue-head">
-                <p><strong>{queue.length} {queue.length === 1 ? "film" : "films"} waiting.</strong> Each is matched on TMDB by title and year, and by director when known. Keep this page open while it runs.</p>
+                <p><strong>{queue.length} {queue.length === 1 ? "film" : "films"} waiting.</strong> They're added in the background, about 20 a minute, even with this page closed. Each is matched on TMDB by title and year, and by director when known.</p>
                 <div className="actions">
-                  <button className="button" type="button" onClick={() => void addQueue()} disabled={running || !queue.length}>{running ? progress : `Add all ${queue.length}`}</button>
+                  <button className="button" type="button" onClick={() => void addQueue()} disabled={running || !queue.length}>{running ? progress : `Add all ${queue.length} now`}</button>
                   <button className="button ghost" type="button" disabled={running || pending || !queue.length}
                     onClick={() => { if (confirm(`Remove all ${queue.length} films from the queue? Films already added stay.`)) start(async () => { await clearQueue(); router.refresh(); }); }}>Clear queue</button>
                 </div>
