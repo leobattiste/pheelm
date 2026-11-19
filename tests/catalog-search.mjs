@@ -53,7 +53,7 @@ const J=JSON.stringify;assert.equal(J(SORTS.films.map(([id])=>id)),J(['shuffle',
 assert.equal(J(SORTS.directors.map(([id])=>id)),J(['added','films','az','earliest','latest']));
 assert.ok(![...SORTS.films,...SORTS.directors].some(([id,label])=>id==='relevance'||/best match/i.test(label)));
 assert.equal(SORTS.films.find(([id])=>id==='added')[1],'Latest added');assert.equal(SORTS.directors.find(([id])=>id==='added')[1],'Latest added');
-assert.equal(J(FILM_FILTERS.slice(0,2)),J(['genre','type']));assert.ok(!FILM_FILTERS.some(k=>['year','length','access'].includes(k)));assert.equal(DIRECTOR_FILTERS[0],'type');
+assert.equal(J(FILM_FILTERS.slice(0,2)),J(['genre','type']));assert.ok(!FILM_FILTERS.some(k=>['year','length','access'].includes(k)));assert.equal(J(DIRECTOR_FILTERS),J(['country','decade','type','min']));
 assert.equal(cleanState(new URLSearchParams('sort=relevance'),'films').sort,undefined,'old Best match links fall back to the default');
 const stamped=indexEntries([entry({id:'a',title:'Old',added:1000}),entry({id:'b',title:'New',added:3000}),entry({id:'c',title:'Mid',added:2000}),entry({id:'d',title:'Unknown',added:0})]);
 assert.equal(J(searchEntries(stamped,{sort:'added'},'films').map(r=>r.entry.id)),J(['b','c','a','d']),'Latest added puts the most recently added first');

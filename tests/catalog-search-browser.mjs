@@ -24,10 +24,15 @@ try{
  assert.equal(new URL(page.url()).searchParams.get('country'),'US');
  await page.goto(BASE+'/directors');await page.locator('.catalog-browser').waitFor();
  assert.equal(await page.locator('.catalog-browser input[type=search]').count(),0);
- const country=page.getByRole('combobox',{name:'Country',exact:true});await country.waitFor();
- await country.selectOption('US');await until(()=>new URL(page.url()).searchParams.get('country')==='US','Directors country did not update');
- await page.locator('.catalog-toolbar .sort-button').click();
- await page.getByRole('dialog',{name:'Sort by',exact:true}).getByRole('button').nth(1).click();await until(()=>new URL(page.url()).searchParams.has('sort'),'Directors sort did not update');
+ for(const name of ['All','Featured','Following'])assert.equal(await page.getByRole('group',{name:'Directors to show'}).getByRole('button',{name,exact:true}).count(),1);
+ await page.getByRole('button',{name:'Featured',exact:true}).click();await until(()=>new URL(page.url()).searchParams.get('feed')==='featured','Directors feed did not update');
+ await page.getByRole('button',{name:'Filters',exact:true}).click();
+ const dirModal=page.getByRole('dialog',{name:'Filters',exact:true});
+ for(const label of ['Sort by','Country','Decade','Type','Films in the directory'])assert.equal(await dirModal.getByLabel(label,{exact:true}).count(),1,label+' missing');
+ await dirModal.getByLabel('Country',{exact:true}).selectOption('US');await until(()=>new URL(page.url()).searchParams.get('country')==='US','Directors country did not update');
+ assert.equal(new URL(page.url()).searchParams.get('feed'),'featured');
+ await dirModal.getByLabel('Sort by',{exact:true}).selectOption('az');await until(()=>new URL(page.url()).searchParams.get('sort')==='az','Directors sort did not update');
+ await dirModal.getByRole('button',{name:'Close filters'}).click();
  assert.equal(await page.locator('.director-card .portrait').first().evaluate(e=>getComputedStyle(e).borderRadius),'8px');
  await page.setViewportSize({width:1440,height:1000});await page.goto(BASE+'/films');await page.locator('.catalog-browser').waitFor();assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth));
  await page.setViewportSize({width:390,height:844});await page.goto(BASE+'/watchlists?feed=featured');
@@ -46,5 +51,5 @@ try{
  assert.equal(new URL(page.url()).searchParams.get('feed'),'featured');
  const legacy=await page.request.get(BASE+'/collections?feed=featured&sort=new',{maxRedirects:0});
  assert.equal(legacy.status(),308);assert.equal(legacy.headers().location,'/watchlists?feed=featured&sort=new');
- assert.deepEqual(errors.filter(e=>!/access control checks/.test(e)),[]);console.log('PASS: Films filters and sort, Directors country and sort, no search bars, Watchlists sort, responsive layouts');
+ assert.deepEqual(errors.filter(e=>!/access control checks/.test(e)),[]);console.log('PASS: Films filters and sort, Directors feeds and filters, no search bars, Watchlists sort, responsive layouts');
 }finally{await browser.close();}

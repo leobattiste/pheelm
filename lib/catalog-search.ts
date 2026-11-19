@@ -41,7 +41,7 @@ export type SearchState = Partial<Record<SearchKey, string>>;
 export type SearchMode = 'films' | 'directors';
 /** In the order they appear in the Filters sheet, after Sort by. */
 export const FILM_FILTERS: SearchKey[] = ['genre', 'type', 'country', 'decade', 'language', 'provider'];
-export const DIRECTOR_FILTERS: SearchKey[] = ['type', 'country'];
+export const DIRECTOR_FILTERS: SearchKey[] = ['country', 'decade', 'type', 'min'];
 export const TYPE_LABELS: Record<string, string> = { feature: 'Feature', documentary: 'Documentary', short: 'Short', animation: 'Animation' };
 export const SORTS: Record<SearchMode, [
     string,
@@ -114,7 +114,7 @@ export function matchesFilters(e: SearchEntry, s: SearchState, mode: SearchMode)
     if (s.country && !e.countries.includes(s.country))
         return false;
     if (mode === 'directors')
-        return e.count >= Number(s.min ?? 0) && e.filmography.some(f => (!s.type || f.type === s.type) && (!s.from || f.year >= +s.from) && (!s.to || f.year <= +s.to));
+        return e.count >= Number(s.min ?? 0) && (!s.decade || e.years.some(y => Math.floor(y / 10) * 10 + 's' === s.decade)) && e.filmography.some(f => (!s.type || f.type === s.type) && (!s.from || f.year >= +s.from) && (!s.to || f.year <= +s.to));
     if (s.type && !e.types.includes(s.type) || s.language && !e.languages.includes(s.language) || s.genre && !e.genres.includes(s.genre))
         return false;
     if (s.decade && !e.years.some(y => Math.floor(y / 10) * 10 + 's' === s.decade))

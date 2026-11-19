@@ -14,5 +14,5 @@ export function filmSearchEntry(f: Film): SearchEntry {
 export function directorSearchEntry(d: Director): SearchEntry {
     const summary = toDirectorSummary(d);
     return { id: d.id, slug: d.slug, title: d.name, image: d.photo_url, subtitle: [d.country ? countryName(d.country) : '', d.films.length + ' films'].filter(Boolean).join(' • '),
-        aliases: [...new Set(d.films.flatMap(titles))], names: [], countries: d.country ? [d.country] : [], languages: [], genres: [], types: [...new Set(d.films.map(f => f.type))], years: d.films.map(f => f.year), runtime: null, wins: 0, nominations: 0, awards: [], availability: [], added: d.created_at ? Date.parse(d.created_at) || 0 : 0, count: d.films.length, filmography: d.films.map(f => ({ year: f.year, type: f.type })), director: summary };
+        aliases: [...new Set(d.films.flatMap(titles))], names: [], countries: d.country ? [d.country] : [], languages: [], genres: [], types: [...new Set(d.films.map(f => f.type))], years: d.films.map(f => f.year), runtime: null, wins: d.films.reduce((n, f) => n + (f.awards ?? []).filter(a => a.result === 'won').length, 0), nominations: 0, awards: [], availability: [], added: d.created_at ? Date.parse(d.created_at) || 0 : 0, count: d.films.length, filmography: d.films.map(f => ({ year: f.year, type: f.type })), director: summary };
 }

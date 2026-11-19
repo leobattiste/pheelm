@@ -5,6 +5,9 @@ import type {ReactNode} from 'react';
 import { Suspense, useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Icon from './Icon';
+import { FEEDS, type Feed } from './CollectionsToolbar';
+import { openSignIn } from './SignInSheet';
+import { getBrowserClient } from '@/lib/supabase/client';
 import DirectorCard from './DirectorCard';
 import { FilmGrid } from './FilmCard';
 import { BackToTopButton } from './BackToTop';
@@ -25,6 +28,8 @@ function Browser({ entries, mode, afterSearch }: {
     const params = useSearchParams().toString();
     const [state, setState] = useState<SearchState>(() => cleanState(new URLSearchParams(params), mode));
     const [shown, setShown] = useState(PAGE);
+    const [feed, setFeed] = useState<Feed>(() => { const f = new URLSearchParams(params).get('feed'); return f === 'featured' || f === 'following' ? f : 'all'; });
+    const [followed, setFollowed] = useState<Set<string> | null>(null);
     const [shuffleSeed, setShuffleSeed] = useState(0);
     const [visitReady, setVisitReady] = useState(false);
     const [history, setHistory] = useState<HistoryItem[]>([]);
@@ -74,11 +79,25 @@ function Browser({ entries, mode, afterSearch }: {
     const index = useMemo(() => indexEntries(entries), [entries]);
     const deferred = useDeferredValue(state);
     const rows = useMemo(() => searchEntries(index, deferred, mode, shuffleSeed), [index, deferred, mode, shuffleSeed]);
-    const results = rows.map(r => r.entry);
+    const results = rows.map(r => r.entry).filter(e => mode !== 'directors' || feed === 'all' || (feed === 'featured' ? e.wins > 0 : !!followed?.has(e.id)));
     const filters = mode === 'films' ? FILM_FILTERS : DIRECTOR_FILTERS;
     const active = filters.filter(k => state[k]);
     const proposal = useMemo(() => state.q && !index.some(i => relevance(i, state.q!) >= 900) ? interpretQuery(state.q, mode, facets) : null, [state.q, index, mode, facets]);
-    const commit = (s: SearchState) => { const next = cleanState(new URLSearchParams(stateQuery(s)), mode); setState(next); setShown(PAGE); const q = stateQuery(next); window.history.replaceState(window.history.state, '', window.location.pathname + (q ? '?' + q : '')); };
+    const commit = (s: SearchState) => { const next = cleanState(new URLSearchParams(stateQuery(s)), mode); setState(next); setShown(PAGE); const q = stateQuery(next) + (mode === 'directors' && feed !== 'all' ? (stateQuery(next) ? '&' : '') + 'feed=' + feed : ''); window.history.replaceState(window.history.state, '', window.location.pathname + (q ? '?' + q : '')); };
+    useEffect(() => { if (mode === 'directors' && feed === 'following' && !followed) void chooseFeed('following'); }, []);
+    const chooseFeed = async (next: Feed) => {
+        if (next === 'following') {
+            const db = getBrowserClient();
+            const { data } = db ? await db.auth.getSession() : { data: { session: null } };
+            const id = data.session?.user.id;
+            if (!db || !id) { openSignIn('signup'); return; }
+            const { data: rows } = await db.from('follows').select('person_id').eq('user_id', id);
+            setFollowed(new Set((rows ?? []).map((r: { person_id: string }) => r.person_id)));
+        }
+        setFeed(next); setShown(PAGE);
+        const q = stateQuery(state) + (next !== 'all' ? (stateQuery(state) ? '&' : '') + 'feed=' + next : '');
+        window.history.replaceState(window.history.state, '', window.location.pathname + (q ? '?' + q : ''));
+    };
     const set = (key: SearchKey, value: string) => commit({ ...state, [key]: value || undefined });
     const remember = (s: SearchState) => { if (!s.q && !filters.some(k => s[k]))
         return; const label = [s.q, ...filters.filter(k => s[k]).map(k => filterLabel(k, s[k]!))].filter(Boolean).join(' · ').slice(0, 200); const next = [{ label, state: s }, ...history.filter(h => stateQuery(h.state) !== stateQuery(s))].slice(0, 8); setHistory(next); try {
@@ -104,16 +123,23 @@ function Browser({ entries, mode, afterSearch }: {
             return facets[key as keyof typeof facets].map(v => [v, key === 'country' || key === 'region' ? countryName(v) : key === 'type' ? TYPE_LABELS[v] ?? v : v]);
         return [];
     };
-    const titles: Partial<Record<SearchKey, string>> = { country: 'Country', decade: 'Decade', language: 'Language', genre: 'Genre', type: 'Type', provider: 'Where to watch' };
+    const titles: Partial<Record<SearchKey, string>> = { min: 'Films in the directory', country: 'Country', decade: 'Decade', language: 'Language', genre: 'Genre', type: 'Type', provider: 'Where to watch' };
     const countFor = (key: SearchKey, value: string) => matchingIndex.filter(i => matchesFilters(i.entry, { ...state, [key]: value }, mode)).length;
     const boundsInvalid = !!((state.minRuntime && state.maxRuntime && +state.minRuntime > +state.maxRuntime) || (state.from && state.to && +state.from > +state.to));
     return <div className="browser catalog-browser" data-shuffle-ready={visitReady} aria-busy={state !== deferred} onClickCapture={e => { if ((e.target as Element).closest(".film-grid a, .director-grid a"))
         { saveVisit(); remember(state); } }}>
   <div className="toolbar catalog-toolbar">
    {mode === 'films'
-    ? <button type="button" className={"button ghost catalog-filters" + (active.length ? " has-count" : "")} aria-haspopup="dialog" aria-controls={inputId+'-dialog'} aria-expanded={filtersOpen} onClick={() => { setFiltersOpen(true); modal.current?.showModal(); }}><Icon name="filter"/><span>Filters</span>{active.length > 0 && <span className="badge" aria-label={active.length + " active filters"}>{active.length}</span>}</button>
-    : <label className="catalog-country"><span className="visually-hidden">Country</span><select aria-label="Country" value={state.country ?? ''} onChange={e => set('country', e.target.value)}><option value="">All countries</option>{state.country && !options('country').some(([v]) => v === state.country) && <option value={state.country}>{filterLabel('country', state.country)}</option>}{options('country').map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select><Icon name="arrowDown"/></label>}
-   <button type="button" className="button ghost filter-button sort-button" aria-label={'Sort ' + mode} aria-haspopup="dialog" aria-controls={inputId+'-sort'} aria-expanded={sortOpen} onClick={() => { setSortOpen(true); sortSheet.current?.showModal(); }}><Icon name="sort"/><span className="filter-label">{SORTS[mode].find(([v]) => v === (state.sort ?? sortDefault))?.[1] ?? 'Sort'}</span></button>
+    ? <>
+      <button type="button" className={"button ghost catalog-filters" + (active.length ? " has-count" : "")} aria-haspopup="dialog" aria-controls={inputId+'-dialog'} aria-expanded={filtersOpen} onClick={() => { setFiltersOpen(true); modal.current?.showModal(); }}><Icon name="filter"/><span>Filters</span>{active.length > 0 && <span className="badge" aria-label={active.length + " active filters"}>{active.length}</span>}</button>
+      <button type="button" className="button ghost filter-button sort-button" aria-label="Sort films" aria-haspopup="dialog" aria-controls={inputId+'-sort'} aria-expanded={sortOpen} onClick={() => { setSortOpen(true); sortSheet.current?.showModal(); }}><Icon name="sort"/><span className="filter-label">{SORTS[mode].find(([v]) => v === (state.sort ?? sortDefault))?.[1] ?? 'Sort'}</span></button>
+    </>
+    : <>
+      <div className="feed-tabs" role="group" aria-label="Directors to show">
+       {FEEDS.map(o => <button key={o.value} type="button" className={"chip" + (o.value === 'all' ? " feed-all" : "")} aria-pressed={feed === o.value} onClick={() => chooseFeed(o.value)}>{o.label}</button>)}
+      </div>
+      <button type="button" className={"button ghost filter-button" + (active.length || state.sort ? " has-count" : "")} aria-label="Filters" aria-haspopup="dialog" aria-controls={inputId+'-dialog'} aria-expanded={filtersOpen} onClick={() => { setFiltersOpen(true); modal.current?.showModal(); }}><Icon name="filter"/><span className="filter-label">Filters</span>{active.length > 0 && <span className="badge" aria-label={active.length + " active filters"}>{active.length}</span>}</button>
+    </>}
   </div>
   {afterSearch}
   {active.length > 0 && <ul className="chip-list catalog-active-filters" aria-label="Active filters">{active.map(k => <li key={k}><button type="button" className="chip" aria-label={'Remove ' + filterLabel(k, state[k]!)} onClick={() => set(k, '')}>{filterLabel(k, state[k]!)}<Icon name="close" className="x"/></button></li>)}</ul>}
@@ -128,18 +154,19 @@ function Browser({ entries, mode, afterSearch }: {
    {mode === 'films' ? <FilmGrid films={results.slice(0, shown).flatMap(e => e.film ? [e.film] : [])} priority={6}/> : <ul className="director-grid">{results.slice(0, shown).map(e => e.director && <DirectorCard key={e.id} director={e.director}/>)}</ul>}
    {shown < results.length && <div className="pagination-controls"><button type="button" className="button ghost more" onClick={() => setShown(n => n + PAGE)}>Load more</button><BackToTopButton /></div>}
   </> : <div className="empty-state"><Icon name="search" className="empty-icon"/><p>No {mode} match your search.</p><p className="muted">{relaxed ? 'Your search has ' + relaxed + ' matches without these filters.' : 'Check the spelling, try another name or remove a filter.'}</p>{active.length > 0 && <button type="button" className="button ghost" onClick={clearFilters}>Search without filters</button>}<button type="button" className="button ghost" onClick={() => commit({})}>Clear search and filters</button>{mode === 'films' && <Link href="/submit">Suggest a missing film</Link>}</div>}
-  {mode === 'films' && <dialog ref={modal} id={inputId+'-dialog'} className="modal catalog-filter-dialog" onClose={() => setFiltersOpen(false)} aria-labelledby={inputId + '-title'} onClick={e => { if (e.target === modal.current)
+  <dialog ref={modal} id={inputId+'-dialog'} className="modal catalog-filter-dialog" onClose={() => setFiltersOpen(false)} aria-labelledby={inputId + '-title'} onClick={e => { if (e.target === modal.current)
         modal.current?.close(); }}>
    <div className="modal-head"><span className="sheet-handle" aria-hidden="true"/><h2 id={inputId + '-title'}>Filters</h2><button type="button" className="icon-button" aria-label="Close filters" onClick={() => modal.current?.close()}><Icon name="close"/></button></div>
    <div className="modal-body">
+    {mode === 'directors' && <FilterSelect label="Sort by" value={state.sort ?? sortDefault} onChange={e => set('sort', e.target.value)}>{SORTS[mode].map(([v, l]) => <option key={v} value={v}>{l}</option>)}</FilterSelect>}
     {filters.map(k => ['year', 'from', 'to', 'minRuntime', 'maxRuntime'].includes(k) ? <label key={k} className="field filter-field">{titles[k]}<input type="number" inputMode="numeric" min={k === 'minRuntime' || k === 'maxRuntime' ? 1 : 1890} max={k === 'minRuntime' || k === 'maxRuntime' ? 9999 : 2199} key={k + ':' + (state[k] ?? '')} defaultValue={state[k] ?? ''} onBlur={e => set(k, e.target.value)} onKeyDown={e => { if (e.key === 'Enter')
         e.currentTarget.blur(); }} placeholder="Any"/></label> : <FilterSelect key={k} label={titles[k]??k} value={state[k] ?? ''} onChange={e => set(k, e.target.value)}><option value="">Any</option>{state[k] && !options(k).some(([v]) => v === state[k]) && <option value={state[k]}>{filterLabel(k, state[k]!)}</option>}{options(k).map(([v, l]) => <option key={v} value={v}>{l}{active.length > 0 ? ` (${countFor(k, v)})` : ''}</option>)}</FilterSelect>)}
    </div><div className="modal-foot"><button type="button" className="button ghost" disabled={!active.length && !state.sort} onClick={() => commit({ q: state.q })}>Reset</button><button type="button" className="button" onClick={() => { remember(state); modal.current?.close(); }}>Show {active.length > 0 || state.q?.trim() ? `${results.length} ` : ''}{mode}</button></div>
-  </dialog>}
-  <dialog ref={sortSheet} id={inputId+'-sort'} className="modal sort-dialog" aria-labelledby={inputId + '-sort-title'} onClose={() => setSortOpen(false)} onClick={e => { if (e.target === sortSheet.current) sortSheet.current?.close(); }}>
+  </dialog>
+  {mode === 'films' && <dialog ref={sortSheet} id={inputId+'-sort'} className="modal sort-dialog" aria-labelledby={inputId + '-sort-title'} onClose={() => setSortOpen(false)} onClick={e => { if (e.target === sortSheet.current) sortSheet.current?.close(); }}>
    <div className="modal-head"><span className="sheet-handle" aria-hidden="true"/><h2 id={inputId + '-sort-title'}>Sort by</h2><button type="button" className="icon-button" aria-label="Close" onClick={() => sortSheet.current?.close()}><Icon name="close"/></button></div>
    <div className="modal-body"><div className="chip-row sort-choices" role="group" aria-label="Sort by">{SORTS[mode].map(([v, l]) => <button key={v} type="button" className="button ghost" aria-pressed={(state.sort ?? sortDefault) === v} onClick={() => { set('sort', v); sortSheet.current?.close(); }}><span>{l}</span>{(state.sort ?? sortDefault) === v && <Icon name="check"/>}</button>)}</div></div>
-  </dialog>
+  </dialog>}
  </div>;
 }
 export default function CatalogSearch(props: {
