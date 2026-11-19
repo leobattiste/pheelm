@@ -1,5 +1,7 @@
 import "server-only";
 
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { getImdbId } from "./tmdb";
 import type { Award } from "./types";
 
 /**
@@ -10,8 +12,9 @@ import type { Award } from "./types";
 const ENDPOINT = "https://query.wikidata.org/sparql";
 const HEADERS = { Accept: "application/sparql-results+json", "User-Agent": "Pheelm/1.0 (https://pheelm.com; awards for the film directory)" };
 
-const query = (tmdbId: number) => `SELECT ?kind ?awardLabel ?byLabel ?personLabel ?time ?eventTime WHERE {
-  ?film wdt:P4947 "${tmdbId}".
+// A film is found by its TMDB id or, since many Wikidata films lack that, by its IMDb id.
+const query = (tmdbId: number, imdbId?: string | null) => `SELECT ?kind ?awardLabel ?byLabel ?personLabel ?time ?eventTime WHERE {
+  ${imdbId && /^tt\d+$/.test(imdbId) ? `{ ?film wdt:P4947 "${tmdbId}" } UNION { ?film wdt:P345 "${imdbId}" }` : `?film wdt:P4947 "${tmdbId}".`}
   { ?film p:P166 ?st. ?st ps:P166 ?award. BIND("won" AS ?kind) }
   UNION { ?film p:P1411 ?st. ?st ps:P1411 ?award. BIND("nominated" AS ?kind) }
   UNION { ?person p:P166 ?st. ?st ps:P166 ?award; pq:P1686 ?film. BIND("won" AS ?kind) }
@@ -42,8 +45,15 @@ const FESTIVALS: [RegExp, string][] = [
   [/Sundance/i, "Sundance Film Festival"], [/FESPACO|Panafrican Film and Television Festival/i, "FESPACO"], [/Toronto/i, "Toronto International Film Festival"],
 ];
 
+type Entry = { award: string; base: string; person: string; result: "won" | "nominated"; year: number };
+
 /** Turns one Wikidata row into the directory's award shape, or null when it says nothing useful. */
 export function toAward(row: WikidataRow, filmYear: number): Award | null {
+  const e = toEntry(row, filmYear);
+  return e && { award: e.award, category: e.person ? (e.base ? `${e.base}: ${e.person}` : e.person) : e.base, result: e.result, year: e.year };
+}
+
+function toEntry(row: WikidataRow, filmYear: number): Entry | null {
   const label = row.award.trim();
   // Unlabelled items come back as their id (Q12345): nothing to show.
   if (!label || /^Q\d+$/.test(label)) return null;
@@ -62,8 +72,34 @@ export function toAward(row: WikidataRow, filmYear: number): Award | null {
     else if (by) { award = by; category = label; }
   }
   category = category.charAt(0).toUpperCase() + category.slice(1);
-  if (row.person && !/^Q\d+$/.test(row.person)) category = category ? `${category}: ${row.person}` : row.person;
-  return { award, category, result: row.kind === "won" ? "won" : "nominated", year };
+  const person = row.person && !/^Q\d+$/.test(row.person) ? row.person : "";
+  return { award, base: category, person, result: row.kind === "won" ? "won" : "nominated", year };
+}
+
+/**
+ * Wikidata lists an award once for the film and again for each person on it (each producer of a
+ * Best Picture, say). This folds them into one line per award, category and year, naming the
+ * people, with a win replacing the nomination it came from.
+ */
+export function combineEntries(entries: Entry[]): Award[] {
+  const groups = new Map<string, Entry[]>();
+  for (const e of entries) {
+    const key = [e.award, e.base, e.year].join("|").toLowerCase();
+    groups.set(key, [...(groups.get(key) ?? []), e]);
+  }
+  const out: Award[] = [];
+  const line = (e: Entry, people: string[], result: Award["result"]): Award => ({
+    award: e.award, category: people.length ? (e.base ? `${e.base}: ${people.join(", ")}` : people.join(", ")) : e.base, result, year: e.year,
+  });
+  for (const list of groups.values()) {
+    const people = (r: string) => [...new Set(list.filter((e) => e.result === r && e.person).map((e) => e.person))];
+    const won = people("won"), nominated = people("nominated").filter((p) => !won.includes(p));
+    if (list.some((e) => e.result === "won")) {
+      out.push(line(list[0], won, "won"));
+      if (nominated.length) out.push(line(list[0], nominated, "nominated"));
+    } else out.push(line(list[0], nominated, "nominated"));
+  }
+  return mergeAwards(out);
 }
 
 /** One entry per award, category and year; a win replaces the nomination it came from. */
@@ -78,15 +114,15 @@ export function mergeAwards(list: Award[]): Award[] {
 }
 
 /** The film's awards from Wikidata; null if Wikidata could not be reached (try again later). */
-export async function wikidataAwards(tmdbId: number, filmYear: number): Promise<Award[] | null> {
+export async function wikidataAwards(tmdbId: number, filmYear: number, imdbId?: string | null): Promise<Award[] | null> {
   try {
-    const res = await fetch(ENDPOINT + "?format=json&query=" + encodeURIComponent(query(tmdbId)), { headers: HEADERS, signal: AbortSignal.timeout(12000), cache: "no-store" });
+    const res = await fetch(ENDPOINT + "?format=json&query=" + encodeURIComponent(query(tmdbId, imdbId)), { headers: HEADERS, signal: AbortSignal.timeout(12000), cache: "no-store" });
     if (!res.ok) return null;
     const json = await res.json() as { results?: { bindings?: Record<string, { value: string }>[] } };
     const rows = (json.results?.bindings ?? []).map((b) => ({
       kind: b.kind?.value ?? "", award: b.awardLabel?.value ?? "", by: b.byLabel?.value, person: b.personLabel?.value, time: b.time?.value, eventTime: b.eventTime?.value,
     }));
-    return mergeAwards(rows.flatMap((r) => toAward(r, filmYear) ?? []));
+    return combineEntries(rows.flatMap((r) => toEntry(r, filmYear) ?? []));
   } catch {
     return null;
   }
@@ -100,4 +136,26 @@ export function withWikidata(existing: Award[], fresh: Award[] | null): Award[] 
   if (!fresh || !fresh.length) return null;
   const registry = existing.filter((a) => a.award === "National Film Registry");
   return mergeAwards([...fresh, ...registry]);
+}
+
+type FilmRow = { id: string; slug?: string | null; tmdb_id: number | null; year: number; awards: unknown };
+
+/** Fetches and saves one film's awards; true when Wikidata had some. */
+export async function refreshFilmAwards(db: SupabaseClient, f: FilmRow): Promise<boolean> {
+  if (!f.tmdb_id) return false;
+  const awards = withWikidata((f.awards ?? []) as Award[], await wikidataAwards(f.tmdb_id, f.year, await getImdbId(f.tmdb_id)));
+  if (!awards) return false;
+  const { error } = await db.from("films").update({ awards, updated_at: new Date().toISOString() }).eq("id", f.id);
+  return !error;
+}
+
+/** Refreshes films in small groups so Wikidata isn't sent too many requests at once. */
+export async function refreshAwardsBatch(db: SupabaseClient, films: FilmRow[]): Promise<FilmRow[]> {
+  const updated: FilmRow[] = [];
+  for (let i = 0; i < films.length; i += 4) {
+    const part = films.slice(i, i + 4);
+    const done = await Promise.all(part.map((f) => refreshFilmAwards(db, f)));
+    part.forEach((f, j) => { if (done[j]) updated.push(f); });
+  }
+  return updated;
 }

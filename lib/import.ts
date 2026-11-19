@@ -45,7 +45,7 @@ export async function importFilm(db: SupabaseClient, filmId: string, prefetched?
   const [color, people, fresh] = await Promise.all([
     !film.color && poster ? posterColour(poster) : Promise.resolve(null),
     savePeople(db, filmId, m),
-    wikidataAwards(tmdbId, film.year),
+    wikidataAwards(tmdbId, film.year, m.imdb_id),
   ]);
   if (color) update.color = color;
   // Awards and nominations come from Wikidata (TMDB has none), replacing older entries when found.

@@ -105,6 +105,7 @@ export type ImportedPerson = { tmdb_id: number; name: string; role: Role; charac
 
 export type ImportedFilm = {
   tmdb_id: number;
+  imdb_id?: string | null;
   title: string;
   original_title: string | null;
   year: number | null;
@@ -159,6 +160,7 @@ export async function getMovie(id: number): Promise<ImportedFilm> {
 
   return {
     tmdb_id: m.id,
+    imdb_id: m.imdb_id || null,
     title: m.title,
     original_title: m.original_title && m.original_title !== m.title ? m.original_title : null,
     year: m.release_date ? Number(m.release_date.slice(0, 4)) : null,
@@ -219,6 +221,11 @@ function parseWatch(providers: Record<string, any>): WatchOption[] {
 }
 
 /** Just a film's where-to-watch options, for refreshing them without a full import. */
+/** The film's IMDb id from TMDB, or null. */
+export async function getImdbId(id: number): Promise<string | null> {
+  try { const r = await get<{ imdb_id?: string | null }>(`/movie/${id}/external_ids`, {}, AbortSignal.timeout(6000)); return r.imdb_id || null; } catch { return null; }
+}
+
 export async function getWatch(id: number): Promise<WatchOption[]> {
   const data = await get<{ results: Record<string, any> }>(`/movie/${id}/watch/providers`);
   return parseWatch(data.results ?? {});
