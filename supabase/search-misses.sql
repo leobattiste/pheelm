@@ -17,13 +17,14 @@ grant select, update on public.search_misses to authenticated;
 
 create or replace function public.log_search_miss(q text) returns void
 language plpgsql security definer set search_path = '' as $$
-declare clean text := lower(btrim(regexp_replace(coalesce(q, ''), '\s+', ' ', 'g')));
+#variable_conflict use_column
+declare clean text := lower(btrim(regexp_replace(coalesce(log_search_miss.q, ''), '\s+', ' ', 'g')));
 begin
   if char_length(clean) < 3 or char_length(clean) > 120 then return; end if;
   -- Leave out anything that looks like an email address or a long number.
   if clean ~ '@.+\.' or clean ~ '\d{6,}' then return; end if;
   insert into public.search_misses as m (q) values (clean)
-  on conflict (q) do update set count = m.count + 1, last_at = now(), resolved = false;
+  on conflict on constraint search_misses_pkey do update set count = m.count + 1, last_at = now(), resolved = false;
 end $$;
 revoke all on function public.log_search_miss(text) from public;
 grant execute on function public.log_search_miss(text) to anon, authenticated;
