@@ -38,6 +38,9 @@ function Browser({ entries, mode, afterSearch }: {
     const inputId = useId();
     const historyKey = 'pheelm:catalog-search:' + mode + ':v1';
     useEffect(() => { setState(cleanState(new URLSearchParams(params), mode)); setShown(PAGE); }, [params, mode]);
+    // Films and Directors no longer have a search box: an old link with words in it opens Search.
+    const router = useRouter();
+    useEffect(() => { const q = new URLSearchParams(params).get('q')?.trim(); if (q) router.replace('/search?' + new URLSearchParams({ category: mode, q }).toString()); }, [params, mode, router]);
     useEffect(() => {
         if (mode !== 'films') { setVisitReady(true); return; }
         documentVisitId ??= crypto.randomUUID();
@@ -82,13 +85,13 @@ function Browser({ entries, mode, afterSearch }: {
     const active = filters.filter(k => state[k]);
     const proposal = useMemo(() => state.q && !index.some(i => relevance(i, state.q!) >= 900) ? interpretQuery(state.q, mode, facets) : null, [state.q, index, mode, facets]);
     const commit = (s: SearchState) => { const next = cleanState(new URLSearchParams(stateQuery(s)), mode); setState(next); setShown(PAGE); const q = stateQuery(next) + (mode === 'directors' && feed !== 'all' ? (stateQuery(next) ? '&' : '') + 'feed=' + feed : ''); window.history.replaceState(window.history.state, '', window.location.pathname + (q ? '?' + q : '')); };
-    useEffect(() => { if (mode === 'directors' && feed === 'following' && !followed) void chooseFeed('following'); }, []);
-    const chooseFeed = async (next: Feed) => {
+    useEffect(() => { if (mode === 'directors' && feed === 'following' && !followed) void chooseFeed('following', true); }, []);
+    const chooseFeed = async (next: Feed, fromLink = false) => {
         if (next === 'following') {
             const db = getBrowserClient();
             const { data } = db ? await db.auth.getSession() : { data: { session: null } };
             const id = data.session?.user.id;
-            if (!db || !id) { openSignIn('signup'); return; }
+            if (!db || !id) { if (fromLink) setFeed('all'); else openSignIn('signup'); return; }
             const { data: rows } = await db.from('follows').select('person_id').eq('user_id', id);
             setFollowed(new Set((rows ?? []).map((r: { person_id: string }) => r.person_id)));
         }

@@ -55,23 +55,6 @@ export const THEMES: { id: string; title: string; filters: Filters }[] = [
   { id: 'free', title: 'Free to stream', filters: { availability: 'free' } },
 ];
 
-/** One-tap filters under the search bar. Decades are a single chip each. */
-export const QUICK_FILTERS: { id: string; label: string; filters: Filters }[] = [
-  { id: 'free', label: 'Free to stream', filters: { availability: 'free' } },
-  { id: 'stream', label: 'Streaming', filters: { availability: 'stream' } },
-  { id: 'docs', label: 'Documentaries', filters: { type: 'documentary' } },
-  { id: 'shorts', label: 'Shorts', filters: { type: 'short' } },
-  { id: 'awards', label: 'Award winners', filters: { award: 'won' } },
-  ...[1960, 1970, 1980, 1990, 2000, 2010, 2020].map(d => ({ id: 'd' + d, label: d + 's', filters: { from: String(d), to: String(d + 9) } })),
-];
-export const quickActive = (state: UnifiedSearchState, f: Filters) => Object.entries(f).every(([k, v]) => state[k as UnifiedFilter] === v);
-export function toggleQuick(state: UnifiedSearchState, f: Filters): UnifiedSearchState {
-  const on = state.category === 'films' && quickActive(state, f);
-  const next: UnifiedSearchState = { ...state, category: 'films' };
-  for (const [k, v] of Object.entries(f)) next[k as UnifiedFilter] = on ? undefined : v;
-  return next;
-}
-
 /** Plain-English searches ("Nigerian films from the 90s", "short documentaries") turned into filters. */
 export function naturalFilters(q: string, films: SearchEntry[]): { q: string; filters: Filters } | null {
   if (q.trim().split(/\s+/).length < 2) return null;

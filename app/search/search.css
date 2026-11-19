@@ -37,11 +37,6 @@ html:root:root:root:root:root .unified-tabs .chip[aria-selected="true"] .chip-co
 .search-discovery .director-card > .follow, .search-discovery .director-card > .button { margin-top:var(--space-12); }
 
 /* Quick filters: one tap each, in a row that scrolls sideways. */
-.quick-filters { flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; margin:0 calc(-1 * var(--gutter)) var(--space-16); padding:0 var(--gutter); list-style:none; }
-.quick-filters::-webkit-scrollbar { display:none; }
-.quick-filters li { flex:none; }
-.quick-filters .chip { white-space:nowrap; }
-html:root:root:root:root:root .quick-filters .chip[aria-pressed="true"] { background:var(--ink) !important; color:var(--on-ink) !important; border-color:var(--ink) !important; }
 
 /* All: the best few of each kind, each with a way to see the rest. */
 .all-results { display:grid; gap:var(--space-40); }
@@ -49,7 +44,6 @@ html:root:root:root:root:root .quick-filters .chip[aria-pressed="true"] { backgr
 .all-section h2 { font-size:var(--t-xl, 22px); }
 
 /* Why a result matched. */
-.match-reason { margin-top:var(--space-8); color:var(--muted); font-size:var(--t-sm); }
 .film-card-extra { color:var(--muted); font-size:var(--t-sm); }
 
 /* Suggestions grouped by kind. */

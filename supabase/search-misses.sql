@@ -23,8 +23,13 @@ begin
   if char_length(clean) < 3 or char_length(clean) > 120 then return; end if;
   -- Leave out anything that looks like an email address or a long number.
   if clean ~ '@.+\.' or clean ~ '\d{6,}' then return; end if;
+  -- Anyone can call this, so new words stop being added once the list is long; known ones still count.
+  if (select count(*) from public.search_misses) >= 5000 and not exists (select 1 from public.search_misses s where s.q = clean) then return; end if;
   insert into public.search_misses as m (q) values (clean)
   on conflict on constraint search_misses_pkey do update set count = m.count + 1, last_at = now(), resolved = false;
 end $$;
 revoke all on function public.log_search_miss(text) from public;
 grant execute on function public.log_search_miss(text) to anon, authenticated;
+
+-- Who queued a film: covers the foreign key (the database advisor flags it otherwise).
+create index if not exists film_queue_created_by_idx on public.film_queue (created_by);

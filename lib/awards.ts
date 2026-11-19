@@ -80,7 +80,7 @@ export function mergeAwards(list: Award[]): Award[] {
 /** The film's awards from Wikidata; null if Wikidata could not be reached (try again later). */
 export async function wikidataAwards(tmdbId: number, filmYear: number): Promise<Award[] | null> {
   try {
-    const res = await fetch(ENDPOINT + "?format=json&query=" + encodeURIComponent(query(tmdbId)), { headers: HEADERS, signal: AbortSignal.timeout(20000), cache: "no-store" });
+    const res = await fetch(ENDPOINT + "?format=json&query=" + encodeURIComponent(query(tmdbId)), { headers: HEADERS, signal: AbortSignal.timeout(12000), cache: "no-store" });
     if (!res.ok) return null;
     const json = await res.json() as { results?: { bindings?: Record<string, { value: string }>[] } };
     const rows = (json.results?.bindings ?? []).map((b) => ({

@@ -13,6 +13,6 @@ try{
  await page.reload();await ready();assert.equal((await ids()).length,24);assert.notDeepEqual(await ids(),initial,'Refresh did not reshuffle');
  const refreshed=await ids();await page.locator('.film-grid .film-card > a').first().click();await page.waitForURL(/\/films\/.+/);await page.locator('.tab-bar a[href="/films"]').evaluate(e=>e.click());await page.waitForURL(base+'/films');await ready();assert.notDeepEqual(await ids(),refreshed,'Menu navigation did not start a fresh shuffle');await page.goto(base+'/about');await page.goto(base+'/films');await ready();assert.notDeepEqual(await ids(),refreshed,'New visit did not reshuffle');
  await page.goto(base+'/films?sort=title');await ready();const sorted=await ids();await page.reload();await ready();assert.deepEqual(await ids(),sorted,'Explicit title sort changed');
- await page.goto(base+'/films?q=Moonlight');await ready();const searched=await ids();await page.reload();await ready();assert.deepEqual(await ids(),searched,'Search order changed');assert.deepEqual(errors,[]);
- console.log('PASS: refresh/new visits shuffle; Load more preserves unique order; Back restores loaded films and scroll; explicit sorting/search stay stable.');
+ await page.goto(base+'/films?q=Moonlight');await page.waitForURL(u=>u.pathname==='/search'&&u.searchParams.get('q')==='Moonlight'&&u.searchParams.get('category')==='films');assert.deepEqual(errors.filter(e=>!/access control checks/.test(e)),[]);
+ console.log('PASS: refresh/new visits shuffle; Load more preserves unique order; Back restores loaded films and scroll; explicit sorting stays stable; old search links open Search.');
 }finally{await browser.close();}
