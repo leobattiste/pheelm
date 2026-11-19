@@ -2267,7 +2267,7 @@ html[data-chrome="app"] .film-bar { inset: auto auto var(--floating-bottom) 50%;
 }
 .film-card { min-width: 0; padding: var(--space-16); }
 .film-card > .quick-save { top: var(--space-24); right: var(--space-24); }
-[data-grid="small"] .film-card { padding: var(--space-12); }
+[data-grid="small"] .film-card:not(.row-track *) { padding: var(--space-12); }
 [data-grid="list"] .film-grid { gap: var(--space-8); border-top: 0; }
 :root[data-grid="list"] .film-grid .film-card > a,
 :root[data-grid="list"] .film-grid .film-card > a:hover {
@@ -2348,7 +2348,7 @@ html[data-chrome="app"] body:has(dialog:modal) .tab-bar { z-index: 1001; }
 
 /* Every list card uses the director portrait's 40 × 60px thumbnail size. */
 :root[data-grid="list"] { --list-thumb-w: 40px; --list-thumb-h: 60px; }
-:root[data-grid="list"] :is(.film-card .poster, .collection-fan .poster, .director-card .portrait) {
+:root[data-grid="list"] :is(.film-card .poster, .collection-fan .poster, .director-card .portrait):not(.row-track *) {
   width: var(--list-thumb-w);
   height: var(--list-thumb-h);
   min-width: 0;
@@ -2361,12 +2361,12 @@ html[data-chrome="app"] body:has(dialog:modal) .tab-bar { z-index: 1001; }
 
 /* List cards keep only their essential details, without empty metadata columns. */
 :root[data-grid="list"] .collection-tile > .collection-desc,
-:root[data-grid="list"] .film-card .film-card-runtime { display: none; }
+:root[data-grid="list"] .film-card:not(.row-track *) .film-card-runtime { display: none; }
 :root[data-grid="list"] .collection-tile > .collection-title { grid-row: 1 / span 2; align-self: center; }
 
 /* Match profile-card spacing: 16px in large grids, 12px in small and list views.
    List links add no second inset inside the card. */
-:root[data-grid="list"] .film-card { padding: var(--space-12); }
+:root[data-grid="list"] .film-card:not(.row-track *) { padding: var(--space-12); }
 :root[data-grid="list"] .film-grid .film-card > a { padding: 0; }
 
 /* Films sit directly on the page: only the poster and its information remain. */
@@ -3368,3 +3368,7 @@ html:root:root:root:root:root:root .product-option .button.ghost:not([aria-press
 }
 :root:root[data-grid="list"] .film-grid:not(:where(.watched-films-dialog *)) .film-card-meta .film-card-year { display: inline; }
 :root:root[data-grid="list"] .film-grid:not(:where(.watched-films-dialog *)) .film-card-col { display: none; }
+
+/* Sideways rows keep full posters whatever the grid switch says; it only changes grids. */
+/* Search keeps its title and intro when signed in. */
+html[data-auth="in"] .unified-search-page .intro-head { position: static; width: auto; height: auto; overflow: visible; clip: auto; clip-path: none; white-space: normal; margin-bottom: var(--space-24); }
