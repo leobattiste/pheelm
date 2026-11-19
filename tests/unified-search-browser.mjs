@@ -59,11 +59,11 @@ try {
   await page.route('https://pheelm.test/**',r=>r.fulfill({contentType:'text/html',body:`<html data-theme="${theme}" data-chrome="app"><meta charset="utf-8"><style>${css}</style><main class="page unified-search-page" id="root"></main><script>${script}</script></html>`}));
   await page.goto('https://pheelm.test/search');const input=page.locator('input[type=search]');await input.waitFor();
   assert.deepEqual(await page.locator('.search-discovery h2').allTextContents(),['Popular','Recently Added','Explore by Decade','Directors to Follow','From the Community']);
-  assert.equal(await page.locator('.search-discovery .row').nth(0).locator('.film-card').count(),12);
-  assert.equal(await page.locator('.search-discovery .row').nth(3).locator('.director-card').count(),1);
-  assert.equal(await page.locator('.search-discovery .row').nth(1).locator('.film-card-title').first().textContent(),'Film 43');
+  assert.equal(await page.locator('.search-discovery .all-section').nth(0).locator('.film-card').count(),6);
+  assert.equal(await page.locator('.search-discovery .all-section').nth(2).locator('.director-card').count(),1);
+  assert.equal(await page.locator('.search-discovery .all-section').nth(1).locator('.film-card-title').first().textContent(),'Film 43');
   assert.equal(await page.locator('.unified-controls').count(),0);
-  assert.equal(await page.locator('.search-discovery .row').nth(1).locator('.film-card').count(),12);
+  assert.equal(await page.locator('.search-discovery .all-section').nth(1).locator('.film-card').count(),6);assert.equal(await page.locator('.search-discovery .film-grid').count(),2,'films are in list grids, not sideways rows');assert.equal(await page.locator('.search-discovery .row-track .film-card').count(),0);
   assert.equal(await page.locator('.search-discovery a[href="/watchlists/private-list"]').count(),0);
   assert.ok(await page.locator('.search-genres a').first().getAttribute('href').then(h=>h.includes('genre=')));
   assert.equal(await input.getAttribute('placeholder'),'Search films, directors, watchlists, and members…');

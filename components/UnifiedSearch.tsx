@@ -24,6 +24,8 @@ type Recent = {label:string;state:UnifiedSearchState};
 const FILTER_LABELS:Record<UnifiedFilter,string>={genre:'Genre',country:'Country',language:'Language',from:'From year',to:'Through year',minRuntime:'Minimum runtime',maxRuntime:'Maximum runtime',type:'Film type',award:'Awards',festival:'Award or festival',provider:'Provider',region:'Region',availability:'Availability',min:'Minimum films',max:'Maximum films',updated:'Recently updated',services:'On my services',following:'Members you follow',followsYou:'Members following you'};
 const NUMERIC = new Set(['from','to','minRuntime','maxRuntime','min','max']);
 
+function DiscoverySection({title,children}:{title:string;children:React.ReactNode}){return <section className="all-section"><div className="row-head"><h2>{title}</h2></div>{children}</section>;}
+
 export default function UnifiedSearch({initialData}:{initialData:UnifiedSearchData}) {
  const router=useRouter();
  const params=useSearchParams().toString();
@@ -200,13 +202,13 @@ export default function UnifiedSearch({initialData}:{initialData:UnifiedSearchDa
   {!activeSearch&&<>
    <ul className="chip-row search-genres" aria-label="Genres">{genres.map(genre=><li key={genre}><Link className="chip" href={"/films?"+new URLSearchParams({genre})}>{genre}</Link></li>)}</ul>
    <div className="search-discovery">
-   <Row title="Popular">{popularFilms.map(entry=>entry.film?<FilmCard key={entry.id} film={entry.film}/>:null)}{!popularFilms.length&&<li className="muted">Popular films are unavailable right now.</li>}</Row>
-   <Row title="Recently Added">{recentFilms.map(entry=>entry.film?<FilmCard key={entry.id} film={entry.film}/>:null)}</Row>
+   <DiscoverySection title="Popular">{popularFilms.length?<FilmGrid films={popularFilms.slice(0,6).flatMap(e=>e.film?[e.film]:[])} priority={6}/>:<p className="muted">Popular films are unavailable right now.</p>}</DiscoverySection>
+   <DiscoverySection title="Recently Added"><FilmGrid films={recentFilms.slice(0,6).flatMap(e=>e.film?[e.film]:[])}/></DiscoverySection>
    {decades.length>0&&<Row title="Explore by Decade" className="search-decades">{decades.map(d=><li key={d.decade}><Link className={"decade-card era-"+eraOf(d.decade)} href={'/search?'+unifiedQuery({category:'films',q:'',from:String(d.decade),to:String(d.decade+9)})} onClick={e=>{e.preventDefault();commit({category:'films',q:'',from:String(d.decade),to:String(d.decade+9)});window.scrollTo(0,0);}}><span className="decade-name">{d.decade}s</span><span className="decade-count">{d.count} films</span></Link></li>)}</Row>}
-   <Row title="Directors to Follow">{suggestedDirectors.map(entry=>entry.director?<DirectorCard key={entry.id} director={entry.director}/>:null)}{!suggestedDirectors.length&&<li className="muted">You’re following all eligible directors. Check back for new additions.</li>}</Row>
-   <Row title="From the Community">{community.map(list=><CommunityTile key={list.id} c={list.tile} filmCount={list.filmIds.length}/>)}{!community.length&&<li className="muted">No public watchlists yet.</li>}</Row>
-   {recs&&recs.byFollowed.length>0&&<Row title="From directors you follow">{recs.byFollowed.map(e=>e.film?<FilmCard key={e.id} film={e.film}/>:null)}</Row>}
-   {recs&&recs.fromPeople.length>0&&<Row title="Saved by people you follow">{recs.fromPeople.map(e=>e.film?<FilmCard key={e.id} film={e.film}/>:null)}</Row>}
+   <DiscoverySection title="Directors to Follow">{suggestedDirectors.length?<ul className="director-grid" aria-label="Directors to follow">{suggestedDirectors.slice(0,4).map(entry=>entry.director?<DirectorCard key={entry.id} director={entry.director}/>:null)}</ul>:<p className="muted">You’re following all eligible directors. Check back for new additions.</p>}</DiscoverySection>
+   <DiscoverySection title="From the Community">{community.length?<ul className="collection-list" aria-label="Community watchlists">{community.slice(0,4).map(list=><CommunityTile key={list.id} c={list.tile} filmCount={list.filmIds.length}/>)}</ul>:<p className="muted">No public watchlists yet.</p>}</DiscoverySection>
+   {recs&&recs.byFollowed.length>0&&<DiscoverySection title="From directors you follow"><FilmGrid films={recs.byFollowed.slice(0,6).flatMap(e=>e.film?[e.film]:[])}/></DiscoverySection>}
+   {recs&&recs.fromPeople.length>0&&<DiscoverySection title="Saved by people you follow"><FilmGrid films={recs.fromPeople.slice(0,6).flatMap(e=>e.film?[e.film]:[])}/></DiscoverySection>}
   </div></>}
   {activeSearch&&<>
   <div className="unified-controls">

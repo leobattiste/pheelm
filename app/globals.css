@@ -3414,5 +3414,8 @@ html:root:root:root:root:root:root .product-option .button.ghost:not([aria-press
 .catalog-pill { position: relative; flex: none; display: inline-flex; align-items: center; gap: var(--space-8); white-space: nowrap; cursor: pointer; }
 .catalog-pill > svg { width: 16px; height: 16px; flex: none; }
 .catalog-pill select { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; background: transparent; opacity: 0; font-size: 16px; cursor: pointer; }
-.catalog-pill:focus-within { outline: 2px solid var(--ink); outline-offset: 2px; }
+/* No ring after a tap (it was clipped by the scrolling row). Keyboard focus gets an inset one. */
+.catalog-pill:focus-within { outline: none; }
+.catalog-pill:has(select:focus-visible) { outline: 2px solid var(--ink); outline-offset: -2px; }
+:root[data-focus-input="touch"] .catalog-pill:has(select:focus-visible) { outline: none; }
 html:root:root:root:root:root .catalog-pill.is-set { background: var(--ink) !important; color: var(--on-ink) !important; border-color: var(--ink) !important; }
