@@ -3370,3 +3370,29 @@ html:root:root:root:root:root:root .product-option .button.ghost:not([aria-press
 :root:root[data-grid="list"] .film-grid:not(:where(.watched-films-dialog *)) .film-card-col { display: none; }
 
 /* Sideways rows keep full posters whatever the grid switch says; it only changes grids. */
+
+/* Loading skeletons: the real layout, in soft pulsing blocks. */
+.skeleton-page { pointer-events: none; }
+.skeleton-page .profile-skeleton-block, .product-grid .profile-skeleton-block { border-radius: var(--r-media); }
+.skeleton-line { display: block; width: 70%; height: 14px; border-radius: 999px !important; }
+.skeleton-line.is-wide { width: 92%; }
+.skeleton-line.is-short { width: 38%; }
+.skeleton-title { display: block; width: 46%; height: 32px; margin-bottom: var(--space-12); border-radius: 10px !important; }
+.skeleton-title.is-big { width: 80%; height: 44px; }
+.skeleton-heading { width: 40%; height: 24px; }
+.skeleton-head { display: grid; gap: var(--space-8); }
+.skeleton-toolbar { display: flex; gap: var(--space-12); margin-bottom: var(--space-24); }
+.skeleton-bar { flex: 1; height: var(--bar-height, 52px); border-radius: var(--pill) !important; }
+.skeleton-round { flex: none; width: var(--bar-height, 52px); height: var(--bar-height, 52px); border-radius: 50% !important; }
+.skeleton-pills { display: flex; gap: var(--space-8); margin: var(--space-16) 0 var(--space-24); }
+.skeleton-pill { width: 110px; height: var(--control, 44px); border-radius: var(--pill) !important; }
+.skeleton-text { display: grid; gap: var(--space-12); margin: var(--space-16) 0 var(--space-32); }
+.skeleton-card-link { display: grid; gap: var(--space-8); }
+.skeleton-page .film-card .poster { margin-bottom: var(--space-4); }
+.skeleton-page .collection-tile, .skeleton-page .director-card .collection-tile { cursor: default; }
+.skeleton-row { margin-inline: calc(-1 * var(--gutter)); margin-bottom: var(--space-40); }
+.skeleton-row .row-head { padding: 0 var(--gutter); margin-bottom: var(--space-12); }
+.product-grid .product-card { display: grid; gap: var(--space-8); }
+.admin-skeleton { padding: var(--space-24) 0; }
+.admin-skeleton .admin-row { display: block; padding: var(--space-16); }
+.admin-skeleton .admin-row-main { display: grid; gap: var(--space-8); }
