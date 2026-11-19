@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import { build } from 'esbuild';
+const out = await build({ entryPoints: ['lib/awards.ts'], bundle: true, write: false, format: 'esm', platform: 'node', plugins: [{ name: 'so', setup(b) { b.onResolve({ filter: /^server-only$/ }, () => ({ path: 'so', namespace: 'so' })); b.onLoad({ filter: /.*/, namespace: 'so' }, () => ({ contents: '' })); } }] });
+const { toAward, mergeAwards, withWikidata } = await import('data:text/javascript;base64,' + Buffer.from(out.outputFiles[0].text).toString('base64'));
+assert.deepEqual(toAward({ kind: 'won', award: 'Academy Award for Best Picture', time: '2017-02-26T00:00:00Z' }, 2016), { award: 'Academy Awards', category: 'Best Picture', result: 'won', year: 2017 });
+assert.deepEqual(toAward({ kind: 'won', award: 'Academy Award for Best Supporting Actor', person: 'Mahershala Ali', eventTime: '2017-02-26T00:00:00Z' }, 2016), { award: 'Academy Awards', category: 'Best Supporting Actor: Mahershala Ali', result: 'won', year: 2017 });
+assert.deepEqual(toAward({ kind: 'won', award: "Palme d'Or", by: 'Cannes Film Festival' }, 1966), { award: 'Cannes Film Festival', category: "Palme d'Or", result: 'won', year: 1966 });
+assert.deepEqual(toAward({ kind: 'nominated', award: 'Golden Globe Award for Best Motion Picture – Drama' }, 2016).award, 'Golden Globe Awards');
+assert.equal(toAward({ kind: 'won', award: 'Q123' }, 2000), null);
+const merged = mergeAwards([{ award: 'A', category: 'B', result: 'nominated', year: 1 }, { award: 'A', category: 'B', result: 'won', year: 1 }]);
+assert.equal(merged.length, 1); assert.equal(merged[0].result, 'won');
+assert.equal(withWikidata([{ award: 'X', category: '', result: 'won', year: 1 }], []), null);
+assert.equal(withWikidata([{ award: 'National Film Registry', category: '', result: 'won', year: 2020 }], [{ award: 'A', category: 'B', result: 'won', year: 1 }]).length, 2);
+console.log('PASS: Wikidata awards map to award families, categories, people and years; wins replace nominations; empty results keep existing awards');

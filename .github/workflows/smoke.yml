@@ -39,6 +39,7 @@ jobs:
       - run: node tests/global-search-navigation-browser.mjs
       - run: node tests/member-follow-browser.mjs
       - run: node tests/catalog-search.mjs
+      - run: node tests/awards.mjs
       - run: node tests/film-popularity.mjs
       - run: node tests/films-popular-browser.mjs
       - run: node tests/film-list-cards-browser.mjs

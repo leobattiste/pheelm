@@ -1,3 +1,4 @@
+import AwardsDialog from "@/components/AwardsDialog";
 import { pageMetadata, privateMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -211,20 +212,17 @@ export default async function FilmPage({ params }: Params) {
               ))}
             </dl>
           </section>
-          {/* 3. Awards: wins first, nominations folded away. Left out when there are none. */}
+          {/* 3. Awards: the first two (wins first), then every win and nomination in a sheet. */}
           {(wins.length > 0 || noms.length > 0) && (
             <section className="film-section" aria-labelledby="awards-h">
               <h2 id="awards-h">Awards</h2>
-              {wins.length > 0 && <AwardList awards={wins} />}
-              {noms.length > 0 && (wins.length > 0 ? (
-                <details className="more">
-                  <summary className="button ghost small">
-                    <span className="more-closed">Show {noms.length} {noms.length === 1 ? "nomination" : "nominations"}</span>
-                    <span className="more-open">Hide nominations</span>
-                  </summary>
-                  <AwardList awards={noms} />
-                </details>
-              ) : <AwardList awards={noms} />)}
+              <AwardList awards={[...wins, ...noms].slice(0, 2)} />
+              {wins.length + noms.length > 2 && (
+                <AwardsDialog total={wins.length + noms.length} title={`Awards for ${film.title}`}>
+                  {wins.length > 0 && <><h3 className="awards-group">{wins.length} {wins.length === 1 ? "win" : "wins"}</h3><AwardList awards={wins} /></>}
+                  {noms.length > 0 && <><h3 className="awards-group">{noms.length} {noms.length === 1 ? "nomination" : "nominations"}</h3><AwardList awards={noms} /></>}
+                </AwardsDialog>
+              )}
             </section>
           )}
 

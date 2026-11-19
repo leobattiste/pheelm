@@ -5,6 +5,7 @@ import { tmdbEnabled } from "@/lib/tmdb";
 import BulkImport from "../BulkImport";
 import PeopleFill from "../PeopleFill";
 import WatchRefresh from "../WatchRefresh";
+import AwardsRefresh from "../AwardsRefresh";
 
 export default async function AutomationPage() {
   const { db } = await requireAdmin("/admin/automation");
@@ -30,6 +31,9 @@ export default async function AutomationPage() {
       </Panel>
       <Panel title="Fill people details" icon="users2">
         <PeopleFill waiting={peopleWaiting ?? 0} />
+      </Panel>
+      <Panel title="Update awards and nominations" icon="laurel">
+        <AwardsRefresh />
       </Panel>
       <Panel title="Refresh where to watch" icon="play">
         <WatchRefresh />

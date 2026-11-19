@@ -3405,3 +3405,8 @@ html:root:root:root:root:root:root .product-option .button.ghost:not([aria-press
 /* Films: a Filters button fills the bar, Sort sits beside it. Directors use the Watchlists bar. */
 .catalog-toolbar .catalog-filters { flex: 1; min-width: 0; width: auto; justify-content: center; gap: var(--space-8); }
 .catalog-toolbar .catalog-filters .badge { flex: none; min-width: 24px; height: 24px; padding: 0 6px; }
+
+/* Film page awards: two shown, the rest in a sheet. */
+.film-section .awards-all { margin-top: var(--space-16); }
+.awards-dialog .awards-group { margin: var(--space-24) 0 var(--space-12); font-size: var(--t-md); }
+.awards-dialog .awards-group:first-child { margin-top: 0; }

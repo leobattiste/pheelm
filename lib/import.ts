@@ -1,9 +1,10 @@
 import "server-only";
+import { wikidataAwards, withWikidata } from "./awards";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import sharp from "sharp";
 import { slugify } from "./format";
 import { findByDirector, findMovie, getMovie, getPersonDetails, searchMovies, type ImportedFilm } from "./tmdb";
-import type { WatchOption } from "./types";
+import type { Award, WatchOption } from "./types";
 
 const isTmdbLink = (url: string) => url.includes("themoviedb.org") || url.includes("justwatch.com");
 
@@ -41,11 +42,15 @@ export async function importFilm(db: SupabaseClient, filmId: string, prefetched?
   // The page tint comes from the poster, unless a colour was picked by hand. Measured while the
   // people are saved, since both take a moment.
   const poster = (update.poster_url as string | undefined) ?? film.poster_url;
-  const [color, people] = await Promise.all([
+  const [color, people, fresh] = await Promise.all([
     !film.color && poster ? posterColour(poster) : Promise.resolve(null),
     savePeople(db, filmId, m),
+    wikidataAwards(tmdbId, film.year),
   ]);
   if (color) update.color = color;
+  // Awards and nominations come from Wikidata (TMDB has none), replacing older entries when found.
+  const awards = withWikidata((film.awards ?? []) as Award[], fresh);
+  if (awards) update.awards = awards;
   const { error: upErr } = await db.from("films").update(update).eq("id", filmId);
   if (upErr) {
     if (upErr.code === "23505") throw new Error(`Another film already uses TMDB id ${tmdbId}.`);
@@ -58,11 +63,12 @@ export async function importFilm(db: SupabaseClient, filmId: string, prefetched?
   const todo = people.rows.filter((p) => ("details_at" in p ? !p.details_at : !p.bio || !p.birth_year || !p.photo_url));
   await inBatches(todo, 10, (p) => fillPerson(db, p));
 
-  const filled = Object.keys(update).filter((k) => !["tmdb_id", "watch", "updated_at", "color", "type"].includes(k));
+  const filled = Object.keys(update).filter((k) => !["tmdb_id", "watch", "updated_at", "color", "type", "awards"].includes(k));
   const parts = [
     filled.length ? `filled ${filled.map((k) => k.replace("_url", "").replace("_", " ")).join(", ")}` : "nothing empty to fill",
     `${added} new credits`,
     `${m.watch.length} viewing options`,
+    `${awards?.length ?? 0} awards from Wikidata`,
   ];
   return `${film.title}: ${parts.join(" · ")}.`;
 }

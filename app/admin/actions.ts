@@ -10,6 +10,7 @@ import { logAdminActivity } from "@/lib/admin-activity";
 import { slugify } from "@/lib/format";
 import { addFilmByTitle, fillPerson, importFilm, posterColour, type AddResult } from "@/lib/import";
 import { getWatch, tmdbEnabled } from "@/lib/tmdb";
+import { wikidataAwards, withWikidata } from "@/lib/awards";
 import type { Award, Role, WatchOption } from "@/lib/types";
 
 export type Result = { ok: boolean; message: string };
@@ -242,6 +243,29 @@ export async function refreshWatch(offset: number): Promise<Result & { next: num
     return { ok: true, message: `Refreshed ${next} of ${count ?? 0}.`, next, total: count ?? 0 };
   } catch (e) {
     return { ...fail(e), next: offset, total: 0 };
+  }
+}
+
+/** Updates every TMDB-linked film's awards and nominations from Wikidata, ten films at a time. */
+export async function refreshAwards(offset: number): Promise<Result & { next: number; total: number; updated: number }> {
+  try {
+    const db = await adminClient();
+    const { count } = await db.from("films").select("*", { count: "exact", head: true }).not("tmdb_id", "is", null);
+    const { data } = await db.from("films").select("id, tmdb_id, year, awards").not("tmdb_id", "is", null).order("id").range(offset, offset + 9);
+    const updated = (await Promise.all((data ?? []).map(async (f) => {
+      const awards = withWikidata((f.awards ?? []) as Award[], await wikidataAwards(f.tmdb_id as number, f.year as number));
+      if (!awards) return 0;
+      const { error } = await db.from("films").update({ awards, updated_at: new Date().toISOString() }).eq("id", f.id);
+      return error ? 0 : 1;
+    }))).reduce<number>((a, b) => a + b, 0);
+    const next = offset + (data?.length ?? 0);
+    if (next >= (count ?? 0)) {
+      await logAdminActivity(db, "Updated awards from Wikidata", "film", null, `${count ?? 0} films checked`);
+      refresh();
+    }
+    return { ok: true, message: `Checked ${next} of ${count ?? 0}.`, next, total: count ?? 0, updated };
+  } catch (e) {
+    return { ...fail(e), next: offset, total: 0, updated: 0 };
   }
 }
 
