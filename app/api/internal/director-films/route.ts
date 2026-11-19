@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
   if (!tmdbEnabled) return json({ error: "TMDB_API_KEY is not set." }, 503);
   // preview: look up and report, queue nothing. A director given by name only is found on TMDB
   // when exactly one director has that name. min_votes: how established a film must be (default 20).
-  const body = await request.json().catch(() => ({})) as { directors?: { tmdb_id?: unknown; name?: unknown }[]; preview?: boolean; min_votes?: number };
+  const body = await request.json().catch(() => ({})) as { directors?: { tmdb_id?: unknown; name?: unknown }[]; preview?: boolean; full?: boolean; min_votes?: number };
   const minVotes = Math.max(1, Math.min(100, Number(body.min_votes) || 20));
   const directors = (body.directors ?? []).flatMap((d) => typeof d.name === "string" ? [{ tmdb_id: Number.isInteger(d.tmdb_id) ? d.tmdb_id as number : null, name: d.name.slice(0, 200) }] : []).slice(0, 25);
   let queued = 0, found = 0;
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
       const known = new Set((have ?? []).map((r) => r.tmdb_id));
       const missing = films.filter((f) => !known.has(f.id));
       found += missing.length;
-      report.push({ name: d.name, tmdb_id: person.id, films: missing.length, sample: missing.slice(0, 4).map((f) => `${f.title} (${f.year})`) });
+      report.push({ name: d.name, tmdb_id: person.id, films: missing.length, sample: (body.full ? missing : missing.slice(0, 4)).map((f) => `${f.title} (${f.year})`) });
       if (body.preview) continue;
       for (const f of missing) {
         // The queue's unique title-and-year rule skips films already waiting.
