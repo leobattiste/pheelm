@@ -3,6 +3,7 @@ import { unstable_cache } from "next/cache";
 import { avoidPrevious, mondayWeek, RECOGNIZED_FILMS, weeklyPopular } from "./search-discovery";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getFilms, getDirectors } from "./data";
+import { getPopularMovieIds, rankPopularFilms } from "./film-popularity";
 import { filmSearchEntry, directorSearchEntry } from "./search-data";
 import { getServerClient } from "./supabase/server";
 import type { Film } from "./types";
@@ -139,7 +140,9 @@ export async function getUnifiedSearchData(): Promise<UnifiedSearchData> {
   const previous=await weeklyOrder(week-1,async()=>weeklyPopular(published,new Date(now.getTime()-604800000),RECOGNIZED_FILMS.length).map(f=>f.id));
   const weeklyIds=await weeklyOrder(week,async()=>avoidPrevious(weeklyPopular(published,now,RECOGNIZED_FILMS.length).map(f=>f.id),previous));
   return {
-    popularFilmIds: weeklyIds.filter(id=>filmById.has(id)).slice(0,12),
+    // Popular worldwide right now (TMDB's global chart), then well-known classics if the chart
+    // has too few of the catalog's films.
+    popularFilmIds: [...new Set([...rankPopularFilms(published, await getPopularMovieIds(), 12).map(f=>f.id), ...weeklyIds.filter(id=>filmById.has(id))])].slice(0,12),
     followedDirectorIds: followedDirectors.map(row=>row.person_id),
     films: published.map(film=>({...filmSearchEntry(film),added:Date.parse(film.published_at??film.created_at??"")||0})),
     directors: visibleDirectors.map(director => ({

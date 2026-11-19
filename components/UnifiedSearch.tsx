@@ -6,7 +6,6 @@ import { useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'r
 import Icon from './Icon';
 import FilmCard, { FilmGrid } from './FilmCard';
 import Row from './Row';
-import FollowButton from './FollowButton';
 import { recentlyAdded } from '@/lib/search-discovery';
 import DirectorCard from './DirectorCard';
 import CommunityTile from './CommunityTile';
@@ -15,10 +14,12 @@ import MemberFollowButton from './MemberFollowButton';
 import FilterSelect from './FilterSelect';
 import { getBrowserClient } from '@/lib/supabase/client';
 import { countryName } from '@/lib/format';
-import { QUICK_FILTERS, SERVICES_KEY, THEMES, matchReason, naturalFilters, quickActive, recommendations, toggleQuick } from '@/lib/search-extras';
+import { QUICK_FILTERS, SERVICES_KEY, matchReason, naturalFilters, quickActive, recommendations, toggleQuick } from '@/lib/search-extras';
 import { VIEWS, defaultView, type SearchView, CATEGORY_LABELS, CATEGORIES, CATEGORY_FILTERS, UNIFIED_SORTS, activeUnifiedFilters, cleanUnifiedState, indexUnified, searchUnified, unifiedCorrection, unifiedFacets, unifiedFilterLabel, unifiedQuery, type SearchCategory, type UnifiedFilter, type UnifiedResult, type UnifiedSearchData, type UnifiedSearchState } from '@/lib/unified-search';
 
 const PAGE = 36;
+/** Which era's look a decade card gets. */
+const eraOf=(d:number)=>d<1950?'early':d<1960?'50s':d<1970?'60s':d<1980?'70s':d<1990?'80s':d<2000?'90s':d<2010?'00s':d<2020?'10s':'20s';
 type Recent = {label:string;state:UnifiedSearchState};
 const FILTER_LABELS:Record<UnifiedFilter,string>={genre:'Genre',country:'Country',language:'Language',from:'From year',to:'Through year',minRuntime:'Minimum runtime',maxRuntime:'Maximum runtime',type:'Film type',award:'Awards',festival:'Award or festival',provider:'Provider',region:'Region',availability:'Availability',min:'Minimum films',max:'Maximum films',updated:'Recently updated',services:'On my services',following:'Members you follow',followsYou:'Members following you'};
 const NUMERIC = new Set(['from','to','minRuntime','maxRuntime','min','max']);
@@ -60,11 +61,13 @@ export default function UnifiedSearch({initialData}:{initialData:UnifiedSearchDa
  const categoryCounts:Record<SearchView,number>={all:total,...Object.fromEntries(CATEGORIES.map(c=>[c,perCategory[c].length]))} as Record<SearchView,number>;
  const empty=state.category==='all'?total===0:results.length===0;
  const recs=useMemo(()=>data.signedIn?recommendations(data):null,[data]);
- const themes=useMemo(()=>THEMES.map(t=>({...t,count:searchUnified(indexes.films,{category:'films',q:'',...t.filters}).length})).filter(t=>t.count>=3),[indexes]);
  const natural=useMemo(()=>(state.category==='all'||state.category==='films')&&deferred.q.trim()?naturalFilters(deferred.q,data.films as never):null,[deferred.q,state.category,data.films]);
  const recentFilms=useMemo(()=>recentlyAdded(data.films),[data.films]);
  const popularFilms=(data.popularFilmIds??[]).flatMap(id=>data.films.find(f=>f.id===id)??[]);
- const suggestedDirectors=data.directors.filter(d=>d.count>=3&&!(data.followedDirectorIds??[]).includes(d.id)).slice(0,12);
+ // Directors with three or more films, in a new order each UTC day.
+ const day=Math.floor(Date.now()/86400000);
+ const suggestedDirectors=useMemo(()=>{const rank=(id:string)=>{let h=2166136261^day;for(const c of id)h=Math.imul(h^c.charCodeAt(0),16777619);return h>>>0;};return data.directors.filter(d=>d.count>=3&&!(data.followedDirectorIds??[]).includes(d.id)).sort((a,b)=>rank(a.id)-rank(b.id)).slice(0,12);},[data.directors,data.followedDirectorIds,day]);
+ const decades=useMemo(()=>{const m=new Map<number,number>();for(const f of data.films)for(const y of f.years)m.set(Math.floor(y/10)*10,(m.get(Math.floor(y/10)*10)??0)+1);return [...m.entries()].filter(([,c])=>c>=3).sort((a,b)=>a[0]-b[0]).map(([decade,count])=>({decade,count}));},[data.films]);
  const community=data.watchlists.filter(w=>w.is_public&&w.filmIds.length>0).sort((a,b)=>b.updated_at.localeCompare(a.updated_at)).slice(0,12);
  const genres=[...new Set(data.films.flatMap(f=>f.genres))].sort((a,b)=>a.localeCompare(b));
  // Suggestions: a few from each category, in one list the arrow keys move through.
@@ -191,16 +194,17 @@ export default function UnifiedSearch({initialData}:{initialData:UnifiedSearchDa
   </div>
   {searching&&state.category!=='all'&&<button type="button" className={"button ghost filter-button"+(activeFilters.length?" has-count":"")} aria-haspopup="dialog" aria-controls={id+'-filters'} aria-expanded={filtersOpen} onClick={()=>{setSuggestionsOpen(false);setFiltersOpen(true);dialog.current?.showModal();}}><Icon name="filter"/><span className="filter-label">Filters</span>{activeFilters.length>0&&<span className="badge" aria-label={activeFilters.length+' active filters'}>{activeFilters.length}</span>}</button>}
   </div>
-  {!activeSearch&&<div className="search-discovery">
-   {recs&&recs.byFollowed.length>0&&<Row title="From directors you follow">{recs.byFollowed.map(e=>e.film?<FilmCard key={e.id} film={e.film}/>:null)}</Row>}
-   {recs&&recs.fromPeople.length>0&&<Row title="Saved by people you follow">{recs.fromPeople.map(e=>e.film?<FilmCard key={e.id} film={e.film}/>:null)}</Row>}
+  {!activeSearch&&<>
+   <ul className="chip-row search-genres" aria-label="Genres">{genres.map(genre=><li key={genre}><Link className="chip" href={"/films?"+new URLSearchParams({genre})}>{genre}</Link></li>)}</ul>
+   <div className="search-discovery">
    <Row title="Popular">{popularFilms.map(entry=>entry.film?<FilmCard key={entry.id} film={entry.film}/>:null)}{!popularFilms.length&&<li className="muted">Popular films are unavailable right now.</li>}</Row>
    <Row title="Recently Added">{recentFilms.map(entry=>entry.film?<FilmCard key={entry.id} film={entry.film}/>:null)}</Row>
-   {themes.length>0&&<Row title="Explore by Theme" className="search-themes">{themes.map(t=><li key={t.id}><Link className="theme-tile" href={'/search?'+unifiedQuery({category:'films',q:'',...t.filters})} onClick={e=>{e.preventDefault();commit({category:'films',q:'',...t.filters});window.scrollTo(0,0);}}><span className="theme-title">{t.title}</span><span className="muted">{t.count} films</span></Link></li>)}</Row>}
-   <Row title="Directors to Follow">{suggestedDirectors.map(entry=>entry.director?<DirectorCard key={entry.id} director={entry.director} footer={<FollowButton key={data.viewerId??"visitor"} personId={entry.id} name={entry.title} onChange={following=>setData(current=>current.viewerId!==data.viewerId?current:({...current,followedDirectorIds:following?[...new Set([...(current.followedDirectorIds??[]),entry.id])]:(current.followedDirectorIds??[]).filter(id=>id!==entry.id)}))}/>}/>:null)}{!suggestedDirectors.length&&<li className="muted">You’re following all eligible directors. Check back for new additions.</li>}</Row>
+   {decades.length>0&&<Row title="Explore by Decade" className="search-decades">{decades.map(d=><li key={d.decade}><Link className={"decade-card era-"+eraOf(d.decade)} href={'/search?'+unifiedQuery({category:'films',q:'',from:String(d.decade),to:String(d.decade+9)})} onClick={e=>{e.preventDefault();commit({category:'films',q:'',from:String(d.decade),to:String(d.decade+9)});window.scrollTo(0,0);}}><span className="decade-name">{d.decade}s</span><span className="decade-count">{d.count} films</span></Link></li>)}</Row>}
+   <Row title="Directors to Follow">{suggestedDirectors.map(entry=>entry.director?<DirectorCard key={entry.id} director={entry.director}/>:null)}{!suggestedDirectors.length&&<li className="muted">You’re following all eligible directors. Check back for new additions.</li>}</Row>
    <Row title="From the Community">{community.map(list=><CommunityTile key={list.id} c={list.tile} filmCount={list.filmIds.length}/>)}{!community.length&&<li className="muted">No public watchlists yet.</li>}</Row>
-   <Row title="Explore by Genre" className="search-genres">{genres.map(genre=><li key={genre}><Link className="chip" href={"/films?"+new URLSearchParams({genre})}>{genre}</Link></li>)}</Row>
-  </div>}
+   {recs&&recs.byFollowed.length>0&&<Row title="From directors you follow">{recs.byFollowed.map(e=>e.film?<FilmCard key={e.id} film={e.film}/>:null)}</Row>}
+   {recs&&recs.fromPeople.length>0&&<Row title="Saved by people you follow">{recs.fromPeople.map(e=>e.film?<FilmCard key={e.id} film={e.film}/>:null)}</Row>}
+  </div></>}
   {activeSearch&&<>
   <div className="unified-controls">
    <div role="tablist" aria-label="Search category" className="unified-tabs chip-row">{VIEWS.filter(v=>v!=='all'||searching).map((category,i,views)=><button key={category} type="button" role="tab" id={id+'-tab-'+category} aria-selected={state.category===category} aria-controls={id+'-results'} tabIndex={state.category===category?0:-1} className="chip" onClick={()=>switchCategory(category)} onKeyDown={e=>{let next=-1;if(e.key==='ArrowRight')next=(i+1)%views.length;if(e.key==='ArrowLeft')next=(i+views.length-1)%views.length;if(e.key==='Home')next=0;if(e.key==='End')next=views.length-1;if(next>=0){e.preventDefault();switchCategory(views[next]);document.getElementById(id+'-tab-'+views[next])?.focus();}}}>{CATEGORY_LABELS[category]}{searching&&<> <span className="chip-count">{categoryCounts[category]}</span></>}</button>)}</div>

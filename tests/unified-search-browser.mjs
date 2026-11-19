@@ -58,7 +58,7 @@ try {
   const page=await browser.newPage({viewport:{width,height:900},reducedMotion:'reduce'});const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.route('https://pheelm.test/**',r=>r.fulfill({contentType:'text/html',body:`<html data-theme="${theme}" data-chrome="app"><meta charset="utf-8"><style>${css}</style><main class="page unified-search-page" id="root"></main><script>${script}</script></html>`}));
   await page.goto('https://pheelm.test/search');const input=page.locator('input[type=search]');await input.waitFor();
-  assert.deepEqual(await page.locator('.search-discovery h2').allTextContents(),['Popular','Recently Added','Explore by Theme','Directors to Follow','From the Community','Explore by Genre']);
+  assert.deepEqual(await page.locator('.search-discovery h2').allTextContents(),['Popular','Recently Added','Explore by Decade','Directors to Follow','From the Community']);
   assert.equal(await page.locator('.search-discovery .row').nth(0).locator('.film-card').count(),12);
   assert.equal(await page.locator('.search-discovery .row').nth(3).locator('.director-card').count(),1);
   assert.equal(await page.locator('.search-discovery .row').nth(1).locator('.film-card-title').first().textContent(),'Film 43');
