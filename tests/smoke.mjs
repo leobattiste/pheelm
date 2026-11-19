@@ -42,10 +42,12 @@ await check("films page lists films and filters them", async () => {
   await page.goto(BASE + "/films", { waitUntil: "networkidle" });
   const all = (await page.$$(".film-grid .film-card")).length;
   expect(all > 0, "no films");
-  await page.fill(".search-bar input", "dust");
+  await page.click("button.catalog-filters");
+  const country = await page.$eval(".catalog-filter-dialog select[aria-label='Country']", (s) => [...s.options].map((o) => o.value).find(Boolean));
+  await page.selectOption(".catalog-filter-dialog select[aria-label='Country']", country);
   await page.waitForTimeout(300);
   const some = (await page.$$(".film-grid .film-card")).length;
-  expect(some > 0 && some <= all, `search gave ${some} of ${all}`);
+  expect(some > 0 && some <= all, `filter gave ${some} of ${all}`);
 });
 
 await check("a film page opens with its title and menu", async () => {
