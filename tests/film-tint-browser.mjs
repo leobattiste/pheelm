@@ -23,10 +23,20 @@ try {
   // Untinted first: the page looks as it always did, so a monotone poster costs nothing.
   const plainTrailer = await css('[data-action="trailer"]', "background-color");
   assert.notEqual(plainTrailer, rgb(ACCENT), "without an accent the button should not be tinted");
+  // The wash is still drawn, but both ends of it are fully transparent, so nothing shows.
+  const plainWash = await css("body", "background-image");
+  assert.match(plainWash, /radial-gradient/, "the page keeps its wash rule");
+  assert.match(plainWash, /srgb 0 0 0 \/ 0\)|rgba\(0, 0, 0, 0\)/, "without an accent the wash is transparent");
 
   await page.addStyleTag({ content: `:root{--film-accent:${ACCENT};--film-on-accent:${ON_ACCENT};--film-glass:color-mix(in srgb, var(--film-accent) 12%, var(--glass-bg))}` });
   // Controls fade between colours, so wait for the new one to settle rather than a frame of it.
   await page.waitForFunction((want) => getComputedStyle(document.querySelector('[data-action="trailer"]')).backgroundColor === want, rgb(ACCENT), { timeout: 5000 });
+
+  // The page itself is lit: this is the main effect, the button is the accent on top of it.
+  const wash = await css("body", "background-image");
+  assert.match(wash, /radial-gradient/, "the page should carry a wash of the colour");
+  assert.match(wash, /0\.917647 0\.498039 0\.32549|234, 127, 83/, "the wash should be the film's colour");
+  assert.match(wash, /\/ 0\.18\)|0\.18\)/, "the wash stays faint: it lights the page, it does not paint it");
 
   // The primary action carries the colour.
   assert.equal(await css('[data-action="trailer"]', "background-color"), rgb(ACCENT), "Trailer should be filled with the accent");

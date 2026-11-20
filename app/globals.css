@@ -3442,10 +3442,11 @@ html:root:root:root:root:root:root :is(.film-page, .film-bar) :is(.button:not(.g
   }
 }
 
-/* The bars and the ⋯ menu keep their glass; the colour only warms it. */
+/* The bars and the ⋯ menu keep their glass, their grain and their blur; the colour only warms
+   them, so this sets the colour alone and not the background shorthand. */
 html:root:root:root:root:root .film-bar,
 html:root:root:root:root:root .film-page .more-panel {
-  background: var(--film-glass, var(--glass-bg)) !important;
+  background-color: var(--film-glass, var(--glass-bg)) !important;
 }
 @media (hover: hover) {
   html:root:root:root:root:root .film-page .more-panel :is(.button, .link-button, a, button):hover {
@@ -3464,3 +3465,21 @@ html:root:root:root:root:root:root body:has(.film-page) :is(dialog, .menu-sheet)
 
 /* The poster stays exactly as it is: no wash, no blend, no tinted shadow. */
 html:root:root:root:root:root .film-art .poster { background-blend-mode: normal; filter: none; }
+
+/* The page itself is lit by the film's colour: a wash across the top, strongest where the poster
+   sits and gone well before it reaches the text. Painted as the body's own background rather than
+   a layer behind it, so there is no stacking order to get wrong in one engine or another, and no
+   fixed attachment to stutter on a phone. Without an accent both ends of the mix are transparent
+   and nothing is drawn. */
+body:has(.film-page) {
+  background-image: radial-gradient(120% 95% at 16% 0%, color-mix(in srgb, var(--film-accent, transparent) 18%, transparent), transparent 60%);
+  background-repeat: no-repeat;
+  background-size: 100% min(880px, 85vh);
+}
+@media (max-width: 799px) {
+  /* The poster sits across the top on a phone, so the light comes from there. */
+  body:has(.film-page) {
+    background-image: radial-gradient(130% 70% at 50% 0%, color-mix(in srgb, var(--film-accent, transparent) 18%, transparent), transparent 62%);
+    background-size: 100% min(620px, 70vh);
+  }
+}
