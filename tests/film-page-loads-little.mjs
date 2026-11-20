@@ -32,6 +32,6 @@ assert.match(data, /readIn<PersonRow>\(db, "people", "id",/, "only the people ac
 assert.match(data, /i \* 200, i \* 200 \+ 200/, "readIn should chunk its ids so the query string stays short");
 
 // Local work and CI run on the starter catalog, which has no Supabase behind it.
-assert.match(data, /if \(!supabaseEnabled \|\| building\(\)\) \{\s*const c = await catalog\(\);/, "a build, and a machine without Supabase, should share one catalog instead of reading per page");
+assert.match(data, /if \(!supabaseEnabled \|\| building\(\) \|\| warm\(\)\) \{\s*const c = await catalog\(\);/, "a build, a machine without Supabase, and a server already holding the catalog should share one catalog instead of reading per page");
 
 console.log("ok  film page loads only what it needs");

@@ -10,7 +10,7 @@ export type QueueItem = { id: string; title: string; year: number | null; direct
  * Adds queued films from TMDB. A film is matched on title and year, checked against its director
  * when the queue knows one, and published unless `publish` is off. An item's essay becomes the
  * film's synopsis. Added films, and films already in the catalog, leave the queue; ones TMDB
- * can't match stay with the reason. Used by the admin page and by the scheduled job.
+ * can't match stay with the reason. Used by the admin page and by /api/internal/queue.
  */
 export async function processQueue(db: SupabaseClient, items: QueueItem[], publish: boolean): Promise<(AddResult & { queueId: string })[]> {
   return Promise.all(items.map(async (item) => {
