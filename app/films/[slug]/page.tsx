@@ -16,8 +16,8 @@ import TrailerButton from "@/components/TrailerButton";
 import WatchSection from "@/components/WatchSection";
 import WatchlistButton from "@/components/WatchlistButton";
 import FilmComments from "@/components/FilmComments";
-import { getCommunityCollections } from "@/lib/community";
-import { getDirectors, getFilm, getFilms, toCard } from "@/lib/data";
+import { getWatchlistTiles } from "@/lib/community";
+import { filmPageCatalog, getFilms, toCard } from "@/lib/data";
 import { personInfo, roleLabel, sentence } from "@/lib/roles";
 import { countryName, listJoin, runtimeLabel, trailerEmbed } from "@/lib/format";
 import { SITE_URL } from "@/lib/supabase/config";
@@ -40,7 +40,7 @@ type Params = { params: Promise<{ slug: string }> };
 
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
-  const film = await getFilm((await params).slug);
+  const { film } = await filmPageCatalog((await params).slug);
   if (!film) return privateMetadata("Film not found");
   const by = listJoin(film.directors.map((d) => d.name));
   return pageMetadata(`${film.title} (${film.year})`,film.synopsis||`${film.title}, directed by ${by}.`,`/films/${film.slug}`,`/films/${film.slug}/opengraph-image`);
@@ -52,13 +52,14 @@ const CREW_ORDER: Role[] = ["director", "writer", "cinematographer", "editor", "
 const CAST_SHOWN = 6;
 
 export default async function FilmPage({ params }: Params) {
-  const film = await getFilm((await params).slug);
+  const { film, films: all, directors: allDirectors } = await filmPageCatalog((await params).slug);
   if (!film) notFound();
 
-  const [all, allDirectors, community] = await Promise.all([getFilms(), getDirectors(), getCommunityCollections({ filmId: film.id })]);
+  const tiles = await getWatchlistTiles();
+  const community = tiles.filter((t) => t.filmSlugs.includes(film.slug));
   const anyDirector = new Set(allDirectors.map((d) => d.id));
-  // Films that share a collection with this one.
-  const companions = new Set(community.flatMap((c) => c.films.map((f) => f.id)));
+  // Films that share a watchlist with this one.
+  const companions = new Set(community.flatMap((c) => c.filmSlugs));
   const directorIds = new Set(film.directors.map((d) => d.id));
   const moreByDirector = all.filter((f) => f.id !== film.id && f.directors.some((d) => directorIds.has(d.id)));
   // More like this: films in the same genre. The more genres they share the better, then being in a
@@ -70,7 +71,7 @@ export default async function FilmPage({ params }: Params) {
       f,
       score:
         f.genres.filter((g) => film.genres.includes(g)).length * 2 +
-        (companions.has(f.id) ? 2 : 0) +
+        (companions.has(f.slug) ? 2 : 0) +
         f.countries.filter((c) => film.countries.includes(c)).length +
         (Math.floor(f.year / 10) === decade ? 1 : 0),
     }))
@@ -266,7 +267,7 @@ export default async function FilmPage({ params }: Params) {
             )}
           </div>
           <ul className="collection-list">
-            {community.slice(0, 6).map((c) => <CommunityTile key={c.id} c={c} />)}
+            {community.slice(0, 6).map((c) => <CommunityTile key={c.id} c={c} filmCount={c.filmCount} />)}
           </ul>
         </section>
       )}

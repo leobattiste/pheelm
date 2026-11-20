@@ -166,6 +166,50 @@ function buildCatalog(raw: Raw) {
   return { films, filmById, directors, collections, people: raw.people };
 }
 
+/**
+ * Everything one film page needs, and nothing else.
+ *
+ * The page used to load the whole catalogue — every film, and all ~29,000 cast and crew rows with
+ * their ~20,000 people — to show one film. Past 2,000 films a cold render ran past the time limit
+ * and visitors got an error page. It now reads the film itself in full, every film's director
+ * credits (which the cards, "more by" and "more like this" need), and the credits of just this
+ * film's people, so their filmographies still fill the cast sheets.
+ *
+ * It returns the same shapes `catalog()` does, so the page's own code is unchanged. Without
+ * Supabase — local work and CI — it falls back to the starter catalogue.
+ */
+export const filmPageCatalog = cache(async (slug: string) => {
+  if (!supabaseEnabled) {
+    const c = await catalog();
+    return { film: c.films.find((f) => f.slug === slug) ?? null, films: c.films, directors: c.directors };
+  }
+  const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: false } });
+  const [films, directorCredits, collections, collectionFilms] = await Promise.all([
+    readAll<FilmRow>(db, "films", (q) => q.eq("status", "published")),
+    readAll<CreditRow>(db, "credits", (q) => q.eq("role", "director")),
+    readAll<CollectionRow>(db, "collections"),
+    readAll<Raw["collection_films"][number]>(db, "collection_films"),
+  ]);
+  const film = films.find((f) => f.slug === slug);
+  if (!film) return { film: null, films: [], directors: [] };
+
+  // This film in full, then the other credits of the people on it, for their filmographies.
+  const own = await readAll<CreditRow>(db, "credits", (q) => q.eq("film_id", film.id));
+  const theirs = own.length
+    ? await readAll<CreditRow>(db, "credits", (q) => q.in("person_id", [...new Set(own.map((c) => c.person_id))]))
+    : [];
+  const credits = [...directorCredits, ...own, ...theirs];
+  const seen = new Set<string>();
+  const unique = credits.filter((c) => {
+    const key = `${c.film_id}:${c.person_id}:${c.role}`;
+    return seen.has(key) ? false : (seen.add(key), true);
+  });
+  const people = await readAll<PersonRow>(db, "people", (q) => q.in("id", [...new Set(unique.map((c) => c.person_id))]));
+
+  const { films: built, directors } = buildCatalog({ films, people, credits: unique, collections, collection_films: collectionFilms });
+  return { film: built.find((f) => f.slug === slug) ?? null, films: built, directors };
+});
+
 export async function getFilms() {
   return (await catalog()).films;
 }

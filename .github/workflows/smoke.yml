@@ -40,6 +40,7 @@ jobs:
       - run: node tests/film-list-cards-browser.mjs
       - run: node tests/poster-fallback-browser.mjs
       - run: node tests/catalog-build-safety.mjs
+      - run: node tests/film-page-loads-little.mjs
       - run: node tests/film-poster-save.mjs
       - run: node tests/profile-privacy-photo.mjs
       - run: node tests/packed-entries.mjs
