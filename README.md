@@ -6,7 +6,6 @@ Built with Next.js, hosted on Vercel, with accounts and the database on Supabase
 - **Films**: browse and filter by type, decade, country, language and genre. A Popular carousel under the search bar shows up to ten posters ranked by TMDB’s worldwide popular-movie chart, independently of Pheelm activity, with only the highest-ranked Spider-Man film. The Explore grid below it keeps its own view settings; the carousel stays in poster view. It uses the existing `TMDB_API_KEY`, caches the first 20 chart pages for six hours, and shows an unavailable message when the chart or matching films are missing.
 - **Directors**: biographies, countries, careers and filmographies.
 - **Collections**: curated selections by movement, theme, country, decade or genre.
-- **Journal**: stories behind films, interviews, essays and film history.
 - **Members** sign in with an email link to keep a watchlist, mark films as seen and submit films.
 - **Admins** add and edit everything at `/admin`, review submissions and import film data from TMDB.
 
@@ -80,7 +79,8 @@ Everything is editable in `/admin`:
 - **Films**: details, synopsis, cast and crew (one line per person, like `director: Spike Lee` or `cast: Danny Aiello as Sal`), poster, trailer, awards (`Cannes Film Festival | Grand Prix | won | 2019`), where to watch (`Criterion Channel | https://… | stream | US`) and collections. New films start as drafts.
 - **Directors & people**: bios, countries, birth years and portraits. People are created from film credits.
 - **Collections**: pick films with checkboxes; featured collections appear on the home page.
-- **Journal**: write in simple Markdown with a live preview, attach films, publish when ready.
+- **Community**: staff picks, hidden collections, reports, comments and the banned-word list (see `docs/moderation.md`).
+- **Searches**: what visitors searched for that matched nothing, so you can see what's missing.
 - **Submissions**: approving one creates a draft film (imported from TMDB when it's on) and opens it for checking.
 
 To change the starter catalog before going live, edit `data/starter.mjs` and run `npm run seed`, which rebuilds `data/catalog.json` and `supabase/seed.sql`.
