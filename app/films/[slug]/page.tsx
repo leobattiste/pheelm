@@ -171,9 +171,10 @@ export default async function FilmPage({ params }: Params) {
               {embed ? (
                 <TrailerButton embed={embed} title={film.title} className="pill-button primary" label="Trailer" action="trailer" />
               ) : (
-                // No trailer on file yet: search YouTube for it instead.
+                // No trailer on file yet: search YouTube for it instead. Same button either way —
+                // what differs is where it takes you, which the label on hover says.
                 <a
-                  className="pill-button"
+                  className="pill-button primary"
                   data-action="trailer"
                   aria-label="Find trailer on YouTube"
                   title="Find trailer on YouTube"
