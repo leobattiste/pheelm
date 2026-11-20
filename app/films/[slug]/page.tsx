@@ -50,6 +50,8 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 const CREW_ORDER: Role[] = ["director", "writer", "cinematographer", "editor", "composer", "producer"];
 // How many cast members show before "Show all".
 const CAST_SHOWN = 6;
+/** The principal cast shown large, with the characters they played. */
+const LEADS = 5;
 
 export default async function FilmPage({ params }: Params) {
   const film = await getFilm((await params).slug);
@@ -84,6 +86,8 @@ export default async function FilmPage({ params }: Params) {
     .filter((g) => g.people.length);
   const wins = film.awards.filter((a) => a.result === "won").sort((a, b) => prestige(a.award) - prestige(b.award) || a.year - b.year);
   const noms = film.awards.filter((a) => a.result === "nominated").sort((a, b) => prestige(a.award) - prestige(b.award) || a.year - b.year);
+  // A win speaks loudest; with none, the strongest nomination still says something.
+  const honour = wins[0] ?? noms[0] ?? null;
   const embed = trailerEmbed(film.trailer_url);
   const directorNames = film.directors.map((d) => d.name);
 
@@ -102,9 +106,21 @@ export default async function FilmPage({ params }: Params) {
     byPerson.set(c.person.id, entry);
   }
   const people = [...byPerson.values()].map((p) => ({ info: personInfo(p.person, all, anyDirector), role: sentence(p.roles) }));
+  // The principal cast lead the section, with who they played — the one thing a cast list is for,
+  // and which the grid below never showed. Anything else they did on the film is kept beside it.
+  const leads = cast.slice(0, LEADS).map((c) => {
+    const alsoDid = (byPerson.get(c.person.id)?.roles ?? []).filter((r) => r !== "Actor");
+    const played = c.character?.trim();
+    return {
+      info: personInfo(c.person, all, anyDirector),
+      role: [played ? `as ${played}` : "Actor", ...(alsoDid.length ? [sentence(alsoDid)] : [])].join(" · "),
+    };
+  });
+  const leadIds = new Set(leads.map((l) => l.info.id));
+  const others = people.filter((p) => !leadIds.has(p.info.id));
   // The crew and the first six of the cast show; the rest sit behind "Show all".
   const crewCount = new Set(crew.flatMap((g) => g.people.map((c) => c.person.id))).size;
-  const shown = Math.min(people.length, crewCount + CAST_SHOWN);
+  const shown = Math.min(others.length, crewCount + CAST_SHOWN);
   const details: [string, React.ReactNode][] = [
     ...(film.original_title && film.original_title !== film.title ? ([["Original title", film.original_title]] as [string, React.ReactNode][]) : []),
     ...(aka.length ? ([["Also known as", aka.join(", ")]] as [string, React.ReactNode][]) : []),
@@ -166,6 +182,22 @@ export default async function FilmPage({ params }: Params) {
                 {runtime && <span className="byline-item">{runtime}</span>}
               </p>
             </header>
+
+            {/* The film's best honour, where it can be seen: for a lot of this catalogue a festival
+                win is the most telling thing about a film, and it used to sit far below the fold. */}
+            {honour && (
+              <p className="film-honour">
+                <a href="#awards-h">
+                  <Icon name="laurel" className="solid" />
+                  <span>
+                    <strong>{isRegistry(honour) ? "Preserved" : honour.result === "won" ? "Winner" : "Nominated"}</strong>
+                    {" · "}
+                    {isRegistry(honour) ? `National Film Registry ${honour.year}` : `${honour.category}, ${honour.award} ${honour.year}`}
+                  </span>
+                  {film.awards.length > 1 && <span className="film-honour-more">and {film.awards.length - 1} more</span>}
+                </a>
+              </p>
+            )}
 
             <div className="film-actions">
               {embed ? (
@@ -231,14 +263,14 @@ export default async function FilmPage({ params }: Params) {
           {people.length > 0 && (
             <section className="film-section" aria-labelledby="people-h">
               <h2 id="people-h">Cast and crew</h2>
-              <PeopleGrid people={people.slice(0, shown)} />
-              {people.length > shown && (
+              <PeopleGrid leads={leads} people={others.slice(0, shown)} />
+              {others.length > shown && (
                 <details className="more">
                   <summary className="button ghost small">
                     <span className="more-closed">Show all {people.length}</span>
                     <span className="more-open">Show fewer</span>
                   </summary>
-                  <PeopleGrid people={people.slice(shown)} />
+                  <PeopleGrid people={others.slice(shown)} />
                 </details>
               )}
             </section>

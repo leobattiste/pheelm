@@ -937,6 +937,16 @@ main:has(.feature) { margin-top: calc(var(--header) * -1); }
 /* The editors' line on why the film matters: a size up from the synopsis, set just above it. */
 .film-note { margin-top: var(--space-40); max-width: 60ch; font-size: var(--t-md); line-height: var(--lh-body); text-wrap: pretty; }
 .film-note + .film-essay { margin-top: var(--space-20); }
+/* The headline award, under the byline. A quiet line that leads to the full list. */
+.film-honour { margin-top: var(--space-16); font-size: var(--t-sm); }
+.film-honour a { display: inline-flex; align-items: center; gap: var(--space-8); padding: var(--space-4) var(--space-12) var(--space-4) var(--space-8);
+  border: 1px solid color-mix(in srgb, var(--ink) 22%, transparent); border-radius: var(--pill); color: var(--ink); text-decoration: none; }
+.film-honour a:hover { background: var(--hover); }
+.film-honour svg { flex-shrink: 0; width: 18px; height: 18px; }
+.film-honour strong { font-weight: 700; }
+.film-honour-more { color: var(--muted); }
+.film-honour-more::before { content: "·"; margin-right: var(--space-8); }
+
 .film-essay { display: grid; gap: 1em; margin-top: var(--space-40); max-width: 62ch; font-size: var(--t-md); line-height: var(--lh-body); }
 
 /* Sections: Where to watch, Awards, Cast and crew, Details. Each is set apart by the same 48px
@@ -1009,6 +1019,17 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 
 .cast { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-8) var(--space-16); }
 @media (min-width: 1100px) { .cast { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+/* The leads: bigger portraits above their name, so the section opens with faces rather than a
+   uniform list. They sit in one row that scrolls sideways when the screen is narrow. */
+.cast-leads { grid-auto-flow: column; grid-auto-columns: minmax(96px, 132px); grid-template-columns: none; justify-content: start;
+  gap: var(--space-16); margin-bottom: var(--space-24); overflow-x: auto; scrollbar-width: none;
+  scroll-snap-type: x proximity; padding-bottom: var(--space-4); }
+.cast-leads::-webkit-scrollbar { display: none; }
+.cast-leads :is(a, button) { display: grid; gap: var(--space-8); align-content: start; text-align: left; scroll-snap-align: start; }
+.cast-leads .cast-photo { width: 100%; height: auto; aspect-ratio: 2 / 3; font-size: var(--t-lg); }
+.cast-leads .cast-name { white-space: normal; font-weight: 500; }
+.cast-leads .cast-role { white-space: normal; font-size: var(--t-sm); }
 .cast :is(a, button) { display: flex; width: 100%; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; align-items: center; gap: var(--space-12); min-width: 0; padding: var(--space-4); margin: calc(var(--space-4) * -1); border-radius: var(--r); }
 .cast :is(a, button):hover { background: var(--hover); }
 .cast-photo { object-position: 50% 20%; display: grid; place-items: center; flex-shrink: 0; width: 48px; height: 72px; border-radius: var(--r-media); background: var(--raised); color: var(--muted); font-size: var(--t-xs); object-fit: cover; }
