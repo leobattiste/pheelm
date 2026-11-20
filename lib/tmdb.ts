@@ -136,6 +136,17 @@ const CREW_JOBS: Record<string, Role> = {
   Producer: "producer",
 };
 
+/** The best YouTube video to offer as a trailer: an official trailer, else a trailer, else a teaser. */
+function pickTrailer(results: unknown): { key: string } | null {
+  const videos = (Array.isArray(results) ? results : []).filter((v: any) => v?.site === "YouTube" && v?.key);
+  for (const type of ["Trailer", "Teaser"]) {
+    const ofType = videos.filter((v: any) => v.type === type);
+    const best = ofType.find((v: any) => v.official) ?? ofType[0];
+    if (best) return best;
+  }
+  return null;
+}
+
 export async function getMovie(id: number): Promise<ImportedFilm> {
   const m = await get<any>(`/movie/${id}`, { append_to_response: "credits,videos,watch/providers", language: "en-US" });
 
@@ -153,8 +164,11 @@ export async function getMovie(id: number): Promise<ImportedFilm> {
   }
   for (const c of (m.credits?.cast ?? []).slice(0, 12)) add(c, "cast", c.character || null);
 
-  const videos: any[] = (m.videos?.results ?? []).filter((v: any) => v.site === "YouTube" && v.type === "Trailer");
-  const trailer = videos.find((v) => v.official) ?? videos[0];
+  // The request above asks TMDB for English, which also filters the videos it appends, so a film
+  // whose trailer is tagged Yoruba, Wolof, French or Portuguese looked as if it had none. When
+  // nothing turns up, ask for that film's videos again in every language.
+  let trailer = pickTrailer(m.videos?.results);
+  if (!trailer) trailer = pickTrailer((await get<any>(`/movie/${id}/videos`).catch(() => null))?.results);
 
   const watch = parseWatch(m["watch/providers"]?.results ?? {});
 
