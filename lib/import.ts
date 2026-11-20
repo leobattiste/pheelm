@@ -3,6 +3,7 @@ import { wikidataAwards, withWikidata } from "./awards";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import sharp from "sharp";
 import { slugify } from "./format";
+import { accentFromPixels } from "./poster-accent";
 import { findByDirector, findMovie, getMovie, getPersonDetails, searchMovies, type ImportedFilm } from "./tmdb";
 import type { Award, WatchOption } from "./types";
 
@@ -42,16 +43,24 @@ export async function importFilm(db: SupabaseClient, filmId: string, prefetched?
   // The page tint comes from the poster, unless a colour was picked by hand. Measured while the
   // people are saved, since both take a moment.
   const poster = (update.poster_url as string | undefined) ?? film.poster_url;
-  const [color, people, fresh] = await Promise.all([
+  const [color, accent, people, fresh] = await Promise.all([
     !film.color && poster ? posterColour(poster) : Promise.resolve(null),
+    !film.accent && poster ? posterAccent(poster) : Promise.resolve(null),
     savePeople(db, filmId, m),
     wikidataAwards(tmdbId, film.year, m.imdb_id),
   ]);
   if (color) update.color = color;
+  if (accent) update.accent = accent;
   // Awards and nominations come from Wikidata (TMDB has none), replacing older entries when found.
   const awards = withWikidata((film.awards ?? []) as Award[], fresh);
   if (awards) update.awards = awards;
-  const { error: upErr } = await db.from("films").update(update).eq("id", filmId);
+  let { error: upErr } = await db.from("films").update(update).eq("id", filmId);
+  // The accent column arrives with supabase/poster-accents.sql; until it has run, save the rest.
+  if (upErr && "accent" in update && /accent/.test(upErr.message)) {
+    const { accent: _dropped, ...rest } = update;
+    void _dropped;
+    ({ error: upErr } = await db.from("films").update(rest).eq("id", filmId));
+  }
   if (upErr) {
     if (upErr.code === "23505") throw new Error(`Another film already uses TMDB id ${tmdbId}.`);
     throw new Error(upErr.message);
@@ -63,7 +72,7 @@ export async function importFilm(db: SupabaseClient, filmId: string, prefetched?
   const todo = people.rows.filter((p) => ("details_at" in p ? !p.details_at : !p.bio || !p.birth_year || !p.photo_url));
   await inBatches(todo, 10, (p) => fillPerson(db, p));
 
-  const filled = Object.keys(update).filter((k) => !["tmdb_id", "watch", "updated_at", "color", "type", "awards"].includes(k));
+  const filled = Object.keys(update).filter((k) => !["tmdb_id", "watch", "updated_at", "color", "accent", "type", "awards"].includes(k));
   const parts = [
     filled.length ? `filled ${filled.map((k) => k.replace("_url", "").replace("_", " ")).join(", ")}` : "nothing empty to fill",
     `${added} new credits`,
@@ -303,24 +312,47 @@ async function readCapped(res: Response, limit: number) {
   return Buffer.concat(chunks);
 }
 
+/** Downloads a poster, or null if the address or the image is not one we'll read. */
+async function fetchPoster(url: string): Promise<Buffer | null> {
+  // The address is typed in the admin, so it's treated like any outside input: https only, a
+  // public host name (never an IP address, localhost or an internal name), no redirects, 10 MB.
+  const target = new URL(url);
+  const host = target.hostname.toLowerCase();
+  if (target.protocol !== "https:" || target.username || target.password || target.port) return null;
+  if (!host.includes(".") || /^[\d.]+$/.test(host) || host.includes(":") || /(^|\.)(localhost|local|internal|lan|home|corp)$/.test(host)) return null;
+  // The name must not point at a private or local address (checked after the DNS lookup).
+  if (!(await publicHost(host))) return null;
+  const res = await fetch(target, { cache: "no-store", redirect: "error", signal: AbortSignal.timeout(8000) });
+  if (!res.ok || !/^image\//i.test(res.headers.get("content-type") ?? "")) return null;
+  if (Number(res.headers.get("content-length") ?? 0) > MAX_POSTER) return null;
+  return readCapped(res, MAX_POSTER);
+}
+
 /** The poster's dominant colour as a hex string, or null if the image can't be read. */
 export async function posterColour(url: string): Promise<string | null> {
   try {
-    // The address is typed in the admin, so it's treated like any outside input: https only, a
-    // public host name (never an IP address, localhost or an internal name), no redirects, 10 MB.
-    const target = new URL(url);
-    const host = target.hostname.toLowerCase();
-    if (target.protocol !== "https:" || target.username || target.password || target.port) return null;
-    if (!host.includes(".") || /^[\d.]+$/.test(host) || host.includes(":") || /(^|\.)(localhost|local|internal|lan|home|corp)$/.test(host)) return null;
-    // The name must not point at a private or local address (checked after the DNS lookup).
-    if (!(await publicHost(host))) return null;
-    const res = await fetch(target, { cache: "no-store", redirect: "error", signal: AbortSignal.timeout(8000) });
-    if (!res.ok || !/^image\//i.test(res.headers.get("content-type") ?? "")) return null;
-    if (Number(res.headers.get("content-length") ?? 0) > MAX_POSTER) return null;
-    const bytes = await readCapped(res, MAX_POSTER);
+    const bytes = await fetchPoster(url);
     if (!bytes) return null;
     const { dominant } = await sharp(bytes, { limitInputPixels: 40_000_000 }).resize(48, 72, { fit: "cover" }).stats();
     return "#" + [dominant.r, dominant.g, dominant.b].map((n) => n.toString(16).padStart(2, "0")).join("");
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The poster's accent: the colour the film page is lit with. Read from the pixels rather than from
+ * sharp's dominant bin, which answers near-black or near-white for most posters. Null when the
+ * poster has no real colour in it, and the page then stays neutral.
+ */
+export async function posterAccent(url: string): Promise<string | null> {
+  try {
+    const bytes = await fetchPoster(url);
+    if (!bytes) return null;
+    // Small enough to be quick, large enough that a title card still has a say.
+    const { data } = await sharp(bytes, { limitInputPixels: 40_000_000 })
+      .resize(60, 90, { fit: "cover" }).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+    return accentFromPixels(data, 3);
   } catch {
     return null;
   }
