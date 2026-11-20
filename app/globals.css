@@ -3474,12 +3474,12 @@ html:root:root:root:root:root .film-art .poster { background-blend-mode: normal;
 body:has(.film-page) {
   background-image: radial-gradient(120% 95% at 16% 0%, color-mix(in srgb, var(--film-accent, transparent) 18%, transparent), transparent 60%);
   background-repeat: no-repeat;
-  background-size: 100% min(880px, 85vh);
+  background-size: 100% 85vh;
 }
 @media (max-width: 799px) {
   /* The poster sits across the top on a phone, so the light comes from there. */
   body:has(.film-page) {
     background-image: radial-gradient(130% 70% at 50% 0%, color-mix(in srgb, var(--film-accent, transparent) 18%, transparent), transparent 62%);
-    background-size: 100% min(620px, 70vh);
+    background-size: 100% 70vh;
   }
 }
