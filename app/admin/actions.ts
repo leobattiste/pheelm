@@ -7,6 +7,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { adminClient, ownerClient } from "@/lib/admin";
 import { logAdminActivity } from "@/lib/admin-activity";
+import { resolvePoster } from "@/lib/film-fields";
 import { slugify } from "@/lib/format";
 import { addFilmByTitle, fillPerson, importFilm, posterColour, type AddResult } from "@/lib/import";
 import { getWatch, tmdbEnabled } from "@/lib/tmdb";
@@ -101,7 +102,12 @@ export async function saveFilm(_prev: Result, f: FormData): Promise<Result> {
     const credits = parseCredits(str(f, "credits", 20000));
     if (!credits.some((c) => c.role === "director")) return { ok: false, message: "Add at least one director in Cast & crew, on its own line, like  director: Name" };
 
-    const poster = (await upload(db, f.get("poster_file"), "posters")) ?? nullable(f, "poster_url", 1000);
+    const poster = resolvePoster({
+      uploaded: await upload(db, f.get("poster_file"), "posters"),
+      typed: nullable(f, "poster_url", 1000),
+      previous: str(f, "previous_poster") || null,
+      remove: f.get("remove_poster") === "on",
+    });
     // A new poster brings its own colour, unless one was typed in.
     const typed = str(f, "color").toLowerCase();
     let color: string | null = /^#[0-9a-f]{6}$/.test(typed) ? typed : null;

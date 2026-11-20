@@ -39,6 +39,10 @@ jobs:
       - run: node tests/films-popular-browser.mjs
       - run: node tests/film-list-cards-browser.mjs
       - run: node tests/poster-fallback-browser.mjs
+      - run: node tests/catalog-build-safety.mjs
+      - run: node tests/film-poster-save.mjs
+      - run: node tests/profile-privacy-photo.mjs
+      - run: node tests/packed-entries.mjs
       - run: npm run build
       - run: npx next start -p 3000 & npx wait-on -t 60000 http://localhost:3000
       - run: node tests/site-seo-browser.mjs

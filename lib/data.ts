@@ -70,21 +70,26 @@ async function fetchCatalog(): Promise<Raw> {
       readAll<Raw["collection_films"][number]>(db, "collection_films"),
     ]);
     if (!films.length) {
+      // An empty catalog is a setup step locally and a broken deploy in production.
+      if (building()) throw new Error("Supabase returned no published films. Check the keys, and that supabase/schema.sql and seed.sql have run.");
       console.warn("⚠ Supabase has no published films yet, so the starter catalog is shown. Run supabase/seed.sql.");
       return local as unknown as Raw;
     }
     return { films, people, credits, collections, collection_films };
   } catch (e) {
-    // While building, a database problem shouldn't stop the deploy (Vercel would keep serving the
-    // old version, without accounts). Build with the starter catalog and say why in the build log.
-    if (process.env.NEXT_PHASE === "phase-production-build") {
-      console.error(`⚠ ${e instanceof Error ? e.message : e}\n  Building with the starter catalog. Check the Supabase keys and that supabase/schema.sql and seed.sql have run.`);
-      return local as unknown as Raw;
+    // A build that can't reach the database must stop. It used to fall back to the starter
+    // catalog, which quietly published a site of 74 films with no posters; Vercel keeps serving
+    // the previous deploy instead, which is what a failed build should leave behind.
+    if (building()) {
+      console.error(`⚠ Build stopped: ${e instanceof Error ? e.message : e}\n  Check the Supabase keys and that supabase/schema.sql and seed.sql have run.`);
     }
     // On the live site, failing keeps the last good version of the page on screen.
     throw e;
   }
 }
+
+/** True while Next is building the production site, when a half-built catalog must not ship. */
+export const building = () => process.env.NEXT_PHASE === "phase-production-build";
 
 const byTitle = (a: { title: string }, b: { title: string }) =>
   a.title.replace(/^(the|a|an) /i, "").localeCompare(b.title.replace(/^(the|a|an) /i, ""), "en", { sensitivity: "base" });

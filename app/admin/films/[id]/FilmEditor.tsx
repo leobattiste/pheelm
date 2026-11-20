@@ -27,6 +27,14 @@ export default function FilmEditor({ film, creditText, collections, chosen, tmdb
   const [importMsg, setImportMsg] = useState<Result | null>(null);
   const [poster, setPoster] = useState(film.poster_url ?? "");
   const [colour, setColour] = useState(film.color ?? "");
+  // An import or an upload changes the saved record while this form is open. React keeps the old
+  // field values, so without this the form would write them back and wipe the new poster.
+  const [saved, setSaved] = useState({ poster: film.poster_url ?? "", colour: film.color ?? "" });
+  if (saved.poster !== (film.poster_url ?? "") || saved.colour !== (film.color ?? "")) {
+    setSaved({ poster: film.poster_url ?? "", colour: film.color ?? "" });
+    setPoster(film.poster_url ?? "");
+    setColour(film.color ?? "");
+  }
 
   const runImport = async () => {
     setImporting(true);
@@ -86,6 +94,7 @@ export default function FilmEditor({ film, creditText, collections, chosen, tmdb
         <fieldset className="fieldset">
           <legend>Media</legend>
           <label className="field">Poster link<input name="poster_url" type="url" value={poster} onChange={(e) => setPoster(e.target.value)} placeholder="https://" /></label>
+          {film.poster_url && <label className="field check"><input type="checkbox" name="remove_poster" /> Remove poster <span className="hint">clearing the box above leaves the poster as it is</span></label>}
           <label className="field">…or upload a poster <span className="hint">JPEG, PNG or WebP, portrait 2:3</span><input name="poster_file" type="file" accept="image/jpeg,image/png,image/webp" /></label>
           <label className="field">Trailer <span className="hint">YouTube or Vimeo link</span><input name="trailer_url" type="url" defaultValue={film.trailer_url ?? ""} /></label>
           <label className="field">Still <span className="hint">a wide frame from the film, shown across the top of its page</span><input name="backdrop_url" type="url" defaultValue={film.backdrop_url ?? ""} /></label>

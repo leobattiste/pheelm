@@ -33,10 +33,10 @@ export default function TabBar() {
 
   const profile = me?.handle ? `/@${me.handle}` : "/profile";
   const at = (href: string) => path === href || path.startsWith(`${href}/`);
-  const tabs: { href: string; label: string; icon: IconName; on: boolean; only?: string }[] = [
-    { href: "/films", label: "Films", icon: "film", on: at("/films") },
-    { href: "/watchlists", label: "Watchlists", icon: "stack", on: at("/watchlists") || path.startsWith("/c/") },
-    { href: "/directors", label: "Directors", icon: "userMultiple", on: at("/directors") || path.startsWith("/people/") },
+  const tabs: { href: string; label: string; icon: IconName; on: boolean; only?: string; heavy?: boolean }[] = [
+    { heavy: true, href: "/films", label: "Films", icon: "film", on: at("/films") },
+    { heavy: true, href: "/watchlists", label: "Watchlists", icon: "stack", on: at("/watchlists") || path.startsWith("/c/") },
+    { heavy: true, href: "/directors", label: "Directors", icon: "userMultiple", on: at("/directors") || path.startsWith("/people/") },
     { href: profile, label: "Profile", icon: "userAccount", on: at(profile) || path === "/profile", only: "member-only" },
   ];
 
@@ -54,7 +54,9 @@ export default function TabBar() {
       <NavProgressLine />
       <span className="tab-ring" data-on={ring >= 0} data-fresh={fresh} aria-hidden="true" />
       {tabs.map((t) => (
-        <Link key={t.label} href={t.href} className={t.only ? `tab ${t.only}` : "tab"} aria-current={t.on ? "page" : undefined} aria-label={t.label} title={t.label}>
+        // The catalogue pages are large and static, so Next would fetch each one in full on every
+        // page view, whether or not anyone taps them. They load on tap instead, behind a skeleton.
+        <Link key={t.label} href={t.href} prefetch={t.heavy || t.on ? false : undefined} className={t.only ? `tab ${t.only}` : "tab"} aria-current={t.on ? "page" : undefined} aria-label={t.label} title={t.label}>
           <Icon name={t.icon} />
         </Link>
       ))}

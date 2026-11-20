@@ -6,9 +6,10 @@ import { getServerClient } from "./supabase/server";
  * owner can also make or remove admins, delete films and export the newsletter list.
  */
 async function me(db: NonNullable<Awaited<ReturnType<typeof getServerClient>>>, id: string) {
-  // A failed read gives no role, never a higher one.
-  const { data, error } = await db.from("profiles").select("is_admin, is_owner").eq("id", id).maybeSingle();
-  if (error || !data) return null;
+  // A failed read gives no role, never a higher one, and a suspended account gives none either:
+  // the database's is_admin() and is_owner() hold the same line.
+  const { data, error } = await db.from("profiles").select("is_admin, is_owner, suspended_at").eq("id", id).maybeSingle();
+  if (error || !data || data.suspended_at) return null;
   return { is_admin: !!data.is_admin, is_owner: !!data.is_owner };
 }
 

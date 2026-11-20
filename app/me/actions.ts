@@ -5,7 +5,7 @@ import { canUseUnlimitedBio } from "@/lib/profile-bio";
 import { bannedWordError, checkText } from "@/lib/moderation";
 import { socialLink, websiteUrl } from "@/lib/profile-links";
 import { randomUUID } from "node:crypto";
-import { prepareProfilePhoto, avatarObjectPath } from "@/lib/profile-photo";
+import { prepareProfilePhoto, avatarObjectPath, photoForPrivacyChange, photoMoved } from "@/lib/profile-photo";
 import { ALL_COUNTRIES } from "@/lib/countries";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -91,10 +91,17 @@ export async function updatePublicName(_prev: NameState, form: FormData): Promis
   const handle = clip(form.get("handle"), 24).toLowerCase().replace(/^@/, "");
   const display_name = clip(form.get("display_name"), 60) || null;
   if (handle && !/^[a-z0-9_]{3,24}$/.test(handle)) return { ok: false, message: "Handles are 3 to 24 letters, numbers or underscores." };
-  const { data: previous, error: readError } = await db.from("profiles").select("handle, avatar_url, is_owner, bio").eq("id", user.id).single();
+  const { data: previous, error: readError } = await db.from("profiles").select("handle, avatar_url, is_owner, bio, is_private").eq("id", user.id).single();
   if (readError || !previous) return { ok: false, message: "Your profile couldn't be loaded. Try again." };
+  const previousPrivate = !!(previous as { is_private?: boolean }).is_private;
   const changes: Record<string, unknown> = { handle: handle || null, display_name };
   if (form.has("has_private")) changes.is_private = form.get("is_private") === "on";
+  // Going private here has to retire the old photo link too, exactly as Settings → Privacy does.
+  const move = await photoForPrivacyChange(db, user.id, {
+    goingPrivate: changes.is_private === true && !previousPrivate,
+    photo: previous.avatar_url,
+  });
+  if (photoMoved(move)) changes.avatar_url = move.url;
   if (form.has("bio")) {
     const bio = String(form.get("bio") ?? "").trim();
     if (bio.length > 150 && !(canUseUnlimitedBio(previous) && handle === "leo")) return { ok: false, message: "Keep your bio to 150 characters or fewer." };
@@ -148,6 +155,9 @@ export async function updatePublicName(_prev: NameState, form: FormData): Promis
   if (error?.code === "23505") return { ok: false, message: `@${handle} is taken. Try another.` };
   if (error?.code === "23514") return { ok: false, message: `@${handle} isn't available. Try another.` };
   if (error) return { ok: false, message: "That didn't save. Try again." };
+  if (photoMoved(move)) await db.storage.from("avatars").remove([move.old]);
+  // Don't claim a clean save while the old photo link still works.
+  if (move && !photoMoved(move)) return { ok: false, message: "Your profile is private now, but the old photo link still works. Replace or remove your photo." };
   revalidatePath("/me");
   revalidatePath("/account");
   if (previous.handle && previous.handle !== handle) revalidatePath(`/@${previous.handle}`);

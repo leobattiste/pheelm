@@ -20,10 +20,15 @@ type Props = {
  * until a real poster is added.
  */
 export default function Poster({ title, year, directors, src, sizes = "(min-width: 900px) 200px, 45vw", priority, hero }: Props) {
-  const [loaded, setLoaded] = useState(false);
   // A poster that can't be fetched (offline, a dead link, a blocked image host) falls back to the
-  // title card, so a card is never an empty box.
-  const [failed, setFailed] = useState(false);
+  // title card, so a card is never an empty box. Both are remembered against the image they
+  // describe: when a card is reused for another film, or a poster is replaced, the new image
+  // starts afresh instead of inheriting the old one's failure.
+  const [attempt, setAttempt] = useState<{ src: string | null; loaded: boolean; failed: boolean }>({ src: src ?? null, loaded: false, failed: false });
+  const current = attempt.src === (src ?? null) ? attempt : { src: src ?? null, loaded: false, failed: false };
+  if (current !== attempt) setAttempt(current);
+  const { loaded: isLoaded, failed } = current;
+  const settle = (change: { loaded?: boolean; failed?: boolean }) => setAttempt({ src: src ?? null, loaded: false, failed: false, ...change });
   const cls = `poster${hero ? " poster-hero" : ""}`;
 
   if (src && !failed) {
@@ -38,14 +43,14 @@ export default function Poster({ title, year, directors, src, sizes = "(min-widt
           loading={priority ? "eager" : "lazy"}
           fetchPriority={priority ? "high" : undefined}
           decoding="async"
-          className={loaded ? "is-loaded" : undefined}
-          onLoad={() => setLoaded(true)}
-          onError={() => setFailed(true)}
+          className={isLoaded ? "is-loaded" : undefined}
+          onLoad={() => settle({ loaded: true })}
+          onError={() => settle({ failed: true })}
           ref={(img) => {
-            if (!img) return;
-            if (img.complete && img.naturalWidth > 0 && !loaded) setLoaded(true);
-            // The image may have failed before React attached the handler above.
-            else if (img.complete && img.naturalWidth === 0) setFailed(true);
+            if (!img || img.currentSrc === "" || !img.complete) return;
+            // The image may have finished, or failed, before React attached the handlers above.
+            if (img.naturalWidth > 0) { if (!isLoaded) settle({ loaded: true }); }
+            else settle({ failed: true });
           }}
         />
       </div>

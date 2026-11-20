@@ -6,7 +6,7 @@ const watchlistLinks={};vm.runInNewContext(ts.transpileModule(fs.readFileSync("l
 const exports={};const code=ts.transpileModule(fs.readFileSync('app/me/actions.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
 vm.runInNewContext(code,{exports,FormData,File,Buffer,require:name=>{
  if(name==='node:crypto')return{randomUUID:()=> 'test'};
- if(name==='@/lib/profile-photo')return{};
+ if(name==='@/lib/profile-photo')return{photoForPrivacyChange:async()=>null,photoMoved:()=>false};
  if(name==='@/lib/moderation')return{checkText:async()=>({ok:true}),bannedWordError:()=>null};
  if(name==='@/lib/watchlist-links')return watchlistLinks;
  if(name==='@/lib/profile-bio')return bioRules;

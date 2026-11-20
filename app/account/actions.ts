@@ -1,5 +1,6 @@
 "use server";
 
+import { photoForPrivacyChange, photoMoved } from "@/lib/profile-photo";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getServerClient } from "@/lib/supabase/server";
@@ -42,9 +43,11 @@ export async function updatePrivacy(_prev: PrivacyState, f: FormData): Promise<P
     hide_following: f.get("hide_following") === "on",
   };
   const { data: before } = await db.from("profiles").select("is_private, avatar_url").eq("id", user.id).maybeSingle();
-  // Going private: the photo moves to a new address, so an old link to it stops working.
-  const moved = changes.is_private && before && !before.is_private && before.avatar_url
-    ? await renameAvatar(db, user.id, before.avatar_url) : null;
+  const move = await photoForPrivacyChange(db, user.id, {
+    goingPrivate: !!changes.is_private && !!before && !before.is_private,
+    photo: before?.avatar_url,
+  });
+  const moved = photoMoved(move) ? move : null;
   const { error } = await db.from("profiles").update(moved ? { ...changes, avatar_url: moved.url } : changes).eq("id", user.id);
   if (error) {
     if (moved) await db.storage.from("avatars").remove([moved.path]);
@@ -52,22 +55,10 @@ export async function updatePrivacy(_prev: PrivacyState, f: FormData): Promise<P
   }
   if (moved) await db.storage.from("avatars").remove([moved.old]);
   revalidatePath("/account");
+  revalidatePath("/me");
+  // Saying "Saved" here would hide that the old photo link still works.
+  if (move && !moved) return { ok: false, message: "Your profile is private now, but the old photo link still works. Replace or remove your photo." };
   return { ok: true, message: "Saved." };
-}
-
-/** Copies the profile photo to a fresh random name. Null if it can't (the old one then stays). */
-async function renameAvatar(db: NonNullable<Awaited<ReturnType<typeof getServerClient>>>, userId: string, url: string) {
-  const marker = "/storage/v1/object/public/avatars/";
-  const at = url.indexOf(marker);
-  if (at < 0) return null;
-  const old = decodeURIComponent(url.slice(at + marker.length).split("?")[0]);
-  if (!old.startsWith(`${userId}/`)) return null;
-  const { data: file, error: readError } = await db.storage.from("avatars").download(old);
-  if (readError || !file) return null;
-  const path = `${userId}/${crypto.randomUUID()}.webp`;
-  const { error } = await db.storage.from("avatars").upload(path, file, { contentType: "image/webp", upsert: false });
-  if (error) return null;
-  return { old, path, url: db.storage.from("avatars").getPublicUrl(path).data.publicUrl };
 }
 
 /** Unblocks someone from Settings → Privacy. */
