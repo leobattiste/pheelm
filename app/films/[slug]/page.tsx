@@ -50,8 +50,6 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 const CREW_ORDER: Role[] = ["director", "writer", "cinematographer", "editor", "composer", "producer"];
 // How many cast members show before "Show all".
 const CAST_SHOWN = 6;
-/** The principal cast shown large, with the characters they played. */
-const LEADS = 5;
 
 export default async function FilmPage({ params }: Params) {
   const film = await getFilm((await params).slug);
@@ -98,29 +96,25 @@ export default async function FilmPage({ params }: Params) {
   // Someone who directed and acted reads "Director and actor".
   const counts = new Map<Role, number>();
   for (const c of film.credits) counts.set(c.role, (counts.get(c.role) ?? 0) + 1);
-  const byPerson = new Map<string, { person: Credit["person"]; roles: string[] }>();
+  const byPerson = new Map<string, { person: Credit["person"]; roles: string[]; played?: string }>();
   for (const c of [...crew.flatMap((g) => g.people), ...cast]) {
     const entry = byPerson.get(c.person.id) ?? { person: c.person, roles: [] };
     const label = roleLabel(c, counts.get(c.role) ?? 1);
     if (!entry.roles.includes(label)) entry.roles.push(label);
+    // Who an actor played is on every cast credit and was never shown; it replaces a bare "Actor".
+    if (c.role === "cast" && c.character?.trim()) entry.played = c.character.trim();
     byPerson.set(c.person.id, entry);
   }
-  const people = [...byPerson.values()].map((p) => ({ info: personInfo(p.person, all, anyDirector), role: sentence(p.roles) }));
-  // The principal cast lead the section, with who they played — the one thing a cast list is for,
-  // and which the grid below never showed. Anything else they did on the film is kept beside it.
-  const leads = cast.slice(0, LEADS).map((c) => {
-    const alsoDid = (byPerson.get(c.person.id)?.roles ?? []).filter((r) => r !== "Actor");
-    const played = c.character?.trim();
-    return {
-      info: personInfo(c.person, all, anyDirector),
-      role: [played ? `as ${played}` : "Actor", ...(alsoDid.length ? [sentence(alsoDid)] : [])].join(" · "),
-    };
+  const people = [...byPerson.values()].map((p) => {
+    const others = p.roles.filter((r) => r !== "Actor");
+    const role = p.played
+      ? [...others, `as ${p.played}`].join(" · ")
+      : sentence(p.roles);
+    return { info: personInfo(p.person, all, anyDirector), role };
   });
-  const leadIds = new Set(leads.map((l) => l.info.id));
-  const others = people.filter((p) => !leadIds.has(p.info.id));
   // The crew and the first six of the cast show; the rest sit behind "Show all".
   const crewCount = new Set(crew.flatMap((g) => g.people.map((c) => c.person.id))).size;
-  const shown = Math.min(others.length, crewCount + CAST_SHOWN);
+  const shown = Math.min(people.length, crewCount + CAST_SHOWN);
   const details: [string, React.ReactNode][] = [
     ...(film.original_title && film.original_title !== film.title ? ([["Original title", film.original_title]] as [string, React.ReactNode][]) : []),
     ...(aka.length ? ([["Also known as", aka.join(", ")]] as [string, React.ReactNode][]) : []),
@@ -263,14 +257,14 @@ export default async function FilmPage({ params }: Params) {
           {people.length > 0 && (
             <section className="film-section" aria-labelledby="people-h">
               <h2 id="people-h">Cast and crew</h2>
-              <PeopleGrid leads={leads} people={others.slice(0, shown)} />
-              {others.length > shown && (
+              <PeopleGrid people={people.slice(0, shown)} />
+              {people.length > shown && (
                 <details className="more">
                   <summary className="button ghost small">
                     <span className="more-closed">Show all {people.length}</span>
                     <span className="more-open">Show fewer</span>
                   </summary>
-                  <PeopleGrid people={others.slice(shown)} />
+                  <PeopleGrid people={people.slice(shown)} />
                 </details>
               )}
             </section>

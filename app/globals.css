@@ -1020,23 +1020,6 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 .cast { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-8) var(--space-16); }
 @media (min-width: 1100px) { .cast { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 
-/* The leads: bigger portraits above their name, so the section opens with faces rather than a
-   uniform list. They sit in one row that scrolls sideways when the screen is narrow. */
-.cast-leads { grid-auto-flow: column; grid-auto-columns: minmax(96px, 132px); grid-template-columns: none; justify-content: start;
-  gap: var(--space-16); margin-bottom: var(--space-24); overflow-x: auto; scrollbar-width: none;
-  scroll-snap-type: x proximity; padding-bottom: var(--space-4); }
-.cast-leads::-webkit-scrollbar { display: none; }
-.cast-leads :is(a, button) { display: grid; gap: var(--space-8); align-content: start; text-align: left; scroll-snap-align: start; }
-.cast-leads .cast-photo { width: 100%; height: auto; aspect-ratio: 2 / 3; font-size: var(--t-lg); }
-.cast-leads .cast-name { white-space: normal; font-weight: 500; }
-.cast-leads .cast-role { white-space: normal; font-size: var(--t-sm); }
-.cast :is(a, button) { display: flex; width: 100%; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; align-items: center; gap: var(--space-12); min-width: 0; padding: var(--space-4); margin: calc(var(--space-4) * -1); border-radius: var(--r); }
-.cast :is(a, button):hover { background: var(--hover); }
-.cast-photo { object-position: 50% 20%; display: grid; place-items: center; flex-shrink: 0; width: 48px; height: 72px; border-radius: var(--r-media); background: var(--raised); color: var(--muted); font-size: var(--t-xs); object-fit: cover; }
-.cast-text { display: grid; min-width: 0; }
-.cast-name { overflow: hidden; color: var(--ink); text-overflow: ellipsis; white-space: nowrap; }
-.cast-role { overflow: hidden; color: var(--muted); text-overflow: ellipsis; white-space: nowrap; }
-
 .award-list { display: grid; }
 .award-list li { display: grid; grid-template-columns: 96px 1fr auto; gap: var(--space-16); align-items: center; padding: var(--space-12) 0; }
 .award-list li:first-child { padding-top: 0; }

@@ -13,7 +13,7 @@ export type PersonEntry = { info: PersonInfo; role: string };
  * People with their photo, name and role. Directors go to their page; everyone else opens a sheet
  * with their details, so the film stays where it was.
  */
-export default function PeopleGrid({ people, leads }: { people: PersonEntry[]; leads?: PersonEntry[] }) {
+export default function PeopleGrid({ people }: { people: PersonEntry[] }) {
   const sheet = useRef<HTMLDialogElement>(null);
   const [open, setOpen] = useState<PersonInfo | null>(null);
 
@@ -50,8 +50,6 @@ export default function PeopleGrid({ people, leads }: { people: PersonEntry[]; l
 
   return (
     <>
-      {/* The people you watch, before the list of everyone who worked on it. */}
-      {!!leads?.length && <ul className="cast cast-leads" aria-label="Starring">{leads.map(entry)}</ul>}
       <ul className="cast">{people.map(entry)}</ul>
 
       <dialog
