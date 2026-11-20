@@ -1,5 +1,5 @@
 import { publicPageMetadata } from "@/lib/seo";
-import { PAGE_COPY } from "@/lib/site";
+import { PAGE_COPY, PAGE_SIZE } from "@/lib/site";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import CommunityTile from "@/components/CommunityTile";
@@ -19,7 +19,7 @@ export const metadata: Metadata = publicPageMetadata("/watchlists");
  */
 export default async function CollectionsPage() {
   const tiles = await getWatchlistTiles();
-  const first = sortTiles(tiles, "popular");
+  const first = sortTiles(tiles, "popular").slice(0, PAGE_SIZE);
   return (
     <section className="page">
       <header className="page-head intro-head">

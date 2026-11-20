@@ -12,12 +12,13 @@ import DirectorCard from './DirectorCard';
 import { FilmGrid } from './FilmCard';
 import { BackToTopButton } from './BackToTop';
 import { countryName } from '@/lib/format';
+import { PAGE_SIZE } from '@/lib/site';
 import { buildFacets, cleanState, DIRECTOR_FILTERS, FILM_FILTERS, filterLabel, indexEntries, interpretQuery, matchesFilters, relevance, searchEntries, spellingCorrection, SORTS, stateQuery, TYPE_LABELS, unpack, type PackedEntry, type SearchEntry, type SearchKey, type SearchMode, type SearchState } from '@/lib/catalog-search';
 type HistoryItem = {
     label: string;
     state: SearchState;
 };
-const PAGE = 24;
+const PAGE = PAGE_SIZE;
 let documentVisitId: string | undefined;
 function SearchField({ mode, value, onChange, results, history, onClearHistory, onHistory, onSubmit, onVisit, proposal }: {
     mode: SearchMode;

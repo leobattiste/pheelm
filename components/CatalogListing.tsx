@@ -3,7 +3,8 @@ import {FilmGrid} from './FilmCard';
 import DirectorCard from './DirectorCard';
 import {toCard,toDirectorSummary} from '@/lib/data';
 import type {Film,Director} from '@/lib/types';
-export const CATALOG_PAGE_SIZE=24;
+import {PAGE_SIZE} from '@/lib/site';
+export const CATALOG_PAGE_SIZE=PAGE_SIZE;
 export function catalogPagePath(mode:'films'|'directors',page:number){return page===1?`/${mode}`:`/${mode}/page/${page}`;}
 /** Plain HTML links and cards remain usable without JavaScript. Interactive browsing replaces this on the index. */
 export default function CatalogListing({mode,films=[],directors=[],page=1}:{mode:'films'|'directors';films?:Film[];directors?:Director[];page?:number}){

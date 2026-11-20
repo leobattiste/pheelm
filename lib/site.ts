@@ -38,3 +38,9 @@ export const LEGAL_UPDATED = "10 November 2026";
 export const VERIFIED: Record<string, string> = {
   leo: "Creative Director at Pheelm",
 };
+
+/**
+ * How many cards a list shows before "Load more". Films, Directors and Watchlists all use it, so a
+ * long catalog arrives a screenful at a time instead of thousands of cards at once.
+ */
+export const PAGE_SIZE = 24;

@@ -5,9 +5,11 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import CollectionsToolbar, { type Feed } from "./CollectionsToolbar";
 import CommunityTile from "./CommunityTile";
+import { BackToTopButton } from "./BackToTop";
 import Icon from "./Icon";
-import { SORTS, sortTiles, type Sort, type WatchlistTile } from "@/lib/collection-sorts";
+import { SORTS, shownFor, sortTiles, windowKey, type Sort, type WatchlistTile } from "@/lib/collection-sorts";
 import { getBrowserClient } from "@/lib/supabase/client";
+import { PAGE_SIZE } from "@/lib/site";
 
 const FEEDS: Feed[] = ["all", "featured", "following"];
 
@@ -23,6 +25,10 @@ export default function WatchlistsBrowser({ tiles }: { tiles: WatchlistTile[] })
 
   // undefined until known; null when signed out.
   const [saved, setSaved] = useState<Set<string> | null | undefined>(undefined);
+  // A screenful at a time: thousands of tiles at once makes the page slow to draw and to scroll.
+  // The count is kept against the list it belongs to, so a different sort, feed or film starts at
+  // the top again without a render showing the old window first.
+  const [savedWindow, setWindow] = useState({ list: "", shown: PAGE_SIZE });
   const [filmTitle, setFilmTitle] = useState<string | null>(null);
 
   useEffect(() => {
@@ -60,13 +66,24 @@ export default function WatchlistsBrowser({ tiles }: { tiles: WatchlistTile[] })
     return out;
   }, [tiles, sort, filmSlug, feed, saved]);
   const loadingFollowing = feed === "following" && saved === undefined;
+  const listKey = windowKey(sort, feed, filmSlug);
+  const shown = shownFor(savedWindow, listKey);
+  if (savedWindow.list !== listKey) setWindow({ list: listKey, shown });
 
   return (
     <>
       {filmSlug && <p className="lead">{filmTitle ? <>Watchlists with <Link href={`/films/${filmSlug}`}>{filmTitle}</Link>. </> : "Watchlists with this film. "}<Link href="/watchlists">See all</Link></p>}
       <CollectionsToolbar signedIn={signedIn} feed={feed} sort={sort} />
       {list.length ? (
-        <ul className="collection-list">{list.map((c) => <CommunityTile key={c.id} c={c} filmCount={c.filmCount} />)}</ul>
+        <>
+          <ul className="collection-list">{list.slice(0, shown).map((c) => <CommunityTile key={c.id} c={c} filmCount={c.filmCount} />)}</ul>
+          {shown < list.length && (
+            <div className="pagination-controls">
+              <button type="button" className="button ghost more" onClick={() => setWindow({ list: listKey, shown: shown + PAGE_SIZE })}>Load more</button>
+              <BackToTopButton />
+            </div>
+          )}
+        </>
       ) : loadingFollowing ? (
         <ul className="collection-list" aria-busy="true" />
       ) : (
