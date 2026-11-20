@@ -1,8 +1,9 @@
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { createClient } from "@supabase/supabase-js";
 import { getFilms } from "./data";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseEnabled } from "./supabase/config";
-import type { Film } from "./types";
+import type { CollectionTileData, Film } from "./types";
 import type { Sort } from "./collection-sorts";
 
 /** A collection to list in the community: needs a title, this many films and a member name. */
@@ -200,4 +201,91 @@ export async function getPublicProfileHandles():Promise<string[]> {
   for(const row of data??[])if(/^[a-z0-9_]{3,24}$/.test(row.handle))handles.push(row.handle);
   if(!data || data.length<1000)return handles;
  }
+}
+
+
+/** What the Watchlists page needs from a collection: its tile, plus what sorting and filtering use. */
+export type WatchlistTile = CollectionTileData & {
+  description: string | null;
+  staff_pick: boolean;
+  featured: boolean;
+  created_at: string;
+  updated_at: string;
+  saves: number;
+  filmIds: string[];
+  filmCount: number;
+};
+
+/**
+ * Every qualifying collection for the Watchlists page, read without loading the whole film
+ * catalog: only the first three films of each list (for the poster fan) are fetched. Cached for a
+ * few minutes and refreshed by the "watchlists" tag.
+ */
+export const getWatchlistTiles = unstable_cache(async (): Promise<WatchlistTile[]> => {
+  const db = anon();
+  if (!db) return [];
+  const { data, error } = await lists((cols) => db.from("lists").select(cols).eq("is_public", true).order("created_at", { ascending: false }).limit(1000));
+  if (error) throw error;
+  const rows = data as unknown as Row[];
+  if (!rows.length) return [];
+  const ids = rows.map((r) => r.id);
+  const owners = [...new Set(rows.map((r) => r.user_id))];
+  const allFilmIds = [...new Set(rows.flatMap((r) => r.list_films.map((x) => x.film_id)))];
+  const [people, counts, filmRows] = await Promise.all([
+    members((cols) => db.from("member_profiles").select(cols).in("id", owners)),
+    db.from("list_save_counts").select("list_id, saves").in("list_id", ids),
+    (async () => {
+      // Only published films, in chunks so the request URL stays short.
+      const out: { id: string; title: string; year: number; poster_url: string | null; color?: string | null }[] = [];
+      for (let i = 0; i < allFilmIds.length; i += 200) {
+        const { data } = await db.from("films").select("id, title, year, poster_url, color").eq("status", "published").in("id", allFilmIds.slice(i, i + 200));
+        out.push(...((data ?? []) as typeof out));
+      }
+      return out;
+    })(),
+  ]);
+  const filmById = new Map(filmRows.map((f) => [f.id, f]));
+  const ownerById = new Map(((people ?? []) as unknown as Member[]).map((p) => [p.id, p]));
+  const savesById = new Map(((counts.data ?? []) as { list_id: string; saves: number }[]).map((c) => [c.list_id, c.saves]));
+  const sorted = rows.map((r) => {
+    const films = r.list_films.filter((x) => filmById.has(x.film_id))
+      .sort((a, b) => r.staff_pick ? (filmById.get(a.film_id)!.year - filmById.get(b.film_id)!.year) : b.added_at.localeCompare(a.added_at));
+    return { r, films };
+  }).filter(({ r, films }) => ownerById.has(r.user_id) && (r.staff_pick || films.length >= MIN_FILMS));
+  // Directors for the three posters shown on each tile.
+  const shown = [...new Set(sorted.flatMap(({ films }) => films.slice(0, 3).map((x) => x.film_id)))];
+  const directorsByFilm = new Map<string, { name: string }[]>();
+  if (shown.length) {
+    const { data: credits } = await db.from("credits").select("film_id, sort, people(name, in_directory)").eq("role", "director").in("film_id", shown).order("sort");
+    for (const c of (credits ?? []) as unknown as { film_id: string; people: { name: string } | null }[])
+      if (c.people) directorsByFilm.set(c.film_id, [...(directorsByFilm.get(c.film_id) ?? []), { name: c.people.name }]);
+  }
+  return sorted.map(({ r, films }) => ({
+    id: r.id,
+    slug: r.slug,
+    title: r.title,
+    description: r.description,
+    staff_pick: !!r.staff_pick,
+    featured: !!r.staff_pick || !!r.featured,
+    created_at: r.created_at,
+    updated_at: [r.updated_at ?? r.created_at, ...r.list_films.map((x) => x.added_at)].sort().at(-1)!,
+    saves: savesById.get(r.id) ?? 0,
+    owner: ownerById.get(r.user_id) ? { handle: ownerById.get(r.user_id)!.handle } : null,
+    filmIds: films.map((x) => x.film_id),
+    filmCount: films.length,
+    films: films.slice(0, 3).map((x) => ({ ...filmById.get(x.film_id)!, directors: directorsByFilm.get(x.film_id) ?? [] })),
+  }));
+}, ["watchlist-tiles-v1"], { revalidate: 120, tags: ["watchlists"] });
+
+const tileOrder: Record<Sort, (a: WatchlistTile, b: WatchlistTile) => number> = {
+  popular: (a, b) => Number(b.staff_pick) - Number(a.staff_pick) || b.saves - a.saves || b.created_at.localeCompare(a.created_at),
+  new: (a, b) => b.created_at.localeCompare(a.created_at),
+  updated: (a, b) => b.updated_at.localeCompare(a.updated_at),
+  films: (a, b) => b.filmCount - a.filmCount || b.saves - a.saves,
+};
+
+export async function getWatchlistTilesSorted({ sort = "popular", filmId }: { sort?: Sort; filmId?: string } = {}) {
+  let all = [...(await getWatchlistTiles())];
+  if (filmId) all = all.filter((c) => c.filmIds.includes(filmId));
+  return all.sort(tileOrder[sort]);
 }

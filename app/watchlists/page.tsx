@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import CollectionsToolbar, { type Feed } from "@/components/CollectionsToolbar";
 import CommunityTile from "@/components/CommunityTile";
-import { getCommunityCollections, SORTS, type Sort } from "@/lib/community";
+import { getWatchlistTilesSorted, SORTS, type Sort } from "@/lib/community";
 import { getFilm } from "@/lib/data";
 import { getServerClient } from "@/lib/supabase/server";
 
@@ -27,7 +27,7 @@ export default async function CollectionsPage({ searchParams }: { searchParams: 
   const feed: Feed = asked === "following" && !viewer ? "all" : asked;
 
   const film = sp.film ? await getFilm(sp.film) : null;
-  let list = await getCommunityCollections({ sort, filmId: film?.id });
+  let list = await getWatchlistTilesSorted({ sort, filmId: film?.id });
 
   if (feed === "featured") list = list.filter((c) => c.featured);
   if (db && viewer && feed === "following") {
@@ -48,7 +48,7 @@ export default async function CollectionsPage({ searchParams }: { searchParams: 
       <CollectionsToolbar signedIn={!!viewer} feed={feed} sort={sort} />
 
       {list.length ? (
-        <ul className="collection-list">{list.map((c) => <CommunityTile key={c.id} c={c} />)}</ul>
+        <ul className="collection-list">{list.map((c) => <CommunityTile key={c.id} c={c} filmCount={c.filmCount} />)}</ul>
       ) : (
         <div className="empty-state">
           <Icon name="stack" className="empty-icon" />
