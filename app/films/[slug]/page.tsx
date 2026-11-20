@@ -18,6 +18,7 @@ import WatchlistButton from "@/components/WatchlistButton";
 import FilmComments from "@/components/FilmComments";
 import { getWatchlistTiles } from "@/lib/community";
 import { filmPageCatalog, getFilms, toCard } from "@/lib/data";
+import FilmTint from "@/components/FilmTint";
 import { personInfo, roleLabel, sentence } from "@/lib/roles";
 import { countryName, listJoin, runtimeLabel, trailerEmbed } from "@/lib/format";
 import { SITE_URL } from "@/lib/supabase/config";
@@ -141,6 +142,7 @@ export default async function FilmPage({ params }: Params) {
     <>
       <article className="film-page">
         {/* Hands the film's colour to the whole page, header and footer included, while it's open. */}
+        <FilmTint accent={film.accent} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
 
         <Breadcrumbs parent="Films" href="/films" current={film.title} currentHref={`/films/${film.slug}`} />

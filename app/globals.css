@@ -3421,3 +3421,46 @@ html:root:root:root:root:root:root .product-option .button.ghost:not([aria-press
 .catalog-pill:has(select:focus-visible) { outline: 2px solid var(--ink); outline-offset: -2px; }
 :root[data-focus-input="touch"] .catalog-pill:has(select:focus-visible) { outline: none; }
 html:root:root:root:root:root .catalog-pill.is-set { background: var(--ink) !important; color: var(--on-ink) !important; border-color: var(--ink) !important; }
+
+/* ---- A film's own colour ---- */
+/* --film-accent is set per film page from its poster, by components/FilmTint.tsx, and is absent
+   everywhere else: every rule here falls back to what the page used before, so a film with a
+   monotone poster and the rest of the site are untouched. The poster itself is never tinted — it
+   is the thing the colour came from, and washing it would flatten it. */
+
+/* The page's primary action is where the colour is spent: Trailer, and any other solid button.
+   Six :root to clear the solid-ink rule further up, which is itself !important. */
+html:root:root:root:root:root:root :is(.film-page, .film-bar) :is(.button:not(.ghost):not(.quiet):not(.link-button), .button.primary, .pill-button.primary):not(:disabled):not(dialog *) {
+  background: var(--film-accent, var(--ink)) !important;
+  color: var(--film-on-accent, var(--on-ink)) !important;
+  border-color: transparent !important;
+}
+/* Hover moves toward the page's ink: brighter in the dark theme, deeper in the light one. */
+@media (hover: hover) {
+  html:root:root:root:root:root:root :is(.film-page, .film-bar) :is(.button:not(.ghost):not(.quiet):not(.link-button), .button.primary, .pill-button.primary):not(:disabled):not(dialog *):hover {
+    background: color-mix(in srgb, var(--film-accent, var(--ink)) 86%, var(--ink)) !important;
+  }
+}
+
+/* The bars and the ⋯ menu keep their glass; the colour only warms it. */
+html:root:root:root:root:root .film-bar,
+html:root:root:root:root:root .film-page .more-panel {
+  background: var(--film-glass, var(--glass-bg)) !important;
+}
+@media (hover: hover) {
+  html:root:root:root:root:root .film-page .more-panel :is(.button, .link-button, a, button):hover {
+    background: var(--film-glass-hover, var(--glass-hover)) !important;
+  }
+}
+
+/* A sheet or dialog opened over the page keeps its transparent controls, so there the colour is
+   the text and icon rather than a fill. */
+html:root:root:root:root:root:root body:has(.film-page) :is(dialog, .menu-sheet) :is(.button.primary, .pill-button.primary, .button:not(.ghost):not(.quiet):not(.link-button)):not(:disabled) {
+  background: transparent !important;
+  color: var(--film-accent, var(--ink)) !important;
+  border-color: transparent !important;
+}
+html:root:root:root:root:root:root body:has(.film-page) :is(dialog, .menu-sheet) :is(.button.primary, .pill-button.primary) svg { color: inherit; }
+
+/* The poster stays exactly as it is: no wash, no blend, no tinted shadow. */
+html:root:root:root:root:root .film-art .poster { background-blend-mode: normal; filter: none; }
