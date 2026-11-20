@@ -26,6 +26,10 @@ import Row from "@/components/Row";
 
 export const revalidate = 3600; // admin saves refresh it right away
 export const dynamicParams = true;
+// A page that isn't prebuilt has to load the catalogue before it can render, which outgrew the
+// default 15s as the catalogue grew and left visitors on an error page. The slow render is a
+// one-off: the result is cached for everyone after it.
+export const maxDuration = 60;
 
 /**
  * Only the featured films are built ahead of time. Every other film page is built the first time

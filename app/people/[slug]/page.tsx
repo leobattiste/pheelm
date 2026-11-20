@@ -7,6 +7,8 @@ import { getDirector, getDirectors, getFilms, getPerson } from "@/lib/data";
 import { personInfo } from "@/lib/roles";
 
 export const revalidate = 3600; // admin saves refresh it right away
+// Same as the film page: a cold render loads the catalogue, which outgrew the default 15s.
+export const maxDuration = 60;
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const slug=(await params).slug;

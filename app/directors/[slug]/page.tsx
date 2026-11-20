@@ -18,6 +18,10 @@ import { bornText, diedText, rolesOnFilm, rolesWithCommas, worksOf } from "@/lib
 
 export const revalidate = 3600; // admin saves refresh it right away
 export const dynamicParams = true;
+// A page that isn't prebuilt has to load the catalogue before it can render, which outgrew the
+// default 15s as the catalogue grew and left visitors on an error page. The slow render is a
+// one-off: the result is cached for everyone after it.
+export const maxDuration = 60;
 
 // Director pages are built the first time someone opens one, then kept, so the build stays small.
 export async function generateStaticParams() {
