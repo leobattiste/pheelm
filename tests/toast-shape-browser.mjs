@@ -21,10 +21,10 @@ try {
   const many = await radius();
   assert(many.multi && many.radius === 18, `wrapped text gets card corners ${JSON.stringify(many)}`);
 
-  // Search stays in the bar for visitors; Sign in remains in the expanded menu.
-  const tab = page.locator('.tab-bar .tab[aria-label=Search]');
-  assert.equal(await tab.getAttribute('href'), '/search');
-  assert.equal(await page.locator('.tab-bar .tab[aria-label=Profile]').count(),0);
+  // Visitors get Sign in where members see their profile; both sit in the bar.
+  const tab = page.locator('.tab-bar .tab[aria-label="Sign in"]');
+  assert.equal(await tab.getAttribute('href'), '/login');
+  assert.equal(await page.locator('.tab-bar .tab[aria-label=Profile]:visible').count(),0);
   assert.equal(await page.locator('.tab-bar .tab:visible').count(), 5, 'five tabs');
   await page.locator('.tab-bar button.tab').click();
   await page.waitForSelector('.menu-sheet[open]');

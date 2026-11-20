@@ -42,6 +42,8 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: "/collections", destination: "/watchlists", permanent: true },
+      // Search now lives on the Films and Directors pages, where the words carry over.
+      { source: "/search", destination: "/films", permanent: false },
       { source: "/journal", destination: "/", permanent: true },
       { source: "/journal/:slug*", destination: "/", permanent: true },
     ];

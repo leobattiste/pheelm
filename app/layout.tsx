@@ -5,7 +5,6 @@ import { Analytics } from "@vercel/analytics/next";
 import Link from "next/link";
 import BackToTop from "@/components/BackToTop";
 import NewsletterForm from "@/components/NewsletterForm";
-import Search from "@/components/Search";
 import TabBar from "@/components/TabBar";
 import PhotoZoom from "@/components/PhotoZoom";
 import WelcomeNudge from "@/components/WelcomeNudge";
@@ -182,7 +181,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <WelcomeNudge />
         <Toaster />
         <NotificationToasts />
-        <Search />
         <TransitionWatcher />
         <NavProgress />
         <NavProgressLine top />
