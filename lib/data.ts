@@ -167,6 +167,17 @@ function buildCatalog(raw: Raw) {
 }
 
 /**
+ * Rows whose column matches one of these ids, read in chunks of 200 so the request URL stays
+ * short: PostgREST puts every id in the query string, and a few thousand of them overflow it.
+ */
+async function readIn<T>(db: SupabaseClient, table: string, column: string, ids: string[]): Promise<T[]> {
+  const unique = [...new Set(ids)];
+  const chunks = Array.from({ length: Math.ceil(unique.length / 200) }, (_, i) => unique.slice(i * 200, i * 200 + 200));
+  const pages = await Promise.all(chunks.map((chunk) => readAll<T>(db, table, (q) => q.in(column, chunk))));
+  return pages.flat();
+}
+
+/**
  * Everything one film page needs, and nothing else.
  *
  * The page used to load the whole catalogue — every film, and all ~29,000 cast and crew rows with
@@ -195,16 +206,13 @@ export const filmPageCatalog = cache(async (slug: string) => {
 
   // This film in full, then the other credits of the people on it, for their filmographies.
   const own = await readAll<CreditRow>(db, "credits", (q) => q.eq("film_id", film.id));
-  const theirs = own.length
-    ? await readAll<CreditRow>(db, "credits", (q) => q.in("person_id", [...new Set(own.map((c) => c.person_id))]))
-    : [];
-  const credits = [...directorCredits, ...own, ...theirs];
+  const theirs = await readIn<CreditRow>(db, "credits", "person_id", own.map((c) => c.person_id));
   const seen = new Set<string>();
-  const unique = credits.filter((c) => {
+  const unique = [...directorCredits, ...own, ...theirs].filter((c) => {
     const key = `${c.film_id}:${c.person_id}:${c.role}`;
     return seen.has(key) ? false : (seen.add(key), true);
   });
-  const people = await readAll<PersonRow>(db, "people", (q) => q.in("id", [...new Set(unique.map((c) => c.person_id))]));
+  const people = await readIn<PersonRow>(db, "people", "id", unique.map((c) => c.person_id));
 
   const { films: built, directors } = buildCatalog({ films, people, credits: unique, collections, collection_films: collectionFilms });
   return { film: built.find((f) => f.slug === slug) ?? null, films: built, directors };

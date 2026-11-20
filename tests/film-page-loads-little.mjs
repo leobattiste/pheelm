@@ -25,8 +25,11 @@ assert.match(page, /<CommunityTile[^>]*filmCount=\{c\.filmCount\}/, "pass the re
 // The loader reads only director credits across the catalog, plus this film's own people.
 assert.match(data, /readAll<CreditRow>\(db, "credits", \(q\) => q\.eq\("role", "director"\)\)/, "only director credits should be read for every film");
 assert.match(data, /q\.eq\("film_id", film\.id\)/, "this film's own credits should be read");
-assert.match(data, /q\.in\("person_id",/, "the credits of this film's people should be read, for their filmographies");
-assert.match(data, /q\.in\("id",/, "only the people actually referenced should be read");
+assert.match(data, /readIn<CreditRow>\(db, "credits", "person_id",/, "the credits of this film's people should be read, for their filmographies");
+assert.match(data, /readIn<PersonRow>\(db, "people", "id",/, "only the people actually referenced should be read");
+
+// Thousands of ids do not fit in one request URL, so these reads go in chunks.
+assert.match(data, /i \* 200, i \* 200 \+ 200/, "readIn should chunk its ids so the query string stays short");
 
 // Local work and CI run on the starter catalog, which has no Supabase behind it.
 assert.match(data, /if \(!supabaseEnabled\) \{\s*const c = await catalog\(\);/, "without Supabase the loader should fall back to the starter catalog");
