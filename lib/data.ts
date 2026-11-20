@@ -190,7 +190,10 @@ async function readIn<T>(db: SupabaseClient, table: string, column: string, ids:
  * Supabase — local work and CI — it falls back to the starter catalogue.
  */
 export const filmPageCatalog = cache(async (slug: string) => {
-  if (!supabaseEnabled) {
+  // A build prerenders many film pages at once. There the whole catalog is read once and shared by
+  // all of them, which is less work than a trimmed read per page; the saving is for a live visit,
+  // where one page renders on its own. Local work and CI have no Supabase, and take this path too.
+  if (!supabaseEnabled || building()) {
     const c = await catalog();
     return { film: c.films.find((f) => f.slug === slug) ?? null, films: c.films, directors: c.directors };
   }
