@@ -72,28 +72,86 @@ async function readAll<T>(db: SupabaseClient, table: string, filter?: (q: any) =
 /**
  * Loads the whole published catalog. Thousands of films still fit in memory, but downloading it
  * for every page doesn't: during a build that's hundreds of copies at once. So one copy is shared
- * by every page this server process renders, refreshed after a minute.
+ * by every page this server process renders.
+ *
+ * It used to be thrown away after a minute. An admin save revalidates the whole site, so every
+ * page then re-rendered, and every server re-read all 31,000 credits and 19,000 people (about 55
+ * requests) once a minute: 1,000–2,000 people requests an hour, and thousands of "statement
+ * timeout" errors on the database. Now, after a minute, the server asks for one row,
+ * `catalog_version`, which triggers bump whenever films, people, credits or collections change, and
+ * reads the catalog again only if that number moved. A copy is never kept past half an hour, and if
+ * the version can't be read (the table isn't there yet) it falls back to the one-minute refresh.
  */
-const FRESH_FOR = 60_000;
-/**
- * How long one copy serves. Nothing in the catalog changes while the site is building, and a build
- * takes several minutes, so refreshing every minute meant reading all 31,000 credits and 19,000
- * people four or five times for one deploy. During a build the first copy serves the whole of it.
- */
-const freshFor = () => (building() ? Infinity : FRESH_FOR);
-let shared: { at: number; data: Promise<Raw> } | null = null;
-const load = cache((): Promise<Raw> => {
-  if (!supabaseEnabled) return Promise.resolve(local as unknown as Raw);
-  if (shared && Date.now() - shared.at < freshFor()) return shared.data;
-  const data = fetchCatalog();
-  shared = { at: Date.now(), data };
-  // A failed download isn't kept, so the next page tries again.
-  data.catch(() => { if (shared?.data === data) shared = null; });
-  return data;
+const CHECK_EVERY = 60_000;
+const KEEP_AT_MOST = 30 * 60_000;
+type Copy = { at: number; checked: number; version: number | null; data: Promise<Raw>; ready?: Raw };
+let shared: Copy | null = null;
+let checking: Promise<boolean> | null = null;
+
+const anonClient = () => createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: false } });
+
+/** The catalog's change counter, or null when it can't be read. */
+async function catalogVersion(db: SupabaseClient): Promise<number | null> {
+  const { data, error } = await db.from("catalog_version").select("v").eq("id", 1).maybeSingle();
+  return error || !data ? null : Number(data.v);
+}
+
+/** True when the copy in memory is still the current catalog. One check at a time per server. */
+function stillCurrent(copy: Copy): Promise<boolean> {
+  if (copy.version === null) return Promise.resolve(false);
+  checking ??= catalogVersion(anonClient())
+    .then((v) => v !== null && v === copy.version)
+    .catch(() => false)
+    .finally(() => { checking = null; });
+  return checking;
+}
+
+function refresh(previous: Copy | null): Promise<Raw> {
+  const at = Date.now();
+  const db = anonClient();
+  // The version is read before the rows: a change landing mid-download leaves the copy marked with
+  // the older number, so the next check reads it again rather than missing the change.
+  const version = catalogVersion(db).catch(() => null);
+  const data = version.then(() => fetchCatalog(db));
+  const copy: Copy = { at, checked: at, version: null, data };
+  shared = copy;
+  data.then(
+    async (raw) => { copy.ready = raw; copy.version = await version; },
+    () => {
+      // A failed download isn't kept. Outside a build, the last good copy carries on serving rather
+      // than turning a busy database into error pages, and is checked again in a minute.
+      if (shared !== copy) return;
+      shared = previous?.ready && !building()
+        ? { ...previous, at: Math.max(previous.at, Date.now() - KEEP_AT_MOST + CHECK_EVERY), checked: Date.now() }
+        : null;
+    },
+  );
+  return previous?.ready && !building() ? data.catch(() => previous.ready!) : data;
+}
+
+const load = cache(async (): Promise<Raw> => {
+  if (!supabaseEnabled) return local as unknown as Raw;
+  const copy = shared;
+  // Nothing in the catalog changes while the site is building: one copy serves the whole build.
+  if (copy && building()) return copy.data;
+  const now = Date.now();
+  if (copy && !copy.ready) return copy.data; // still downloading
+  if (copy && now - copy.at < KEEP_AT_MOST) {
+    if (now - copy.checked < CHECK_EVERY) return copy.data;
+    if (await stillCurrent(copy)) {
+      copy.checked = Date.now();
+      return copy.data;
+    }
+    // Another page may have started the refresh while this one waited on the check.
+    if (shared !== copy) return shared ? shared.data : refresh(copy);
+  }
+  return refresh(copy);
 });
 
-async function fetchCatalog(): Promise<Raw> {
-  const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: false } });
+/** True when this server already holds a checked, current copy of the catalog. */
+const warm = () => Boolean(shared?.ready && Date.now() - shared.checked < CHECK_EVERY);
+
+async function fetchCatalog(db: SupabaseClient): Promise<Raw> {
   try {
     const [films, people, credits, collections, collection_films] = await Promise.all([
       readAll<FilmRow>(db, "films", (q) => q.eq("status", "published")),
@@ -226,11 +284,13 @@ export const filmPageCatalog = cache(async (slug: string) => {
   // A build prerenders many film pages at once. There the whole catalog is read once and shared by
   // all of them, which is less work than a trimmed read per page; the saving is for a live visit,
   // where one page renders on its own. Local work and CI have no Supabase, and take this path too.
-  if (!supabaseEnabled || building()) {
+  // A server that already holds a current copy of the whole catalog uses it too: that costs
+  // nothing, where the trimmed read is still a dozen requests.
+  if (!supabaseEnabled || building() || warm()) {
     const c = await catalog();
     return { film: c.films.find((f) => f.slug === slug) ?? null, films: c.films, directors: c.directors };
   }
-  const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: false } });
+  const db = anonClient();
   const [films, directorCredits, collections, collectionFilms] = await Promise.all([
     readAll<FilmRow>(db, "films", (q) => q.eq("status", "published")),
     readAll<CreditRow>(db, "credits", (q) => q.eq("role", "director")),

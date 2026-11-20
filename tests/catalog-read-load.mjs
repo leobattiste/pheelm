@@ -12,13 +12,25 @@ const AT_ONCE = 4;
  * Loads lib/data.ts with Supabase replaced by a stand-in that counts requests, records how many
  * were in flight at once, and answers `total` rows a thousand at a time.
  */
-async function load({ total, building }) {
+async function load({ total, building, versioned = false }) {
   const out = await build({
     stdin: { contents: `export {getFilms} from './lib/data';`, loader: "ts", resolveDir: process.cwd() },
     bundle: true, write: false, format: "cjs", platform: "node",
     external: ["server-only", "@supabase/supabase-js", "next/cache", "react"],
   });
-  const stats = { requests: 0, peak: 0, inFlight: 0, reads: 0 };
+  const stats = { requests: 0, peak: 0, inFlight: 0, reads: 0, versionChecks: 0 };
+  // `version` is the catalog_version row; `failing` makes every catalog request error.
+  const db = { version: 1, failing: false };
+  const versionQuery = () => {
+    const q = {
+      select: () => q, eq: () => q,
+      maybeSingle: async () => {
+        stats.versionChecks++;
+        return versioned ? { data: { v: db.version }, error: null } : { data: null, error: { message: "relation does not exist" } };
+      },
+    };
+    return q;
+  };
   const makeQuery = () => {
     let from = 0, to = 999;
     const q = {
@@ -32,6 +44,7 @@ async function load({ total, building }) {
         // Answers on a later tick, so overlapping requests really do overlap.
         return new Promise((r) => setTimeout(r, 5)).then(() => {
           stats.inFlight--;
+          if (db.failing) return { data: null, error: { message: "canceling statement due to statement timeout" }, count: null };
           const count = Math.max(0, Math.min(to, total - 1) - from + 1);
           const rows = Array.from({ length: count }, (_, i) => ({
             id: `row-${from + i}`, slug: `f-${from + i}`, title: `Film ${from + i}`, year: 2000,
@@ -45,7 +58,7 @@ async function load({ total, building }) {
   };
   const fakes = {
     "server-only": {},
-    "@supabase/supabase-js": { createClient: () => { stats.reads++; return { from: () => makeQuery() }; } },
+    "@supabase/supabase-js": { createClient: () => { stats.reads++; return { from: (t) => (t === "catalog_version" ? versionQuery() : makeQuery()) }; } },
     "next/cache": { unstable_cache: (fn) => fn, revalidateTag: () => {} },
     react: { cache: (fn) => fn },
   };
@@ -63,7 +76,7 @@ async function load({ total, building }) {
     process: { ...process, env },
     require: (name) => fakes[name] ?? require(name),
   });
-  return { getFilms: mod.exports.getFilms, stats, clock };
+  return { getFilms: mod.exports.getFilms, stats, clock, db };
 }
 
 // 1. Pages are asked for a few at a time, not all at once.
@@ -103,4 +116,66 @@ async function load({ total, building }) {
   assert.ok(stats.requests > afterFirst, "a live site should read again once its copy is stale");
 }
 
-console.log("ok  the catalogue is read a few pages at a time, and once per build");
+// 5. A running site whose catalogue hasn't changed asks for one row, not the whole catalogue.
+//    Re-reading everything every minute after an admin save is what overloaded the database.
+{
+  const { getFilms, stats, clock } = await load({ total: 1_200, building: false, versioned: true });
+  await getFilms();
+  const afterFirst = stats.requests;
+  for (const minutes of [2, 5, 10, 20]) {
+    clock.skip = minutes * 60_000;
+    await Promise.all([getFilms(), getFilms(), getFilms()]);
+  }
+  assert.equal(stats.requests, afterFirst, "an unchanged catalogue should not be read again");
+  assert.ok(stats.versionChecks <= 5, `pages arriving together should share one check, saw ${stats.versionChecks}`);
+}
+
+// 6. When the catalogue changes, the next check reads it again, so an admin's save still shows.
+{
+  const { getFilms, stats, clock, db } = await load({ total: 1_200, building: false, versioned: true });
+  await getFilms();
+  const afterFirst = stats.requests;
+  db.version++;
+  clock.skip = 2 * 60_000;
+  await getFilms();
+  assert.ok(stats.requests > afterFirst, "a changed catalogue should be read again");
+}
+
+// 7. However quiet the catalogue, a copy is read afresh after half an hour.
+{
+  const { getFilms, stats, clock } = await load({ total: 1_200, building: false, versioned: true });
+  await getFilms();
+  const afterFirst = stats.requests;
+  clock.skip = 31 * 60_000;
+  await getFilms();
+  assert.ok(stats.requests > afterFirst, "a copy should not outlive half an hour");
+}
+
+// 8. When a refresh fails on the live site, the last good copy keeps serving instead of an error,
+//    and the database isn't asked again on every page until a minute has passed.
+{
+  const { getFilms, stats, clock, db } = await load({ total: 1_200, building: false, versioned: true });
+  const first = await getFilms();
+  db.version++;
+  db.failing = true;
+  clock.skip = 2 * 60_000;
+  const during = await getFilms();
+  assert.equal(during.length, first.length, "the last good catalogue should still be served");
+  const afterFailure = stats.requests;
+  await getFilms();
+  await getFilms();
+  assert.equal(stats.requests, afterFailure, "a failed refresh should wait a minute before trying again");
+  db.failing = false;
+  clock.skip = 4 * 60_000;
+  await getFilms();
+  assert.ok(stats.requests > afterFailure, "it should try again after a minute");
+}
+
+// 9. A failed read during a build still stops the build rather than shipping a broken catalogue.
+{
+  const { getFilms, db } = await load({ total: 1_200, building: true, versioned: true });
+  db.failing = true;
+  await assert.rejects(getFilms(), /statement timeout/);
+}
+
+console.log("ok  the catalogue is read a few pages at a time, once per build, and again only when it changes");

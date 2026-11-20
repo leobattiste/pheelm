@@ -15,7 +15,7 @@ const json = (data: Record<string, unknown>, status = 200) =>
   NextResponse.json(data, { status, headers: { "Cache-Control": "no-store" } });
 
 /**
- * Scheduled job (every minute): adds the next 20 films from the queue and publishes them, oldest first. Films
+ * Scheduled job (every five minutes, only while films are waiting): adds the next 20 films from the queue and publishes them, oldest first. Films
  * TMDB couldn't match keep their reason in the queue and aren't retried; fix or remove them in
  * Admin → Films → Add.
  */
