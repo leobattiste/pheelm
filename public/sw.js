@@ -5,7 +5,7 @@
  * - Pages: from the network, falling back to the last copy, then to the offline page.
  * Signed-in pages, admin, auth and API calls are never cached.
  */
-const VERSION = "pheelm-v2";
+const VERSION = "pheelm-v3";
 const STATIC = `${VERSION}-static`;
 const PAGES = `${VERSION}-pages`;
 const IMAGES = `${VERSION}-images`;
@@ -26,11 +26,32 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-/** Keep a cache to its newest `max` entries. */
+/** Keep a cache to its newest `max` entries. Never throws: trimming is housekeeping. */
 async function trim(name, max) {
-  const cache = await caches.open(name);
-  const keys = await cache.keys();
-  await Promise.all(keys.slice(0, Math.max(0, keys.length - max)).map((k) => cache.delete(k)));
+  try {
+    const cache = await caches.open(name);
+    const keys = await cache.keys();
+    await Promise.all(keys.slice(0, Math.max(0, keys.length - max)).map((k) => cache.delete(k)));
+  } catch {}
+}
+
+/** Store one response, trimming now and then rather than on every image. */
+async function save(cache, request, response) {
+  try {
+    await cache.put(request, response);
+    if (Math.random() < 0.05) await trim(IMAGES, 400);
+  } catch {
+    // A full cache must not stop the image being shown, so drop what we have and carry on.
+    await trim(IMAGES, 100);
+  }
+}
+
+/** Fetch a cached image again in the background; a failure leaves the cached copy in place. */
+async function refresh(cache, request) {
+  try {
+    const res = await fetch(request);
+    if (res.ok || res.type === "opaque") await save(cache, request, res);
+  } catch {}
 }
 
 self.addEventListener("fetch", (event) => {
@@ -38,29 +59,33 @@ self.addEventListener("fetch", (event) => {
   if (request.method !== "GET") return;
   const url = new URL(request.url);
 
-  // The site's own build files and fonts: cache first.
+  // The site's own build files and fonts: cache first, and the network whenever the cache can't help.
   if (url.origin === self.location.origin && (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/icons/"))) {
-    event.respondWith(
-      caches.match(request).then((hit) => hit || fetch(request).then((res) => {
-        if (res.ok) caches.open(STATIC).then((c) => c.put(request, res.clone()));
-        return res;
-      })),
-    );
+    event.respondWith((async () => {
+      const hit = await caches.match(request).catch(() => undefined);
+      if (hit) return hit;
+      const res = await fetch(request);
+      if (res.ok) event.waitUntil(caches.open(STATIC).then((c) => c.put(request, res.clone())).catch(() => {}));
+      return res;
+    })());
     return;
   }
 
-  // Posters, stills and portraits: cached, refreshed in the background.
+  // Posters, stills and portraits: cached, refreshed in the background. Every step falls back to
+  // the plain network request, so a full cache or a failed write can never blank out an image.
   if (request.destination === "image" && (url.hostname === "image.tmdb.org" || url.pathname.startsWith("/_next/image"))) {
-    event.respondWith(
-      caches.open(IMAGES).then(async (cache) => {
-        const hit = await cache.match(request);
-        const fresh = fetch(request).then((res) => {
-          if (res.ok || res.type === "opaque") cache.put(request, res.clone()).then(() => trim(IMAGES, 400));
-          return res;
-        }).catch(() => hit);
-        return hit || fresh;
-      }),
-    );
+    event.respondWith((async () => {
+      let cache = null;
+      try { cache = await caches.open(IMAGES); } catch { return fetch(request); }
+      const hit = await cache.match(request).catch(() => undefined);
+      if (hit) {
+        event.waitUntil(refresh(cache, request));
+        return hit;
+      }
+      const res = await fetch(request);
+      if (res.ok || res.type === "opaque") event.waitUntil(save(cache, request, res.clone()));
+      return res;
+    })());
     return;
   }
 
@@ -73,7 +98,7 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(request)
         .then((res) => {
-          if (res.ok && res.type === "basic" && !res.redirected && !/private|no-store/i.test(res.headers.get("cache-control") || "")) caches.open(PAGES).then((c) => c.put(request, res.clone()).then(() => trim(PAGES, 60)));
+          if (res.ok && res.type === "basic" && !res.redirected && !/private|no-store/i.test(res.headers.get("cache-control") || "")) event.waitUntil(caches.open(PAGES).then((c) => c.put(request, res.clone())).then(() => trim(PAGES, 60)).catch(() => {}));
           return res;
         })
         .catch(async () => (await caches.match(request)) || (await caches.match(OFFLINE))),

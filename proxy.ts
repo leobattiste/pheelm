@@ -6,12 +6,12 @@ import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseEnabled } from "@/lib/supabase
  * Early access: without an account, only the home page and a few pages about Pheelm are open.
  * Everything else sends visitors home, where the sign-up sheet opens and brings them back after.
  */
-const OPEN = /^\/(search|films|directors|people|help|submit|watchlists|c|collections|login|auth|email|feedback|legal|privacy|terms|contact|about|partnerships|donate|newsletter|offline)(\/|$)/;
+const OPEN = /^\/(films|directors|people|help|submit|watchlists|c|collections|login|auth|email|feedback|legal|privacy|terms|contact|about|partnerships|donate|newsletter|offline)(\/|$)/;
 // Share images stay open, so links to films and collections still preview in messages and posts.
 const MEMBER_PAGE = /^\/(?:@|%40)[a-z0-9_]{3,24}\/?$/i;
 const SHARE_IMAGE = /\/(opengraph-image|twitter-image)(-\w+)?$/;
 // Session work only where it's needed: account pages and authenticated endpoints.
-const SESSION = /^\/(search|me|account|watchlists|c|submit|admin|auth|api|notifications|profile)(\/|$)/;
+const SESSION = /^\/(me|account|watchlists|c|submit|admin|auth|api|notifications|profile)(\/|$)/;
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -21,7 +21,7 @@ export async function proxy(request: NextRequest) {
   const home = path === "/";
   const hasSession = request.cookies.getAll().some((c) => /^sb-.*-auth-token(\.0)?$/.test(c.name));
   // The internal workers bring their own secret, so they're never sent to the sign-up sheet.
-  const open = path === "/api/og" || path === "/api/search" || path.startsWith("/api/internal/") || home || OPEN.test(path) || MEMBER_PAGE.test(path) || SHARE_IMAGE.test(path);
+  const open = path === "/api/og" || path.startsWith("/api/internal/") || home || OPEN.test(path) || MEMBER_PAGE.test(path) || SHARE_IMAGE.test(path);
   const toJoin = () => {
     const to = request.nextUrl.clone();
     to.pathname = "/";

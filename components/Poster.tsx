@@ -21,9 +21,12 @@ type Props = {
  */
 export default function Poster({ title, year, directors, src, sizes = "(min-width: 900px) 200px, 45vw", priority, hero }: Props) {
   const [loaded, setLoaded] = useState(false);
+  // A poster that can't be fetched (offline, a dead link, a blocked image host) falls back to the
+  // title card, so a card is never an empty box.
+  const [failed, setFailed] = useState(false);
   const cls = `poster${hero ? " poster-hero" : ""}`;
 
-  if (src) {
+  if (src && !failed) {
     return (
       <div className={cls} data-poster="">
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -37,8 +40,12 @@ export default function Poster({ title, year, directors, src, sizes = "(min-widt
           decoding="async"
           className={loaded ? "is-loaded" : undefined}
           onLoad={() => setLoaded(true)}
+          onError={() => setFailed(true)}
           ref={(img) => {
-            if (img?.complete && !loaded) setLoaded(true);
+            if (!img) return;
+            if (img.complete && img.naturalWidth > 0 && !loaded) setLoaded(true);
+            // The image may have failed before React attached the handler above.
+            else if (img.complete && img.naturalWidth === 0) setFailed(true);
           }}
         />
       </div>
