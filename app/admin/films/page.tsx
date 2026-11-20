@@ -34,7 +34,7 @@ const MISSING: Record<string, { label: string; or: string }> = {
 const MISSING_ANY = ["poster", "synopsis", "trailer", "runtime", "genres", "countries"].map((k) => MISSING[k].or).join(",");
 
 export default async function AdminFilms({ searchParams }: { searchParams: Promise<Params> }) {
-  const { db, user, owner } = await requireAdmin("/admin/films");
+  const { db, owner } = await requireAdmin("/admin/films");
   const sp = await searchParams;
   const size = SIZES.includes(sp.limit ?? "") ? sp.limit! : "40";
   const page = size === "all" ? 1 : Math.max(1, Math.min(5000, Number.parseInt(sp.page ?? "1", 10) || 1));

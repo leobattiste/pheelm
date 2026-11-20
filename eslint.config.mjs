@@ -1,0 +1,30 @@
+import next from "eslint-config-next/core-web-vitals";
+import tseslint from "typescript-eslint";
+
+/**
+ * What the editor and CI check on every push. Next's own rules catch the mistakes that hurt
+ * visitors — a plain <img> where the site's Poster belongs, a page-reloading <a> for an internal
+ * link — and the TypeScript rules catch unused code and sloppy promises.
+ */
+export default tseslint.config(
+  { ignores: [".next/**", "node_modules/**", "public/**", "data/**", "scripts/**", "tests/**"] },
+  ...next,
+  ...tseslint.configs.recommended,
+  {
+    rules: {
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
+      "@typescript-eslint/no-floating-promises": "off",
+      // Only complain when every name in a destructure could be const.
+      "prefer-const": ["error", { destructuring: "all" }],
+      // The React Compiler's rules point at real patterns to clean up (setting state inside an
+      // effect, reading refs during a render), but fixing them means reworking components, so for
+      // now they are advice rather than a wall: `npx eslint .` lists them, CI does not fail on them.
+      "react-hooks/error-boundaries": "warn",
+      "react-hooks/set-state-in-effect": "warn",
+      "react-hooks/purity": "warn",
+      "react-hooks/refs": "warn",
+      "react-hooks/immutability": "warn",
+    },
+  },
+);

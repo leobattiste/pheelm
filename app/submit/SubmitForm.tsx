@@ -12,6 +12,7 @@ export default function SubmitForm() {
     return (
       <div className="form">
         <p className="notice ok" role="status">{state.message}</p>
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- a full load gives a clean, empty form. */}
         <a className="button ghost" href="/submit">Suggest another</a>
       </div>
     );

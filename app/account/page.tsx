@@ -1,6 +1,5 @@
 import { privateMetadata } from "@/lib/seo";
 import { canUseUnlimitedBio } from "@/lib/profile-bio";
-import { PAGE_COPY } from "@/lib/site";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";

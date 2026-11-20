@@ -2,7 +2,6 @@ import { publicPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import NewsletterForm from "@/components/NewsletterForm";
-import { SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = publicPageMetadata("/newsletter");
 

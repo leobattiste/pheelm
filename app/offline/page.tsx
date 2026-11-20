@@ -12,6 +12,7 @@ export default function OfflinePage() {
         <p className="lead">Pheelm needs a connection for this page. Previously opened public information pages can still work offline; profiles, watchlists and account pages need a connection.</p>
       </header>
       <div className="actions">
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- a full reload is the point: it retries the network. */}
         <a className="button" href="/">Try again</a>
       </div>
     </section>

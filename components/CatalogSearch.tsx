@@ -12,8 +12,7 @@ import DirectorCard from './DirectorCard';
 import { FilmGrid } from './FilmCard';
 import { BackToTopButton } from './BackToTop';
 import { countryName } from '@/lib/format';
-import { plain } from '@/lib/fuzzy';
-import { buildFacets, cleanState, DIRECTOR_FILTERS, FILM_FILTERS, filterLabel, indexEntries, interpretQuery, matchesFilters, relevance, searchEntries, spellingCorrection, SORTS, stateQuery, TYPE_LABELS, type SearchEntry, type SearchKey, type SearchMode, type SearchState } from '@/lib/catalog-search';
+import { buildFacets, cleanState, DIRECTOR_FILTERS, FILM_FILTERS, filterLabel, indexEntries, interpretQuery, matchesFilters, relevance, searchEntries, spellingCorrection, SORTS, stateQuery, TYPE_LABELS, unpack, type PackedEntry, type SearchEntry, type SearchKey, type SearchMode, type SearchState } from '@/lib/catalog-search';
 type HistoryItem = {
     label: string;
     state: SearchState;
@@ -113,11 +112,13 @@ function SearchField({ mode, value, onChange, results, history, onClearHistory, 
   </div>}
  </div>;
 }
-function Browser({ entries, mode, afterSearch }: {
-    entries: SearchEntry[];
+function Browser({ entries: packed, mode, afterSearch }: {
+    entries: PackedEntry[];
     mode: SearchMode;
     afterSearch?: ReactNode;
 }) {
+    // The page sends each card once; the fields the search and filters use are spread back out here.
+    const entries = useMemo(() => packed.map(unpack), [packed]);
     const params = useSearchParams().toString();
     const [state, setState] = useState<SearchState>(() => cleanState(new URLSearchParams(params), mode));
     const [shown, setShown] = useState(PAGE);
@@ -255,7 +256,7 @@ function Browser({ entries, mode, afterSearch }: {
  </div>;
 }
 export default function CatalogSearch(props: {
-    entries: SearchEntry[];
+    entries: PackedEntry[];
     fallback?:ReactNode;
     mode: SearchMode;
     afterSearch?: ReactNode;

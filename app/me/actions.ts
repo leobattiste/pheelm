@@ -35,7 +35,7 @@ export async function createCollection(form: FormData) {
 export type CollectionUpdateState = { ok: false; message: string } | null;
 
 export async function updateCollection(_previous: CollectionUpdateState, form: FormData): Promise<CollectionUpdateState> {
-  const { db, user } = await member();
+  const { db } = await member();
   const id = clip(form.get("id"), 64);
   const title = clip(form.get("title"), 80);
   if (!id || !title) return { ok: false, message: "Enter a collection name." };

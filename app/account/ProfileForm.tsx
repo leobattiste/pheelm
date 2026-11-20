@@ -13,7 +13,7 @@ import { useResultToast } from "@/components/Toast";
 type Props = { handle: string | null; displayName: string | null; isPrivate: boolean; country: string | null; avatarUrl: string | null; bio?: string | null; unlimitedBio?: boolean; links?: ProfileLinks };
 
 /** Settings → Profile: name, handle and country, saved together (privacy has its own tab). */
-export default function ProfileForm({ handle, displayName, isPrivate, country, avatarUrl, bio, unlimitedBio = false, links }: Props) {
+export default function ProfileForm({ handle, displayName, isPrivate: _isPrivate, country, avatarUrl, bio, unlimitedBio = false, links }: Props) {
   const router = useRouter();
   const [state, action, pending] = useActionState<NameState, FormData>(updatePublicName, null);
   useResultToast(state);

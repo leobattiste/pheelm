@@ -11,7 +11,8 @@
     "test:smoke": "node tests/smoke.mjs",
     "test:admin": "node tests/admin-responsive.mjs",
     "test:security": "node tests/profile-photos.mjs && node tests/service-worker-privacy.mjs && node tests/safe-navigation.mjs",
-    "email:preview": "node scripts/email-previews.mjs && node scripts/export-auth-emails.mjs"
+    "email:preview": "node scripts/email-previews.mjs && node scripts/export-auth-emails.mjs",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@hugeicons/core-free-icons": "^4.4.0",
@@ -31,8 +32,11 @@
     "@types/node": "^22",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.4.6",
     "playwright-core": "^1.63.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "typescript-eslint": "^8.73.0"
   },
   "overrides": {
     "postcss": "^8.5.32"

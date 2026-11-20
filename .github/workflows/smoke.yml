@@ -13,6 +13,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright-core install --with-deps chromium webkit
+      - run: npm run lint
       - run: npm run test:security
       - run: node tests/site-seo.mjs
       - run: node tests/watchlist-urls.mjs

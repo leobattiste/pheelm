@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin";
 import CommunityTile from "@/components/CommunityTile";
-import { getCommunityCollections, MIN_FILMS } from "@/lib/community";
+import { getCommunityCollections } from "@/lib/community";
 import AdminBrowserToolbar from "../../AdminBrowserToolbar";
 import ConfirmButton from "../../ConfirmButton";
 import SubmitButton from "../../SubmitButton";

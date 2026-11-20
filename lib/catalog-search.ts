@@ -272,3 +272,32 @@ export function spellingCorrection(index: IndexedEntry[], query: string): string
         }
     return answer;
 }
+
+/**
+ * What the browser is actually sent. Everything a card already carries — title, slug, year,
+ * poster, countries, languages, genres — is stored once in `film` or `director` and spread back
+ * out by `unpack` when the page opens, rather than being sent twice.
+ */
+export type PackedEntry =
+    | { f: FilmCard; also: string[]; names: string[]; nominations: number; awards: string[]; availability: SearchEntry['availability']; added: number }
+    | { d: DirectorSummary; also: string[]; filmography: SearchEntry['filmography']; wins: number; added: number };
+
+/** Builds the entry the search and filters work on. Cheap: it only re-labels what is already there. */
+export function unpack(packed: PackedEntry): SearchEntry {
+    const shared = { aliases: packed.also, added: packed.added, runtime: null as number | null };
+    if ('f' in packed) {
+        const f = packed.f;
+        return { ...shared, id: f.id, slug: f.slug, title: f.title, image: f.poster_url,
+            subtitle: f.year + ' • ' + f.directors.join(', '), names: packed.names,
+            countries: f.countries, languages: f.languages, genres: f.genres, types: [f.type], years: [f.year],
+            runtime: f.runtime, wins: f.wins, nominations: packed.nominations, awards: packed.awards,
+            availability: packed.availability, count: 1, filmography: [{ year: f.year, type: f.type }], film: f };
+    }
+    const d = packed.d;
+    return { ...shared, id: d.id, slug: d.slug, title: d.name, image: d.photo_url,
+        subtitle: [d.country ? countryName(d.country) : '', d.films + ' films'].filter(Boolean).join(' • '),
+        names: [], countries: d.country ? [d.country] : [], languages: [], genres: [],
+        types: [...new Set(packed.filmography.map(x => x.type))], years: packed.filmography.map(x => x.year),
+        wins: packed.wins, nominations: 0, awards: [], availability: [], count: d.films,
+        filmography: packed.filmography, director: d };
+}

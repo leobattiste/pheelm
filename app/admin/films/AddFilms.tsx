@@ -31,7 +31,7 @@ function Results({ log, running }: { log: Log[]; running: boolean }) {
 }
 
 function Publish({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
-  return <label className="check"><input type="checkbox" checked={value} onChange={(e) => onChange(e.target.checked)} /> Publish right away (otherwise they're saved as drafts)</label>;
+  return <label className="check"><input type="checkbox" checked={value} onChange={(e) => onChange(e.target.checked)} /> Publish right away (otherwise they&rsquo;re saved as drafts)</label>;
 }
 
 export default function AddFilms({ queue, collections, initial }: { queue: QueueItem[]; collections: { id: string; title: string }[]; initial: Method }) {
@@ -167,7 +167,7 @@ export default function AddFilms({ queue, collections, initial }: { queue: Queue
           ) : (
             <>
               <div className="add-queue-head">
-                <p><strong>{queue.length} {queue.length === 1 ? "film" : "films"} waiting.</strong> They're added in the background, about 20 a minute, even with this page closed. Each is matched on TMDB by title and year, and by director when known.</p>
+                <p><strong>{queue.length} {queue.length === 1 ? "film" : "films"} waiting.</strong> They&rsquo;re added in the background, about 20 a minute, even with this page closed. Each is matched on TMDB by title and year, and by director when known.</p>
                 <div className="actions">
                   <button className="button" type="button" onClick={() => void addQueue()} disabled={running || !queue.length}>{running ? progress : `Add all ${queue.length} now`}</button>
                   <button className="button ghost" type="button" disabled={running || pending || !queue.length}

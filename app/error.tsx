@@ -11,7 +11,7 @@ const isStaleVersion = (e: Error) =>
  * Shown when a page fails in the browser. If the cause is a page left open across an update, it
  * reloads once to pick up the new version; otherwise it explains and offers a way back.
  */
-export default function PageError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+export default function PageError({ error, reset: _reset }: { error: Error & { digest?: string }; reset: () => void }) {
   useEffect(() => {
     console.error(error);
     if (!isStaleVersion(error)) return;

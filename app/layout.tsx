@@ -48,6 +48,10 @@ const bethEllen = localFont({
   display: "block",
 });
 
+const SWITZER_CSS = "https://api.fontshare.com/v2/css?f[]=switzer@300,400,500,600,700,800&display=swap";
+// Turns the font on the moment it lands, whether or not its load event has already gone by.
+const SWITZER_SCRIPT = `(function(){var l=document.getElementById('switzer');if(!l)return;var on=function(){l.media='all'};l.addEventListener('load',on);try{if(l.sheet)on()}catch(e){}})()`;
+
 const FOCUS_INPUT_SCRIPT = `(() => {
             const root = document.documentElement;
             document.addEventListener("pointerdown", (event) => {
@@ -88,14 +92,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" data-theme="dark" data-grid="large" className={`${inter.variable} ${interExt.variable} ${bethEllen.variable}`} suppressHydrationWarning>
       <head>
-        {/* Switzer, by the Indian Type Foundry, from Fontshare (ITF Free Font License). */}
+        {/* Switzer, by the Indian Type Foundry, from Fontshare (ITF Free Font License). Loaded
+            without blocking the first paint: media="print" keeps it out of the critical path and
+            the script below switches it on once it has arrived. Until then, and if Fontshare is
+            slow or unreachable, text is set in Inter, which the site serves itself. */}
         <link rel="preconnect" href="https://api.fontshare.com" crossOrigin="" />
         <link rel="preconnect" href="https://cdn.fontshare.com" crossOrigin="" />
-        <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=switzer@300,400,500,600,700,800&display=swap" />
+        <link id="switzer" rel="stylesheet" media="print" href={SWITZER_CSS} />
+        <noscript><link rel="stylesheet" href={SWITZER_CSS} /></noscript>
         <link rel="preconnect" href="https://image.tmdb.org" />
         {/* Plain inline scripts, so they run before the first paint: next/script's beforeInteractive
             only runs once the page's JavaScript starts, which showed "Sign in" to members while a
             page was still loading. */}
+        <script id="switzer-on" dangerouslySetInnerHTML={{ __html: SWITZER_SCRIPT }} />
         <script id="theme" dangerouslySetInnerHTML={{ __html: themeScript }} />
         <script id="focus-input" dangerouslySetInnerHTML={{ __html: FOCUS_INPUT_SCRIPT }} />
       </head>
@@ -159,10 +168,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </nav>
             <nav aria-labelledby="footer-legal">
               <h2 id="footer-legal">Legal</h2>
-              <a href="/legal#privacy">Privacy</a>
-              <a href="/legal#terms">Terms</a>
-              <a href="/legal#copyright">Copyright</a>
-              <a href="/legal#community-guidelines">Community guidelines</a>
+              <Link href="/legal#privacy">Privacy</Link>
+              <Link href="/legal#terms">Terms</Link>
+              <Link href="/legal#copyright">Copyright</Link>
+              <Link href="/legal#community-guidelines">Community guidelines</Link>
             </nav>
           </div>
           <div className="footer-bottom">

@@ -11,7 +11,7 @@ export type AdminFilmRow = {
   credits: { role: string; people: { name: string } | null }[];
 };
 
-export default function BulkControls({ films, canDelete }: { films: AdminFilmRow[]; canDelete: boolean }) {
+export default function BulkControls({ films, canDelete: _canDelete }: { films: AdminFilmRow[]; canDelete: boolean }) {
   const { selected, toggle } = useAdminSelection("films");
 
 

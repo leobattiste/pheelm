@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
   // Write cookies directly onto the response that is returned to the browser.
   // A separate response is essential: cookies written by a Server Component or
   // a response discarded after verifying the OTP do not survive the redirect.
-  let response = NextResponse.redirect(new URL(next, url.origin));
+  const response = NextResponse.redirect(new URL(next, url.origin));
   response.headers.set("Cache-Control", "no-store");
   const db = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     cookies: {

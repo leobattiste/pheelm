@@ -3,7 +3,7 @@ import { unstable_cache } from "next/cache";
 import { createClient } from "@supabase/supabase-js";
 import { getFilms } from "./data";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseEnabled } from "./supabase/config";
-import type { CollectionTileData, Film } from "./types";
+import type { Film } from "./types";
 import type { Sort, WatchlistTile } from "./collection-sorts";
 
 /** A collection to list in the community: needs a title, this many films and a member name. */

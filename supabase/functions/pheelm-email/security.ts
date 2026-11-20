@@ -1,5 +1,5 @@
 export const escapeHtml = (value: string) => value.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
-export function actionUrl(path: string, base: string, endpoint: string): string {
+export function actionUrl(path: string, base: string, _endpoint: string): string {
  if(path.startsWith('/newsletter-confirm?token='))return base+'/email?action=confirm&token='+encodeURIComponent(path.split('token=')[1]);
  if(!path.startsWith('/')||path.startsWith('//')||path.includes('\\'))throw new Error('Invalid action path');
  const url=new URL(path,base);if(url.origin!==new URL(base).origin)throw new Error('Invalid origin');return url.href;

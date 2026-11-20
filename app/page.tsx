@@ -4,7 +4,7 @@ import EarlyAccessButton, { EarlyAccessGate } from "@/components/EarlyAccessButt
 import CurvedCarousel from "@/components/CurvedCarousel";
 import FeatureTabs, { type HomeFeature } from "@/components/home/FeatureTabs";
 import { getFilms, toCard } from "@/lib/data";
-import { PAGE_COPY, SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
+import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
 import { SITE_URL } from "@/lib/supabase/config";
 
 export const revalidate = 3600; // admin saves refresh it right away

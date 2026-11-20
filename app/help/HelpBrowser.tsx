@@ -97,7 +97,7 @@ export default function HelpBrowser() {
       {category !== "all" && !query && <button className="button ghost help-all" type="button" onClick={() => select("all")}>Back to all topics</button>}
       <section className="help-contact" aria-labelledby="help-contact-heading">
         <h2 id="help-contact-heading">Still need help?</h2>
-        <p>Can't find what you're looking for? We can help with questions, technical issues and corrections.</p>
+        <p>Can&rsquo;t find what you&rsquo;re looking for? We can help with questions, technical issues and corrections.</p>
         <div className="actions"><Link className="button" href="/contact">Contact us</Link><Link className="button ghost" href="/feedback">Give feedback</Link></div>
       </section>
     </div>

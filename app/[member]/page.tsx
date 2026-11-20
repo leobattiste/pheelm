@@ -34,7 +34,7 @@ export default async function MemberPage({params}:Params) {
  const member={...publicMember},viewer=viewerResult?.data.user;
  const own=viewer?.id===member.id;
  let unlimitedBio=false;
- if(own&&db){const {data}=await db.from('profiles').select('display_name,country,bio,avatar_url,social_platform,social_url,website_url,is_owner').eq('id',member.id).maybeSingle();if(data){unlimitedBio=canUseUnlimitedBio({handle:member.handle,is_owner:data.is_owner});const {is_owner,...fields}=data;Object.assign(member,fields);}}
+ if(own&&db){const {data}=await db.from('profiles').select('display_name,country,bio,avatar_url,social_platform,social_url,website_url,is_owner').eq('id',member.id).maybeSingle();if(data){unlimitedBio=canUseUnlimitedBio({handle:member.handle,is_owner:data.is_owner});const {is_owner: _is_owner,...fields}=data;Object.assign(member,fields);}}
  if(member.is_private&&!own)return <section className="page"><header className="person-head"><span className="portrait portrait-initials" aria-hidden="true">{initials(member.handle)}</span><div className="person-text"><h1>@{member.handle}</h1><p className="person-sub">This profile is private.</p></div></header></section>;
  const name=member.display_name||`@${member.handle}`;
  return <section className="page member-page">

@@ -12,7 +12,7 @@ export type AdminPersonRow = {
   previews: DirectorSummary["previews"];
 };
 
-export default function PeopleBulkControls({ people, canDelete }: { people: AdminPersonRow[]; canDelete: boolean }) {
+export default function PeopleBulkControls({ people, canDelete: _canDelete }: { people: AdminPersonRow[]; canDelete: boolean }) {
   const { selected, toggle } = useAdminSelection("people");
 
 
