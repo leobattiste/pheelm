@@ -1,68 +1,37 @@
 import { publicPageMetadata } from "@/lib/seo";
-import Icon from "@/components/Icon";
 import { PAGE_COPY } from "@/lib/site";
 import type { Metadata } from "next";
-import Link from "next/link";
-import CollectionsToolbar, { type Feed } from "@/components/CollectionsToolbar";
+import { Suspense } from "react";
 import CommunityTile from "@/components/CommunityTile";
-import { getWatchlistTilesSorted, SORTS, type Sort } from "@/lib/community";
-import { getFilm } from "@/lib/data";
-import { getServerClient } from "@/lib/supabase/server";
+import CollectionsToolbar from "@/components/CollectionsToolbar";
+import WatchlistsBrowser from "@/components/WatchlistsBrowser";
+import { getWatchlistTiles } from "@/lib/community";
+import { sortTiles } from "@/lib/collection-sorts";
 
+export const revalidate = 300; // admin saves refresh it right away
 export const metadata: Metadata = publicPageMetadata("/watchlists");
-
-const FEEDS: Feed[] = ["all", "featured", "following"];
 
 /**
  * Every public collection, as a feed: All, Featured (staff picks and the ones admins feature) or
- * Following. Sorted by popularity, newest, last updated or most films. With ?film=, only those
- * that include that film.
+ * Following, sorted by popularity, newest, last updated or most films. The page is the same for
+ * everyone (so it's saved and prefetched like Films and Directors); the feed, sort, "with this
+ * film" and who's signed in are applied in the browser.
  */
-export default async function CollectionsPage({ searchParams }: { searchParams: Promise<{ sort?: string; film?: string; feed?: string }> }) {
-  const sp = await searchParams;
-  const sort: Sort = SORTS.some(([v]) => v === sp.sort) ? (sp.sort as Sort) : "popular";
-  const db = await getServerClient();
-  const viewer = db ? (await db.auth.getUser()).data.user : null;
-  const asked: Feed = FEEDS.includes(sp.feed as Feed) ? (sp.feed as Feed) : "all";
-  const feed: Feed = asked === "following" && !viewer ? "all" : asked;
-
-  const film = sp.film ? await getFilm(sp.film) : null;
-  let list = await getWatchlistTilesSorted({ sort, filmId: film?.id });
-
-  if (feed === "featured") list = list.filter((c) => c.featured);
-  if (db && viewer && feed === "following") {
-    const { data } = await db.from("list_saves").select("list_id").eq("user_id", viewer.id);
-    const ids = new Set(((data ?? []) as { list_id: string }[]).map((r) => r.list_id));
-    list = list.filter((c) => ids.has(c.id));
-  }
-
+export default async function CollectionsPage() {
+  const tiles = await getWatchlistTiles();
+  const first = sortTiles(tiles, "popular");
   return (
     <section className="page">
       <header className="page-head intro-head">
         <h1>Watchlists</h1>
-        <p className="lead">
-          {film ? <>Watchlists with <Link href={`/films/${film.slug}`}>{film.title}</Link>. <Link href="/watchlists">See all</Link></> : PAGE_COPY.collections}
-        </p>
+        <p className="lead">{PAGE_COPY.collections}</p>
       </header>
-
-      <CollectionsToolbar signedIn={!!viewer} feed={feed} sort={sort} />
-
-      {list.length ? (
-        <ul className="collection-list">{list.map((c) => <CommunityTile key={c.id} c={c} filmCount={c.filmCount} />)}</ul>
-      ) : (
-        <div className="empty-state">
-          <Icon name="stack" className="empty-icon" />
-          {feed === "following" ? (
-            <>
-              <p>You don&rsquo;t follow any watchlists yet.</p>
-              <p className="muted">Press Follow in a watchlist&rsquo;s menu to keep it here and hear when films are added.</p>
-            </>
-          ) : (
-            <p>No watchlists {film ? "with this film " : ""}yet.</p>
-          )}
-          {feed !== "all" && <Link className="button ghost small" href={film ? `/watchlists?film=${film.slug}` : "/watchlists"}>See all watchlists</Link>}
-        </div>
-      )}
+      <Suspense fallback={<>
+        <CollectionsToolbar signedIn={false} feed="all" sort="popular" />
+        <ul className="collection-list">{first.map((c) => <CommunityTile key={c.id} c={c} filmCount={c.filmCount} />)}</ul>
+      </>}>
+        <WatchlistsBrowser tiles={tiles} />
+      </Suspense>
     </section>
   );
 }

@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { getFilms } from "./data";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseEnabled } from "./supabase/config";
 import type { CollectionTileData, Film } from "./types";
-import type { Sort } from "./collection-sorts";
+import type { Sort, WatchlistTile } from "./collection-sorts";
 
 /** A collection to list in the community: needs a title, this many films and a member name. */
 export const MIN_FILMS = 5;
@@ -204,23 +204,12 @@ export async function getPublicProfileHandles():Promise<string[]> {
 }
 
 
-/** What the Watchlists page needs from a collection: its tile, plus what sorting and filtering use. */
-export type WatchlistTile = CollectionTileData & {
-  description: string | null;
-  staff_pick: boolean;
-  featured: boolean;
-  created_at: string;
-  updated_at: string;
-  saves: number;
-  filmIds: string[];
-  filmCount: number;
-};
-
 /**
  * Every qualifying collection for the Watchlists page, read without loading the whole film
  * catalog: only the first three films of each list (for the poster fan) are fetched. Cached for a
  * few minutes and refreshed by the "watchlists" tag.
  */
+export type { WatchlistTile };
 export const getWatchlistTiles = unstable_cache(async (): Promise<WatchlistTile[]> => {
   const db = anon();
   if (!db) return [];
@@ -236,9 +225,9 @@ export const getWatchlistTiles = unstable_cache(async (): Promise<WatchlistTile[
     db.from("list_save_counts").select("list_id, saves").in("list_id", ids),
     (async () => {
       // Only published films, in chunks so the request URL stays short.
-      const out: { id: string; title: string; year: number; poster_url: string | null; color?: string | null }[] = [];
+      const out: { id: string; slug: string; title: string; year: number; poster_url: string | null; color?: string | null }[] = [];
       for (let i = 0; i < allFilmIds.length; i += 200) {
-        const { data } = await db.from("films").select("id, title, year, poster_url, color").eq("status", "published").in("id", allFilmIds.slice(i, i + 200));
+        const { data } = await db.from("films").select("id, slug, title, year, poster_url, color").eq("status", "published").in("id", allFilmIds.slice(i, i + 200));
         out.push(...((data ?? []) as typeof out));
       }
       return out;
@@ -271,21 +260,8 @@ export const getWatchlistTiles = unstable_cache(async (): Promise<WatchlistTile[
     updated_at: [r.updated_at ?? r.created_at, ...r.list_films.map((x) => x.added_at)].sort().at(-1)!,
     saves: savesById.get(r.id) ?? 0,
     owner: ownerById.get(r.user_id) ? { handle: ownerById.get(r.user_id)!.handle } : null,
-    filmIds: films.map((x) => x.film_id),
+    filmSlugs: films.map((x) => filmById.get(x.film_id)!.slug),
     filmCount: films.length,
-    films: films.slice(0, 3).map((x) => ({ ...filmById.get(x.film_id)!, directors: directorsByFilm.get(x.film_id) ?? [] })),
+    films: films.slice(0, 3).map((x) => ({ id: x.film_id, title: filmById.get(x.film_id)!.title, year: filmById.get(x.film_id)!.year, poster_url: filmById.get(x.film_id)!.poster_url, color: filmById.get(x.film_id)!.color, directors: directorsByFilm.get(x.film_id) ?? [] })),
   }));
 }, ["watchlist-tiles-v1"], { revalidate: 120, tags: ["watchlists"] });
-
-const tileOrder: Record<Sort, (a: WatchlistTile, b: WatchlistTile) => number> = {
-  popular: (a, b) => Number(b.staff_pick) - Number(a.staff_pick) || b.saves - a.saves || b.created_at.localeCompare(a.created_at),
-  new: (a, b) => b.created_at.localeCompare(a.created_at),
-  updated: (a, b) => b.updated_at.localeCompare(a.updated_at),
-  films: (a, b) => b.filmCount - a.filmCount || b.saves - a.saves,
-};
-
-export async function getWatchlistTilesSorted({ sort = "popular", filmId }: { sort?: Sort; filmId?: string } = {}) {
-  let all = [...(await getWatchlistTiles())];
-  if (filmId) all = all.filter((c) => c.filmIds.includes(filmId));
-  return all.sort(tileOrder[sort]);
-}
