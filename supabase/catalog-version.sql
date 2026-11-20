@@ -34,16 +34,11 @@ begin
   end loop;
 end $$;
 
--- The film queue used to call the site every minute even when nothing was waiting (294 empty runs
--- a day), and under load pg_cron couldn't start the job in time. It now runs every five minutes,
--- and only makes the call when the queue has films that haven't been tried.
-select cron.alter_job(
-  (select jobid from cron.job where jobname = 'pheelm-film-queue'),
-  schedule := '*/5 * * * *',
-  command := $cmd$
-  select net.http_post(url := 'https://www.pheelm.com/api/internal/queue?limit=20',
-    headers := jsonb_build_object('Content-Type', 'application/json', 'Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'pheelm_worker_secret')),
-    body := '{}'::jsonb, timeout_milliseconds := 120000)
-  where exists (select 1 from public.film_queue where last_error is null);
-$cmd$
-);
+-- The scheduled film-queue job (pheelm-film-queue) called the site every minute even when nothing
+-- was waiting, and under load pg_cron couldn't start it in time. It has been removed: queued films
+-- are added from Admin → Films → Add. /api/internal/queue stays for a manual or future trigger.
+do $$ begin
+  if exists (select 1 from cron.job where jobname = 'pheelm-film-queue') then
+    perform cron.unschedule('pheelm-film-queue');
+  end if;
+end $$;
