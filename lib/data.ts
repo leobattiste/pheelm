@@ -16,24 +16,51 @@ type Raw = {
 };
 
 /**
- * Supabase returns at most 1,000 rows per request, so read big tables in pages. The first page
- * also returns the row count, and the remaining pages are then fetched together, not one by one.
+ * Supabase returns at most 1,000 rows per request, so read big tables in pages.
+ *
+ * The pages used to be asked for all at once. With 31,000 credits that is thirty-one sorts of the
+ * whole table arriving together, and the database answered with "canceling statement due to
+ * statement timeout" — which, since a build now stops rather than shipping a half-read catalog,
+ * failed the deploy. They go a few at a time instead: barely slower in wall-clock, and the
+ * database is never asked for the whole table thirty times over.
  */
 // A fixed order keeps pages from overlapping or skipping rows.
 const ORDER: Record<string, string[]> = { credits: ["film_id", "person_id", "role"], collection_films: ["collection_id", "film_id"] };
 
+/**
+ * At most this many catalog requests are in flight at once, counted across every table rather
+ * than per table: the five tables are read together, so a per-table limit of four would still
+ * have put twenty sorts of large tables on the database at the same time.
+ */
+const AT_ONCE = 4;
+let active = 0;
+const waiting: (() => void)[] = [];
+async function withSlot<T>(run: () => PromiseLike<T>): Promise<T> {
+  if (active >= AT_ONCE) await new Promise<void>((free) => waiting.push(free));
+  else active++;
+  try {
+    return await run();
+  } finally {
+    // The slot passes straight to whoever is next, so the count can never drift upward.
+    const next = waiting.shift();
+    if (next) next();
+    else active--;
+  }
+}
+
 async function readAll<T>(db: SupabaseClient, table: string, filter?: (q: any) => any): Promise<T[]> {
-  const page = (from: number, count = false) => {
+  const page = (from: number, count = false) => withSlot(() => {
     let q = db.from(table).select("*", count ? { count: "exact" } : undefined);
     for (const column of ORDER[table] ?? ["id"]) q = q.order(column);
     q = q.range(from, from + 999);
     if (filter) q = filter(q);
     return q;
-  };
+  });
   const first = await page(0, true);
   if (first.error) throw new Error(`Could not load ${table} from Supabase: ${first.error.message}`);
   const total = first.count ?? first.data?.length ?? 0;
-  const rest = await Promise.all(Array.from({ length: Math.max(0, Math.ceil(total / 1000) - 1) }, (_, i) => page((i + 1) * 1000)));
+  const pages = Math.max(0, Math.ceil(total / 1000) - 1);
+  const rest = await Promise.all(Array.from({ length: pages }, (_, i) => page((i + 1) * 1000)));
   const out = [...(first.data as T[])];
   for (const r of rest) {
     if (r.error) throw new Error(`Could not load ${table} from Supabase: ${r.error.message}`);
@@ -48,10 +75,16 @@ async function readAll<T>(db: SupabaseClient, table: string, filter?: (q: any) =
  * by every page this server process renders, refreshed after a minute.
  */
 const FRESH_FOR = 60_000;
+/**
+ * How long one copy serves. Nothing in the catalog changes while the site is building, and a build
+ * takes several minutes, so refreshing every minute meant reading all 31,000 credits and 19,000
+ * people four or five times for one deploy. During a build the first copy serves the whole of it.
+ */
+const freshFor = () => (building() ? Infinity : FRESH_FOR);
 let shared: { at: number; data: Promise<Raw> } | null = null;
 const load = cache((): Promise<Raw> => {
   if (!supabaseEnabled) return Promise.resolve(local as unknown as Raw);
-  if (shared && Date.now() - shared.at < FRESH_FOR) return shared.data;
+  if (shared && Date.now() - shared.at < freshFor()) return shared.data;
   const data = fetchCatalog();
   shared = { at: Date.now(), data };
   // A failed download isn't kept, so the next page tries again.
