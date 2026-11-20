@@ -27,6 +27,8 @@ export async function POST(request: NextRequest) {
   if (check !== "ok") return json({ error: "Not allowed.", reason: check }, 401);
   if (!db) return json({ error: "Supabase is not configured." }, 503);
   const limit = Math.min(60, Math.max(1, Number(request.nextUrl.searchParams.get("limit")) || 20));
+  // Runs can be given different slices of the same list so they don't repeat each other's work.
+  const offset = Math.max(0, Number(request.nextUrl.searchParams.get("offset")) || 0);
 
   const { data, error } = await db
     .from("films")
@@ -34,7 +36,7 @@ export async function POST(request: NextRequest) {
     .eq("status", "published")
     .or(MISSING)
     .order("created_at")
-    .limit(limit);
+    .range(offset, offset + limit - 1);
   if (error) return json({ error: error.message }, 500);
   const films = data ?? [];
 
