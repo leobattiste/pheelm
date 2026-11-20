@@ -76,22 +76,6 @@ create table if not exists public.collection_films (
   primary key (collection_id, film_id)
 );
 
-create table if not exists public.articles (
-  id uuid primary key default gen_random_uuid(),
-  slug text unique not null,
-  title text not null,
-  dek text,
-  kind text not null default 'essay' check (kind in ('essay', 'interview', 'history', 'story', 'news')),
-  author text,
-  cover_url text,
-  body text not null default '',
-  film_ids uuid[] not null default '{}',
-  status text not null default 'draft' check (status in ('draft', 'published')),
-  published_at timestamptz,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-
 -- Accounts -------------------------------------------------------------------
 
 create table if not exists public.profiles (
@@ -160,7 +144,6 @@ alter table public.people enable row level security;
 alter table public.credits enable row level security;
 alter table public.collections enable row level security;
 alter table public.collection_films enable row level security;
-alter table public.articles enable row level security;
 alter table public.profiles enable row level security;
 alter table public.watchlist enable row level security;
 alter table public.submissions enable row level security;
@@ -190,11 +173,6 @@ drop policy if exists "read collection films" on public.collection_films;
 create policy "read collection films" on public.collection_films for select using (true);
 drop policy if exists "admin collection films" on public.collection_films;
 create policy "admin collection films" on public.collection_films for all using (public.is_admin()) with check (public.is_admin());
-
-drop policy if exists "read articles" on public.articles;
-create policy "read articles" on public.articles for select using (status = 'published' or public.is_admin());
-drop policy if exists "admin articles" on public.articles;
-create policy "admin articles" on public.articles for all using (public.is_admin()) with check (public.is_admin());
 
 -- Profiles: members read and rename their own. Nobody can make themselves admin.
 drop policy if exists "read own profile" on public.profiles;
@@ -267,28 +245,6 @@ create table if not exists public.follows (
 alter table public.follows enable row level security;
 drop policy if exists "own follows" on public.follows;
 create policy "own follows" on public.follows for all using (user_id = auth.uid()) with check (user_id = auth.uid());
-
--- Films by the directors the signed-in member follows, added since they started following.
-create or replace function public.follow_updates()
-returns table (
-  film_id uuid, slug text, title text, year int, poster_url text,
-  director_name text, director_slug text, added_at timestamptz
-)
-language sql
-stable
-set search_path = public
-as $$
-  select f.id, f.slug, f.title, f.year, f.poster_url, p.name, p.slug, f.created_at
-  from public.follows fo
-  join public.credits c on c.person_id = fo.person_id and c.role = 'director'
-  join public.films f on f.id = c.film_id and f.status = 'published'
-  join public.people p on p.id = fo.person_id
-  where fo.user_id = auth.uid() and f.created_at > fo.created_at
-  order by f.created_at desc
-  limit 60;
-$$;
-
-grant execute on function public.follow_updates() to authenticated;
 
 -- Fuller details for people, from TMDB: birth and death dates, birthplace, the job they're best
 -- known for, and their IMDb and Instagram. Safe to run more than once.
@@ -540,7 +496,7 @@ begin
     execute format('create policy "admin update" on public.%I for update to authenticated using ((select public.is_admin())) with check ((select public.is_admin()))', t);
     execute format('create policy "admin delete" on public.%I for delete to authenticated using ((select public.is_admin()))', t);
   end loop;
-  foreach t in array array['articles','films'] loop
+  foreach t in array array['films'] loop
     execute format('drop policy if exists "admin %s" on public.%I', t, t);
     execute format('drop policy if exists "read %s" on public.%I', t, t);
     execute format('drop policy if exists "read" on public.%I', t);
