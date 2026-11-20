@@ -22,35 +22,35 @@ export default function PeopleGrid({ people }: { people: PersonEntry[] }) {
     requestAnimationFrame(() => sheet.current?.showModal());
   };
 
-  const entry = ({ info, role }: PersonEntry) => {
-    const body = (
-      <>
-        {info.photo_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img className="cast-photo" src={info.photo_url} alt="" loading="lazy" />
-        ) : (
-          <span className="cast-photo" aria-hidden="true">{initials(info.name)}</span>
-        )}
-        <span className="cast-text">
-          <span className="cast-name">{info.name}</span>
-          <span className="cast-role">{role}</span>
-        </span>
-      </>
-    );
-    return (
-      <li key={info.id}>
-        {info.isDirector ? (
-          <Link href={`/directors/${info.slug}`}>{body}</Link>
-        ) : (
-          <button type="button" onClick={() => show(info)} aria-haspopup="dialog">{body}</button>
-        )}
-      </li>
-    );
-  };
-
   return (
     <>
-      <ul className="cast">{people.map(entry)}</ul>
+      <ul className="cast">
+        {people.map(({ info, role }) => {
+          const body = (
+            <>
+              {info.photo_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img className="cast-photo" src={info.photo_url} alt="" loading="lazy" />
+              ) : (
+                <span className="cast-photo" aria-hidden="true">{initials(info.name)}</span>
+              )}
+              <span className="cast-text">
+                <span className="cast-name">{info.name}</span>
+                <span className="cast-role">{role}</span>
+              </span>
+            </>
+          );
+          return (
+            <li key={info.id}>
+              {info.isDirector ? (
+                <Link href={`/directors/${info.slug}`}>{body}</Link>
+              ) : (
+                <button type="button" onClick={() => show(info)} aria-haspopup="dialog">{body}</button>
+              )}
+            </li>
+          );
+        })}
+      </ul>
 
       <dialog
         ref={sheet}

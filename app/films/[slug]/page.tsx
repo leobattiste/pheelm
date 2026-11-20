@@ -26,10 +26,6 @@ import Row from "@/components/Row";
 
 export const revalidate = 3600; // admin saves refresh it right away
 export const dynamicParams = true;
-// A page that isn't prebuilt has to load the catalogue before it can render, which outgrew the
-// default 15s as the catalogue grew and left visitors on an error page. The slow render is a
-// one-off: the result is cached for everyone after it.
-export const maxDuration = 60;
 
 /**
  * Only the featured films are built ahead of time. Every other film page is built the first time
@@ -88,8 +84,6 @@ export default async function FilmPage({ params }: Params) {
     .filter((g) => g.people.length);
   const wins = film.awards.filter((a) => a.result === "won").sort((a, b) => prestige(a.award) - prestige(b.award) || a.year - b.year);
   const noms = film.awards.filter((a) => a.result === "nominated").sort((a, b) => prestige(a.award) - prestige(b.award) || a.year - b.year);
-  // A win speaks loudest; with none, the strongest nomination still says something.
-  const honour = wins[0] ?? noms[0] ?? null;
   const embed = trailerEmbed(film.trailer_url);
   const directorNames = film.directors.map((d) => d.name);
 
@@ -100,22 +94,14 @@ export default async function FilmPage({ params }: Params) {
   // Someone who directed and acted reads "Director and actor".
   const counts = new Map<Role, number>();
   for (const c of film.credits) counts.set(c.role, (counts.get(c.role) ?? 0) + 1);
-  const byPerson = new Map<string, { person: Credit["person"]; roles: string[]; played?: string }>();
+  const byPerson = new Map<string, { person: Credit["person"]; roles: string[] }>();
   for (const c of [...crew.flatMap((g) => g.people), ...cast]) {
     const entry = byPerson.get(c.person.id) ?? { person: c.person, roles: [] };
     const label = roleLabel(c, counts.get(c.role) ?? 1);
     if (!entry.roles.includes(label)) entry.roles.push(label);
-    // Who an actor played is on every cast credit and was never shown; it replaces a bare "Actor".
-    if (c.role === "cast" && c.character?.trim()) entry.played = c.character.trim();
     byPerson.set(c.person.id, entry);
   }
-  const people = [...byPerson.values()].map((p) => {
-    const others = p.roles.filter((r) => r !== "Actor");
-    const role = p.played
-      ? [...others, `as ${p.played}`].join(" · ")
-      : sentence(p.roles);
-    return { info: personInfo(p.person, all, anyDirector), role };
-  });
+  const people = [...byPerson.values()].map((p) => ({ info: personInfo(p.person, all, anyDirector), role: sentence(p.roles) }));
   // The crew and the first six of the cast show; the rest sit behind "Show all".
   const crewCount = new Set(crew.flatMap((g) => g.people.map((c) => c.person.id))).size;
   const shown = Math.min(people.length, crewCount + CAST_SHOWN);
@@ -180,22 +166,6 @@ export default async function FilmPage({ params }: Params) {
                 {runtime && <span className="byline-item">{runtime}</span>}
               </p>
             </header>
-
-            {/* The film's best honour, where it can be seen: for a lot of this catalogue a festival
-                win is the most telling thing about a film, and it used to sit far below the fold. */}
-            {honour && (
-              <p className="film-honour">
-                <a href="#awards-h">
-                  <Icon name="laurel" className="solid" />
-                  <span>
-                    <strong>{isRegistry(honour) ? "Preserved" : honour.result === "won" ? "Winner" : "Nominated"}</strong>
-                    {" · "}
-                    {isRegistry(honour) ? `National Film Registry ${honour.year}` : `${honour.category}, ${honour.award} ${honour.year}`}
-                  </span>
-                  {film.awards.length > 1 && <span className="film-honour-more">and {film.awards.length - 1} more</span>}
-                </a>
-              </p>
-            )}
 
             <div className="film-actions">
               {embed ? (
