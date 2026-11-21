@@ -224,13 +224,17 @@ export const getWatchlistTiles = unstable_cache(async (): Promise<WatchlistTile[
     members((cols) => db.from("member_profiles").select(cols).in("id", owners)),
     db.from("list_save_counts").select("list_id, saves").in("list_id", ids),
     (async () => {
-      // Only published films, in chunks so the request URL stays short.
-      const out: { id: string; slug: string; title: string; year: number; poster_url: string | null; color?: string | null }[] = [];
-      for (let i = 0; i < allFilmIds.length; i += 200) {
-        const { data } = await db.from("films").select("id, slug, title, year, poster_url, color").eq("status", "published").in("id", allFilmIds.slice(i, i + 200));
-        out.push(...((data ?? []) as typeof out));
-      }
-      return out;
+      // Only published films, in chunks so the request URL stays short. The chunks are asked for
+      // together: they used to go one after another, so a page with 1,000 films waited five times.
+      type FilmRow = { id: string; slug: string; title: string; year: number; poster_url: string | null; color?: string | null };
+      const chunks = Array.from({ length: Math.ceil(allFilmIds.length / 200) }, (_, i) => allFilmIds.slice(i * 200, i * 200 + 200));
+      const pages = await Promise.all(chunks.map(async (chunk) => {
+        const { data, error } = await db.from("films").select("id, slug, title, year, poster_url, color").eq("status", "published").in("id", chunk);
+        // A failed batch fails the page (the last good copy stays on screen) rather than quietly dropping its films.
+        if (error) throw error;
+        return (data ?? []) as FilmRow[];
+      }));
+      return pages.flat();
     })(),
   ]);
   const filmById = new Map(filmRows.map((f) => [f.id, f]));

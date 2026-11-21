@@ -21,7 +21,7 @@ import ShareButton from "@/components/ShareButton";
 import { getCollaboration, MAX_COLLABORATORS } from "@/lib/collab";
 import { getComments } from "@/lib/comments";
 import { collectionExtras, MIN_FILMS, type Member } from "@/lib/community";
-import { getFilms, toCard } from "@/lib/data";
+import { getFilmCards } from "@/lib/data";
 import { getServerClient } from "@/lib/supabase/server";
 import { respondToInvite } from "@/app/c/actions";
 import { SITE_URL } from "@/lib/supabase/config";
@@ -52,8 +52,9 @@ export default async function MemberCollectionPage({ params, searchParams }: Par
   const viewer = (await db?.auth.getUser())?.data.user ?? null;
   const isOwner = viewer?.id === list.user_id;
 
+  // Only this watchlist's films are read, not the whole catalogue.
   const [films, { owner }, collab, { available: commentsOn, comments }, viewerProfile, isAdmin] = await Promise.all([
-    getFilms(),
+    getFilmCards(list.list_films.map((r) => r.film_id)),
     collectionExtras(list.id, list.user_id),
     getCollaboration(db, list.id, viewer?.id ?? null),
     list.is_public ? getComments(db, list.id, viewer?.id ?? null) : Promise.resolve({ available: false, comments: [] }),
@@ -198,7 +199,7 @@ export default async function MemberCollectionPage({ params, searchParams }: Par
       </header>
 
       {items.length ? (
-        <FilmGrid films={items.map(toCard)} extras={extras} />
+        <FilmGrid films={items} extras={extras} />
       ) : (
         <div className="empty-state">
           <Icon name="film" className="empty-icon" />

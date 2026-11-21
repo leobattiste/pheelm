@@ -369,14 +369,52 @@ export function toDirectorSummary(d: Director): DirectorSummary {
   };
 }
 
-export function toCard(f: Film): FilmCard {
+function cardOf(f: FilmRow, directors: string[]): FilmCard {
   return {
     id: f.id, slug: f.slug, title: f.title, year: f.year, type: f.type, countries: f.countries,
     languages: f.languages, genres: f.genres, poster_url: f.poster_url, color: f.color ?? null, runtime: f.runtime ?? null,
-    directors: f.directors.map((d) => d.name),
+    directors,
     also: [f.original_title, ...(f.aka ?? [])].filter((t) => t && t !== f.title).join(" ") || undefined,
-    wins: f.awards.filter((a) => a.result === "won").length,
+    wins: (f.awards ?? []).filter((a) => a.result === "won").length,
   };
+}
+
+export function toCard(f: Film): FilmCard {
+  return cardOf(f, f.directors.map((d) => d.name));
+}
+
+/**
+ * Cards for just these films, such as the ones on one watchlist.
+ *
+ * A watchlist page needs a few dozen films and their directors. It used to load the whole catalogue
+ * for that (about 55 requests, in parallel, on every visit), which is slow, and under load the
+ * database answered with timeouts and the page wouldn't open. This reads only those films, their
+ * director credits and those directors: three short requests. A server that already holds a current
+ * copy of the catalogue, a build, and a machine without Supabase use that instead, which costs
+ * nothing. Films that aren't published are left out, as before.
+ */
+export async function getFilmCards(ids: string[]): Promise<FilmCard[]> {
+  const unique = [...new Set(ids)];
+  if (!unique.length) return [];
+  if (!supabaseEnabled || building() || warm()) {
+    const { filmById } = await catalog();
+    return unique.flatMap((id) => { const f = filmById.get(id); return f ? [toCard(f)] : []; });
+  }
+  const db = anonClient();
+  const inChunks = <T,>(items: T[]) => Array.from({ length: Math.ceil(items.length / 200) }, (_, i) => items.slice(i * 200, i * 200 + 200));
+  const films = (await Promise.all(inChunks(unique).map((chunk) =>
+    readAll<FilmRow>(db, "films", (q) => q.in("id", chunk).eq("status", "published"))))).flat();
+  if (!films.length) return [];
+  const credits = (await Promise.all(inChunks(films.map((f) => f.id)).map((chunk) =>
+    readAll<CreditRow>(db, "credits", (q) => q.in("film_id", chunk).eq("role", "director"))))).flat();
+  const people = await readIn<PersonRow>(db, "people", "id", credits.map((c) => c.person_id));
+  const nameById = new Map(people.map((p) => [p.id, p.name]));
+  const directors = new Map<string, string[]>();
+  for (const c of credits.sort((a, b) => a.sort - b.sort)) {
+    const name = nameById.get(c.person_id);
+    if (name) directors.set(c.film_id, [...(directors.get(c.film_id) ?? []), name]);
+  }
+  return films.map((f) => cardOf(f, directors.get(f.id) ?? []));
 }
 
 /** Counts used by the filters and the browse-by sections. */
