@@ -3356,3 +3356,7 @@ html:root:root:root:root:root:root .film-actions > .more-menu > :is(.round-butto
   border: 1px solid var(--line) !important;
   background: var(--bg) !important;
 }
+
+/* An announcement opened from Notifications. */
+.announcement-page { max-width: 680px; }
+.announcement-body p { white-space: pre-line; overflow-wrap: anywhere; font-size: var(--t-md); line-height: 1.6; }

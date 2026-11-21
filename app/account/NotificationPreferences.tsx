@@ -4,6 +4,9 @@ import { useState } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
 
 const GROUPS = [
+  { title: "From Pheelm", items: [
+    ["announcement", "News and announcements"],
+  ] },
   { title: "Films & watchlists", items: [
     ["new_film", "New films from directors you follow"],
     ["collection_film", "Films added to watchlists you follow"],

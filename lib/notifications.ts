@@ -5,7 +5,9 @@ export type NotificationType =
   | "invite" | "request" | "invite_accepted" | "invite_declined"
   | "request_accepted" | "request_declined" | "removed" | "comment" | "reply" | "mention" | "new_film" | "collection_film"
   // For admins: things to review, and new members (owner only). For curators: their collection was featured.
-  | "report" | "comment_report" | "submission" | "message" | "new_member" | "featured";
+  | "report" | "comment_report" | "submission" | "message" | "new_member" | "featured"
+  // From Pheelm, sent in Admin → Send: detail is the subject, ref the send to read in full.
+  | "announcement" | "service_notice";
 
 export type Notification = {
   id: string;

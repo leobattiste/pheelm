@@ -401,6 +401,39 @@
   "note": "You’re receiving this because you subscribed to the Pheelm newsletter."
  },
  {
+  "id": "campaign-announcement",
+  "title": "[[SUBJECT]]",
+  "subject": "[[SUBJECT]]",
+  "button": "[[ACTION_LABEL]]",
+  "message": "We’ve added something new to Pheelm. Here’s what it is and where to find it.",
+  "category": "optional",
+  "preheader": "[[PREVIEW]]",
+  "rows": [],
+  "note": "You’re getting this because news and announcements are on in your Pheelm email settings. Turn them off there, or use the unsubscribe link below."
+ },
+ {
+  "id": "campaign-service",
+  "title": "[[SUBJECT]]",
+  "subject": "[[SUBJECT]]",
+  "button": "[[ACTION_LABEL]]",
+  "message": "Our terms are changing on January 1. Nothing is needed from you.",
+  "category": "transactional",
+  "preheader": "[[PREVIEW]]",
+  "rows": [],
+  "note": "This is a service notice about your Pheelm account. We send these only when something affects how you use Pheelm, even if optional emails are off."
+ },
+ {
+  "id": "campaign-newsletter",
+  "title": "[[SUBJECT]]",
+  "subject": "[[SUBJECT]]",
+  "button": "[[ACTION_LABEL]]",
+  "message": "Films, directors and watchlists chosen by Pheelm this month.",
+  "category": "marketing",
+  "preheader": "[[PREVIEW]]",
+  "rows": [],
+  "note": "You’re receiving this because you subscribed to the Pheelm newsletter. You can unsubscribe in one step with the link below."
+ },
+ {
   "id": "activity-update",
   "title": "New activity on Pheelm",
   "subject": "New activity on Pheelm",

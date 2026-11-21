@@ -16,8 +16,11 @@ const OWNER_ONLY = {
   'app/admin/actions.ts': ['deleteFilm', 'setAdmin'],
   'app/admin/inbox/actions.ts': ['removeSubscriber'],
   'app/admin/community/actions.ts': ['deleteWatchlist'],
+  'app/admin/inbox/send/actions.ts': ['sendCampaign'],
 };
 // Actions that only call other checked actions in this file.
+// Reads that change nothing (they still check access first), so there's nothing to log.
+const READS = { 'app/admin/inbox/send/actions.ts': ['previewReach'] };
 const DELEGATES = { 'app/admin/actions.ts': { addMany: 'addOne', importMany: 'importOne' } };
 
 let actions = 0;
@@ -37,7 +40,7 @@ for (const file of files) {
       const first = body.search(/\b(?:db|admin|service)\.(?:from|rpc|auth)\b/);
       if (first !== -1) assert(body.indexOf(guard) < first, `${rel} ${name} uses the database before checking access`);
       if (OWNER_ONLY[rel]?.includes(name)) assert(body.includes('ownerClient(') && !body.includes('adminClient('), `${rel} ${name} must be owner-only`);
-      assert(body.includes('logAdminActivity('), `${rel} ${name} doesn't record itself in the activity log`);
+      if (!READS[rel]?.includes(name)) assert(body.includes('logAdminActivity('), `${rel} ${name} doesn't record itself in the activity log`);
     }
   }
   // Every admin page checks for an admin itself (the layout's check doesn't cover server actions or direct renders).

@@ -8,7 +8,7 @@
 - Messages use `Pheelm <notifications@pheelm.com>` and reply to `hey@pheelm.com`.
 - Resend delivery/bounce/complaint webhooks require Svix signature verification and a five-minute timestamp window. Event IDs are deduplicated. Bounced and complained recipients are suppressed.
 - Queue jobs use deterministic Resend idempotency keys, row-lock claims, leases, bounded retries and a twelve-hour expiry. Email content is retained for fourteen days.
-- The deployed worker sends the rendered HTML/plain-text layouts in `supabase/functions/pheelm-email/templates.compact.json`: two shared layouts (with and without the unsubscribe footer) plus each email's words. `unpack.mjs` fills the words in; the worker fills `[[MESSAGE]]`, `[[ACTION_URL]]`, `[[UNSUBSCRIBE_URL]]`, `[[POSTAL_ADDRESS]]` and `[[YEAR]]` when it sends. The design is `emails/PheelmEmail.tsx`; the words (title, subject, button, preheader, three good-to-know rows, a closing note) are in `emails/catalog.json`. After changing either, run `npm run email:preview` and deploy `index.ts`, `security.ts`, `unpack.mjs`, `templates.compact.json` and `deno.json`. The wordmark in the header is `public/brand/pheelm-wordmark-email.png`, served from pheelm.com.
+- The deployed worker sends the rendered HTML/plain-text layouts in `supabase/functions/pheelm-email/templates.compact.json`: two shared layouts (with and without the unsubscribe footer) plus each email's words. `unpack.mjs` fills the words in; the worker fills `[[MESSAGE]]`, `[[ACTION_URL]]`, `[[UNSUBSCRIBE_URL]]`, `[[POSTAL_ADDRESS]]` and `[[YEAR]]` when it sends. The design is `emails/PheelmEmail.tsx`; the words (title, subject, button, preheader, three good-to-know rows, a closing note) are in `emails/catalog.json`. After changing either, run `npm run email:preview` and deploy `index.ts`, `security.ts`, `unpack.mjs`, `digest.mjs`, `templates.pack.ts` (the compact JSON, gzipped) and `deno.json`. The wordmark in the header is `public/brand/pheelm-wordmark-email.png`, served from pheelm.com.
 - Production copies are published in Resend under `pheelm-live-*`. Editable original designs are preserved under `pheelm-*` as drafts. Dashboard edits do not automatically update the deployed snapshots: regenerate and deploy the worker after changing the source.
 
 ## Templates and event coverage
@@ -31,7 +31,10 @@
 | newsletter-confirmation | New newsletter subscription request; double opt-in, no automatic mailing-list import |
 | activity-update | A reply, mention, comment on your watchlist or new film from a followed director, unless “Replies, mentions and new films” is off; at most 5 an hour; says what happened, never who or what was said |
 | activity-digest | Digest: newly added public films, directors and collections; daily or weekly from the member’s selection; off by default; empty periods send no email |
-| newsletter | Ready for a separately authorized editorial campaign; no campaign is sent by this setup |
+| newsletter | Not sent automatically; the worker refuses newsletter jobs that aren't part of an Admin → Send |
+| campaign-announcement | Admin → Send, Announcement: members by email when “News and announcements” is on (default on), with unsubscribe |
+| campaign-service | Admin → Send, Service notice: members, regardless of optional-email settings; never to bounced or blocked addresses |
+| campaign-newsletter | Admin → Send, Newsletter: confirmed newsletter subscribers only, with the subscription's unsubscribe |
 | report-update | Template ready; report outcome messages require an explicit moderation action |
 | moderation-notice | Template ready; requires an explicit moderation action |
 | service-notice | Template ready; requires a specific service notice |
@@ -92,3 +95,16 @@ Emails say “watchlist”, like the site. `supabase/archive/email-wording.sql` 
 ## Digest schedule
 
 Digests go out at 4 pm New York time: every day for Daily, on Fridays for Weekly (`supabase/archive/digest-schedule.sql`, `pheelm_email.digest_due`). The worker runs every five minutes, so the first run after 4 pm sends. Each Digest covers what was added since the member's last one: up to six films with their posters (from TMDB, w185), four directors with photos, and four public watchlists, built by `supabase/functions/pheelm-email/digest.mjs` from `email_digest_items`. Turning the Digest on, or changing how often, starts the window from that moment.
+
+## Admin → Send
+
+`/admin/inbox/send` (also “Send a message” on the Inbox). Admins write a message and send themselves a test (at most 10 an hour; marked “[Test]”, with no working unsubscribe link). Only the owner sends.
+
+- Kinds: Announcement and Service notice go to members (all, followers of a director, members with a film in their watchlist, or one member) by in-app notification, email or both. Newsletter goes to confirmed subscribers by email only.
+- Opt-outs: announcements respect “News and announcements” in both notification and email settings; service notices ignore optional settings. Bounced or blocked addresses are never emailed. Opting out after a send is queued still stops it (`email_claim`).
+- The Send button shows the count. It is checked again when sending; if it changed, nothing is sent. The same subject can't be sent twice within 10 minutes.
+- Each email is an outbox job with `campaign_id`, its own `subject` and `action_label`; the worker fills `[[SUBJECT]]`, `[[PREVIEW]]` (the message's start) and `[[ACTION_LABEL]]`. The Sent list counts waiting, delivered, bounced, failed and skipped emails from `outbox.delivery` (Resend webhooks) and in-app reads.
+- Throughput: the worker sends 20 every 5 minutes (about 240 an hour) and expires jobs after 12 hours, so one send reaches at most about 2,800 emails. Raise the batch or the schedule before sending to more.
+- Database: `supabase/migrations/20261121230000_admin_send.sql`; tests `tests/admin-send.sql`, `tests/email-worker-send.mjs`, `tests/admin-send-browser.mjs`.
+
+Activity emails follow “Replies, mentions and new films” only. Before this migration `email_claim` also suppressed them whenever the Digest was off.

@@ -48,6 +48,8 @@ function Line({ n }: { n: Notification }) {
     case "message": return <>New message: {n.detail}</>;
     case "new_member": return <>{n.actor ? who : <strong>{n.detail || "Someone"}</strong>} joined Pheelm</>;
     case "featured": return <>{list} is now featured on Collections</>;
+    case "announcement": return <>From Pheelm: <strong>{n.detail ?? "An announcement"}</strong></>;
+    case "service_notice": return <>Service notice: <strong>{n.detail ?? "An update about your account"}</strong></>;
     case "new_film": return <>New from <strong>{n.person?.name ?? "a director you follow"}</strong>: <strong>{n.film?.title ?? "a film"}</strong>{n.film?.year ? ` (${n.film.year})` : ""}</>;
   }
 }
@@ -56,6 +58,7 @@ function href(n: Notification) {
   if (n.type === "report" || n.type === "comment_report") return "/admin/community";
   if (n.type === "submission") return "/admin/submissions";
   if (n.type === "message") return n.ref ? `/admin/inbox/message/${n.ref}` : "/admin/inbox";
+  if (n.type === "announcement" || n.type === "service_notice") return n.ref ? `/notifications/announcement/${n.ref}` : null;
   if (n.type === "new_member") return n.actor ? `/@${n.actor.handle}` : "/admin/members";
   if (n.type === "new_film" || n.type === "collection_film") return n.film ? `/films/${n.film.slug}` : null;
   if (n.film && !n.list && n.comment) return `/films/${n.film.slug}#comment-${n.comment.id}`;
@@ -68,7 +71,7 @@ function href(n: Notification) {
 const KIND_ICONS: Record<Notification["type"], IconName> = {
   invite: "userPlus", request: "door", invite_accepted: "check", invite_declined: "x",
   request_accepted: "check", request_declined: "x", removed: "x", comment: "comment", reply: "reply", mention: "at", new_film: "film", collection_film: "stack",
-  report: "flag", comment_report: "flag", submission: "film", message: "mail", new_member: "userPlus", featured: "sparkle",
+  report: "flag", comment_report: "flag", submission: "film", message: "mail", new_member: "userPlus", featured: "sparkle", announcement: "megaphone", service_notice: "info",
 };
 
 function Item({ n }: { n: Notification }) {

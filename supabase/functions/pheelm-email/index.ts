@@ -1,14 +1,17 @@
 import {actionUrl,escapeHtml,safeEqual,verifyWebhook} from './security.ts';
-// The email designs: two shared layouts plus each email's words (see scripts/email-previews.mjs).
-import packed from './templates.compact.json' with {type:'json'};
+// The email designs: shared layouts plus each email's words (see scripts/email-previews.mjs), as
+// templates.compact.json gzipped into templates.pack.ts so the worker deploys as small plain files.
+import pack from './templates.pack.ts';
 import {unpack} from './unpack.mjs';
 import {digestHtml,digestIntro,digestText} from './digest.mjs';
+const packed=JSON.parse(await new Response(new Blob([Uint8Array.from(atob(pack),c=>c.charCodeAt(0))]).stream().pipeThrough(new DecompressionStream('gzip'))).text());
 const templates=unpack(packed);
 const project=Deno.env.get('SUPABASE_URL')!;
 const service=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const endpoint=project+'/functions/v1/pheelm-email';
 const BASE='https://www.pheelm.com';
 async function rpc(name:string,args:Record<string,unknown>={}){const r=await fetch(project+'/rest/v1/rpc/'+name,{method:'POST',headers:{apikey:service,Authorization:'Bearer '+service,'Content-Type':'application/json'},body:JSON.stringify(args),signal:AbortSignal.timeout(10000)});if(!r.ok)throw new Error('Database operation failed: '+name);return r.status===204?null:await r.json();}
+const preview=(text:string)=>{const one=text.replace(/\s+/g,' ').trim();return one.length>140?one.slice(0,139).trimEnd()+'…':one;};
 const json=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:{'Content-Type':'application/json','Cache-Control':'no-store'}});
 function page(title:string,message:string,action?:string,token?:string){return new Response(`<!doctype html><html lang="en"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title} · Pheelm</title><body style="margin:24px;background:#0b0b0b;color:white;font:16px Arial,sans-serif"><main style="max-width:560px;margin:auto"><h1>${title}</h1><p>${message}</p>${action&&token?`<form method="post" action="${endpoint}?action=${action}"><input type="hidden" name="token" value="${escapeHtml(token)}"><button style="padding:14px 24px;border-radius:24px;border:0;font:inherit">${action==='confirm'?'Confirm subscription':'Unsubscribe from optional emails'}</button></form>`:''}<p><a style="color:white" href="${BASE}">Return to Pheelm</a></p></main></body></html>`,{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Referrer-Policy':'no-referrer','Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"}});}
 Deno.serve(async req=>{try{const url=new URL(req.url);const action=url.searchParams.get('action')??'process';
@@ -32,9 +35,17 @@ Deno.serve(async req=>{try{const url=new URL(req.url);const action=url.searchPar
  await rpc('email_prepare_digests');const jobs=await rpc('email_claim',{batch_size:20});let sent=0,failed=0;
  for(const job of jobs){try{
   const template=(templates as Record<string,{subject:string;html:string;text:string;category:string}>)[job.template];if(!template||template.category==='auth')throw new Error('Unsupported application template');
-  const optional=job.category==='optional'||job.category==='marketing';if(job.category==='marketing')throw new Error('Marketing broadcasts require explicit campaign approval');
-  const preferences=job.user_id?await rpc('email_job_preferences',{uid:job.user_id}):null;
-  const unsub=preferences?.token?BASE+'/email?action=unsubscribe&token='+preferences.token:BASE+'/account?tab=notifications';
+  // Newsletters are sent only as part of a send the owner approved in Admin → Send.
+  if(job.category==='marketing'&&!job.campaign_id)throw new Error('Marketing broadcasts require explicit campaign approval');
+  const test=job.category==='test',optional=['optional','marketing','announcement'].includes(job.category);
+  // A test never carries the admin's real unsubscribe link, so opening it can't turn their emails off.
+  const preferences=job.user_id&&!test?await rpc('email_job_preferences',{uid:job.user_id}):null;
+  let unsub=preferences?.token?BASE+'/email?action=unsubscribe&token='+preferences.token:BASE+'/account?tab=notifications';
+  if(job.category==='marketing'){
+   const token=await rpc('email_newsletter_token',{address:job.recipient});
+   if(!token){await rpc('email_complete',{job_id:job.id,lease_id:job.lease,failure:'Unsubscribed before sending',retryable:false});continue;}
+   unsub=BASE+'/email?action=unsubscribe&token='+token;
+  }
   // A Digest is built from what's new right now (posters, directors, watchlists), not from the queued text.
   let message=job.message,layoutHtml=template.html,layoutText=template.text,digestHtmlPart='',digestTextPart='';
   if(job.template==='activity-digest'){
@@ -44,10 +55,13 @@ Deno.serve(async req=>{try{const url=new URL(req.url);const action=url.searchPar
    layoutHtml=layoutHtml.replace(/\[\[MESSAGE\]\](?:<\/span>)*<\/p>/,(m)=>m+'[[DIGEST]]');layoutText=layoutText.replace('[[MESSAGE]]','[[MESSAGE]]\n\n[[DIGEST]]');
   }
   const postal=config.pheelm_postal_address??'';if(!postal){layoutHtml=layoutHtml.replace('[[POSTAL_ADDRESS]]<br/>','');layoutText=layoutText.replace('[[POSTAL_ADDRESS]]\n','');}
-  const values:Record<string,string>={MESSAGE:message,YEAR:String(new Date().getFullYear()),ACTION_URL:actionUrl(job.action_path,BASE,endpoint),UNSUBSCRIBE_URL:unsub,POSTAL_ADDRESS:postal};
+  const values:Record<string,string>={MESSAGE:message,YEAR:String(new Date().getFullYear()),ACTION_URL:actionUrl(job.action_path,BASE,endpoint),UNSUBSCRIBE_URL:unsub,POSTAL_ADDRESS:postal,
+   // Sends from Admin → Send bring their own subject and button; the inbox preview is the message's start.
+   SUBJECT:job.subject??'',ACTION_LABEL:job.action_label||'Open Pheelm',PREVIEW:preview(message)};
+  const subject=(test?'[Test] ':'')+(job.subject||template.subject);
   // One pass, so nothing inserted here is read again as a [[TOKEN]]. DIGEST is HTML built (and escaped) by digest.mjs.
   const html=layoutHtml.replace(/\[\[([A-Z0-9_]+)\]\]/g,(_,key)=>key==='DIGEST'?digestHtmlPart:key==='MESSAGE'?escapeHtml(values[key]??'').replaceAll('\n','<br>'):escapeHtml(values[key]??''));const text=layoutText.replace(/\[\[([A-Z0-9_]+)\]\]/g,(_,key)=>key==='DIGEST'?digestTextPart:values[key]??'');
-  const r=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:'Bearer '+config.pheelm_resend_api_key,'Content-Type':'application/json','Idempotency-Key':'pheelm-email/'+job.id},body:JSON.stringify({from:'Pheelm <notifications@pheelm.com>',reply_to:'hey@pheelm.com',to:[job.recipient],subject:template.subject,html,text,...(optional?{headers:{'List-Unsubscribe':`<${unsub}>`,'List-Unsubscribe-Post':'List-Unsubscribe=One-Click'}}:{}),tags:[{name:'template',value:job.template}]}),signal:AbortSignal.timeout(10000)});
+  const r=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:'Bearer '+config.pheelm_resend_api_key,'Content-Type':'application/json','Idempotency-Key':'pheelm-email/'+job.id},body:JSON.stringify({from:'Pheelm <notifications@pheelm.com>',reply_to:'hey@pheelm.com',to:[job.recipient],subject,html,text,...(optional?{headers:{'List-Unsubscribe':`<${unsub}>`,'List-Unsubscribe-Post':'List-Unsubscribe=One-Click'}}:{}),tags:[{name:'template',value:job.template}]}),signal:AbortSignal.timeout(10000)});
   if(!r.ok){await rpc('email_complete',{job_id:job.id,lease_id:job.lease,failure:'Email provider HTTP '+r.status,retryable:r.status===429||r.status>=500});failed++;}else{const result=await r.json();await rpc('email_complete',{job_id:job.id,lease_id:job.lease,provider:result.id});sent++;}
  }catch{await rpc('email_complete',{job_id:job.id,lease_id:job.lease,failure:'Delivery interrupted or invalid configuration',retryable:true});failed++;}
  await new Promise(r=>setTimeout(r,550));
