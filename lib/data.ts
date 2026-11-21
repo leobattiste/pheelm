@@ -314,6 +314,37 @@ export const filmPageCatalog = cache(async (slug: string) => {
   return { film: built.find((f) => f.slug === slug) ?? null, films: built, directors };
 });
 
+/**
+ * Everything one director page needs, and nothing else: the director, the films they worked on
+ * (with all of each film's credits, for "what they did on it" and the directors on the cards) and
+ * the people in those credits. About five short requests, where the page used to read the whole
+ * catalogue. A build, a machine without Supabase and a server that already holds a current copy
+ * of the catalogue use that instead, which costs nothing.
+ */
+export const directorPageCatalog = cache(async (slug: string): Promise<{ director: Director | null; films: Film[] }> => {
+  if (!supabaseEnabled || building() || warm()) {
+    const c = await catalog();
+    const director = c.directors.find((d) => d.slug === slug) ?? null;
+    return { director, films: director ? c.films : [] };
+  }
+  const none = { director: null, films: [] };
+  const db = anonClient();
+  const [person] = await readAll<PersonRow>(db, "people", (q) => q.eq("slug", slug));
+  if (!person) return none;
+  const mine = await readAll<CreditRow>(db, "credits", (q) => q.eq("person_id", person.id));
+  const ids = [...new Set(mine.map((c) => c.film_id))];
+  if (!ids.length) return none;
+  const chunks = Array.from({ length: Math.ceil(ids.length / 200) }, (_, i) => ids.slice(i * 200, i * 200 + 200));
+  const [films, credits] = await Promise.all([
+    Promise.all(chunks.map((chunk) => readAll<FilmRow>(db, "films", (q) => q.in("id", chunk).eq("status", "published")))).then((p) => p.flat()),
+    readIn<CreditRow>(db, "credits", "film_id", ids),
+  ]);
+  if (!films.length) return none;
+  const people = await readIn<PersonRow>(db, "people", "id", [person.id, ...credits.map((c) => c.person_id)]);
+  const built = buildCatalog({ films, people, credits, collections: [], collection_films: [] });
+  return { director: built.directors.find((d) => d.id === person.id) ?? null, films: built.films };
+});
+
 export async function getFilms() {
   return (await catalog()).films;
 }

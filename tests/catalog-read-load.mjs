@@ -14,7 +14,7 @@ const AT_ONCE = 4;
  */
 async function load({ total, building, versioned = false }) {
   const out = await build({
-    stdin: { contents: `export {getFilms, getFilmCards} from './lib/data';`, loader: "ts", resolveDir: process.cwd() },
+    stdin: { contents: `export {getFilms, getFilmCards, directorPageCatalog} from './lib/data';`, loader: "ts", resolveDir: process.cwd() },
     bundle: true, write: false, format: "cjs", platform: "node",
     external: ["server-only", "@supabase/supabase-js", "next/cache", "react"],
   });
@@ -76,7 +76,7 @@ async function load({ total, building, versioned = false }) {
     process: { ...process, env },
     require: (name) => fakes[name] ?? require(name),
   });
-  return { getFilms: mod.exports.getFilms, getFilmCards: mod.exports.getFilmCards, stats, clock, db };
+  return { getFilms: mod.exports.getFilms, getFilmCards: mod.exports.getFilmCards, directorPageCatalog: mod.exports.directorPageCatalog, stats, clock, db };
 }
 
 // 1. Pages are asked for a few at a time, not all at once.
@@ -214,6 +214,25 @@ async function load({ total, building, versioned = false }) {
   const cards = await getFilmCards(["row-0", "row-3", "row-99"]);
   assert.equal(stats.requests, afterFirst, "a warm server should not read again");
   assert.equal(JSON.stringify(cards.map((c) => c.id)), JSON.stringify(["row-0", "row-3"]), "unknown films are left out");
+}
+
+// 14. A director page reads that director, their credits, those films with their credits and
+//     those people: no collections, a handful of requests. (Before, it read the whole catalogue.)
+{
+  const { directorPageCatalog, stats } = await load({ total: 3, building: false, versioned: true });
+  await directorPageCatalog("f-0");
+  const tables = new Set(stats.tables.filter((t) => t !== "catalog_version"));
+  assert.ok([...tables].every((t) => ["films", "credits", "people"].includes(t)), "only films, credits and people");
+  assert.ok(stats.requests <= 6, `a director page should take a few requests, saw ${stats.requests}`);
+}
+
+// 15. A server that already holds the catalogue answers a director page from it.
+{
+  const { getFilms, directorPageCatalog, stats } = await load({ total: 5, building: false, versioned: true });
+  await getFilms();
+  const afterFirst = stats.requests;
+  await directorPageCatalog("f-0");
+  assert.equal(stats.requests, afterFirst, "a warm server should not read again");
 }
 
 console.log("ok  the catalogue is read a few pages at a time, once per build, and again only when it changes");
