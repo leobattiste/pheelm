@@ -96,9 +96,6 @@ export function parseQuery(input: string): Parsed {
   return out;
 }
 
-/** Whether the search asked for any filter at all. */
-export const hasFilters = (p: Parsed) => !!(p.country || p.genre || p.decade || p.year || p.women);
-
 /** A short, readable name for what the filters describe: "Nigerian comedies from the 1990s". */
 export function describe(p: Parsed, countryName: (code: string) => string) {
   const genre = p.genre ? (p.genre === "Documentary" ? "documentaries" : p.genre === "Comedy" ? "comedies" : `${p.genre.toLowerCase()} films`) : "films";

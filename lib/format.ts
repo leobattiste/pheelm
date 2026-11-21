@@ -24,13 +24,6 @@ export const TYPE_LABELS: Record<FilmType, string> = {
   animation: "Animation",
 };
 
-export const TYPE_PLURALS: Record<FilmType, string> = {
-  feature: "Features",
-  documentary: "Documentaries",
-  short: "Shorts",
-  animation: "Animation",
-};
-
 export const ROLE_LABELS: Record<Role, string> = {
   director: "Director",
   writer: "Writer",
@@ -40,10 +33,6 @@ export const ROLE_LABELS: Record<Role, string> = {
   composer: "Music",
   cast: "Cast",
 };
-
-export const ROLES = Object.keys(ROLE_LABELS) as Role[];
-
-export const decadeOf = (year: number) => `${Math.floor(year / 10) * 10}s`;
 
 export function slugify(s: string) {
   return s
@@ -101,11 +90,6 @@ export function tintStyle(hex: string | null | undefined): React.CSSProperties |
   return hex && /^#[0-9a-f]{6}$/i.test(hex) ? ({ "--tint": hex } as React.CSSProperties) : undefined;
 }
 
-/** The colour a film's page is tinted with: from its poster when known, otherwise its placeholder's. */
-export function filmColour(film: { title: string; color?: string | null }) {
-  return film.color ?? posterColours(film.title).bg;
-}
-
 /** TMDB serves each poster in several sizes, so phones download small ones. */
 export function srcSet(url: string | null) {
   if (!url || !url.includes("image.tmdb.org/t/p/")) return undefined;
@@ -130,16 +114,4 @@ export function initials(name: string) {
     .map((w) => w[0])
     .slice(0, 2)
     .join("");
-}
-
-/** Black or white, whichever reads better on a background colour (from Covvvvvers). */
-export function inkFor(hex: string | null | undefined) {
-  if (!hex || !/^#?[0-9a-f]{6}$/i.test(hex)) return "#000000";
-  const h = hex.replace("#", "");
-  const [r, g, b] = [0, 2, 4].map((i) => {
-    const v = parseInt(h.slice(i, i + 2), 16) / 255;
-    return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
-  });
-  const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-  return lum > 0.22 ? "#000000" : "#ffffff";
 }

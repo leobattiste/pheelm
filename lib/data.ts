@@ -1,7 +1,6 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { cache } from "react";
 import local from "@/data/catalog.json";
-import { decadeOf } from "./format";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseEnabled } from "./supabase/config";
 import type {
   Collection, CollectionRow, CreditRow, Director, DirectorSummary, Film, FilmCard, FilmRow, PersonRow,
@@ -372,14 +371,6 @@ export async function getPerson(slug: string) {
   return work.length ? { person, work } : null;
 }
 
-export async function getCollections() {
-  return (await catalog()).collections.filter((c) => c.films.length);
-}
-
-export async function getCollection(slug: string) {
-  return (await catalog()).collections.find((c) => c.slug === slug) ?? null;
-}
-
 const wins = (f: Film) => f.awards.filter((a) => a.result === "won").length;
 
 export function toDirectorSummary(d: Director): DirectorSummary {
@@ -446,20 +437,4 @@ export async function getFilmCards(ids: string[]): Promise<FilmCard[]> {
     if (name) directors.set(c.film_id, [...(directors.get(c.film_id) ?? []), name]);
   }
   return films.map((f) => cardOf(f, directors.get(f.id) ?? []));
-}
-
-/** Counts used by the filters and the browse-by sections. */
-export async function getFacets() {
-  const films = await getFilms();
-  const tally = (values: string[]) => {
-    const m = new Map<string, number>();
-    for (const v of values) m.set(v, (m.get(v) ?? 0) + 1);
-    return [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
-  };
-  return {
-    countries: tally(films.flatMap((f) => f.countries)),
-    decades: tally(films.map((f) => decadeOf(f.year))).sort((a, b) => a[0].localeCompare(b[0])),
-    languages: tally(films.flatMap((f) => f.languages)),
-    genres: tally(films.flatMap((f) => f.genres)),
-  };
 }
