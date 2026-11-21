@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
 import Icon from "./Icon";
 import WatchlistButton, { warmWatchlists } from "./WatchlistButton";
+import { myIds } from "@/lib/my-rows";
 
 // One look-up of the member's Watchlist for every card on the page.
 let authListenerReady = false;
@@ -15,20 +16,18 @@ function load() {
     client.auth.onAuthStateChange(event => {
       if (event === "INITIAL_SESSION" || event === "TOKEN_REFRESHED") return;
       saved = null;
-      queueMicrotask(() => window.dispatchEvent(new Event("watchlistchange")));
+      // After the shared copy (lib/my-rows) has forgotten the old member too.
+      setTimeout(() => window.dispatchEvent(new Event("watchlistchange")), 0);
     });
   }
   if (!saved) {
-    saved = (async () => {
-      const db = getBrowserClient();
-      if (!db) return null;
-      const { data } = await db.auth.getSession();
-      const userId = data.session?.user.id;
-      if (!userId) return null;
-      const { data: rows } = await db.from("watchlist").select("film_id").eq("user_id", userId);
-      warmWatchlists(userId);
-      return { userId, ids: new Set(((rows ?? []) as { film_id: string }[]).map((r) => r.film_id)) };
-    })();
+    // Shared with the film page's Watchlist button; a read that fails or runs out of time
+    // hides the + (as signed out) and is asked again next time.
+    const ask: Promise<{ userId: string; ids: Set<string> } | null> = myIds("watchlist").then(
+      me => { if (me) warmWatchlists(me.userId); return me; },
+      () => { if (saved === ask) saved = null; return null; },
+    );
+    saved = ask;
   }
   return saved;
 }

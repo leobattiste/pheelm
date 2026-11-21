@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
+import { myId, myIds, noteMine } from "@/lib/my-rows";
 import { openSignIn } from "./SignInSheet";
 import Icon from "@/components/Icon";
 import { toast } from "./Toast";
@@ -22,25 +23,26 @@ export default function SaveCollectionButton({ listId, ownerId }: { listId: stri
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    const db = getBrowserClient();
-    if (!db) return setStatus("signed-out");
-    db.auth.getSession().then(async ({ data }) => {
-      const id = data.session?.user.id ?? null;
+    let live = true;
+    void myId().then(async id => {
+      if (!live) return;
       setUserId(id);
       if (!id) return setStatus("signed-out");
       if (id === ownerId) return setStatus("own");
-      const { data: row, error } = await db.from("list_saves").select("list_id").eq("list_id", listId).eq("user_id", id).maybeSingle();
-      if (error) return setStatus("unavailable");
-      setStatus(row ? "on" : "off");
+      try { const mine = await myIds("list_saves"); if (live) setStatus(mine?.ids.has(listId) ? "on" : "off"); }
+      catch { if (live) setStatus("unavailable"); }
     });
+    return () => { live = false; };
   }, [listId, ownerId]);
 
   if (status === "own" || status === "unavailable") return null;
-  if (status === "signed-out" || status === "loading") {
+  // Until we know, the button shows but waits: a signed-in member is never sent to Sign in.
+  if (status === "loading") return <span className="save-collection"><button type="button" className="button ghost" disabled aria-busy="true">{PLUS}Follow</button></span>;
+  if (status === "signed-out") {
     return (
       <span className="save-collection">
-        <Link className="button ghost" href={`/login?next=${encodeURIComponent(path)}`} aria-busy={status === "loading"}
-        onClick={(e) => { if (status === "signed-out" && openSignIn()) e.preventDefault(); }}>{PLUS}Follow</Link>
+        <Link className="button ghost" href={`/login?next=${encodeURIComponent(path)}`}
+        onClick={(e) => { if (openSignIn()) e.preventDefault(); }}>{PLUS}Follow</Link>
       </span>
     );
   }
@@ -53,6 +55,7 @@ export default function SaveCollectionButton({ listId, ownerId }: { listId: stri
       ? await db.from("list_saves").insert({ list_id: listId, user_id: userId })
       : await db.from("list_saves").delete().eq("list_id", listId).eq("user_id", userId);
     if (error) { setStatus(prev); toast.error("That didn’t save. Try again."); return false; }
+    noteMine("list_saves", listId, next === "on");
     return true;
   };
   const toggle = async () => {

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
+import { myId, myIds, noteMine } from "@/lib/my-rows";
 import Icon from "./Icon";
 import { toast } from "./Toast";
 import { isBannedWordMessage } from "@/lib/banned-words";
@@ -69,15 +70,14 @@ export default function WatchlistButton({ filmId, filmTitle, pickerOnly = false,
   useEffect(() => {
     let live = true;
     if (!initialUserId) {
-      const db = getBrowserClient();
-      if (!db) setStatus("signed-out");
-      else void db.auth.getSession().then(async ({ data }) => {
-        const uid = data.session?.user.id ?? null;
+      void myId().then(async uid => {
         if (!live) return;
         setUserId(uid);
         if (!uid) return setStatus("signed-out");
-        const { data: row } = await db.from("watchlist").select("film_id").eq("user_id", uid).eq("film_id", filmId).maybeSingle();
-        if (live) setStatus(row ? "on" : "off");
+        // Shared with the poster buttons. If it fails or runs out of time, the button still
+        // opens the picker, which shows where the film is.
+        const mine = await myIds("watchlist").catch(() => null);
+        if (live) setStatus(mine?.ids.has(filmId) ? "on" : "off");
       });
     }
     const changed = (event: Event) => {
@@ -113,6 +113,7 @@ export default function WatchlistButton({ filmId, filmTitle, pickerOnly = false,
   const mark = (saved: boolean) => {
     changed.current = true;
     setStatus(saved ? "on" : "off");
+    noteMine("watchlist", filmId, saved);
     window.dispatchEvent(new CustomEvent("watchlistchange", { detail: { filmId, saved } }));
   };
   const open = () => { setError(""); sheet.current?.showModal(); void loadLists(); };
