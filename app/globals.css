@@ -3349,3 +3349,10 @@ html:root:root:root:root [data-grid] :is(.film-card-title, .director-card-name, 
   font-weight: 400;
   letter-spacing: 0;
 }
+
+/* Film page: the ⋯ beside Watchlist is a secondary button like Watchlist, with the same border
+   and fill (other ⋯ controls stay borderless). */
+html:root:root:root:root:root:root .film-actions > .more-menu > :is(.round-button, .more-button) {
+  border: 1px solid var(--line) !important;
+  background: var(--bg) !important;
+}
