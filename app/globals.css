@@ -3339,3 +3339,13 @@ html:root:root:root:root:root:root:root:root:root:root .option-dots > button:foc
 /* In the menu, above Log out: one row each, the label on the left and the buttons on the right. */
 .menu-view-settings { gap: var(--space-12); }
 .menu-setting { display: flex; align-items: center; justify-content: space-between; gap: var(--space-16); font-size: var(--t-md); color: var(--text); }
+
+/* Names of films, people and watchlists read like paragraph text: 16px, regular weight, in ink
+   (black in the light theme, white in the dark one). */
+html:root:root:root:root :is(.film-card-title, .director-card-name, .collection-title, .person-row-name, .cast-name, .filmography a, .save-name),
+html:root:root:root:root [data-grid] :is(.film-card-title, .director-card-name, .collection-title, .person-row-name) {
+  color: var(--ink);
+  font-size: var(--t-md);
+  font-weight: 400;
+  letter-spacing: 0;
+}
