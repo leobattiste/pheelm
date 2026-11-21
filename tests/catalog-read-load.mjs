@@ -14,11 +14,11 @@ const AT_ONCE = 4;
  */
 async function load({ total, building, versioned = false }) {
   const out = await build({
-    stdin: { contents: `export {getFilms} from './lib/data';`, loader: "ts", resolveDir: process.cwd() },
+    stdin: { contents: `export {getFilms, getFilmCards} from './lib/data';`, loader: "ts", resolveDir: process.cwd() },
     bundle: true, write: false, format: "cjs", platform: "node",
     external: ["server-only", "@supabase/supabase-js", "next/cache", "react"],
   });
-  const stats = { requests: 0, peak: 0, inFlight: 0, reads: 0, versionChecks: 0 };
+  const stats = { requests: 0, peak: 0, inFlight: 0, reads: 0, versionChecks: 0, tables: [] };
   // `version` is the catalog_version row; `failing` makes every catalog request error.
   const db = { version: 1, failing: false };
   const versionQuery = () => {
@@ -58,7 +58,7 @@ async function load({ total, building, versioned = false }) {
   };
   const fakes = {
     "server-only": {},
-    "@supabase/supabase-js": { createClient: () => { stats.reads++; return { from: (t) => (t === "catalog_version" ? versionQuery() : makeQuery()) }; } },
+    "@supabase/supabase-js": { createClient: () => { stats.reads++; return { from: (t) => { stats.tables.push(t); return t === "catalog_version" ? versionQuery() : makeQuery(); } }; } },
     "next/cache": { unstable_cache: (fn) => fn, revalidateTag: () => {} },
     react: { cache: (fn) => fn },
   };
@@ -76,7 +76,7 @@ async function load({ total, building, versioned = false }) {
     process: { ...process, env },
     require: (name) => fakes[name] ?? require(name),
   });
-  return { getFilms: mod.exports.getFilms, stats, clock, db };
+  return { getFilms: mod.exports.getFilms, getFilmCards: mod.exports.getFilmCards, stats, clock, db };
 }
 
 // 1. Pages are asked for a few at a time, not all at once.
@@ -176,6 +176,44 @@ async function load({ total, building, versioned = false }) {
   const { getFilms, db } = await load({ total: 1_200, building: true, versioned: true });
   db.failing = true;
   await assert.rejects(getFilms(), /statement timeout/);
+}
+
+// 10. A watchlist page needs a few dozen films, not the catalogue. On a server that holds no copy
+//     it reads only those films, their director credits and those directors: no collections, no
+//     other tables, a handful of requests. (Before, every visit read all five tables.)
+{
+  const { getFilmCards, stats } = await load({ total: 3, building: false, versioned: true });
+  const cards = await getFilmCards(["row-0", "row-1", "row-1"]);
+  assert.ok(cards.length >= 1 && cards[0].id && cards[0].slug, "should return film cards");
+  const tables = new Set(stats.tables.filter((t) => t !== "catalog_version"));
+  assert.ok([...tables].every((t) => ["films", "credits", "people"].includes(t)), "only films, credits and people");
+  assert.ok(!tables.has("collections") && !tables.has("collection_films"), "should not read collections");
+  assert.ok(stats.requests <= 4, `a small watchlist should take a few requests, saw ${stats.requests}`);
+}
+
+// 11. Two hundred films per request, asked for together, so a big watchlist doesn't wait in line.
+{
+  const { getFilmCards, stats } = await load({ total: 3, building: false, versioned: true });
+  await getFilmCards(Array.from({ length: 450 }, (_, i) => `row-${i}`));
+  const filmReads = stats.tables.filter((t) => t === "films").length;
+  assert.equal(filmReads, 3, "450 films should be three requests of at most 200");
+}
+
+// 12. Nothing to show, nothing to ask.
+{
+  const { getFilmCards, stats } = await load({ total: 3, building: false, versioned: true });
+  assert.equal((await getFilmCards([])).length, 0);
+  assert.equal(stats.requests, 0, "an empty watchlist should make no requests");
+}
+
+// 13. A server that already holds the catalogue answers from it, with no further requests.
+{
+  const { getFilms, getFilmCards, stats } = await load({ total: 5, building: false, versioned: true });
+  await getFilms();
+  const afterFirst = stats.requests;
+  const cards = await getFilmCards(["row-0", "row-3", "row-99"]);
+  assert.equal(stats.requests, afterFirst, "a warm server should not read again");
+  assert.equal(JSON.stringify(cards.map((c) => c.id)), JSON.stringify(["row-0", "row-3"]), "unknown films are left out");
 }
 
 console.log("ok  the catalogue is read a few pages at a time, once per build, and again only when it changes");
