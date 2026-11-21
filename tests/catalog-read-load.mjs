@@ -37,7 +37,7 @@ async function load({ total, building, versioned = false, disk = memoryDisk() })
   });
   const stats = { requests: 0, peak: 0, inFlight: 0, reads: 0, versionChecks: 0, tables: [] };
   // `version` is the catalog_version row; `failing` makes every catalog request error.
-  const db = { version: 1, failing: false };
+  const db = { version: 1, failing: false, failOnce: 0 };
   const versionQuery = () => {
     const q = {
       select: () => q, eq: () => q,
@@ -61,6 +61,7 @@ async function load({ total, building, versioned = false, disk = memoryDisk() })
         // Answers on a later tick, so overlapping requests really do overlap.
         return new Promise((r) => setTimeout(r, 5)).then(() => {
           stats.inFlight--;
+          if (db.failOnce > 0) { db.failOnce--; return { data: null, error: { message: "upstream error" }, count: null }; }
           if (db.failing) return { data: null, error: { message: "canceling statement due to statement timeout" }, count: null };
           const count = Math.max(0, Math.min(to, total - 1) - from + 1);
           const rows = Array.from({ length: count }, (_, i) => ({
@@ -266,6 +267,14 @@ async function load({ total, building, versioned = false, disk = memoryDisk() })
   const films = await second.getFilms();
   assert.equal(second.stats.requests, 0, "the second build process should read the shared copy");
   assert.equal(films.length, (await first.getFilms()).length, "the shared copy holds the same films");
+}
+
+// 17. One failed read (a slow moment on the database) is tried again; the build carries on.
+{
+  const { getFilms, db } = await load({ total: 2_500, building: true });
+  db.failOnce = 2;
+  const films = await getFilms();
+  assert.equal(films.length, 2_500, "a read that fails once should be retried, not fail the build");
 }
 
 console.log("ok  the catalogue is read a few pages at a time, once per build, and again only when it changes");
