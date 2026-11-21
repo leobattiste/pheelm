@@ -8,21 +8,39 @@ import { getComments, watchedBy, type CommentItem } from "@/lib/comments";
 type Viewer = { id: string; handle: string | null; name: string | null; avatarUrl: string | null; isPrivate: boolean } | null;
 type Loaded = { comments: CommentItem[]; viewer: Viewer; watched: string[] };
 
+/** Gives up on a request that never answers, so the section can't stay on "Loading" forever. */
+function within<T>(ms: number, work: PromiseLike<T>, fallback?: T): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => (fallback === undefined ? reject(new Error("timed out")) : resolve(fallback)), ms);
+    Promise.resolve(work).then((v) => { clearTimeout(timer); resolve(v); }, (e) => { clearTimeout(timer); reject(e); });
+  });
+}
+const SESSION_MS = 3000; // past this, read the comments as signed out rather than wait
+const LOAD_MS = 12000;   // past this, show "Try again"
+
 /**
  * "What did you think?" on a film page. The page itself is cached for everyone, so the
  * conversation loads in the visitor's browser with their own session: their likes, their
  * profile, and only what they're allowed to see. Starts loading as it nears the screen.
  */
 export default function FilmComments({ filmId, filmTitle }: { filmId: string; filmTitle: string }) {
-  const [state, setState] = useState<Loaded | "loading" | "off">("loading");
+  const [state, setState] = useState<Loaded | "loading" | "failed" | "off">("loading");
+  const [attempt, setAttempt] = useState(0);
   const box = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const db = getBrowserClient();
     if (!db) { setState("off"); return; }
+    setState("loading"); // another film's comments must not show while this one's load
     let cancelled = false;
+    const run = () => {
+      setState("loading");
+      void within(LOAD_MS, load()).catch(() => !cancelled && setState("failed"));
+    };
     const load = async () => {
-      const { data: { session } } = await db.auth.getSession();
+      // Checking who's signed in can wait on a token refresh; don't let that hold up the comments.
+      const signedOut = { data: { session: null } } as Awaited<ReturnType<typeof db.auth.getSession>>;
+      const { data: { session } } = await within(SESSION_MS, db.auth.getSession(), signedOut).catch(() => signedOut);
       const userId = session?.user.id ?? null;
       const [{ available, comments }, profile] = await Promise.all([
         getComments(db, { film: filmId }, userId),
@@ -38,18 +56,18 @@ export default function FilmComments({ filmId, filmTitle }: { filmId: string; fi
     };
     const el = box.current;
     // Load straight away for a link to a comment; otherwise as the section comes near.
-    if (!el || location.hash.startsWith("#comment") || typeof IntersectionObserver === "undefined") {
-      void load().catch(() => !cancelled && setState("off"));
+    if (attempt > 0 || !el || location.hash.startsWith("#comment") || typeof IntersectionObserver === "undefined") {
+      run();
       return () => { cancelled = true; };
     }
     const io = new IntersectionObserver((entries) => {
-      if (!entries[0].isIntersecting) return;
+      if (!entries.some((e) => e.isIntersecting)) return;
       io.disconnect();
-      void load().catch(() => !cancelled && setState("off"));
+      run();
     }, { rootMargin: "600px 0px" });
     io.observe(el);
     return () => { cancelled = true; io.disconnect(); };
-  }, [filmId]);
+  }, [filmId, attempt]);
 
   // Opened from a notification or a profile: bring the comment into view once it's there.
   useEffect(() => {
@@ -64,6 +82,14 @@ export default function FilmComments({ filmId, filmTitle }: { filmId: string; fi
         <section className="comments" aria-busy="true" aria-label="Comments">
           <div className="comments-head"><h2>Comments</h2></div>
           <p className="comments-empty">Loading comments…</p>
+        </section>
+      ) : state === "failed" ? (
+        <section className="comments" aria-label="Comments">
+          <div className="comments-head"><h2>Comments</h2></div>
+          <p className="comments-empty" role="status">
+            Comments didn&apos;t load.{" "}
+            <button type="button" className="link-button" onClick={() => setAttempt((n) => n + 1)}>Try again</button>
+          </p>
         </section>
       ) : (
         <Comments filmId={filmId} filmTitle={filmTitle} watchedIds={state.watched} initial={state.comments} viewer={state.viewer} />
