@@ -3,7 +3,7 @@ import { PAGE_COPY, PAGE_SIZE } from "@/lib/site";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import CommunityTile from "@/components/CommunityTile";
-import CollectionsToolbar from "@/components/CollectionsToolbar";
+import { ToolbarSkeleton } from "@/components/Skeletons";
 import WatchlistsBrowser from "@/components/WatchlistsBrowser";
 import { getWatchlistTiles } from "@/lib/community";
 import { sortTiles } from "@/lib/collection-sorts";
@@ -27,7 +27,7 @@ export default async function CollectionsPage() {
         <p className="lead">{PAGE_COPY.collections}</p>
       </header>
       <Suspense fallback={<>
-        <CollectionsToolbar signedIn={false} feed="all" sort="popular" />
+        <ToolbarSkeleton />
         <ul className="collection-list">{first.map((c) => <CommunityTile key={c.id} c={c} filmCount={c.filmCount} />)}</ul>
       </>}>
         <WatchlistsBrowser tiles={tiles} />

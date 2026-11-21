@@ -3,6 +3,7 @@ import Link from "next/link";
 import { countryName, runtimeLabel, tintStyle } from "@/lib/format";
 import type { FilmCard as Card } from "@/lib/types";
 import Poster from "./Poster";
+import Paged from "./Paged";
 import FilmLink from "./Transitions";
 import QuickSave from "./QuickSave";
 
@@ -37,12 +38,9 @@ export default function FilmCard({ film, priority, sizes, note, extra, posterOnl
   );
 }
 
-export function FilmGrid({ films, priority = 0, notes, extras }: { films: Card[]; priority?: number; notes?: Record<string, string>; extras?: Record<string, string> }) {
-  return (
-    <ul className="film-grid">
-      {films.map((f, i) => (
-        <FilmCard key={f.id} film={f} priority={i < priority} note={notes?.[f.id]} extra={extras?.[f.id]} />
-      ))}
-    </ul>
-  );
+export function FilmGrid({ films, priority = 0, notes, extras, paged = false }: { films: Card[]; priority?: number; notes?: Record<string, string>; extras?: Record<string, string>; paged?: boolean }) {
+  const cards = films.map((f, i) => (
+    <FilmCard key={f.id} film={f} priority={i < priority} note={notes?.[f.id]} extra={extras?.[f.id]} />
+  ));
+  return paged ? <Paged className="film-grid">{cards}</Paged> : <ul className="film-grid">{cards}</ul>;
 }

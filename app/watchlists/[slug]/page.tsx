@@ -199,7 +199,7 @@ export default async function MemberCollectionPage({ params, searchParams }: Par
       </header>
 
       {items.length ? (
-        <FilmGrid films={items} extras={extras} />
+        <FilmGrid paged films={items} extras={extras} />
       ) : (
         <div className="empty-state">
           <Icon name="film" className="empty-icon" />

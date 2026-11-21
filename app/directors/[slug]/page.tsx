@@ -11,7 +11,7 @@ import ShareButton from "@/components/ShareButton";
 import { PersonLinks } from "@/components/PersonDetails";
 import { FilmGrid } from "@/components/FilmCard";
 import Tabs from "@/components/Tabs";
-import { getDirector, getFilms, toCard } from "@/lib/data";
+import { directorPageCatalog, toCard } from "@/lib/data";
 import { countryName } from "@/lib/format";
 import { SITE_URL } from "@/lib/supabase/config";
 import { bornText, diedText, rolesOnFilm, rolesWithCommas, worksOf } from "@/lib/roles";
@@ -25,7 +25,7 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const d = await getDirector((await params).slug);
+  const { director: d } = await directorPageCatalog((await params).slug);
   if (!d) return privateMetadata("Director not found");
   return pageMetadata(`${d.name}, director`,d.bio||`Films directed by ${d.name}, with where to watch them, on Pheelm.`,`/directors/${d.slug}`,`/directors/${d.slug}/opengraph-image`,'profile');
 }
@@ -36,9 +36,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
  */
 export default async function DirectorPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const director = await getDirector(slug);
+  const { director, films: all } = await directorPageCatalog(slug);
   if (!director) notFound();
-  const all = await getFilms();
 
   // Every film they worked on here, directed or not, with what they did on each.
   const works = worksOf(director.id, all);
@@ -58,7 +57,7 @@ export default async function DirectorPage({ params }: { params: Promise<{ slug:
       id: "filmography",
       label: "Filmography",
       icon: "clapper" as const,
-      panel: <FilmGrid films={theirFilms.map(toCard)} notes={roles} />,
+      panel: <FilmGrid paged films={theirFilms.map(toCard)} notes={roles} />,
     },
     {
       id: "about",
