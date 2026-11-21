@@ -63,11 +63,10 @@ export default function GridToggle() {
 
   const set = phone ? PHONE : DESKTOP;
   return (
-    <div className="segmented grid-toggle" role="radiogroup" aria-label="Grid">
+    <div className="grid-toggle option-dots" role="radiogroup" aria-label="Grid">
       {ORDER.map((v) => (
-        <button key={v} type="button" role="radio" aria-checked={view === v} onClick={() => choose(v)} title={set[v].label}>
+        <button key={v} type="button" role="radio" aria-checked={view === v} onClick={() => choose(v)} title={set[v].label} aria-label={set[v].label}>
           <svg viewBox="0 0 20 20" aria-hidden="true">{set[v].icon}</svg>
-          <span className="visually-hidden">{set[v].label}</span>
         </button>
       ))}
     </div>
