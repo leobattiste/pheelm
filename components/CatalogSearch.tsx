@@ -175,10 +175,12 @@ function Browser({ entries: packed, mode, afterSearch }: {
     const deferred = useDeferredValue(state);
     const rows = useMemo(() => searchEntries(index, deferred, mode, shuffleSeed), [index, deferred, mode, shuffleSeed]);
     const results = rows.map(r => r.entry).filter(e => mode !== 'directors' || feed === 'all' || (feed === 'featured' ? e.wins > 0 : !!followed?.has(e.id)));
+    const feedOn = mode === 'directors' && feed !== 'all';
+    const feedLabel = FEEDS.find(o => o.value === feed)?.label ?? '';
     const filters = mode === 'films' ? FILM_FILTERS : DIRECTOR_FILTERS;
     const active = filters.filter(k => state[k]);
     const proposal = useMemo(() => state.q && !index.some(i => relevance(i, state.q!) >= 900) ? interpretQuery(state.q, mode, facets) : null, [state.q, index, mode, facets]);
-    const commit = (s: SearchState) => { const next = cleanState(new URLSearchParams(stateQuery(s)), mode); setState(next); setShown(PAGE); const q = stateQuery(next) + (mode === 'directors' && feed !== 'all' ? (stateQuery(next) ? '&' : '') + 'feed=' + feed : ''); window.history.replaceState(window.history.state, '', window.location.pathname + (q ? '?' + q : '')); };
+    const commit = (s: SearchState, withFeed: Feed = feed) => { const next = cleanState(new URLSearchParams(stateQuery(s)), mode); setState(next); setShown(PAGE); const q = stateQuery(next) + (mode === 'directors' && withFeed !== 'all' ? (stateQuery(next) ? '&' : '') + 'feed=' + withFeed : ''); window.history.replaceState(window.history.state, '', window.location.pathname + (q ? '?' + q : '')); };
     useEffect(() => { if (mode === 'directors' && feed === 'following' && !followed) void chooseFeed('following', true); }, []);
     const chooseFeed = async (next: Feed, fromLink = false) => {
         if (next === 'following') {
@@ -241,13 +243,10 @@ function Browser({ entries: packed, mode, afterSearch }: {
         { saveVisit(); remember(state); } }}>
   <div className="toolbar catalog-toolbar">
    <SearchField mode={mode} value={state.q ?? ''} onChange={q => set('q', q)} results={results} history={history} onClearHistory={clearHistory} onHistory={s => { commit(s); remember(s); }} onSubmit={submit} onVisit={() => { saveVisit(); remember(state); }} proposal={proposal}/>
-   <button type="button" className={"button ghost filter-button" + (active.length || state.sort ? " has-count" : "")} aria-haspopup="dialog" aria-controls={inputId+'-dialog'} aria-expanded={filtersOpen} onClick={() => { setFiltersOpen(true); modal.current?.showModal(); }}><Icon name="filter"/><span className="filter-label">Filters</span>{active.length > 0 && <span className="badge" aria-label={active.length + " active filters"}>{active.length}</span>}</button>
+   <button type="button" className={"button ghost filter-button" + (active.length || state.sort || feedOn ? " has-count" : "")} aria-haspopup="dialog" aria-controls={inputId+'-dialog'} aria-expanded={filtersOpen} onClick={() => { setFiltersOpen(true); modal.current?.showModal(); }}><Icon name="filter"/><span className="filter-label">Filters</span>{active.length + (feedOn ? 1 : 0) > 0 && <span className="badge" aria-label={active.length + (feedOn ? 1 : 0) + " active filters"}>{active.length + (feedOn ? 1 : 0)}</span>}</button>
   </div>
-  {mode === 'directors' && <div className="feed-tabs" role="group" aria-label="Directors to show">
-   {FEEDS.map(o => <button key={o.value} type="button" className={"chip" + (o.value === 'all' ? " feed-all" : "")} aria-pressed={feed === o.value} onClick={() => chooseFeed(o.value)}>{o.label}</button>)}
-  </div>}
   {afterSearch}
-  {active.length > 0 && <ul className="chip-list catalog-active-filters" aria-label="Active filters">{active.map(k => <li key={k}><button type="button" className="chip" aria-label={'Remove ' + filterLabel(k, state[k]!)} onClick={() => set(k, '')}>{filterLabel(k, state[k]!)}<Icon name="close" className="x"/></button></li>)}</ul>}
+  {(active.length > 0 || feedOn) && <ul className="chip-list catalog-active-filters" aria-label="Active filters">{feedOn && <li><button type="button" className="chip" aria-label={'Remove ' + feedLabel} onClick={() => chooseFeed('all')}>{feedLabel}<Icon name="close" className="x"/></button></li>}{active.map(k => <li key={k}><button type="button" className="chip" aria-label={'Remove ' + filterLabel(k, state[k]!)} onClick={() => set(k, '')}>{filterLabel(k, state[k]!)}<Icon name="close" className="x"/></button></li>)}</ul>}
   {(!!state.q?.trim() || active.length > 0) && <div className="result-bar catalog-results-summary" aria-live="polite">
    {active.length > 0 && <button type="button" className="link-button" onClick={clearFilters}>Clear</button>}
    <span className="result-count">{results.length} {results.length === 1 ? 'result' : 'results'}</span>
@@ -263,10 +262,14 @@ function Browser({ entries: packed, mode, afterSearch }: {
         modal.current?.close(); }}>
    <div className="modal-head"><span className="sheet-handle" aria-hidden="true"/><h2 id={inputId + '-title'}>Filters</h2><button type="button" className="icon-button" aria-label="Close filters" onClick={() => modal.current?.close()}><Icon name="close"/></button></div>
    <div className="modal-body">
+    {mode === 'directors' && <fieldset className="filter-field feed-choice">
+     <legend>Show</legend>
+     <div className="chip-row filter-choices">{FEEDS.map(o => <button key={o.value} type="button" className="button ghost" aria-pressed={feed === o.value} onClick={() => chooseFeed(o.value)}>{o.label}</button>)}</div>
+    </fieldset>}
     <FilterSelect label="Sort by" value={state.sort ?? sortDefault} onChange={e => set('sort', e.target.value)}>{SORTS[mode].map(([v, l]) => <option key={v} value={v}>{l}</option>)}</FilterSelect>
     {filters.map(k => ['year', 'from', 'to', 'minRuntime', 'maxRuntime'].includes(k) ? <label key={k} className="field filter-field">{titles[k]}<input type="number" inputMode="numeric" min={k === 'minRuntime' || k === 'maxRuntime' ? 1 : 1890} max={k === 'minRuntime' || k === 'maxRuntime' ? 9999 : 2199} key={k + ':' + (state[k] ?? '')} defaultValue={state[k] ?? ''} onBlur={e => set(k, e.target.value)} onKeyDown={e => { if (e.key === 'Enter')
         e.currentTarget.blur(); }} placeholder="Any"/></label> : <FilterSelect key={k} label={titles[k]??k} value={state[k] ?? ''} onChange={e => set(k, e.target.value)}><option value="">Any</option>{state[k] && !options(k).some(([v]) => v === state[k]) && <option value={state[k]}>{filterLabel(k, state[k]!)}</option>}{options(k).map(([v, l]) => <option key={v} value={v}>{l}{active.length > 0 ? ` (${countFor(k, v)})` : ''}</option>)}</FilterSelect>)}
-   </div><div className="modal-foot"><button type="button" className="button ghost" disabled={!active.length && !state.sort} onClick={() => commit({ q: state.q })}>Reset</button><button type="button" className="button" onClick={() => { remember(state); modal.current?.close(); }}>Show {active.length > 0 || state.q?.trim() ? `${results.length} ` : ''}{mode}</button></div>
+   </div><div className="modal-foot"><button type="button" className="button ghost" disabled={!active.length && !state.sort && !feedOn} onClick={() => { setFeed('all'); commit({ q: state.q }, 'all'); }}>Reset</button><button type="button" className="button" onClick={() => { remember(state); modal.current?.close(); }}>Show {active.length > 0 || feedOn || state.q?.trim() ? `${results.length} ` : ''}{mode}</button></div>
   </dialog>
  </div>;
 }
