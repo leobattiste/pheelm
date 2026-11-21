@@ -1173,10 +1173,6 @@ h1, h2, .empty-state p:first-of-type, .decades a,
 .poster-card-title { font-weight: 700; }
 .intro p .muted { font-weight: 700; }
 
-/* Home: collection spotlight ----------------------------------------------------------------
-   A large break between rows: the collection's story on one side, five posters on the other,
-   lit by the lead poster's colour. */
-
 /* Home: anniversaries -------------------------------------------------------------------------
    Cards led by a big number: how old the film turns this year. */
 .row-track:has(.anniversary) { grid-auto-columns: 62%; }
@@ -3240,70 +3236,11 @@ html:root:root:root:root:root:root .product-option .button.ghost:not([aria-press
 /* Films: sort and every filter sit in one row of pickers at the top, scrolling sideways on phones. */
 /* No ring after a tap (it was clipped by the scrolling row). Keyboard focus gets an inset one. */
 
-/* ---- A film's own colour ---- */
-/* --film-accent is set per film page from its poster, by components/FilmTint.tsx, and is absent
-   everywhere else: every rule here falls back to what the page used before, so a film with a
-   monotone poster and the rest of the site are untouched. The poster itself is never tinted — it
-   is the thing the colour came from, and washing it would flatten it. */
-
-/* The page's primary action is where the colour is spent: Trailer, and any other solid button.
-   Six :root to clear the solid-ink rule further up, which is itself !important. */
-html:root:root:root:root:root:root :is(.film-page, .film-bar) :is(.button:not(.ghost):not(.quiet):not(.link-button), .button.primary, .pill-button.primary):not(:disabled):not(dialog *) {
-  background: var(--film-accent, var(--ink)) !important;
-  color: var(--film-on-accent, var(--on-ink)) !important;
-  border-color: transparent !important;
-}
-/* Hover moves toward the page's ink: brighter in the dark theme, deeper in the light one. */
-@media (hover: hover) {
-  html:root:root:root:root:root:root :is(.film-page, .film-bar) :is(.button:not(.ghost):not(.quiet):not(.link-button), .button.primary, .pill-button.primary):not(:disabled):not(dialog *):hover {
-    background: color-mix(in srgb, var(--film-accent, var(--ink)) 86%, var(--ink)) !important;
-  }
-}
-
-/* The bars and the ⋯ menu keep their glass, their grain and their blur; the colour only warms
-   them, so this sets the colour alone and not the background shorthand. */
-html:root:root:root:root:root .film-bar,
-html:root:root:root:root:root .film-page .more-panel {
-  background-color: var(--film-glass, var(--glass-bg)) !important;
-}
-@media (hover: hover) {
-  html:root:root:root:root:root .film-page .more-panel :is(.button, .link-button, a, button):hover {
-    background: var(--film-glass-hover, var(--glass-hover)) !important;
-  }
-}
-
-/* A sheet or dialog opened over the page keeps its transparent controls, so there the colour is
-   the text and icon rather than a fill. */
-html:root:root:root:root:root:root body:has(.film-page) :is(dialog, .menu-sheet) :is(.button.primary, .pill-button.primary, .button:not(.ghost):not(.quiet):not(.link-button)):not(:disabled) {
-  background: transparent !important;
-  color: var(--film-accent, var(--ink)) !important;
-  border-color: transparent !important;
-}
-html:root:root:root:root:root:root body:has(.film-page) :is(dialog, .menu-sheet) :is(.button.primary, .pill-button.primary) svg { color: inherit; }
-
-/* The poster stays exactly as it is: no wash, no blend, no tinted shadow. */
+/* Posters are shown exactly as they are: no wash, no blend, no tinted shadow. */
 html:root:root:root:root:root .film-art .poster { background-blend-mode: normal; filter: none; }
 
-/* The page itself is lit by the film's colour: a wash across the top, strongest where the poster
-   sits and gone well before it reaches the text. Painted as the body's own background rather than
-   a layer behind it, so there is no stacking order to get wrong in one engine or another, and no
-   fixed attachment to stutter on a phone. Without an accent both ends of the mix are transparent
-   and nothing is drawn. */
-body:has(.film-page) {
-  background-image: radial-gradient(120% 95% at 16% 0%, color-mix(in srgb, var(--film-accent, transparent) 18%, transparent), transparent 60%);
-  background-repeat: no-repeat;
-  background-size: 100% 85vh;
-}
-@media (max-width: 799px) {
-  /* The poster sits across the top on a phone, so the light comes from there. */
-  body:has(.film-page) {
-    background-image: radial-gradient(130% 70% at 50% 0%, color-mix(in srgb, var(--film-accent, transparent) 18%, transparent), transparent 62%);
-    background-size: 100% 70vh;
-  }
-}
-
 /* Trailer is the same on every film: solid ink (black in the light theme, white in the dark one),
-   never the film's poster colour. Ten :root to clear the film-colour rule above, whose :is() counts as four classes. */
+   flat, a touch lighter on hover. */
 html:root:root:root:root:root:root:root:root:root:root :is(.film-page, .film-bar) .pill-button.primary:not(:disabled):not(dialog *) {
   background: var(--ink) !important;
   color: var(--on-ink) !important;
