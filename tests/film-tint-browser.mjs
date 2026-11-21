@@ -1,5 +1,5 @@
-// A film page is lit by its poster's colour: the primary action takes it as a fill, the bars take
-// a wash of it, sheets opened over the page take it as text on a transparent control, and the
+// A film page is lit by its poster's colour: the bars take a wash of it (Trailer stays solid ink,
+// the same on every film), sheets opened over the page take it as text on a transparent control, and the
 // poster itself is never touched. Accents live in the database, so the page is tinted here the
 // same way FilmTint does it, and the CSS is what gets checked.
 import assert from "node:assert/strict";
@@ -30,7 +30,7 @@ try {
 
   await page.addStyleTag({ content: `:root{--film-accent:${ACCENT};--film-on-accent:${ON_ACCENT};--film-glass:color-mix(in srgb, var(--film-accent) 12%, var(--glass-bg))}` });
   // Controls fade between colours, so wait for the new one to settle rather than a frame of it.
-  await page.waitForFunction((want) => getComputedStyle(document.querySelector('[data-action="trailer"]')).backgroundColor === want, rgb(ACCENT), { timeout: 5000 });
+  await page.waitForFunction(() => getComputedStyle(document.documentElement).getPropertyValue('--film-accent').trim() !== '', null, { timeout: 5000 });
 
   // The page itself is lit: this is the main effect, the button is the accent on top of it.
   const wash = await css("body", "background-image");
@@ -38,9 +38,9 @@ try {
   assert.match(wash, /0\.917647 0\.498039 0\.32549|234, 127, 83/, "the wash should be the film's colour");
   assert.match(wash, /\/ 0\.18\)|0\.18\)/, "the wash stays faint: it lights the page, it does not paint it");
 
-  // The primary action carries the colour.
-  assert.equal(await css('[data-action="trailer"]', "background-color"), rgb(ACCENT), "Trailer should be filled with the accent");
-  assert.equal(await css('[data-action="trailer"]', "color"), rgb(ON_ACCENT), "Trailer's text should be the colour chosen to read on it");
+  // Trailer is the same on every film: solid ink, untouched by the film's colour.
+  assert.equal(await css('[data-action="trailer"]', "background-color"), plainTrailer, "Trailer should stay solid ink");
+  assert.notEqual(await css('[data-action="trailer"]', "background-color"), rgb(ACCENT), "Trailer should not take the accent");
 
   // Watchlist sits beside it and stays secondary: it must not take the fill too.
   assert.notEqual(await css('[data-action="watchlist"]', "background-color"), rgb(ACCENT), "only the primary action is filled");
