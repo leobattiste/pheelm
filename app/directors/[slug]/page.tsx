@@ -58,7 +58,7 @@ export default async function DirectorPage({ params }: { params: Promise<{ slug:
       id: "filmography",
       label: "Filmography",
       icon: "clapper" as const,
-      panel: <FilmGrid films={theirFilms.map(toCard)} notes={roles} />,
+      panel: <FilmGrid paged films={theirFilms.map(toCard)} notes={roles} />,
     },
     {
       id: "about",
