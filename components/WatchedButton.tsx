@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
+import { myId, myIds, noteMine } from "@/lib/my-rows";
 import Icon from "./Icon";
 import { toast } from "./Toast";
 import { openSignIn } from "./SignInSheet";
@@ -17,22 +18,24 @@ export default function WatchedButton({ filmId }: { filmId: string }) {
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    const db = getBrowserClient();
-    if (!db) return setStatus("signed-out");
-    db.auth.getSession().then(async ({ data }) => {
-      const id = data.session?.user.id ?? null;
+    let live = true;
+    void myId().then(async id => {
+      if (!live) return;
       setUserId(id);
       if (!id) return setStatus("signed-out");
-      const { data: row, error } = await db.from("watched").select("film_id").eq("user_id", id).eq("film_id", filmId).maybeSingle();
-      setStatus(error ? "unavailable" : row ? "on" : "off");
+      try { const mine = await myIds("watched"); if (live) setStatus(mine?.ids.has(filmId) ? "on" : "off"); }
+      catch { if (live) setStatus("unavailable"); }
     });
+    return () => { live = false; };
   }, [filmId]);
 
   if (status === "unavailable") return null;
-  if (status === "signed-out" || status === "loading") {
+  // Until we know, the button shows but waits: a signed-in member is never sent to Sign in.
+  if (status === "loading") return <button type="button" className="button ghost" disabled aria-busy="true"><Icon name="eye" />Add to Watched</button>;
+  if (status === "signed-out") {
     return (
-      <Link className="button ghost" href={`/login?next=${encodeURIComponent(path)}`} aria-busy={status === "loading"}
-        onClick={(e) => { if (status === "signed-out" && openSignIn()) e.preventDefault(); }}>
+      <Link className="button ghost" href={`/login?next=${encodeURIComponent(path)}`}
+        onClick={(e) => { if (openSignIn()) e.preventDefault(); }}>
         <Icon name="eye" />
         Add to Watched
       </Link>
@@ -47,6 +50,7 @@ export default function WatchedButton({ filmId }: { filmId: string }) {
       ? await db.from("watched").insert({ user_id: userId, film_id: filmId })
       : await db.from("watched").delete().eq("user_id", userId).eq("film_id", filmId);
     if (error) { setStatus(prev); toast.error("That didn’t save. Try again."); return false; }
+    noteMine("watched", filmId, next === "on");
     return true;
   };
   const toggle = async () => {

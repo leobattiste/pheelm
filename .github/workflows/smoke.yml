@@ -59,6 +59,7 @@ jobs:
       - run: node tests/browser-request-timeout.mjs
       - run: node tests/film-comments-browser.mjs
       - run: node tests/watchlist-picker-ready.mjs
+      - run: node tests/my-rows-browser.mjs
       - run: node tests/admin-catalog-toolbar-browser.mjs
       - run: node tests/admin-catalog-toolbar-browser.mjs
         env:

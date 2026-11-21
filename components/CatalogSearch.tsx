@@ -8,6 +8,8 @@ import Icon from './Icon';
 import { FEEDS, type Feed } from './CollectionsToolbar';
 import { openSignIn } from './SignInSheet';
 import { getBrowserClient } from '@/lib/supabase/client';
+import { myIds } from '@/lib/my-rows';
+import { toast } from './Toast';
 import DirectorCard from './DirectorCard';
 import { FilmGrid } from './FilmCard';
 import { BackToTopButton } from './BackToTop';
@@ -184,12 +186,11 @@ function Browser({ entries: packed, mode, afterSearch }: {
     useEffect(() => { if (mode === 'directors' && feed === 'following' && !followed) void chooseFeed('following', true); }, []);
     const chooseFeed = async (next: Feed, fromLink = false) => {
         if (next === 'following') {
-            const db = getBrowserClient();
-            const { data } = db ? await db.auth.getSession() : { data: { session: null } };
-            const id = data.session?.user.id;
-            if (!db || !id) { if (fromLink) setFeed('all'); else openSignIn('signup'); return; }
-            const { data: rows } = await db.from('follows').select('person_id').eq('user_id', id);
-            setFollowed(new Set((rows ?? []).map((r: { person_id: string }) => r.person_id)));
+            let mine: Awaited<ReturnType<typeof myIds>>;
+            try { mine = await myIds('follows'); }
+            catch { toast.error('Your follows couldn’t be loaded. Try again.'); if (fromLink) setFeed('all'); return; }
+            if (!mine) { if (fromLink) setFeed('all'); else openSignIn('signup'); return; }
+            setFollowed(new Set(mine.ids));
         }
         setFeed(next); setShown(PAGE);
         const q = stateQuery(state) + (next !== 'all' ? (stateQuery(state) ? '&' : '') + 'feed=' + next : '');

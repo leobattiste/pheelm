@@ -4,11 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
+import { myId, myIds, noteMine } from "@/lib/my-rows";
 import Icon from "./Icon";
 import { toast } from "./Toast";
 import { openSignIn } from "./SignInSheet";
 
-type Status = "loading" | "signed-out" | "off" | "on";
+type Status = "loading" | "signed-out" | "off" | "on" | "unavailable";
 
 /** Follow a director: you get a notification when a new film of theirs is added to Pheelm. */
 export default function FollowButton({ personId, name, onChange }: { personId: string; name: string; onChange?: (following: boolean) => void }) {
@@ -18,21 +19,24 @@ export default function FollowButton({ personId, name, onChange }: { personId: s
   const [note, setNote] = useState("");
 
   useEffect(() => {
-    const db = getBrowserClient();
-    if (!db) return setStatus("signed-out");
-    db.auth.getSession().then(async ({ data }) => {
-      const id = data.session?.user.id ?? null;
+    let live = true;
+    void myId().then(async id => {
+      if (!live) return;
       setUserId(id);
       if (!id) return setStatus("signed-out");
-      const { data: row } = await db.from("follows").select("person_id").eq("user_id", id).eq("person_id", personId).maybeSingle();
-      setStatus(row ? "on" : "off");
+      try { const mine = await myIds("follows"); if (live) setStatus(mine?.ids.has(personId) ? "on" : "off"); }
+      catch { if (live) setStatus("unavailable"); }
     });
+    return () => { live = false; };
   }, [personId]);
 
-  if (status === "signed-out" || status === "loading") {
+  if (status === "unavailable") return null;
+  // Until we know, the button shows but waits: a signed-in member is never sent to Sign in.
+  if (status === "loading") return <span className="follow"><button type="button" className="button ghost" disabled aria-busy="true"><Icon name="plus" />Follow</button></span>;
+  if (status === "signed-out") {
     return (
-      <Link className="button ghost" href={`/login?next=${encodeURIComponent(path)}`} aria-busy={status === "loading"}
-        onClick={(e) => { if (status === "signed-out" && openSignIn()) e.preventDefault(); }}>
+      <Link className="button ghost" href={`/login?next=${encodeURIComponent(path)}`}
+        onClick={(e) => { if (openSignIn()) e.preventDefault(); }}>
         <Icon name="plus" />
         Follow
       </Link>
@@ -53,6 +57,7 @@ export default function FollowButton({ personId, name, onChange }: { personId: s
       toast.error("That didn’t save. Try again.");
       return false;
     }
+    noteMine("follows", personId, next === "on");
     onChange?.(next === "on");
     return true;
   };

@@ -9,6 +9,7 @@ import { BackToTopButton } from "./BackToTop";
 import Icon from "./Icon";
 import { SORTS, shownFor, sortTiles, windowKey, type Sort, type WatchlistTile } from "@/lib/collection-sorts";
 import { getBrowserClient } from "@/lib/supabase/client";
+import { myIds } from "@/lib/my-rows";
 import { PAGE_SIZE } from "@/lib/site";
 
 const FEEDS: Feed[] = ["all", "featured", "following"];
@@ -32,15 +33,9 @@ export default function WatchlistsBrowser({ tiles }: { tiles: WatchlistTile[] })
   const [filmTitle, setFilmTitle] = useState<string | null>(null);
 
   useEffect(() => {
-    const db = getBrowserClient();
-    if (!db) { setSaved(null); return; }
     let live = true;
-    void (async () => {
-      const id = (await db.auth.getSession()).data.session?.user.id;
-      if (!id) { if (live) setSaved(null); return; }
-      const { data } = await db.from("list_saves").select("list_id").eq("user_id", id);
-      if (live) setSaved(new Set(((data ?? []) as { list_id: string }[]).map((r) => r.list_id)));
-    })();
+    // A read that fails or runs out of time counts as following nothing, rather than an endless blank list.
+    void myIds("list_saves").then(mine => { if (live) setSaved(mine ? mine.ids : null); }, () => { if (live) setSaved(new Set()); });
     return () => { live = false; };
   }, []);
 
