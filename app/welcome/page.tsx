@@ -3,7 +3,7 @@ import { safeInternalPath } from "@/lib/safe-navigation";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { welcomePicks } from "@/lib/catalog-summaries";
-import { getServerClient } from "@/lib/supabase/server";
+import { getServerClient, getViewer } from "@/lib/supabase/server";
 import Welcome from "./Welcome";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +19,7 @@ export default async function WelcomePage({ searchParams }: { searchParams: Prom
   const next = destination && !destination.startsWith("/welcome") ? destination : "/films";
   const db = await getServerClient();
   if (!db) redirect(next);
-  const { data: { user } } = await db.auth.getUser();
+  const user = await getViewer(db);
   if (!user) redirect("/");
 
   const [{ data: profile }, { people, films: picks }] = await Promise.all([

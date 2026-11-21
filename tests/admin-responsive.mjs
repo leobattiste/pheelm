@@ -61,7 +61,7 @@ function load(file) {
   const localRequire = (id) => {
     if (id === 'next/link') return { __esModule: true, default: ({ children, ...props }) => React.createElement('a', props, children) };
     if (id === 'next/navigation') return { usePathname: () => pathname, useSearchParams: () => new URLSearchParams(), useRouter: () => ({ push() {}, replace() {}, refresh() {} }), redirect: () => { throw Error('Unexpected redirect'); }, notFound: () => { throw Error('Unexpected notFound'); } };
-    if (id === '@/lib/supabase/server') return { getServerClient: async () => db };
+    if (id === '@/lib/supabase/server') return { getServerClient: async () => db, getViewer: async (d) => { const u = (await d?.auth.getUser())?.data.user; return u ? { id: u.id, email: u.email ?? null, user_metadata: {}, app_metadata: {} } : null; } };
     if (['./EmailForm', './PrivacyForm', './ProfileForm', './NotificationPreferences'].includes(id)) return { __esModule: true, default: () => null };
     if (id === './AccountActions') return { DeleteAccount: () => null, SignOutEverywhere: () => null };
     if (id === '@/lib/admin') return { requireAdmin: async () => ({ db, owner: isOwner, user: { id: "fixture-admin", email: "admin@example.com" } }) };

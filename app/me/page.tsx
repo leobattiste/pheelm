@@ -13,7 +13,7 @@ import { directorSummaries } from "@/lib/catalog-summaries";
 import DirectorCard from "@/components/DirectorCard";
 import Tabs from "@/components/Tabs";
 import { tintStyle } from "@/lib/format";
-import { getServerClient } from "@/lib/supabase/server";
+import { getServerClient, getViewer } from "@/lib/supabase/server";
 import { createCollection } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -37,7 +37,7 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
       </section>
     );
   }
-  const { data: { user } } = await db.auth.getUser();
+  const user = await getViewer(db);
   if (!user) redirect("/login?next=/me");
 
   const sp = await searchParams;

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getServerClient } from "@/lib/supabase/server";
+import { getServerClient, getViewer } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const db = await getServerClient();
   if (!db) return NextResponse.json({ error: "Accounts aren't available." }, { status: 503 });
-  const { data: { user } } = await db.auth.getUser();
+  const user = await getViewer(db);
   if (!user) return NextResponse.json({ error: "Sign in first." }, { status: 401 });
 
   const [profile, watchlist, lists, follows, saves, comments, submissions, watched, blocks] = await Promise.all([
