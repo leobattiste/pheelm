@@ -10,7 +10,7 @@ const out=await build({stdin:{contents:`
   export {packFilm, packDirector, filmSearchEntry, directorSearchEntry} from './lib/search-data';
 `,loader:'ts',resolveDir:process.cwd()},bundle:true,write:false,format:'cjs',platform:'node',external:['server-only']});
 const mod={exports:{}};
-vm.runInNewContext(out.outputFiles[0].text,{module:mod,exports:mod.exports,require:(n)=>n==='server-only'?{}:require(n),console,process,TextEncoder,TextDecoder});
+vm.runInNewContext(out.outputFiles[0].text,{module:mod,exports:mod.exports,require:(n)=>n==='server-only'?{}:n==='node:fs'?{promises:{}}:n==='node:os'?{tmpdir:()=>'/tmp'}:n==='node:path'?{join:(...p)=>p.join('/')}:require(n),console,process,TextEncoder,TextDecoder});
 const {packFilm,packDirector,filmSearchEntry,directorSearchEntry}=mod.exports;
 
 const cat=JSON.parse(fs.readFileSync('data/catalog.json','utf8'));
