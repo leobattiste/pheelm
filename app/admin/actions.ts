@@ -24,7 +24,7 @@ const int = (f: FormData, k: string) => {
 };
 const list = (f: FormData, k: string) => str(f, k).split(",").map((s) => s.trim()).filter(Boolean);
 // Search keeps a five-minute shared copy of the catalog; admin saves clear it too.
-const refresh = () => { revalidatePath("/", "layout"); revalidateTag("search-public", "max"); revalidateTag("watchlists", "max"); };
+const refresh = () => { revalidatePath("/", "layout"); revalidateTag("search-public", "max"); revalidateTag("catalog-summaries", "max"); revalidateTag("watchlists", "max"); };
 const fail = (e: unknown): Result => ({ ok: false, message: e instanceof Error ? e.message : "Something went wrong." });
 
 /** Uploads an image to the public "images" bucket and returns its address. */
