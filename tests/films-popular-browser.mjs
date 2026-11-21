@@ -6,12 +6,12 @@ const bundle=await build({stdin:{contents:`import React from'react';import{creat
  b.onResolve({filter:/^next\/navigation$/},()=>({path:'navigation',namespace:'fixture'}));
  b.onResolve({filter:/^next\/link$/},()=>({path:'link',namespace:'fixture'}));
  b.onResolve({filter:/^@\/lib\/data$/},()=>({path:'data',namespace:'fixture'}));
- b.onResolve({filter:/^@\/lib\/film-popularity$/},()=>({path:'popularity',namespace:'fixture'}));
+ 
  b.onResolve({filter:/supabase\/client$/},()=>({path:'client',namespace:'fixture'}));
  b.onResolve({filter:/SignInSheet$/},()=>({path:'signin',namespace:'fixture'}));
  b.onResolve({filter:/^next\/cache$/},()=>({path:'cache',namespace:'fixture'}));
  b.onResolve({filter:/^server-only$/},()=>({path:'empty',namespace:'fixture'}));
- b.onLoad({filter:/.*/,namespace:'fixture'},({path})=>({loader:'jsx',resolveDir:process.cwd(),contents:{navigation:`export const usePathname=()=>'/films';export const useSearchParams=()=>new URLSearchParams();export const useRouter=()=>({push(){}});`,link:`import React from'react';export default function Link({href,children,...p}){return <a href={href} {...p}>{children}</a>}`,data:`export const toCard=f=>({...f,directors:f.directors.map(d=>d.name),wins:0});`,popularity:`export{rankPopularFilms}from'./lib/film-popularity';export const getPopularMovieIds=async()=>[16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1];`,cache:`export const unstable_cache=f=>f;`,empty:'',client:`export const getBrowserClient=()=>null;`,signin:`export const openSignIn=()=>false;`}[path]}));
+ b.onLoad({filter:/.*/,namespace:'fixture'},({path})=>({loader:'jsx',resolveDir:process.cwd(),contents:{navigation:`export const usePathname=()=>'/films';export const useSearchParams=()=>new URLSearchParams();export const useRouter=()=>({push(){}});`,link:`import React from'react';export default function Link({href,children,...p}){return <a href={href} {...p}>{children}</a>}`,data:`export const toCard=f=>({...f,directors:f.directors.map(d=>d.name),wins:0});`,cache:`export const unstable_cache=f=>f;`,empty:'',client:`export const getBrowserClient=()=>null;`,signin:`export const openSignIn=()=>false;`}[path]}));
 }}]});
 const browser=await chromium.launch(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH,args:['--no-sandbox']}:{});
 try{for(const width of [320,390,1440])for(const theme of ['dark','light']){

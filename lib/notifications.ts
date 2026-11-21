@@ -89,9 +89,3 @@ export async function getNotifications(db: SupabaseClient, userId: string, limit
     }),
   };
 }
-
-/** How many unread notifications the signed-in member has (0 until collaboration.sql has run). */
-export async function unreadCount(db: SupabaseClient, userId: string) {
-  const { count, error } = await db.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", userId).is("read_at", null);
-  return error ? 0 : count ?? 0;
-}
