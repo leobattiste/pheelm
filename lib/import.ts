@@ -3,7 +3,6 @@ import { wikidataAwards, withWikidata } from "./awards";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import sharp from "sharp";
 import { slugify } from "./format";
-import { accentFromPixels } from "./poster-accent";
 import { findByDirector, findMovie, getMovie, getPersonDetails, searchMovies, type ImportedFilm } from "./tmdb";
 import type { Award, WatchOption } from "./types";
 
@@ -40,27 +39,19 @@ export async function importFilm(db: SupabaseClient, filmId: string, prefetched?
     else if (m.genres.includes("Documentary")) update.type = "documentary";
     else if (m.runtime && m.runtime <= 40) update.type = "short";
   }
-  // The page tint comes from the poster, unless a colour was picked by hand. Measured while the
+  // The card tint comes from the poster, unless a colour was picked by hand. Measured while the
   // people are saved, since both take a moment.
   const poster = (update.poster_url as string | undefined) ?? film.poster_url;
-  const [color, accent, people, fresh] = await Promise.all([
+  const [color, people, fresh] = await Promise.all([
     !film.color && poster ? posterColour(poster) : Promise.resolve(null),
-    !film.accent && poster ? posterAccent(poster) : Promise.resolve(null),
     savePeople(db, filmId, m),
     wikidataAwards(tmdbId, film.year, m.imdb_id),
   ]);
   if (color) update.color = color;
-  if (accent) update.accent = accent;
   // Awards and nominations come from Wikidata (TMDB has none), replacing older entries when found.
   const awards = withWikidata((film.awards ?? []) as Award[], fresh);
   if (awards) update.awards = awards;
-  let { error: upErr } = await db.from("films").update(update).eq("id", filmId);
-  // The accent column arrives with supabase/poster-accents.sql; until it has run, save the rest.
-  if (upErr && "accent" in update && /accent/.test(upErr.message)) {
-    const { accent: _dropped, ...rest } = update;
-    void _dropped;
-    ({ error: upErr } = await db.from("films").update(rest).eq("id", filmId));
-  }
+  const { error: upErr } = await db.from("films").update(update).eq("id", filmId);
   if (upErr) {
     if (upErr.code === "23505") throw new Error(`Another film already uses TMDB id ${tmdbId}.`);
     throw new Error(upErr.message);
@@ -72,7 +63,7 @@ export async function importFilm(db: SupabaseClient, filmId: string, prefetched?
   const todo = people.rows.filter((p) => ("details_at" in p ? !p.details_at : !p.bio || !p.birth_year || !p.photo_url));
   await inBatches(todo, 10, (p) => fillPerson(db, p));
 
-  const filled = Object.keys(update).filter((k) => !["tmdb_id", "watch", "updated_at", "color", "accent", "type", "awards"].includes(k));
+  const filled = Object.keys(update).filter((k) => !["tmdb_id", "watch", "updated_at", "color", "type", "awards"].includes(k));
   const parts = [
     filled.length ? `filled ${filled.map((k) => k.replace("_url", "").replace("_", " ")).join(", ")}` : "nothing empty to fill",
     `${added} new credits`,
@@ -340,20 +331,3 @@ export async function posterColour(url: string): Promise<string | null> {
   }
 }
 
-/**
- * The poster's accent: the colour the film page is lit with. Read from the pixels rather than from
- * sharp's dominant bin, which answers near-black or near-white for most posters. Null when the
- * poster has no real colour in it, and the page then stays neutral.
- */
-export async function posterAccent(url: string): Promise<string | null> {
-  try {
-    const bytes = await fetchPoster(url);
-    if (!bytes) return null;
-    // Small enough to be quick, large enough that a title card still has a say.
-    const { data } = await sharp(bytes, { limitInputPixels: 40_000_000 })
-      .resize(60, 90, { fit: "cover" }).removeAlpha().raw().toBuffer({ resolveWithObject: true });
-    return accentFromPixels(data, 3);
-  } catch {
-    return null;
-  }
-}

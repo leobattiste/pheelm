@@ -21,7 +21,7 @@ export default function CommunityTile({ c, showOwner = true, badge, filmCount, f
           {[0, 1, 2].map((i) => {
             const f = c.films[i];
             return f ? (
-              <Poster key={f.id} title={f.title} year={f.year} directors={f.directors.map((d) => d.name)} src={f.poster_url} sizes="140px" />
+              <Poster key={f.id} title={f.title} year={f.year} directors={f.directors.map((d) => (typeof d === "string" ? d : d.name))} src={f.poster_url} sizes="140px" />
             ) : (
               <span key={`empty-${i}`} className="poster poster-empty" />
             );

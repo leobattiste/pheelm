@@ -24,8 +24,6 @@ export type FilmRow = {
   backdrop_url: string | null;
   /** Sharp's dominant-bin colour from the poster. Used for the soft tint behind cards. */
   color?: string | null;
-  /** The poster's characteristic colour, measured from its pixels: what lights the film's page. */
-  accent?: string | null;
   trailer_url: string | null;
   awards: Award[];
   watch: WatchOption[];

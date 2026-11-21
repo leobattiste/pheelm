@@ -17,12 +17,13 @@ The site starts with 74 films by 54 directors in 13 collections. It runs straigh
 
 1. Create a project at [supabase.com](https://supabase.com). The free plan is enough.
 2. Open **SQL Editor** and run these files in order, each in a new query:
-   1. `supabase/schema.sql`: tables and permissions
-   2. `supabase/storage.sql`: a public `images` bucket for posters and portraits
-   3. `supabase/seed.sql`: the starter catalog
+   1. `supabase/migrations/20261121000000_baseline.sql`: the whole database (tables, functions, permissions, storage buckets, the email job), as the live site has it
+   2. `supabase/seed.sql`: the starter catalog
 3. Go to **Project Settings > API** and copy the **Project URL** and the **anon / publishable key**.
 
-All three files are safe to run again. Re-running `seed.sql` refreshes the starter facts but keeps posters, trailers and viewing links you've added since.
+The baseline is for an empty project and runs once. `seed.sql` is safe to run again: it refreshes the starter facts but keeps posters, trailers and viewing links you've added since. Email needs its secrets in the vault first (listed at the top of the baseline).
+
+Database changes from here on go in new, dated files in `supabase/migrations/`. To refresh the baseline from the live database, run `supabase/export-schema.sql` in the SQL editor and save the output. The other files in `supabase/` are the one-off scripts the baseline was built from, kept for history and for the database tests.
 
 ### 2. Deploy on Vercel
 
@@ -40,9 +41,7 @@ In Supabase, go to **Authentication > URL Configuration**:
 - **Site URL**: your Vercel address
 - **Redirect URLs**: add `https://YOUR-ADDRESS/auth/callback` (and `http://localhost:3000/auth/callback` to run it on your computer)
 
-For members' collections, following directors, people's TMDB details, and the newsletter and contact inbox, also run `supabase/member-collections.sql`, `supabase/follows.sql`, `supabase/people-details.sql`, `supabase/platform.sql` and `supabase/community.sql` (all are included in `schema.sql` too).
-
-Unified search lives at `/search`. For member Follow buttons and the following/follower filters, run `supabase/member-follows.sql` after `supabase/admins-watched-blocks.sql` and `supabase/admin-community.sql`.
+Unified search lives at `/search`.
 
 Community collections: members' public collections with a title, at least 5 films and a public name (set on their Watchlist page) appear under Collections → From the community, and each member gets a page at `/@handle`. Manage staff picks, hidden collections and reports in `/admin/community`.
 

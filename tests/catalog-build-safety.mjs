@@ -3,6 +3,19 @@ import { build } from 'esbuild';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
 
+function memoryDisk() {
+  const files = new Map();
+  const missing = () => Promise.reject(Object.assign(new Error('ENOENT'), { code: 'ENOENT' }));
+  return {
+    stat: (f) => files.has(f) ? Promise.resolve({ mtimeMs: files.get(f).at }) : missing(),
+    readFile: (f) => files.has(f) ? Promise.resolve(files.get(f).text) : missing(),
+    writeFile: (f, text) => { files.set(f, { text, at: Date.now() }); return Promise.resolve(); },
+    rename: (a, b) => { files.set(b, files.get(a)); files.delete(a); return Promise.resolve(); },
+    rm: (f) => { files.delete(f); return Promise.resolve(); },
+    open: (f) => files.has(f) ? Promise.reject(Object.assign(new Error('EEXIST'), { code: 'EEXIST' })) : (files.set(f, { text: '', at: Date.now() }), Promise.resolve({ close: () => Promise.resolve() })),
+  };
+}
+
 /** Loads lib/data.ts with Supabase replaced by `rows`, or by a failure when it is an Error. */
 async function loadCatalogModule(rows, { building }) {
   const out = await build({
@@ -19,6 +32,10 @@ async function loadCatalogModule(rows, { building }) {
     '@supabase/supabase-js': { createClient: () => ({ from: () => query }) },
     'next/cache': { unstable_cache: (fn) => fn, revalidateTag: () => {} },
     react: { cache: (fn) => fn },
+    // A fresh, empty temp folder per load: build processes here never share a catalogue copy.
+    'node:fs': { promises: memoryDisk() },
+    'node:os': { tmpdir: () => '/tmp' },
+    'node:path': { join: (...p) => p.join('/') },
   };
   const mod = { exports: {} };
   const env = { ...process.env, NEXT_PUBLIC_SUPABASE_URL: 'https://example.supabase.co', NEXT_PUBLIC_SUPABASE_ANON_KEY: 'test-key' };

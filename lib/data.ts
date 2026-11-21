@@ -1,4 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { promises as fs } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { cache } from "react";
 import local from "@/data/catalog.json";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseEnabled } from "./supabase/config";
@@ -111,7 +114,7 @@ function refresh(previous: Copy | null): Promise<Raw> {
   // The version is read before the rows: a change landing mid-download leaves the copy marked with
   // the older number, so the next check reads it again rather than missing the change.
   const version = catalogVersion(db).catch(() => null);
-  const data = version.then(() => fetchCatalog(db));
+  const data = version.then(() => (building() ? sharedBuildCatalog(db) : fetchCatalog(db)));
   const copy: Copy = { at, checked: at, version: null, data };
   shared = copy;
   data.then(
@@ -149,6 +152,44 @@ const load = cache(async (): Promise<Raw> => {
 
 /** True when this server already holds a checked, current copy of the catalog. */
 const warm = () => Boolean(shared?.ready && Date.now() - shared.checked < CHECK_EVERY);
+
+/**
+ * A build renders pages in several processes at once, and each used to download the whole
+ * catalogue for itself: a burst of parallel reads that starved the database and timed out live
+ * visitors' requests. Now the first process downloads it and leaves a copy in the temp folder;
+ * the others wait for that copy and read it. One download per build.
+ */
+async function sharedBuildCatalog(db: SupabaseClient): Promise<Raw> {
+  const key = (process.env.VERCEL_DEPLOYMENT_ID || process.env.VERCEL_GIT_COMMIT_SHA || "local").replace(/[^\w-]/g, "");
+  const file = join(tmpdir(), `pheelm-catalog-${key}.json`);
+  const lock = `${file}.lock`;
+  const FRESH = 15 * 60_000; // an older copy is from another build
+  const readCopy = async () => {
+    const info = await fs.stat(file).catch(() => null);
+    if (!info || Date.now() - info.mtimeMs > FRESH) return null;
+    return JSON.parse(await fs.readFile(file, "utf8")) as Raw;
+  };
+  for (let waited = 0; waited < 5 * 60_000; waited += 500) {
+    const copy = await readCopy().catch(() => null);
+    if (copy) return copy;
+    const mine = await fs.open(lock, "wx").then((h) => h.close().then(() => true), () => false);
+    if (mine) {
+      try {
+        const raw = await fetchCatalog(db);
+        await fs.writeFile(`${file}.part`, JSON.stringify(raw));
+        await fs.rename(`${file}.part`, file);
+        return raw;
+      } finally {
+        await fs.rm(lock, { force: true });
+      }
+    }
+    // Someone else is downloading. A lock left by a process that died is taken over after 3 minutes.
+    const held = await fs.stat(lock).catch(() => null);
+    if (held && Date.now() - held.mtimeMs > 3 * 60_000) await fs.rm(lock, { force: true });
+    await new Promise((r) => setTimeout(r, 500));
+  }
+  return fetchCatalog(db);
+}
 
 async function fetchCatalog(db: SupabaseClient): Promise<Raw> {
   try {
@@ -314,35 +355,50 @@ export const filmPageCatalog = cache(async (slug: string) => {
 });
 
 /**
- * Everything one director page needs, and nothing else: the director, the films they worked on
- * (with all of each film's credits, for "what they did on it" and the directors on the cards) and
- * the people in those credits. About five short requests, where the page used to read the whole
- * catalogue. A build, a machine without Supabase and a server that already holds a current copy
- * of the catalogue use that instead, which costs nothing.
+ * Everything one person's page needs, and nothing else: the person, the films they worked on (with
+ * all of each film's credits, for "what they did on it" and the directors on the cards) and the
+ * people in those credits. About five short requests instead of the whole catalogue. A build, a
+ * machine without Supabase and a server that already holds a current copy use that instead.
  */
-export const directorPageCatalog = cache(async (slug: string): Promise<{ director: Director | null; films: Film[] }> => {
+export const personPageCatalog = cache(async (slug: string): Promise<{ person: PersonRow | null; director: Director | null; films: Film[] }> => {
   if (!supabaseEnabled || building() || warm()) {
     const c = await catalog();
-    const director = c.directors.find((d) => d.slug === slug) ?? null;
-    return { director, films: director ? c.films : [] };
+    const person = c.people.find((p) => p.slug === slug) ?? null;
+    return { person, director: c.directors.find((d) => d.slug === slug) ?? null, films: person ? c.films : [] };
   }
-  const none = { director: null, films: [] };
+  const none = { person: null, director: null, films: [] };
   const db = anonClient();
   const [person] = await readAll<PersonRow>(db, "people", (q) => q.eq("slug", slug));
   if (!person) return none;
   const mine = await readAll<CreditRow>(db, "credits", (q) => q.eq("person_id", person.id));
   const ids = [...new Set(mine.map((c) => c.film_id))];
-  if (!ids.length) return none;
+  if (!ids.length) return { ...none, person };
   const chunks = Array.from({ length: Math.ceil(ids.length / 200) }, (_, i) => ids.slice(i * 200, i * 200 + 200));
   const [films, credits] = await Promise.all([
     Promise.all(chunks.map((chunk) => readAll<FilmRow>(db, "films", (q) => q.in("id", chunk).eq("status", "published")))).then((p) => p.flat()),
     readIn<CreditRow>(db, "credits", "film_id", ids),
   ]);
-  if (!films.length) return none;
+  if (!films.length) return { ...none, person };
   const people = await readIn<PersonRow>(db, "people", "id", [person.id, ...credits.map((c) => c.person_id)]);
   const built = buildCatalog({ films, people, credits, collections: [], collection_films: [] });
-  return { director: built.directors.find((d) => d.id === person.id) ?? null, films: built.films };
+  return { person, director: built.directors.find((d) => d.id === person.id) ?? null, films: built.films };
 });
+
+/** A director page: the director and their films (see personPageCatalog). */
+export const directorPageCatalog = cache(async (slug: string): Promise<{ director: Director | null; films: Film[] }> => {
+  const { director, films } = await personPageCatalog(slug);
+  return director ? { director, films } : { director: null, films: [] };
+});
+
+/** A cast or crew page: the person and every film they worked on, read the light way. */
+export async function personPage(slug: string) {
+  const { person, director, films } = await personPageCatalog(slug);
+  if (!person) return null;
+  const work = films.flatMap((f) =>
+    f.credits.filter((c) => c.person.id === person.id).map((c) => ({ film: f, role: c.role, character: c.character })),
+  );
+  return work.length ? { person, work, director, films } : null;
+}
 
 export async function getFilms() {
   return (await catalog()).films;
