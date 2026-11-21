@@ -7,7 +7,7 @@ import GridToggle from "@/components/GridToggle";
 import type { IconName } from "@/components/Icon";
 import Tabs from "@/components/Tabs";
 import ThemeToggle from "@/components/ThemeToggle";
-import { getServerClient } from "@/lib/supabase/server";
+import { getServerClient, getViewer } from "@/lib/supabase/server";
 import { DeleteAccount, SignOutEverywhere } from "./AccountActions";
 import EmailForm from "./EmailForm";
 import PasswordForm from "./PasswordForm";
@@ -35,7 +35,7 @@ export default async function AccountPage() {
       </section>
     );
   }
-  const { data: { user } } = await db.auth.getUser();
+  const user = await getViewer(db);
   if (!user) redirect("/login?next=/account");
 
   const { data: profile } = await db.from("profiles").select("*").eq("id", user.id).maybeSingle();

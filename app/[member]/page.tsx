@@ -5,7 +5,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { profileMetadata, profileStructuredData } from '@/lib/profile-seo';
 import { getMemberProfile } from '@/lib/community';
-import { getServerClient } from '@/lib/supabase/server';
+import { getServerClient, getViewer } from '@/lib/supabase/server';
 import { initials } from '@/lib/format';
 import { VERIFIED } from '@/lib/site';
 import UserAvatar from '@/components/UserAvatar';
@@ -28,10 +28,10 @@ export async function generateMetadata({params}:Params):Promise<Metadata> {
 export default async function MemberPage({params}:Params) {
  const handle=handleOf((await params).member);if(!handle)notFound();
  const db=await getServerClient();
- const [publicMember,viewerResult]=await Promise.all([getMemberProfile(handle),db?db.auth.getUser():null]);
+ const [publicMember,viewerResult]=await Promise.all([getMemberProfile(handle),getViewer(db)]);
  if(!publicMember)notFound();
  // Do not mutate the profile object shared with metadata within this request.
- const member={...publicMember},viewer=viewerResult?.data.user;
+ const member={...publicMember},viewer=viewerResult;
  const own=viewer?.id===member.id;
  let unlimitedBio=false;
  if(own&&db){const {data}=await db.from('profiles').select('display_name,country,bio,avatar_url,social_platform,social_url,website_url,is_owner').eq('id',member.id).maybeSingle();if(data){unlimitedBio=canUseUnlimitedBio({handle:member.handle,is_owner:data.is_owner});const {is_owner: _is_owner,...fields}=data;Object.assign(member,fields);}}

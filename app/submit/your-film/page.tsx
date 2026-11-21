@@ -2,7 +2,7 @@ import { publicPageMetadata } from "@/lib/seo";
 import { PAGE_COPY } from "@/lib/site";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getServerClient } from "@/lib/supabase/server";
+import { getServerClient, getViewer } from "@/lib/supabase/server";
 import OwnFilmForm from "./OwnFilmForm";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +11,7 @@ export const metadata: Metadata = publicPageMetadata("/submit/your-film");
 /** For filmmakers: submit your own film, with everything its page on Pheelm would show. */
 export default async function SubmitOwnFilmPage() {
   const db = await getServerClient();
-  const user = db ? (await db.auth.getUser()).data.user : null;
+  const user = await getViewer(db);
 
   return (
     <section className="page full-width suggestion-page own-film-page">

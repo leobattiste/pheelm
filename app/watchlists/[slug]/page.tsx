@@ -22,7 +22,7 @@ import { getCollaboration, MAX_COLLABORATORS } from "@/lib/collab";
 import { getComments } from "@/lib/comments";
 import { collectionExtras, MIN_FILMS, type Member } from "@/lib/community";
 import { getFilmCards } from "@/lib/data";
-import { getServerClient } from "@/lib/supabase/server";
+import { getServerClient, getViewer } from "@/lib/supabase/server";
 import { respondToInvite } from "@/app/c/actions";
 import { SITE_URL } from "@/lib/supabase/config";
 
@@ -49,7 +49,7 @@ export default async function MemberCollectionPage({ params, searchParams }: Par
   const list = await getWatchlist((await params).slug);
   if (!list) notFound();
   const db = await getServerClient();
-  const viewer = (await db?.auth.getUser())?.data.user ?? null;
+  const viewer = await getViewer(db);
   const isOwner = viewer?.id === list.user_id;
 
   // Only this watchlist's films are read, not the whole catalogue.

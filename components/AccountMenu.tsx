@@ -33,7 +33,10 @@ export default function AccountMenu({ onNavigate, children }: { onNavigate: () =
     if (!db) return setMe(null);
     let active = true;
     const load = async () => {
-      const { data: { user } } = await db.auth.getUser();
+      // From the session on this device: asking the sign-in service each time failed whenever it
+      // was busy, and the menu then showed Sign in to a signed-in member.
+      const { data: { session } } = await db.auth.getSession();
+      const user = session?.user;
       if (!user) return active && setMe(null);
       const [{ data: p }, unread] = await Promise.all([
         db.from("profiles").select("*").eq("id", user.id).maybeSingle(),

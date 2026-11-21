@@ -20,6 +20,7 @@ jobs:
       - run: node tests/profile-bio.mjs
       - run: node tests/profile-seo.mjs
       - run: node tests/profile-loading.mjs
+      - run: node tests/viewer-from-token.mjs
       - run: node tests/partnership-inquiry.mjs
       - run: node tests/admin-create-person.mjs
       - run: node tests/admin-import-selected.mjs

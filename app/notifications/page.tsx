@@ -7,7 +7,7 @@ import Icon, { type IconName } from "@/components/Icon";
 import { Avatar } from "@/components/PeopleSheet";
 import { initials } from "@/lib/format";
 import { getNotifications, type Notification } from "@/lib/notifications";
-import { getServerClient } from "@/lib/supabase/server";
+import { getServerClient, getViewer } from "@/lib/supabase/server";
 import { respondToInvite, respondToRequest } from "../c/actions";
 import { clearRead, markAllRead } from "./actions";
 import Seen from "./Seen";
@@ -136,7 +136,7 @@ function Item({ n }: { n: Notification }) {
 export default async function NotificationsPage() {
   const db = await getServerClient();
   if (!db) redirect("/");
-  const { data: { user } } = await db.auth.getUser();
+  const user = await getViewer(db);
   if (!user) redirect("/login?next=/notifications");
   const { available, items } = await getNotifications(db, user.id);
   const fresh = items.filter((n) => !n.read_at);

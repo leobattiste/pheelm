@@ -21,3 +21,26 @@ export async function getServerClient() {
     },
   });
 }
+
+/** The token carries the same metadata as the account (as of its last refresh). */
+export type Viewer = { id: string; email: string | null; user_metadata: Record<string, unknown>; app_metadata: Record<string, unknown> };
+
+/**
+ * Who's signed in, from their session token, checked against the project's signing keys
+ * without a call to the sign-in service. `auth.getUser()` asks that service every time, and when
+ * it is busy (it shares the small database with everything else) the answer was an error: members
+ * were then shown as signed out, or sent to Sign in from their own pages.
+ */
+export async function getViewer(db: { auth: { getClaims: () => Promise<{ data: { claims: Record<string, unknown> } | null; error: unknown }> } } | null): Promise<Viewer | null> {
+  if (!db) return null;
+  try {
+    const { data, error } = await db.auth.getClaims();
+    const sub = data?.claims?.sub;
+    if (!error && typeof sub === "string") {
+      const c = data!.claims;
+      const obj = (v: unknown) => (v && typeof v === "object" ? (v as Record<string, unknown>) : {});
+      return { id: sub, email: typeof c.email === "string" ? c.email : null, user_metadata: obj(c.user_metadata), app_metadata: obj(c.app_metadata) };
+    }
+  } catch {}
+  return null;
+}

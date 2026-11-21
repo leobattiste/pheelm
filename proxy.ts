@@ -58,7 +58,11 @@ export async function proxy(request: NextRequest) {
     if (error || !data?.claims?.sub) return toJoin();
     return response;
   }
-  const { data: { user } } = await supabase.auth.getUser();
+  // The session token is checked against the project's signing keys (refreshed first when it has
+  // expired). Asking the sign-in service instead failed whenever it was busy, and members were
+  // then treated as signed out.
+  const { data: claims } = await supabase.auth.getClaims();
+  const user = claims?.claims?.sub ?? null;
   // Home is for visitors: members start on Films.
   if (home && user) {
     const to = request.nextUrl.clone();

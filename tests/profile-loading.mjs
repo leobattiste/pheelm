@@ -37,7 +37,7 @@ const pageExports={};vm.runInNewContext(compile('app/[member]/page.tsx'),{export
  if(name==='next/navigation')return{notFound:()=>{throw Error('Not found');}};
  if(name==='@/lib/profile-bio')return bioRules;
  if(name==='@/lib/community')return{getMemberProfile:async()=>hiddenMember};
- if(name==='@/lib/supabase/server')return{getServerClient:async()=>pageDb};
+ if(name==='@/lib/supabase/server')return{getServerClient:async()=>pageDb,getViewer:async(d)=>{const u=(await d?.auth.getUser())?.data.user;return u?{id:u.id,email:u.email??null,user_metadata:{},app_metadata:{}}:null;}};
  if(name==='@/lib/format')return{initials:()=> 'M'};if(name==='@/lib/site')return{VERIFIED:{}};
  if(name==='@/lib/profile-seo')return{profileStructuredData:()=>null};
  if(name==='./ProfilePanels')return{ProfileWatchlists:()=>null,ProfileFollowing:()=>null,ProfileDetails:()=>null,ProfileBlockAction:()=>null};
