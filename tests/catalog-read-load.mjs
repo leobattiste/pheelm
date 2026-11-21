@@ -12,7 +12,24 @@ const AT_ONCE = 4;
  * Loads lib/data.ts with Supabase replaced by a stand-in that counts requests, records how many
  * were in flight at once, and answers `total` rows a thousand at a time.
  */
-async function load({ total, building, versioned = false }) {
+// An in-memory temp folder, so build processes can be made to share one (or not).
+function memoryDisk() {
+  const files = new Map();
+  const missing = () => Promise.reject(Object.assign(new Error("ENOENT"), { code: "ENOENT" }));
+  return {
+    files,
+    promises: {
+      stat: (f) => files.has(f) ? Promise.resolve({ mtimeMs: files.get(f).at }) : missing(),
+      readFile: (f) => files.has(f) ? Promise.resolve(files.get(f).text) : missing(),
+      writeFile: (f, text) => { files.set(f, { text, at: Date.now() }); return Promise.resolve(); },
+      rename: (a, b) => { files.set(b, files.get(a)); files.delete(a); return Promise.resolve(); },
+      rm: (f) => { files.delete(f); return Promise.resolve(); },
+      open: (f) => files.has(f) ? Promise.reject(Object.assign(new Error("EEXIST"), { code: "EEXIST" })) : (files.set(f, { text: "", at: Date.now() }), Promise.resolve({ close: () => Promise.resolve() })),
+    },
+  };
+}
+
+async function load({ total, building, versioned = false, disk = memoryDisk() }) {
   const out = await build({
     stdin: { contents: `export {getFilms, getFilmCards, directorPageCatalog} from './lib/data';`, loader: "ts", resolveDir: process.cwd() },
     bundle: true, write: false, format: "cjs", platform: "node",
@@ -61,6 +78,9 @@ async function load({ total, building, versioned = false }) {
     "@supabase/supabase-js": { createClient: () => { stats.reads++; return { from: (t) => { stats.tables.push(t); return t === "catalog_version" ? versionQuery() : makeQuery(); } }; } },
     "next/cache": { unstable_cache: (fn) => fn, revalidateTag: () => {} },
     react: { cache: (fn) => fn },
+    "node:fs": { promises: disk.promises },
+    "node:os": { tmpdir: () => "/tmp" },
+    "node:path": { join: (...p) => p.join("/") },
   };
   const mod = { exports: {} };
   const env = { ...process.env, NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co", NEXT_PUBLIC_SUPABASE_ANON_KEY: "test-key" };
@@ -74,7 +94,7 @@ async function load({ total, building, versioned = false }) {
     module: mod, exports: mod.exports, console, TextEncoder, TextDecoder, setTimeout, clearTimeout, Promise,
     Date: ClockDate,
     process: { ...process, env },
-    require: (name) => fakes[name] ?? require(name),
+    require: (name) => { if (name in fakes) return fakes[name]; throw new Error(`unexpected require: ${name}`); },
   });
   return { getFilms: mod.exports.getFilms, getFilmCards: mod.exports.getFilmCards, directorPageCatalog: mod.exports.directorPageCatalog, stats, clock, db };
 }
@@ -233,6 +253,19 @@ async function load({ total, building, versioned = false }) {
   const afterFirst = stats.requests;
   await directorPageCatalog("f-0");
   assert.equal(stats.requests, afterFirst, "a warm server should not read again");
+}
+
+// 16. Build processes share one download: the first leaves a copy, the next reads it and asks the
+//     database for nothing.
+{
+  const disk = memoryDisk();
+  const first = await load({ total: 3, building: true, disk });
+  await first.getFilms();
+  assert.ok(first.stats.requests > 0, "the first build process downloads the catalogue");
+  const second = await load({ total: 3, building: true, disk });
+  const films = await second.getFilms();
+  assert.equal(second.stats.requests, 0, "the second build process should read the shared copy");
+  assert.equal(films.length, (await first.getFilms()).length, "the shared copy holds the same films");
 }
 
 console.log("ok  the catalogue is read a few pages at a time, once per build, and again only when it changes");

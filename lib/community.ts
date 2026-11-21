@@ -1,9 +1,9 @@
 import { cache } from "react";
 import { unstable_cache } from "next/cache";
 import { createClient } from "@supabase/supabase-js";
-import { getFilms } from "./data";
+import { getFilmCards } from "./data";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseEnabled } from "./supabase/config";
-import type { Film } from "./types";
+import type { FilmCard } from "./types";
 import type { Sort, WatchlistTile } from "./collection-sorts";
 
 /** A collection to list in the community: needs a title, this many films and a member name. */
@@ -30,7 +30,7 @@ export type CommunityCollection = {
   created_at: string;
   /** The last change: an edit, or the newest film added. */
   updated_at: string;
-  films: Film[];
+  films: FilmCard[];
   /** Used to rank "Popular"; never shown. */
   saves: number;
   owner: Member | null;
@@ -57,8 +57,9 @@ export async function enrich(rows: Row[]): Promise<CommunityCollection[]> {
   if (!db || !rows.length) return [];
   const ids = rows.map((r) => r.id);
   const owners = [...new Set(rows.map((r) => r.user_id))];
+  // Only the films on these lists, as cards: not the whole catalogue.
   const [films, people, counts, crew] = await Promise.all([
-    getFilms(),
+    getFilmCards(rows.flatMap((r) => r.list_films.map((x) => x.film_id))),
     members((cols) => db.from("member_profiles").select(cols).in("id", owners)),
     db.from("list_save_counts").select("list_id, saves").in("list_id", ids),
     db.from("list_members").select("list_id").eq("status", "active").in("list_id", ids),
@@ -80,7 +81,7 @@ export async function enrich(rows: Row[]): Promise<CommunityCollection[]> {
     // Staff collections in year order (their covers show where they begin); members' newest first.
     films: [...r.list_films]
       .sort((a, b) => r.staff_pick ? (byId.get(a.film_id)?.year ?? 0) - (byId.get(b.film_id)?.year ?? 0) : b.added_at.localeCompare(a.added_at))
-      .map((x) => byId.get(x.film_id)).filter((f): f is Film => !!f),
+      .map((x) => byId.get(x.film_id)).filter((f): f is FilmCard => !!f),
     saves: savesById.get(r.id) ?? 0,
     owner: ownerById.get(r.user_id) ?? null,
     curators: crewById.get(r.id) ?? 0,
