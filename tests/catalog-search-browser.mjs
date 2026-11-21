@@ -34,15 +34,21 @@ try{
  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),'the toolbar overflows the page');
  await page.goto(BASE+'/directors');await page.locator('.catalog-browser').waitFor();
  assert.equal(await page.locator('.catalog-browser input[type=search]').count(),1,'Directors has a search bar too');
- for(const name of ['All','Featured','Following'])assert.equal(await page.getByRole('group',{name:'Directors to show'}).getByRole('button',{name,exact:true}).count(),1);
- await page.getByRole('button',{name:'Featured',exact:true}).click();await until(()=>new URL(page.url()).searchParams.get('feed')==='featured','Directors feed did not update');
+ // All / Featured / Following live in the Filters window, not under the search bar.
+ assert.equal(await page.locator('.catalog-browser > .feed-tabs').count(),0,'the feed buttons should not sit under the search bar');
  await page.getByRole('button',{name:'Filters',exact:true}).click();
  const dirModal=page.getByRole('dialog',{name:'Filters',exact:true});
+ for(const name of ['All','Featured','Following'])assert.equal(await dirModal.getByRole('group',{name:'Show'}).getByRole('button',{name,exact:true}).count(),1,name+' missing from Filters');
+ await dirModal.getByRole('group',{name:'Show'}).getByRole('button',{name:'Featured',exact:true}).click();await until(()=>new URL(page.url()).searchParams.get('feed')==='featured','Directors feed did not update');
+ assert.equal(await dirModal.getByRole('button',{name:'Featured',exact:true}).getAttribute('aria-pressed'),'true');
  for(const label of ['Sort by','Country','Decade','Type','Films in the directory'])assert.equal(await dirModal.getByLabel(label,{exact:true}).count(),1,label+' missing');
  await dirModal.getByLabel('Country',{exact:true}).selectOption('US');await until(()=>new URL(page.url()).searchParams.get('country')==='US','Directors country did not update');
  assert.equal(new URL(page.url()).searchParams.get('feed'),'featured');
  await dirModal.getByLabel('Sort by',{exact:true}).selectOption('az');await until(()=>new URL(page.url()).searchParams.get('sort')==='az','Directors sort did not update');
  await dirModal.getByRole('button',{name:'Close filters'}).click();
+ // The chosen feed shows as a removable chip beside the other filters, and the button counts it.
+ await page.getByRole('button',{name:'Remove Featured',exact:true}).waitFor();
+ assert.equal(await page.locator('.filter-button .badge').textContent(),'2');
  assert.equal(await page.locator('.director-card .portrait').first().evaluate(e=>getComputedStyle(e).borderRadius),'8px');
  await page.setViewportSize({width:1440,height:1000});await page.goto(BASE+'/films');await page.locator('.catalog-browser').waitFor();assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth));
  await page.setViewportSize({width:390,height:844});await page.goto(BASE+'/watchlists?feed=featured');
