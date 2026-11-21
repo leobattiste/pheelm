@@ -1,4 +1,4 @@
--- Checks for supabase/admin-inbox.sql. Run after tests/admin-inbox-bootstrap.sql and the migration.
+-- Checks for supabase/archive/admin-inbox.sql. Run after tests/admin-inbox-bootstrap.sql and the migration.
 begin;
 -- Senders can't choose a status, notes or deadline.
 insert into public.messages(name, email, topic, body, handled, notes) values ('Spoof', 'a@example.com', 'general', 'Hello', true, 'injected');

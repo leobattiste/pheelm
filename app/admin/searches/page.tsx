@@ -21,7 +21,7 @@ export default async function SearchMissesPage() {
       <PageHeader title="Searches with no results" back={{ href: "/admin/films", label: "Films" }}
         description="What people searched for on Pheelm and found nothing, most searched first. Only the words are kept." />
       <Panel>
-        {error ? <Empty title="Not set up yet">Apply supabase/search-misses.sql to start counting.</Empty>
+        {error ? <Empty title="Not set up yet">Apply supabase/archive/search-misses.sql to start counting.</Empty>
           : rows.length ? rows.map((r) => (
             <Row key={r.q} detail={`${plural(r.count, "search", "searches")} • last ${new Date(r.last_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`}
               aside={<form action={resolve}><input type="hidden" name="q" value={r.q} /><button className="button small ghost">Done</button></form>}>

@@ -3,7 +3,7 @@
 Scope: new and edited collection comments, profile bios, and collection/watchlist descriptions.
 
 Pheelm moderates with its own banned-word list, kept in the database. It replaced the earlier
-OpenAI Moderation check (`supabase/content-moderation.sql`), which is no longer used: no outside
+OpenAI Moderation check (`supabase/archive/content-moderation.sql`), which is no longer used: no outside
 service sees members' text, and no API key is needed for moderation.
 
 ## How it works
@@ -19,7 +19,7 @@ service sees members' text, and no API key is needed for moderation.
    **Admin → Community → Moderation**.
 
 Matching rules, the word kinds and how to add a word by SQL are described at the top of
-`supabase/banned-words.sql`.
+`supabase/archive/banned-words.sql`.
 
 ## Managing the list
 

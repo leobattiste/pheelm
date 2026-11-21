@@ -1,4 +1,4 @@
--- Checks for supabase/admin-insights.sql.
+-- Checks for supabase/archive/admin-insights.sql.
 begin;
 do $$begin begin perform * from public.admin_monthly_counts();raise exception 'Non-admin read counts';exception when insufficient_privilege then null;end;end$$;
 select set_config('test.is_admin','true',true);

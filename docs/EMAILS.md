@@ -3,7 +3,7 @@
 ## Live architecture
 
 - Supabase database triggers enqueue future events in the private `pheelm_email.outbox` schema.
-- Scheduling is defined in `supabase/email-schedule.sql`. Supabase Cron invokes `pheelm-email` every five minutes. The worker authenticates with a dedicated token stored in Vault.
+- Scheduling is defined in `supabase/archive/email-schedule.sql`. Supabase Cron invokes `pheelm-email` every five minutes. The worker authenticates with a dedicated token stored in Vault.
 - The Edge Function uses its platform-provided service-role credential. The domain-restricted Resend key and webhook signing secret are stored in Vault, never in Git or browser bundles.
 - Messages use `Pheelm <notifications@pheelm.com>` and reply to `hey@pheelm.com`.
 - Resend delivery/bounce/complaint webhooks require Svix signature verification and a five-minute timestamp window. Event IDs are deduplicated. Bounced and complained recipients are suppressed.
@@ -70,7 +70,7 @@ Alternatively, use `NODE_USE_ENV_PROXY=1 node scripts/auth-email-config.mjs` in 
 
 - `npm run email:preview`: generates the HTML and plain-text previews, the worker's templates and the four Supabase Auth templates.
 - `node tests/email-security.mjs`: verifies escaping, trusted destinations, signature authentication, replay window, that every email's footer says only “© year Pheelm”, and all rendered templates.
-- PostgreSQL tests: apply `tests/email-bootstrap.sql` to a disposable PostgreSQL database, then `supabase/email-system.sql`, then `tests/email-system.sql`. Never apply the bootstrap to production.
+- PostgreSQL tests: apply `tests/email-bootstrap.sql` to a disposable PostgreSQL database, then `supabase/archive/email-system.sql`, then `tests/email-system.sql`. Never apply the bootstrap to production.
 - `npm run build`: verifies the website and email preference/admin components.
 
 GET links never change subscription state. Public confirmation and unsubscribe forms are served from `/email` on Pheelm, and POST actions require the opaque token. RFC 8058 one-click unsubscribe is supported using signed opaque tokens for optional digests. One-click authentication links and OTP codes are handled only by Supabase Auth.
@@ -83,12 +83,12 @@ Inspect queue state and retry errors in the private schema using the SQL editor.
 
 ## Catalog Digest
 
-`supabase/catalog-digest.sql` records newly discoverable items on the five-minute delivery schedule. Existing catalog entries are baselined without announcements. Daily and weekly subscriptions accumulate additions from their preference selection time. Eligibility is checked again immediately before sending, excluding drafts, hidden directors, private collections/profiles, and collections below the public discovery threshold. Changing frequency resets the accumulation window; Off stops future digests.
+`supabase/archive/catalog-digest.sql` records newly discoverable items on the five-minute delivery schedule. Existing catalog entries are baselined without announcements. Daily and weekly subscriptions accumulate additions from their preference selection time. Eligibility is checked again immediately before sending, excluding drafts, hidden directors, private collections/profiles, and collections below the public discovery threshold. Changing frequency resets the accumulation window; Off stops future digests.
 
 ## Wording
 
-Emails say “watchlist”, like the site. `supabase/email-wording.sql` updates the queued messages in the three database functions that still said “collection” (welcome, collaboration, digest heading); the same words are fixed in `email-system.sql`, `activity-emails.sql` and `catalog-digest.sql`.
+Emails say “watchlist”, like the site. `supabase/archive/email-wording.sql` updates the queued messages in the three database functions that still said “collection” (welcome, collaboration, digest heading); the same words are fixed in `email-system.sql`, `activity-emails.sql` and `catalog-digest.sql`.
 
 ## Digest schedule
 
-Digests go out at 4 pm New York time: every day for Daily, on Fridays for Weekly (`supabase/digest-schedule.sql`, `pheelm_email.digest_due`). The worker runs every five minutes, so the first run after 4 pm sends. Each Digest covers what was added since the member's last one: up to six films with their posters (from TMDB, w185), four directors with photos, and four public watchlists, built by `supabase/functions/pheelm-email/digest.mjs` from `email_digest_items`. Turning the Digest on, or changing how often, starts the window from that moment.
+Digests go out at 4 pm New York time: every day for Daily, on Fridays for Weekly (`supabase/archive/digest-schedule.sql`, `pheelm_email.digest_due`). The worker runs every five minutes, so the first run after 4 pm sends. Each Digest covers what was added since the member's last one: up to six films with their posters (from TMDB, w185), four directors with photos, and four public watchlists, built by `supabase/functions/pheelm-email/digest.mjs` from `email_digest_items`. Turning the Digest on, or changing how often, starts the window from that moment.

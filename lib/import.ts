@@ -59,7 +59,7 @@ export async function importFilm(db: SupabaseClient, filmId: string, prefetched?
   const added = people.added;
 
   // Everyone on the film gets their biography, dates, birthplace and links, once, ten at a time.
-  // (Before supabase/people-details.sql has run, only people missing a bio, birth year or portrait.)
+  // (Before supabase/archive/people-details.sql has run, only people missing a bio, birth year or portrait.)
   const todo = people.rows.filter((p) => ("details_at" in p ? !p.details_at : !p.bio || !p.birth_year || !p.photo_url));
   await inBatches(todo, 10, (p) => fillPerson(db, p));
 
@@ -145,7 +145,7 @@ async function addToCollection(db: SupabaseClient, filmId: string, collectionId?
 /**
  * Fills a person's empty fields from TMDB: biography, birth and death dates, birthplace, the job
  * they're best known for, IMDb and Instagram, and a portrait. Anything already written stays.
- * Before supabase/people-details.sql has run, only the older fields (bio, birth year, portrait) fill.
+ * Before supabase/archive/people-details.sql has run, only the older fields (bio, birth year, portrait) fill.
  */
 export async function fillPerson(db: SupabaseClient, person: Record<string, any>) {
   if (!person.tmdb_id) return false;

@@ -12,7 +12,7 @@ const KINDS: [string, string][] = [
 
 /**
  * The words members can't use in comments, bios and watchlist descriptions (see
- * supabase/banned-words.sql). Members are told the kind of word and the suggested alternative,
+ * supabase/archive/banned-words.sql). Members are told the kind of word and the suggested alternative,
  * never the word. Matching already catches look-alike characters, punctuation between letters,
  * stretched letters, endings (s, ed, ing…) and whole words only, so one entry covers the variants.
  */
@@ -28,7 +28,7 @@ export default async function BannedWords({ searchParams }: { searchParams: Prom
       {q.error && <p className="notice error" role="alert">{q.error}</p>}
       {q.saved && <p className="notice ok" role="status">Saved. It applies right away.</p>}
       {q.removed && <p className="notice ok" role="status">Removed. Members can use it again.</p>}
-      {error ? <p className="notice error">The list couldn&apos;t load. If this keeps happening, run <code>supabase/banned-words.sql</code> in Supabase.</p> : (
+      {error ? <p className="notice error">The list couldn&apos;t load. If this keeps happening, run <code>supabase/archive/banned-words.sql</code> in Supabase.</p> : (
         <>
           <Panel title="Add a word">
             <form action={addBannedWord} className="form admin-word-form">

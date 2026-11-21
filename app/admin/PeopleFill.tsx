@@ -10,7 +10,7 @@ export default function PeopleFill({ waiting }: { waiting: number | null }) {
   const [message, setMessage] = useState("");
 
   if (waiting === null) {
-    return <p className="muted">To add birth dates, birthplaces and IMDb and Instagram links, run <code>supabase/people-details.sql</code> in Supabase, then come back here.</p>;
+    return <p className="muted">To add birth dates, birthplaces and IMDb and Instagram links, run <code>supabase/archive/people-details.sql</code> in Supabase, then come back here.</p>;
   }
 
   const run = async () => {

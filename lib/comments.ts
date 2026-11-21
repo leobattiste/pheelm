@@ -27,7 +27,7 @@ export const targetColumn = (t: CommentTarget): ["list_id" | "film_id", string] 
 /**
  * A watchlist's or film's comments, oldest first, with like counts and who wrote them. Read with
  * the visitor's own session, so the watchlist's or film's visibility rules apply. `available` is
- * false until the comments tables are set up (for films, supabase/film-comments.sql), and the page
+ * false until the comments tables are set up (for films, supabase/archive/film-comments.sql), and the page
  * then leaves the section out.
  */
 export async function getComments(db: SupabaseClient | null, target: CommentTarget | string, viewerId: string | null): Promise<{ available: boolean; comments: CommentItem[] }> {

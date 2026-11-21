@@ -1,4 +1,4 @@
--- Just enough of Supabase and the existing schema for supabase/admin-community.sql to run against.
+-- Just enough of Supabase and the existing schema for supabase/archive/admin-community.sql to run against.
 do $$begin create role anon;exception when duplicate_object then null;end$$;
 do $$begin create role authenticated;exception when duplicate_object then null;end$$;
 do $$begin create role service_role;exception when duplicate_object then null;end$$;

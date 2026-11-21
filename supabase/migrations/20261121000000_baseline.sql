@@ -3,7 +3,7 @@
 --
 -- This is the starting point for a fresh Supabase project: run it once on an empty project, then
 -- seed.sql for the starter catalogue. Changes from here on go in new, dated files in this folder.
--- The older one-off scripts in supabase/*.sql are history; they are already part of this baseline.
+-- The older one-off scripts in supabase/archive/ are history; they are already part of this baseline.
 --
 -- Not included, because they aren't structure: data, vault secrets (create pheelm_email_worker_secret,
 -- pheelm_worker_secret, pheelm_resend_api_key, pheelm_resend_webhook_secret and pheelm_postal_address

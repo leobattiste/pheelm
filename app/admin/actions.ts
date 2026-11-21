@@ -35,7 +35,7 @@ async function upload(db: SupabaseClient, file: FormDataEntryValue | null, folde
   const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
   const path = `${folder}/${crypto.randomUUID()}.${ext}`;
   const { error } = await db.storage.from("images").upload(path, file, { contentType: file.type, upsert: false });
-  if (error) throw new Error(`Upload failed: ${error.message}. Did you run supabase/storage.sql?`);
+  if (error) throw new Error(`Upload failed: ${error.message}. Did you run supabase/archive/storage.sql?`);
   return db.storage.from("images").getPublicUrl(path).data.publicUrl;
 }
 
@@ -216,7 +216,7 @@ export async function fillPeople(): Promise<Result & { remaining: number }> {
     if (!tmdbEnabled) return { ok: false, message: "Add TMDB_API_KEY in Vercel to switch on the import.", remaining: 0 };
     const db = await adminClient();
     const { data, error } = await db.from("people").select("*").not("tmdb_id", "is", null).is("details_at", null).limit(20);
-    if (error) return { ok: false, message: "Run supabase/people-details.sql in Supabase first, then try again.", remaining: 0 };
+    if (error) return { ok: false, message: "Run supabase/archive/people-details.sql in Supabase first, then try again.", remaining: 0 };
     await Promise.all((data ?? []).map((p) => fillPerson(db, p)));
     if (data?.length) await logAdminActivity(db, "Filled people from TMDB", "person", null, `${data.length} people`);
     const { count } = await db.from("people").select("*", { count: "exact", head: true }).not("tmdb_id", "is", null).is("details_at", null);

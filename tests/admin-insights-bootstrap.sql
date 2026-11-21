@@ -1,4 +1,4 @@
--- Just enough of the schema for supabase/admin-insights.sql to run against.
+-- Just enough of the schema for supabase/archive/admin-insights.sql to run against.
 do $$begin create role anon;exception when duplicate_object then null;end$$;
 do $$begin create role authenticated;exception when duplicate_object then null;end$$;
 create function public.is_admin() returns boolean language sql as $$select coalesce(current_setting('test.is_admin',true),'')='true'$$;

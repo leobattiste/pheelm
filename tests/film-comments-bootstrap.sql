@@ -1,5 +1,5 @@
 -- Just enough of Supabase and the live comments schema (as before film comments) for
--- supabase/film-comments.sql to run against.
+-- supabase/archive/film-comments.sql to run against.
 do $$begin create role anon;exception when duplicate_object then null;end$$;
 do $$begin create role authenticated;exception when duplicate_object then null;end$$;
 create schema if not exists auth;

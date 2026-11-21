@@ -9,7 +9,7 @@ export type DeleteState = { ok: boolean; message: string } | null;
 
 /**
  * Deletes the signed-in member's account: their profile, Watchlist, collections, follows,
- * comments and notifications go with it (supabase/account-settings.sql).
+ * comments and notifications go with it (supabase/archive/account-settings.sql).
  */
 export async function deleteAccount(_prev: DeleteState, f: FormData): Promise<DeleteState> {
   if (f.get("confirm") !== "DELETE") return { ok: false, message: "Type DELETE to confirm." };

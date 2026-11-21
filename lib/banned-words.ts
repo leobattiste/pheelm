@@ -1,6 +1,6 @@
 /**
  * Messages for text with a word from Pheelm's banned-word list. The database writes them (see
- * supabase/banned-words.sql): what kind of word it is, and what to write instead when there's an
+ * supabase/archive/banned-words.sql): what kind of word it is, and what to write instead when there's an
  * alternative, e.g. "Swearing isn't allowed on Pheelm. Try “b-word” instead." Shared by the server
  * and the browser, which shows them as a toast.
  */

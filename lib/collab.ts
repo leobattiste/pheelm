@@ -4,7 +4,7 @@ import type { Member } from "./community";
 export type MemberStatus = "invited" | "requested" | "active" | "declined";
 export type Person = Member & { status: MemberStatus; note: string | null; since: string };
 export type Collaboration = {
-  /** False until supabase/collaboration.sql has run; the page then leaves collaboration out. */
+  /** False until supabase/archive/collaboration.sql has run; the page then leaves collaboration out. */
   available: boolean;
   collaborators: Person[];
   /** Only the owner sees these two. */
