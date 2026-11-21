@@ -29,12 +29,12 @@ export const revalidate = 3600; // admin saves refresh it right away
 export const dynamicParams = true;
 
 /**
- * Only the featured films are built ahead of time. Every other film page is built the first time
- * someone opens it and then kept (and refreshed every five minutes), so the build stays small and
- * quick however many films there are.
+ * Every published film page is built at deploy time. The build reads the catalogue once and shares
+ * it across all of them, so it costs CPU, not database reads; a visitor never waits for a page to be
+ * built. A film added after the deploy is built the first time someone opens it, then kept.
  */
 export async function generateStaticParams() {
-  return (await getFilms()).filter((f) => f.featured).slice(0, 40).map((f) => ({ slug: f.slug }));
+  return (await getFilms()).map((f) => ({ slug: f.slug }));
 }
 
 type Params = { params: Promise<{ slug: string }> };
