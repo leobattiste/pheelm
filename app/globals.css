@@ -3296,3 +3296,46 @@ html:root:root:root:root:root:root:root:root:root:root .floating-controls .film-
   html:root:root:root:root:root:root:root:root:root:root[data-chrome="app"] .floating-controls > .film-bar.film-bar { width: auto; }
   html:root:root:root:root:root:root:root:root:root:root[data-chrome="app"] .film-floating { --film-dot: var(--tab-h, var(--bar-height)); }
 }
+
+
+/* Theme and Grid: each option is its own round button, like the film page's actions, the chosen
+   one solid (black in the light theme, white in the dark one). */
+html:root:root:root:root:root:root:root:root:root:root .option-dots {
+  display: inline-flex;
+  gap: 10px;
+  width: auto;
+  height: auto;
+  padding: 0;
+  border: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+html:root:root:root:root:root:root:root:root:root:root .option-dots > button {
+  flex: 0 0 var(--control);
+  display: grid;
+  place-items: center;
+  width: var(--control);
+  min-width: 0;
+  height: var(--control);
+  padding: 0;
+  border: 1px solid var(--line) !important;
+  border-radius: var(--pill);
+  background: var(--glass-bg) !important;
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  color: var(--ink);
+  box-shadow: none !important;
+}
+html:root:root:root:root:root:root:root:root:root:root .option-dots > button:hover { background: var(--glass-hover) !important; }
+html:root:root:root:root:root:root:root:root:root:root .option-dots > button[aria-checked="true"] {
+  border-color: transparent !important;
+  background: var(--ink) !important;
+  color: var(--on-ink) !important;
+}
+html:root:root:root:root:root:root:root:root:root:root .option-dots > button:focus-visible { box-shadow: var(--control-ring) !important; }
+.option-dots svg { width: var(--control-icon); height: var(--control-icon); }
+.grid-toggle.option-dots svg { fill: currentColor; }
+
+/* In the menu, above Log out: one row each, the label on the left and the buttons on the right. */
+.menu-view-settings { gap: var(--space-12); }
+.menu-setting { display: flex; align-items: center; justify-content: space-between; gap: var(--space-16); font-size: var(--t-md); color: var(--text); }

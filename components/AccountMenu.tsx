@@ -6,13 +6,23 @@ import { useEffect, useState, type ReactNode } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
 import Icon from "./Icon";
 import { openSignIn } from "./SignInSheet";
+import GridToggle from "./GridToggle";
+import ThemeToggle from "./ThemeToggle";
+
+/** Theme and poster view, each option its own round button, with a line above and below. */
+const VIEW_SETTINGS = (
+  <div className="menu-more menu-view-settings" role="group" aria-label="Display">
+    <div className="menu-setting"><span>Theme</span><ThemeToggle /></div>
+    <div className="menu-setting"><span>Grid</span><GridToggle /></div>
+  </div>
+);
 
 type Me = { email: string; handle: string | null; name: string | null; isPrivate: boolean | null; unread: number };
 
 /**
  * The account part of the menu. Signed out: Sign in. Signed in: Notifications (with a
- * count of new ones), Watchlist, Settings and
- * Log out.
+ * count of new ones), Watchlists, Settings, then Theme and Grid, then Log out. Profile is in
+ * the tab bar and the footer.
  */
 export default function AccountMenu({ onNavigate, children }: { onNavigate: () => void; children?: ReactNode }) {
   const path = usePathname();
@@ -58,7 +68,7 @@ export default function AccountMenu({ onNavigate, children }: { onNavigate: () =
       <><nav className="menu-more menu-account" aria-label="Account">
         <button type="button" className="menu-more-button" onClick={() => { onNavigate(); openSignIn("signin"); }}><Icon name="login" />Sign in</button>
         <p className="menu-note">Save films, make watchlists and follow directors.</p>
-      </nav>{children}</>
+      </nav>{children}{VIEW_SETTINGS}</>
     );
   }
 
@@ -66,7 +76,6 @@ export default function AccountMenu({ onNavigate, children }: { onNavigate: () =
 
   return (
     <><nav className="menu-more menu-account" aria-label="Your account">
-      <Link href={me.handle ? `/@${me.handle}` : "/profile"} aria-current={current(me.handle ? `/@${me.handle}` : "/profile")} onClick={onNavigate}><Icon name="userAccount" />Profile</Link>
       <Link href="/notifications" aria-current={current("/notifications")}>
         <Icon name="bell" />Notifications
         {me.unread > 0 && <span className="badge" aria-label={`${me.unread} new`}>{me.unread > 9 ? "9+" : me.unread}</span>}
@@ -75,6 +84,7 @@ export default function AccountMenu({ onNavigate, children }: { onNavigate: () =
       <Link href="/account" aria-current={current("/account")}><Icon name="gear" />Settings</Link>
     </nav>
     {children}
+    {VIEW_SETTINGS}
     <nav className="menu-more menu-account menu-signout" aria-label="Session">
       <form action="/auth/signout" method="post">
         <button type="submit" className="menu-more-button menu-logout"><Icon name="logout" />Log out</button>

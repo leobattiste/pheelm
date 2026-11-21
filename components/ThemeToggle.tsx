@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Icon from "./Icon";
 
 type Theme = "light" | "dark";
-const OPTIONS: { value: Theme; label: string }[] = [
-  { value: "light", label: "Light" },
-  { value: "dark", label: "Dark" },
+const OPTIONS: { value: Theme; label: string; icon: "sun" | "moon" }[] = [
+  { value: "light", label: "Light", icon: "sun" },
+  { value: "dark", label: "Dark", icon: "moon" },
 ];
 
 /** The theme on screen: the one picked, or the device's until something is picked. */
@@ -41,10 +42,10 @@ export default function ThemeToggle() {
   };
 
   return (
-    <div className="theme-toggle" role="radiogroup" aria-label="Theme">
+    <div className="theme-toggle option-dots" role="radiogroup" aria-label="Theme">
       {OPTIONS.map((o) => (
-        <button key={o.value} type="button" role="radio" aria-checked={theme === o.value} onClick={() => choose(o.value)}>
-          {o.label}
+        <button key={o.value} type="button" role="radio" aria-checked={theme === o.value} onClick={() => choose(o.value)} aria-label={o.label} title={o.label}>
+          <Icon name={o.icon} />
         </button>
       ))}
     </div>
