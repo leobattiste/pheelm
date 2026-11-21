@@ -28,7 +28,7 @@ export default function EmailForm({ email }: { email: string }) {
         <input type="email" value={value} onChange={(e) => setValue(e.target.value)} required autoComplete="email" />
       </label>
       {state && <p className={state.ok ? "notice ok" : "notice error"} role="status">{state.message}</p>}
-      <div className="actions"><button className="button ghost" type="submit" disabled={busy}>{busy ? "Sending…" : "Change email"}</button></div>
+      <div className="actions"><button className="button" type="submit" disabled={busy}>{busy ? "Sending…" : "Change email"}</button></div>
     </form>
   );
 }

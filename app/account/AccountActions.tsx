@@ -17,7 +17,7 @@ export function SignOutEverywhere() {
     toastNext("Signed out everywhere");
     window.location.assign("/");
   };
-  return <div className="form"><button type="button" className="button ghost" onClick={run} disabled={busy}>{busy ? "Signing out…" : "Sign out everywhere"}</button></div>;
+  return <div className="form"><button type="button" className="button" onClick={run} disabled={busy}>{busy ? "Signing out…" : "Sign out everywhere"}</button></div>;
 }
 
 /** Deletes the account and everything in it, once the member types DELETE to confirm. */
