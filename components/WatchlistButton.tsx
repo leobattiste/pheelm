@@ -11,6 +11,40 @@ import { openSignIn } from "./SignInSheet";
 
 type Status = "loading" | "signed-out" | "off" | "on";
 type List = { id: string; title: string; count: number; has: boolean; shared?: boolean };
+type Row = { id: string; title: string; list_films: { film_id: string }[] };
+type Mine = { own: Row[]; shared: Row[] };
+
+/**
+ * One copy of the member's watchlists per page, fetched ahead of time (as soon as we know who
+ * is signed in), so the picker opens with the lists already there instead of waiting on the
+ * database. Every save refreshes it.
+ */
+const LOAD_MS = 12_000;
+let mine: { userId: string; data: Promise<Mine> } | null = null;
+function fetchMine(userId: string, fresh = false): Promise<Mine> {
+  if (mine && mine.userId === userId && !fresh) return mine.data;
+  const data = (async () => {
+    const db = getBrowserClient();
+    if (!db) throw new Error("offline");
+    const work = Promise.all([
+      db.from("lists").select("id, title, list_films(film_id)").eq("user_id", userId).order("created_at"),
+      db.from("list_members").select("lists(id, title, list_films(film_id))").eq("user_id", userId).eq("status", "active"),
+    ]);
+    const late = new Promise<never>((_, fail) => setTimeout(() => fail(new Error("timeout")), LOAD_MS));
+    const [own, shared] = await Promise.race([work, late]);
+    if (own.error || shared.error) throw own.error ?? shared.error;
+    const sharedRows = ((shared.data ?? []) as unknown as { lists: Row | null }[]).map(r => r.lists).filter((l): l is Row => !!l);
+    return { own: (own.data ?? []) as Row[], shared: sharedRows };
+  })();
+  const entry = { userId, data };
+  mine = entry;
+  // A failed load isn't kept, so the next open (or Retry) asks again.
+  data.catch(() => { if (mine === entry) mine = null; });
+  return data;
+}
+/** Start loading the member's watchlists in the background. */
+export function warmWatchlists(userId: string) { void fetchMine(userId).catch(() => {}); }
+
 type Props = { filmId: string; filmTitle: string; pickerOnly?: boolean; initialUserId?: string; initialSaved?: boolean; onClose?: () => void };
 const CHECK = <Icon name="check" />;
 const PLUS = <Icon name="plus" />;
@@ -29,6 +63,8 @@ export default function WatchlistButton({ filmId, filmTitle, pickerOnly = false,
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [loadFailed, setLoadFailed] = useState(false);
+  const shown = useRef(false);
+  shown.current = lists !== null;
 
   useEffect(() => {
     let live = true;
@@ -52,20 +88,21 @@ export default function WatchlistButton({ filmId, filmTitle, pickerOnly = false,
     return () => { live = false; window.removeEventListener("watchlistchange", changed); };
   }, [filmId, initialUserId]);
 
-  const loadLists = useCallback(async () => {
-    const db = getBrowserClient();
-    if (!db || !userId) return;
+  const loadLists = useCallback(async (fresh = false) => {
+    if (!userId) return;
     setLoadFailed(false);
-    type Row = { id: string; title: string; list_films: { film_id: string }[] };
-    const [own, shared] = await Promise.all([
-      db.from("lists").select("id, title, list_films(film_id)").eq("user_id", userId).order("created_at"),
-      db.from("list_members").select("lists(id, title, list_films(film_id))").eq("user_id", userId).eq("status", "active"),
-    ]);
-    if (own.error || shared.error) { setLists(null); setLoadFailed(true); setError("Your watchlists couldn't be loaded. Try again."); return; }
     const toList = (l: Row, isShared: boolean): List => ({ id: l.id, title: l.title, count: l.list_films.length, has: l.list_films.some(f => f.film_id === filmId), shared: isShared });
-    const sharedLists = ((shared.data ?? []) as unknown as { lists: Row | null }[]).map(r => r.lists).filter((l): l is Row => !!l);
-    setLists([...(own.data ?? []).map((l: Row) => toList(l, false)), ...sharedLists.map(l => toList(l, true))]);
+    try {
+      const { own, shared } = await fetchMine(userId, fresh);
+      setLists([...own.map(l => toList(l, false)), ...shared.map(l => toList(l, true))]);
+    } catch {
+      // Keep what's on screen; only a first load shows the error.
+      if (!shown.current) { setLoadFailed(true); setError("Your watchlists couldn't be loaded. Try again."); }
+    }
   }, [filmId, userId]);
+
+  // Fetch ahead of time, so the picker opens ready.
+  useEffect(() => { if (userId) warmWatchlists(userId); }, [userId]);
 
   useEffect(() => {
     if (!pickerOnly || !userId) return;
@@ -78,7 +115,7 @@ export default function WatchlistButton({ filmId, filmTitle, pickerOnly = false,
     setStatus(saved ? "on" : "off");
     window.dispatchEvent(new CustomEvent("watchlistchange", { detail: { filmId, saved } }));
   };
-  const open = () => { setError(""); setLists(null); sheet.current?.showModal(); void loadLists(); };
+  const open = () => { setError(""); sheet.current?.showModal(); void loadLists(); };
   const setAll = async (remove: boolean, undo = false) => {
     const db = getBrowserClient();
     if (!db || !userId || busy) return;
@@ -89,7 +126,7 @@ export default function WatchlistButton({ filmId, filmTitle, pickerOnly = false,
     if (result.error) toast.error("Your watchlist couldn’t be updated. Try again.");
     else {
       mark(!remove);
-      if (remove) await loadLists();
+      if (remove) await loadLists(true);
       if (!undo) toast.success(remove ? `Removed ${filmTitle} from your Watchlist` : `Added ${filmTitle} to your Watchlist`, { action: { label: "Undo", run: () => { setBusy(false); return setAll(!remove, true); } } });
       else toast.success("Undone");
     }
@@ -107,7 +144,7 @@ export default function WatchlistButton({ filmId, filmTitle, pickerOnly = false,
     else {
       changed.current = true;
       if (add && !list.shared) mark(true);
-      await loadLists();
+      await loadLists(true);
       if (!undo) toast.success(add ? `Added to ${list.title}` : `Removed from ${list.title}`, { action: { label: "Undo", run: () => { setBusy(false); return setOnList(list, !add, true); } } });
       else toast.success("Undone");
     }
@@ -122,7 +159,7 @@ export default function WatchlistButton({ filmId, filmTitle, pickerOnly = false,
     setBusy(true); setError("");
     const { error } = await db.rpc("save_film_to_collection", { fid: filmId, collection_title: title });
     if (error) toast.error(isBannedWordMessage(error.message) ? error.message : "The watchlist couldn’t be created. Try again.");
-    else { mark(true); setNewTitle(""); await loadLists(); toast.success(`Created “${title}” and added ${filmTitle}`); }
+    else { mark(true); setNewTitle(""); await loadLists(true); toast.success(`Created “${title}” and added ${filmTitle}`); }
     setBusy(false);
   };
 
@@ -145,7 +182,7 @@ export default function WatchlistButton({ filmId, filmTitle, pickerOnly = false,
         <div className="modal-body" aria-busy={busy}>
           <ul className="save-lists">
             <li><button type="button" className="save-row" role="checkbox" aria-checked={status === "on"} disabled={busy} onClick={toggleAll}><span className={`save-check${status === "on" ? " is-on" : ""}`} aria-hidden="true">{status === "on" && CHECK}</span><span className="save-name">All</span><span className="save-count">Watchlist</span></button></li>
-            {lists === null ? <li className="save-note">{loadFailed ? <button type="button" className="link-button" onClick={() => { setError(""); void loadLists(); }}>Retry loading watchlists</button> : "Loading your watchlists…"}</li> : lists.map(l => <li key={l.id}><button type="button" className="save-row" role="checkbox" aria-checked={l.has} disabled={busy} onClick={() => void toggleList(l)}><span className={`save-check${l.has ? " is-on" : ""}`} aria-hidden="true">{l.has && CHECK}</span><span className="save-name">{l.title}{l.shared && <span className="tile-icon" title="Shared"><Icon name="users" label="Shared" /></span>}</span></button></li>)}
+            {lists === null ? <li className="save-note">{loadFailed ? <button type="button" className="link-button" onClick={() => { setError(""); void loadLists(true); }}>Retry loading watchlists</button> : "Loading your watchlists…"}</li> : lists.map(l => <li key={l.id}><button type="button" className="save-row" role="checkbox" aria-checked={l.has} disabled={busy} onClick={() => void toggleList(l)}><span className={`save-check${l.has ? " is-on" : ""}`} aria-hidden="true">{l.has && CHECK}</span><span className="save-name">{l.title}{l.shared && <span className="tile-icon" title="Shared"><Icon name="users" label="Shared" /></span>}</span></button></li>)}
           </ul>
           <form className="save-new" onSubmit={create}><label className="visually-hidden" htmlFor={`${id}-new`}>New watchlist name</label><input id={`${id}-new`} value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder="New watchlist, e.g. Date night" maxLength={80} disabled={busy} /><button className="button" type="submit" disabled={busy || !newTitle.trim()}>Create</button></form>
           {error && <p className="notice error" role="alert">{error}</p>}

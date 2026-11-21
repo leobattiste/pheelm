@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
 import Icon from "./Icon";
-import WatchlistButton from "./WatchlistButton";
+import WatchlistButton, { warmWatchlists } from "./WatchlistButton";
 
 // One look-up of the member's Watchlist for every card on the page.
 let authListenerReady = false;
@@ -26,6 +26,7 @@ function load() {
       const userId = data.session?.user.id;
       if (!userId) return null;
       const { data: rows } = await db.from("watchlist").select("film_id").eq("user_id", userId);
+      warmWatchlists(userId);
       return { userId, ids: new Set(((rows ?? []) as { film_id: string }[]).map((r) => r.film_id)) };
     })();
   }
