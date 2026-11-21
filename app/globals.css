@@ -1272,7 +1272,6 @@ h1, h2, .empty-state p:first-of-type, .decades a,
 .error-page { display: grid; gap: var(--space-16); padding-top: var(--space-64); }
 .error-detail { color: var(--muted); font-size: var(--t-xs); overflow-wrap: anywhere; }
 
-.follow { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--space-8) var(--space-12); }
 
 /* Profiles and the person sheet have no separator lines. */
 .person-sheet .modal-head, .signin-sheet .modal-head { border-bottom: 0; }
@@ -1611,13 +1610,7 @@ a.person-row-name:hover { text-decoration: underline; text-underline-offset: 0.2
 .more-panel .ask-sent { display: flex; align-items: center; justify-content: space-between; padding-right: 12px; }
 .more-panel .ask-sent .link-button:not(dialog *) { width: auto; min-height: 0; padding: 0; color: var(--muted); text-decoration: underline; }
 .more-panel .ask-sent .link-button:not(dialog *):hover { background: none; }
-.follow-note { color: var(--muted); font-size: var(--t-sm); }
-.follow-note:empty { display: none; }
-.follow .button[aria-pressed="true"] { border-color: transparent; }
 .notif-poster { object-fit: cover; border-radius: var(--r-square-media); }
-.more-panel .follow { display: contents; }
-.more-panel .follow-note { display: none; }
-.more-panel .follow .button[aria-pressed="true"] { border: 0; }
 
 /* The ⋯ menu sits in the top-right corner of the header, flush with its padding, no circle. */
 .person-head { position: relative; --head-pad: var(--space-16); }
