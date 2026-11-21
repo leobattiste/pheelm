@@ -23,7 +23,7 @@ The site starts with 74 films by 54 directors in 13 collections. It runs straigh
 
 The baseline is for an empty project and runs once. `seed.sql` is safe to run again: it refreshes the starter facts but keeps posters, trailers and viewing links you've added since. Email needs its secrets in the vault first (listed at the top of the baseline).
 
-Database changes from here on go in new, dated files in `supabase/migrations/`. To refresh the baseline from the live database, run `supabase/export-schema.sql` in the SQL editor and save the output. The other files in `supabase/` are the one-off scripts the baseline was built from, kept for history and for the database tests.
+Database changes from here on go in new, dated files in `supabase/migrations/`. To refresh the baseline from the live database, run `supabase/export-schema.sql` in the SQL editor and save the output. The one-off scripts the baseline was built from are in `supabase/archive/`, kept for history and for the database tests.
 
 ### 2. Deploy on Vercel
 
@@ -100,4 +100,4 @@ Pheelm is dark by default (visitors can switch to light in the footer). Everythi
 
 The home page's film of the week rotates through films marked "Feature on the home page", preferring those with a still. Search opens with ⌘K, Ctrl+K or "/".
 
-Search discovery uses an editorial pool of internationally recognized films intersected with the published catalog. Selection advances every Monday at 00:00 UTC at request time, so no scheduling job is needed. At least 24 eligible films prevents adjacent-week repeats. Run `supabase/film-publication-date.sql` for publication dates independent of draft creation; historical films fall back to their added date.
+Search discovery uses an editorial pool of internationally recognized films intersected with the published catalog. Selection advances every Monday at 00:00 UTC at request time, so no scheduling job is needed. At least 24 eligible films prevents adjacent-week repeats. Run `supabase/archive/film-publication-date.sql` for publication dates independent of draft creation; historical films fall back to their added date.

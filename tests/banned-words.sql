@@ -1,4 +1,4 @@
--- Checks for supabase/banned-words.sql. Run after tests/banned-words-bootstrap.sql and the migration.
+-- Checks for supabase/archive/banned-words.sql. Run after tests/banned-words-bootstrap.sql and the migration.
 begin;
 -- Caught, with tricks: case, look-alikes, punctuation between letters, stretched letters, endings.
 do $$declare t text; got text; begin

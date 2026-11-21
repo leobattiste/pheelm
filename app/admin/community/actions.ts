@@ -34,14 +34,14 @@ export async function deleteWatchlist(f: FormData) {
   const { data: list } = await db.from("lists").select("title").eq("id", listId).maybeSingle();
   const { error, count } = await db.from("lists").delete({ count: "exact" }).eq("id", listId);
   if (error) throw new Error(error.message);
-  if (!count) throw new Error("The watchlist couldn't be deleted. Run supabase/admin-community.sql in Supabase first.");
+  if (!count) throw new Error("The watchlist couldn't be deleted. Run supabase/archive/admin-community.sql in Supabase first.");
   await logAdminActivity(db, "Deleted watchlist", "collection", null, list?.title ?? "");
   revalidatePath("/admin", "layout");
   revalidatePath("/watchlists");
   redirect(back(f) ?? "/admin/community/watchlists");
 }
 
-/** Adds a word to the banned list (see supabase/banned-words.sql), or changes its kind and suggested alternative. */
+/** Adds a word to the banned list (see supabase/archive/banned-words.sql), or changes its kind and suggested alternative. */
 export async function addBannedWord(f: FormData) {
   const db = await adminClient();
   const word = String(f.get("word") ?? "");

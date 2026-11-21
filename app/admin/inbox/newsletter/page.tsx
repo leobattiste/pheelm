@@ -33,7 +33,7 @@ export default async function NewsletterPage({ searchParams }: { searchParams: P
   if (countError) {
     return <>
       <PageHeader back={{ href: "/admin/inbox", label: "Inbox" }} title="Newsletter" />
-      <p className="notice error">The newsletter list couldn&apos;t load. If this keeps happening, run <code>supabase/admin-inbox.sql</code> in Supabase.</p>
+      <p className="notice error">The newsletter list couldn&apos;t load. If this keeps happening, run <code>supabase/archive/admin-inbox.sql</code> in Supabase.</p>
     </>;
   }
 

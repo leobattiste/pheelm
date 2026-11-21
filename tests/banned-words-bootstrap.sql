@@ -1,4 +1,4 @@
--- Just enough of Supabase and the existing schema for supabase/banned-words.sql to run against.
+-- Just enough of Supabase and the existing schema for supabase/archive/banned-words.sql to run against.
 do $$begin create role anon;exception when duplicate_object then null;end$$;
 do $$begin create role authenticated;exception when duplicate_object then null;end$$;
 create schema if not exists auth;

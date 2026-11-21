@@ -8,7 +8,8 @@ import CommunityTile from "@/components/CommunityTile";
 import { FilmGrid } from "@/components/FilmCard";
 import Poster from "@/components/Poster";
 import { enrich, type Row as CommunityRow } from "@/lib/community";
-import { getDirectors, getFilms, toCard, toDirectorSummary } from "@/lib/data";
+import { getFilmCards } from "@/lib/data";
+import { directorSummaries } from "@/lib/catalog-summaries";
 import DirectorCard from "@/components/DirectorCard";
 import Tabs from "@/components/Tabs";
 import { tintStyle } from "@/lib/format";
@@ -45,17 +46,18 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
   if (sp.c === "following" || sp.c === "saved") redirect("/me");
   if (sp.c === "submissions") redirect("/submit");
 
-  const [{ data: saved }, listsResult, savedResult, films, sharedResult, followsResult, directors] = await Promise.all([
+  const [{ data: saved }, listsResult, savedResult, sharedResult, followsResult, directors] = await Promise.all([
     db.from("watchlist").select("film_id, added_at").eq("user_id", user.id).order("added_at", { ascending: false }),
     db.from("lists").select(LIST_COLS).eq("user_id", user.id).order("created_at", { ascending: false }),
     db.from("list_saves").select("created_at, lists(id, slug, title, description, staff_pick, created_at, user_id, list_films(film_id, added_at))").eq("user_id", user.id).order("created_at", { ascending: false }),
-    getFilms(),
     // Collections you collaborate on. Until collaboration.sql has run, none.
     db.from("list_members").select("list_id").eq("user_id", user.id).eq("status", "active"),
     db.from("follows").select("person_id, created_at").eq("user_id", user.id).order("created_at", { ascending: false }),
-    getDirectors(),
+    directorSummaries(),
   ]);
 
+  // Just your saved films, as cards: not the whole catalogue.
+  const films = await getFilmCards(((saved ?? []) as { film_id: string }[]).map((r) => r.film_id));
   const byId = new Map(films.map((f) => [f.id, f]));
   const all = (saved ?? []).map((r) => byId.get(r.film_id)).filter((f) => f !== undefined);
 
@@ -69,7 +71,7 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
           <p className="lead">Everything you&rsquo;ve saved, newest first.</p>
         </header>
         {all.length ? (
-          <FilmGrid films={all.map(toCard)} />
+          <FilmGrid films={all} />
         ) : (
           <div className="empty-state">
             <Icon name="bookmark" className="empty-icon" />
@@ -118,7 +120,7 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
                       {[0, 1, 2].map((i) => {
                         const f = latest[i];
                         return f
-                          ? <Poster key={f.id} title={f.title} year={f.year} directors={f.directors.map((d) => d.name)} src={f.poster_url} sizes="140px" />
+                          ? <Poster key={f.id} title={f.title} year={f.year} directors={f.directors} src={f.poster_url} sizes="140px" />
                           : <span key={`empty-${i}`} className="poster poster-empty" />;
                       })}
                     </span>
@@ -161,7 +163,7 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
                 {followed.length > 0 && (
                   <section className="film-section" aria-labelledby="following-directors-h">
                     <h2 id="following-directors-h">Directors</h2>
-                    <ul className="director-grid">{followed.map((d) => <DirectorCard key={d.id} director={toDirectorSummary(d)} />)}</ul>
+                    <ul className="director-grid">{followed.map((d) => <DirectorCard key={d.id} director={d} />)}</ul>
                   </section>
                 )}
               </>

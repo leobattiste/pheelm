@@ -1,4 +1,4 @@
--- Checks for supabase/film-comments.sql. Run after tests/film-comments-bootstrap.sql and the migration.
+-- Checks for supabase/archive/film-comments.sql. Run after tests/film-comments-bootstrap.sql and the migration.
 begin;
 create function pg_temp.as_user(who text) returns void language sql as $$select set_config('request.jwt.claim.sub', who, true)$$;
 set local role authenticated;

@@ -1,4 +1,4 @@
--- Checks for supabase/admin-community.sql. Run after tests/admin-community-bootstrap.sql and the migration.
+-- Checks for supabase/archive/admin-community.sql. Run after tests/admin-community-bootstrap.sql and the migration.
 begin;
 create function pg_temp.as_user(who text) returns void language sql as $$select set_config('request.jwt.claim.sub', who, true)$$;
 -- Members can't suspend anyone.

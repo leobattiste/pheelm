@@ -202,7 +202,7 @@ async function fetchCatalog(db: SupabaseClient): Promise<Raw> {
     ]);
     if (!films.length) {
       // An empty catalog is a setup step locally and a broken deploy in production.
-      if (building()) throw new Error("Supabase returned no published films. Check the keys, and that supabase/schema.sql and seed.sql have run.");
+      if (building()) throw new Error("Supabase returned no published films. Check the keys, and that the baseline in supabase/migrations and supabase/seed.sql have run.");
       console.warn("⚠ Supabase has no published films yet, so the starter catalog is shown. Run supabase/seed.sql.");
       return local as unknown as Raw;
     }
@@ -212,7 +212,7 @@ async function fetchCatalog(db: SupabaseClient): Promise<Raw> {
     // catalog, which quietly published a site of 74 films with no posters; Vercel keeps serving
     // the previous deploy instead, which is what a failed build should leave behind.
     if (building()) {
-      console.error(`⚠ Build stopped: ${e instanceof Error ? e.message : e}\n  Check the Supabase keys and that supabase/schema.sql and seed.sql have run.`);
+      console.error(`⚠ Build stopped: ${e instanceof Error ? e.message : e}\n  Check the Supabase keys and that the baseline in supabase/migrations and supabase/seed.sql have run.`);
     }
     // On the live site, failing keeps the last good version of the page on screen.
     throw e;

@@ -31,7 +31,7 @@ export default async function AnalyticsPage() {
         <Stat value={watched.count ?? 0} label="Films marked watched" />
       </Stats>
       <Panel title="The last six months" icon="calendar">
-        {monthly.error ? <p className="notice error">Monthly numbers couldn&apos;t load. If this keeps happening, run <code>supabase/admin-insights.sql</code> in Supabase.</p> : (
+        {monthly.error ? <p className="notice error">Monthly numbers couldn&apos;t load. If this keeps happening, run <code>supabase/archive/admin-insights.sql</code> in Supabase.</p> : (
           <>
             <p className="muted">New records each month. These aren&apos;t page views or visitors.</p>
             <div className="admin-chart" role="img" aria-label="New films, members, watchlists and watchlist saves each month">

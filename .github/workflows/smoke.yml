@@ -56,6 +56,8 @@ jobs:
       - run: node tests/profile-about-browser.mjs
       - run: node tests/profile-activity-browser.mjs
       - run: node tests/tabs-browser.mjs
+      - run: node tests/browser-request-timeout.mjs
+      - run: node tests/film-comments-browser.mjs
       - run: node tests/admin-catalog-toolbar-browser.mjs
       - run: node tests/admin-catalog-toolbar-browser.mjs
         env:
@@ -97,13 +99,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: psql -v ON_ERROR_STOP=1 -f tests/email-bootstrap.sql
-      - run: psql -v ON_ERROR_STOP=1 -f supabase/email-system.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/archive/email-system.sql
       - run: psql -v ON_ERROR_STOP=1 -f tests/email-system.sql
       - run: psql -v ON_ERROR_STOP=1 -f tests/catalog-digest-bootstrap.sql
-      - run: psql -v ON_ERROR_STOP=1 -f supabase/catalog-digest.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/archive/catalog-digest.sql
       - run: psql -v ON_ERROR_STOP=1 -f tests/catalog-digest.sql
-      - run: psql -v ON_ERROR_STOP=1 -f supabase/activity-emails.sql
-      - run: psql -v ON_ERROR_STOP=1 -f supabase/activity-emails.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/archive/activity-emails.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/archive/activity-emails.sql
       - run: psql -v ON_ERROR_STOP=1 -f tests/activity-emails.sql
 
   profile-database:
@@ -129,13 +131,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: psql -v ON_ERROR_STOP=1 -f tests/profile-about-bootstrap.sql
-      - run: psql -v ON_ERROR_STOP=1 -f supabase/profile-about.sql
-      - run: psql -v ON_ERROR_STOP=1 -f supabase/leo-bio.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/archive/profile-about.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/archive/leo-bio.sql
       - run: psql -v ON_ERROR_STOP=1 -f tests/profile-about.sql
       - run: psql -v ON_ERROR_STOP=1 -f tests/leo-bio.sql
       - run: psql -v ON_ERROR_STOP=1 -f tests/watchlist-slugs-bootstrap.sql
-      - run: psql -v ON_ERROR_STOP=1 -f supabase/watchlist-slugs.sql
-      - run: psql -v ON_ERROR_STOP=1 -f supabase/watchlist-slug-normalization.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/archive/watchlist-slugs.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/archive/watchlist-slug-normalization.sql
       - run: psql -v ON_ERROR_STOP=1 -f tests/watchlist-slugs.sql
 
   admin-database:
@@ -161,8 +163,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: psql -v ON_ERROR_STOP=1 -f tests/admin-inbox-bootstrap.sql
-      - run: psql -v ON_ERROR_STOP=1 -f supabase/admin-inbox.sql
-      - run: psql -v ON_ERROR_STOP=1 -f supabase/admin-inbox.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/archive/admin-inbox.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/archive/admin-inbox.sql
       - run: psql -v ON_ERROR_STOP=1 -f tests/admin-inbox.sql
 
   admin-community-database:
@@ -188,8 +190,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: psql -v ON_ERROR_STOP=1 -f tests/admin-community-bootstrap.sql
-      - run: psql -v ON_ERROR_STOP=1 -f supabase/admin-community.sql
-      - run: psql -v ON_ERROR_STOP=1 -f supabase/admin-community.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/archive/admin-community.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/archive/admin-community.sql
       - run: psql -v ON_ERROR_STOP=1 -f tests/admin-community.sql
 
   film-comments-database:
@@ -215,8 +217,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: psql -v ON_ERROR_STOP=1 -f tests/film-comments-bootstrap.sql
-      - run: psql -v ON_ERROR_STOP=1 -f supabase/film-comments.sql
-      - run: psql -v ON_ERROR_STOP=1 -f supabase/film-comments.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/archive/film-comments.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/archive/film-comments.sql
       - run: psql -v ON_ERROR_STOP=1 -f tests/film-comments.sql
 
   banned-words-database:
@@ -242,8 +244,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: psql -v ON_ERROR_STOP=1 -f tests/banned-words-bootstrap.sql
-      - run: psql -v ON_ERROR_STOP=1 -f supabase/banned-words.sql
-      - run: psql -v ON_ERROR_STOP=1 -f supabase/banned-words.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/archive/banned-words.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/archive/banned-words.sql
       - run: psql -v ON_ERROR_STOP=1 -f tests/banned-words.sql
 
   admin-insights-database:
@@ -269,8 +271,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: psql -v ON_ERROR_STOP=1 -f tests/admin-insights-bootstrap.sql
-      - run: psql -v ON_ERROR_STOP=1 -f supabase/admin-insights.sql
-      - run: psql -v ON_ERROR_STOP=1 -f supabase/admin-insights.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/archive/admin-insights.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/archive/admin-insights.sql
       - run: psql -v ON_ERROR_STOP=1 -f tests/admin-insights.sql
 
   member-follows-database:
@@ -296,7 +298,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: psql -v ON_ERROR_STOP=1 -f tests/member-follows-bootstrap.sql
-      - run: psql -v ON_ERROR_STOP=1 -f supabase/member-follows.sql
-      - run: psql -v ON_ERROR_STOP=1 -f supabase/member-follows.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/archive/member-follows.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/archive/member-follows.sql
       - run: psql -v ON_ERROR_STOP=1 -f tests/member-follows.sql
       - run: psql -v ON_ERROR_STOP=1 -f tests/film-publication.sql

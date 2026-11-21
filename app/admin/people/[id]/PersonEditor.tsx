@@ -25,7 +25,7 @@ export default function PersonEditor({ person }: { person: PersonRow }) {
         <label className="field">Portrait link<input name="photo_url" type="url" defaultValue={person.photo_url ?? ""} /></label>
         <label className="field">…or upload<input name="photo_file" type="file" accept="image/jpeg,image/png,image/webp" /></label>
       </div>
-      {/* Shown once the database has the column (supabase/collection-follows.sql). */}
+      {/* Shown once the database has the column (supabase/archive/collection-follows.sql). */}
       {"in_directory" in person && (
         <label className="check">
           <input type="hidden" name="has_in_directory" value="1" />
