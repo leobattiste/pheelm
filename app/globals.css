@@ -3259,3 +3259,40 @@ html:root:root:root:root:root:root:root:root:root:root :is(.film-page, .film-bar
 .feed-choice legend { padding: 0; margin-bottom: var(--space-8); font-size: var(--t-sm); font-weight: 700; color: var(--ink); }
 .feed-choice .filter-choices { display: flex; flex-wrap: nowrap; gap: var(--space-8); }
 .feed-choice .filter-choices .button { flex: 1 1 0; min-width: 0; justify-content: center; padding-inline: var(--space-12); }
+
+/* Film page floating actions: Trailer, Watchlist and Share are three separate round buttons,
+   each the same size and glass as the top button, instead of one shared pill. */
+/* Four equal circles (with the top button) fill exactly the menu bar's width. */
+.film-floating { --film-dot: min(var(--tab-h, var(--bar-height)), calc((var(--floating-width) - 30px) / 4)); }
+html:root:root:root:root:root:root:root:root:root:root .floating-controls.film-floating > .back-to-top {
+  flex: 0 0 var(--film-dot);
+  width: var(--film-dot);
+  height: var(--film-dot);
+}
+html:root:root:root:root:root:root:root:root:root:root .floating-controls > .film-bar.film-bar {
+  flex: 1 1 auto;
+  height: var(--film-dot);
+  justify-content: space-between;
+  gap: 10px;
+  border: 0 !important;
+  background: transparent !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+html:root:root:root:root:root:root:root:root:root:root .floating-controls .film-bar > :is(.pill-button, .round-button) {
+  flex: 0 0 var(--film-dot);
+  width: var(--film-dot);
+  min-width: 0;
+  height: var(--film-dot);
+  border: 1px solid var(--line) !important;
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+}
+html:root:root:root:root:root:root:root:root:root:root .floating-controls .film-bar > :is(.pill-button, .round-button):hover { background: var(--glass-hover); }
+html:root:root:root:root:root:root:root:root:root:root .floating-controls .film-bar > .pill-button.primary { border-color: transparent !important; }
+@media (min-width: 900px) {
+  html:root:root:root:root:root:root:root:root:root:root[data-chrome="app"] .floating-controls > .film-bar.film-bar { width: auto; }
+  html:root:root:root:root:root:root:root:root:root:root[data-chrome="app"] .film-floating { --film-dot: var(--tab-h, var(--bar-height)); }
+}
