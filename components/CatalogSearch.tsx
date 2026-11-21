@@ -19,6 +19,8 @@ type HistoryItem = {
     state: SearchState;
 };
 const PAGE = PAGE_SIZE;
+/** Searches already sent to Admin → Searches during this visit, so each is counted once. */
+const loggedMisses = new Set<string>();
 let documentVisitId: string | undefined;
 function SearchField({ mode, value, onChange, results, history, onClearHistory, onHistory, onSubmit, onVisit, proposal }: {
     mode: SearchMode;
@@ -208,6 +210,18 @@ function Browser({ entries: packed, mode, afterSearch }: {
     const correction = useMemo(() => state.q ? (rows.length > 0 && rows[0].score === 450 ? rows[0].entry.title : rows.length === 0 && !index.some(i => relevance(i, state.q!) > 0) ? spellingCorrection(index, state.q) : null) : null, [state.q, rows, index]);
     const matchingIndex = useMemo(() => filtersOpen ? index.filter(i => relevance(i, state.q ?? '') > 0) : [], [index, state.q, filtersOpen]);
     const relaxed = state.q && active.length ? searchEntries(index, { q: state.q, sort: state.sort }, mode).length : 0;
+    // Words that match nothing in the whole catalogue, whatever the filters, go to Admin → Searches
+    // so admins can see what people look for and Pheelm lacks. Only once the visitor has stopped
+    // typing, once per search per visit; the database keeps just the words and a count.
+    useEffect(() => {
+        const q = state.q?.trim().toLowerCase().replace(/\s+/g, ' ') ?? '';
+        if (q.length < 3 || q.length > 120 || loggedMisses.has(q) || index.some(i => relevance(i, q) > 0)) return;
+        const wait = setTimeout(() => {
+            loggedMisses.add(q);
+            void getBrowserClient()?.rpc('log_search_miss', { q }).then(() => {}, () => {});
+        }, 1500);
+        return () => clearTimeout(wait);
+    }, [state.q, index]);
     const options = (key: SearchKey): [
         string,
         string

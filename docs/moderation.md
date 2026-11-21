@@ -1,29 +1,38 @@
-# Pheelm: OpenAI content moderation
+# Pheelm: content moderation
 
-Scope: new and edited collection comments, profile bios, and collection/watchlist descriptions. Existing content is not automatically rescanned. The public interface and styling are unchanged.
+Scope: new and edited collection comments, profile bios, and collection/watchlist descriptions.
 
-## Activation (do not skip the order)
+Pheelm moderates with its own banned-word list, kept in the database. It replaced the earlier
+OpenAI Moderation check (`supabase/content-moderation.sql`), which is no longer used: no outside
+service sees members' text, and no API key is needed for moderation.
 
-1. Obtain an OpenAI API key for the [Moderation API](https://developers.openai.com/api/docs/guides/moderation). Do not paste or commit the key.
-2. In Vercel > Pheelm > Environment Variables, set `OPENAI_API_KEY` as a server-only secret for production and desired previews. Verify `SUPABASE_SERVICE_ROLE_KEY` is configured server-side. Never use `NEXT_PUBLIC_` for either secret.
-3. Merge/deploy the code in this PR, and confirm the site build succeeds.
-4. Apply `supabase/content-moderation.sql` to Pheelm's Supabase project, after the new server code is deployed. Applying it early blocks all newly submitted comment/bio/description text without a receipt.
-5. Test: publish a normal comment, edit it, update a bio, update a collection description, and confirm they save. Try a slur or explicit abusive comment, which should receive a clear message without saving. Try a direct authenticated Supabase REST write with a new non-empty comment: the database should reject it. Also verify unrelated watchlist changes and clearing a bio still work.
-6. If a moderation call fails or a key is missing, the content is not published; the user sees a retry message. Check the server logs and environment.
+## How it works
 
-## Behavior
+1. **Before saving**, the server calls `check_text` (`lib/moderation.ts`). If the text has a banned
+   word, the member is told what kind of word it is, never the word itself, and for some words what
+   to write instead ("Swearing isn't allowed on Pheelm. Try “b-word” instead."). Their text stays
+   in the form so they can edit it.
+2. **As a backstop**, the `refuse_banned_words` triggers on comments, profiles and lists refuse the
+   same words, so a direct request to Supabase can't get around the check.
+3. **Each refusal is logged** in `private.moderation_refusals` (who, which field, a short excerpt,
+   the reason), kept for 90 days and capped at 30 per member per hour. Admins see it at
+   **Admin → Community → Moderation**.
 
-- `lib/moderation.ts` makes the OpenAI API call from the Next.js server, never the browser.
-- The model is `omni-moderation-latest`. Severe policy categories and common explicit profanity are rejected. General mentions of violence or difficult topics in film analysis are not automatically rejected.
-- An approved text receives a short-lived, single-use receipt in a private database table, linked to the signed-in user and exact text. Database triggers consume the receipt and reject unmoderated browser writes. Clearing text is allowed.
-- Rejections preserve form content so the member can edit it. Ordinary comments are shown only after successful moderation and saving.
-- The existing database RLS, comment length limits, blocked-user rules, rate limits and reporting remain in force.
-- Film titles, director names, admin editorial metadata, and older submissions are intentionally outside this initial scope.
+Matching rules, the word kinds and how to add a word by SQL are described at the top of
+`supabase/banned-words.sql`.
+
+## Managing the list
+
+Add, edit or remove words at **Admin → Community → Banned words**. Each word has a kind (swearing,
+sexist, racist, antisemitic, homophobic, transphobic, ableist) and an optional suggestion to use
+instead.
 
 ## Operational notes
 
-Moderation is classification, not perfect context understanding. Review reports and appeals manually, particularly for film history, quotation, and reclaimed language. The profanity regex is a supplement, not an exhaustive language or slur detector. Never log submitted text or API keys.
+A word list is a supplement, not a full understanding of context. Review reports at
+**Admin → Community** manually, particularly for film history, quotation and reclaimed language.
+Matching is whole-word, so place names like "Scunthorpe" pass; if a legitimate word is refused,
+remove or narrow the entry.
 
-To disable moderation safely, revert the database triggers with a reviewed migration as well as the server actions; merely deleting `OPENAI_API_KEY` will cause new text to fail closed.
-
-The API may process submitted text externally. Disclose moderation processing in Pheelm's privacy information before launch.
+The database's row-level security, comment length limits, blocked-member rules, rate limits and
+reporting all stay in force alongside the word list.
