@@ -93,7 +93,7 @@ export default async function AccountPage() {
             <h2 id="signout-h">Sign out</h2>
             <p className="muted">Sign out here, or everywhere you&rsquo;re signed in, if you used a shared or lost device.</p>
             <div className="actions">
-              <form action="/auth/signout" method="post"><button className="button ghost" type="submit">Sign out</button></form>
+              <form action="/auth/signout" method="post"><button className="button" type="submit">Sign out</button></form>
               <SignOutEverywhere />
             </div>
           </section>

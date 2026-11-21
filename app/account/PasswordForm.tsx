@@ -62,7 +62,7 @@ export default function PasswordForm({ hasPassword }: { hasPassword: boolean }) 
         </label>
       )}
       {state && <p className={state.ok ? "notice ok" : "notice error"} role="status">{state.message}</p>}
-      <div className="actions"><button className="button ghost" type="submit" disabled={busy}>{busy ? "Saving…" : has ? "Change password" : "Set password"}</button></div>
+      <div className="actions"><button className="button" type="submit" disabled={busy}>{busy ? "Saving…" : has ? "Change password" : "Set password"}</button></div>
     </form>
   );
 }
