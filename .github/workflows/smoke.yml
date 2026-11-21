@@ -30,6 +30,7 @@ jobs:
       - run: npm run email:preview
       - run: node scripts/export-auth-emails.mjs
       - run: node tests/email-security.mjs
+      - run: node tests/email-worker-send.mjs
       - run: node tests/film-submissions.mjs
         env:
           BROWSER: webkit
@@ -61,6 +62,7 @@ jobs:
       - run: node tests/film-comments-browser.mjs
       - run: node tests/watchlist-picker-ready.mjs
       - run: node tests/my-rows-browser.mjs
+      - run: node tests/admin-send-browser.mjs
       - run: node tests/admin-catalog-toolbar-browser.mjs
       - run: node tests/admin-catalog-toolbar-browser.mjs
         env:
@@ -110,6 +112,10 @@ jobs:
       - run: psql -v ON_ERROR_STOP=1 -f supabase/archive/activity-emails.sql
       - run: psql -v ON_ERROR_STOP=1 -f supabase/archive/activity-emails.sql
       - run: psql -v ON_ERROR_STOP=1 -f tests/activity-emails.sql
+      - run: psql -v ON_ERROR_STOP=1 -f tests/admin-send-bootstrap.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261121230000_admin_send.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261121230000_admin_send.sql
+      - run: psql -v ON_ERROR_STOP=1 -f tests/admin-send.sql
 
   profile-database:
     runs-on: ubuntu-latest

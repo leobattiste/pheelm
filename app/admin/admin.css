@@ -425,3 +425,15 @@ a.admin-attention-row:hover, .admin-attention-row a:hover { color: var(--ink); }
 }
 .admin-menu-list .admin-menu-item { justify-content: flex-start; width: 100%; }
 .admin-menu-list .admin-menu-item.danger-text { color: var(--danger, #e5484d); }
+
+/* Admin → Send */
+.admin-send { gap: var(--space-20); }
+.admin-send-group { border: 0; padding: 0; margin: 0; display: grid; gap: var(--space-8); min-width: 0; }
+.admin-send-group legend { font-weight: 700; font-size: var(--t-sm); padding: 0; margin-bottom: var(--space-8); }
+.admin-send-channels { display: flex; flex-wrap: wrap; gap: var(--space-12) var(--space-24); }
+.admin-send-link { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: var(--space-12); }
+@media (max-width: 600px) { .admin-send-link { grid-template-columns: minmax(0, 1fr); } }
+.admin-send-reach { margin: 0; color: var(--muted); }
+.admin-send-reach strong { color: var(--ink); }
+.admin-send-confirm { align-items: center; }
+.admin-send-confirm > span { flex: 1 1 100%; font-weight: 700; }

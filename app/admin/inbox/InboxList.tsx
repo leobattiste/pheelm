@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Icon from "@/components/Icon";
 import { requireAdmin } from "@/lib/admin";
 import { BOXES, STAGES, TOPIC_LABEL, type InboxBox } from "@/lib/inbox";
 import AdminBrowserToolbar from "../AdminBrowserToolbar";
@@ -70,7 +71,8 @@ export default async function InboxList({ box, searchParams }: { box?: InboxBox;
 
   return (
     <>
-      <PageHeader title="Inbox" description={info?.about ?? "Everything people send through the contact, feedback and partnership forms."} />
+      <PageHeader title="Inbox" description={info?.about ?? "Everything people send through the contact, feedback and partnership forms."}
+        actions={<Link className="button small" href="/admin/inbox/send"><Icon name="send" />Send a message</Link>} />
       <div className="admin-filter-row">
         <AdminMenu label="Which messages" align="left" text={info?.label ?? "All messages"}>
           <Link href="/admin/inbox" aria-current={!box ? "page" : undefined}>All messages</Link>
