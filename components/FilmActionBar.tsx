@@ -41,7 +41,7 @@ export default function FilmActionBar({ title }: { title: string }) {
   return (
     <div className="floating-controls film-floating">
       <div className="film-bar" data-show={show} aria-hidden={!show} inert={!show}>
-        <button type="button" className="pill-button" onClick={() => press("trailer")} aria-label="Trailer" title="Trailer">
+        <button type="button" className="pill-button primary" onClick={() => press("trailer")} aria-label="Trailer" title="Trailer">
           <Icon name="play" className="solid" />
         </button>
         <button type="button" className="pill-button" aria-pressed={saved} onClick={() => press("watchlist")} aria-label={saved ? "Change watchlists" : "Add to watchlist"} title={saved ? "Change watchlists" : "Add to watchlist"}>

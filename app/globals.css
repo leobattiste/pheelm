@@ -3483,3 +3483,17 @@ body:has(.film-page) {
     background-size: 100% 70vh;
   }
 }
+
+/* Trailer is the same on every film: solid ink (black in the light theme, white in the dark one),
+   never the film's poster colour. Ten :root to clear the film-colour rule above, whose :is() counts as four classes. */
+html:root:root:root:root:root:root:root:root:root:root :is(.film-page, .film-bar) .pill-button.primary:not(:disabled):not(dialog *) {
+  background: var(--ink) !important;
+  color: var(--on-ink) !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+@media (hover: hover) {
+  html:root:root:root:root:root:root:root:root:root:root :is(.film-page, .film-bar) .pill-button.primary:not(:disabled):not(dialog *):hover {
+    background: color-mix(in srgb, var(--ink) 86%, var(--bg)) !important;
+  }
+}
