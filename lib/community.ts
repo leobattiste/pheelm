@@ -142,22 +142,6 @@ export const getMemberProfile = cache(async (handle: string): Promise<Member | n
   return data as Member | null;
 });
 
-/** A member by their handle, with all their public collections (any size). */
-export async function getMember(handle: string) {
-  const db = anon();
-  if (!db) return null;
-  const member = await getMemberProfile(handle);
-  if (!member) return null;
-  const { data } = await lists((cols) => db
-    .from("lists")
-    .select(cols)
-    .eq("is_public", true)
-    .eq("user_id", member.id)
-    .order("created_at", { ascending: false }));
-  const collections = (await enrich((data ?? []) as unknown as Row[])).sort(order.popular);
-  return { member, collections };
-}
-
 /** The owner and save count for one collection page. */
 export async function collectionExtras(listId: string, userId: string) {
   const db = anon();
@@ -167,20 +151,6 @@ export async function collectionExtras(listId: string, userId: string) {
     db.from("list_save_counts").select("saves").eq("list_id", listId).maybeSingle(),
   ]);
   return { owner: (owner as unknown as Member | null) ?? null, saves: (counts.data as { saves: number } | null)?.saves ?? 0 };
-}
-
-/** Public collections a member collaborates on (not their own). Empty until collaboration.sql has run. */
-export async function getCollaboratingOn(memberId: string): Promise<CommunityCollection[]> {
-  const db = anon();
-  if (!db) return [];
-  const { data: rows, error } = await db.from("list_members").select("list_id").eq("user_id", memberId).eq("status", "active");
-  if (error || !rows?.length) return [];
-  const { data } = await lists((cols) => db
-    .from("lists")
-    .select(cols)
-    .eq("is_public", true)
-    .in("id", (rows as { list_id: string }[]).map((r) => r.list_id)));
-  return (await enrich((data ?? []) as unknown as Row[])).sort(order.popular);
 }
 
 /** The collection that used to live at /collections/<slug>, before Pheelm's own moved into @leo's. */
@@ -202,7 +172,6 @@ export async function getPublicProfileHandles():Promise<string[]> {
   if(!data || data.length<1000)return handles;
  }
 }
-
 
 /**
  * Every qualifying collection for the Watchlists page, read without loading the whole film

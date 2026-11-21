@@ -102,12 +102,6 @@ export function Pill({ tone = "neutral", children }: { tone?: PillTone; children
   return <span className={`status-pill tone-${tone}`}>{children}</span>;
 }
 
-/** A count badge, hidden at zero. */
-export function Count({ value, label }: { value: number; label?: string }) {
-  if (!value) return null;
-  return <span className="admin-count" aria-label={label ? `${value} ${label}` : undefined}>{value > 99 ? "99+" : value}</span>;
-}
-
 /** Links that switch between views of one list ("Open", "Done", …), with counts. */
 /** Which records to show (by status, say), as one dropdown rather than a row of tabs. */
 export function ViewTabs({ items, label }: { items: { label: string; href: string; active: boolean; count?: number }[]; label: string }) {
