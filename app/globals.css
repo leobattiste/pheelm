@@ -2824,13 +2824,13 @@ html:has(.early-gate) { scroll-snap-type: y proximity; }
 .faq-card p { margin-top: var(--space-12); color: var(--muted); max-width: 64ch; }
 .statement.is-cta .cta-card { padding: calc(var(--space-40) * 3) clamp(var(--space-24), 4vw, var(--space-48)); }
 
-/* Home, "Inside Pheelm": the four parts of Pheelm as a grid of cards. Each card has the part's name and
+/* Home, features: the four parts of Pheelm as a grid of cards. Each card has the part's name and
    intro, a stage where the real page peeks in from the corner, then three things you can do there.
    One card across on phones, two on wide screens. */
 .hf { display: grid; gap: var(--space-32); padding: 0 var(--gutter); }
 .hf-head, .hf-grid { width: 100%; max-width: var(--home-width); margin-inline: auto; }
 .hf-head { display: grid; gap: var(--space-12); justify-items: start; }
-.hf-head h2 { font-size: var(--t-3xl); text-wrap: balance; }
+.hf-head h2 { font-size: var(--t-3xl); text-wrap: balance; max-width: 22ch; }
 .hf-head p { color: var(--muted); max-width: 46ch; }
 .hf-grid { display: grid; gap: var(--space-48) var(--space-32); list-style: none; margin-block: 0; padding: 0; }
 .hf-card { display: grid; gap: var(--space-24); align-content: start; min-width: 0; }
