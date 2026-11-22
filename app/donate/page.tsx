@@ -2,12 +2,11 @@ import { publicPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { feedbackHref } from "@/lib/feedback";
-import { DONATE_BUTTON_ID, DONATION_PORTAL_URL, STRIPE_PUBLISHABLE_KEY } from "@/lib/site";
-import BuyButton from "./BuyButton";
+import { DONATE_URL, DONATION_PORTAL_URL } from "@/lib/site";
 
 export const metadata: Metadata = publicPageMetadata("/donate");
 
-/** Support Pheelm: Stripe's Buy Button in a Pheelm card, and a thank-you when Stripe sends donors back with ?thanks. */
+/** Support Pheelm: a Donate button that opens Stripe's secure checkout, and a thank-you when Stripe sends donors back with ?thanks. */
 export default async function DonatePage({ searchParams }: { searchParams: Promise<{ thanks?: string }> }) {
   const { thanks } = await searchParams;
   return (
@@ -24,14 +23,10 @@ export default async function DonatePage({ searchParams }: { searchParams: Promi
         <p className="donate-thanks" role="status">Thank you for your donation. It means a lot.</p>
       )}
 
-      {DONATE_BUTTON_ID && STRIPE_PUBLISHABLE_KEY ? (
+      {DONATE_URL ? (
         <>
-          <section className="donate-card" aria-labelledby="donate-h">
-            <div className="donate-card-text">
-              <h2 id="donate-h">Give to Pheelm</h2>
-              <p>Every gift helps us add more films by Black directors and keep Pheelm free for everyone.</p>
-            </div>
-            <BuyButton buttonId={DONATE_BUTTON_ID} publishableKey={STRIPE_PUBLISHABLE_KEY} />
+          <section className="donate-card" aria-label="Donate">
+            <a className="button" href={DONATE_URL}>Donate</a>
           </section>
           <div className="muted info-note donate-notes">
             <p>Payments are handled securely by Stripe. Pheelm never sees your card details.</p>
