@@ -26,8 +26,8 @@ export default async function DonatePage({ searchParams }: { searchParams: Promi
       {thanks && (
         <p className="donate-thanks" role="status">
           {thanks === "monthly"
-            ? "Thank you for giving every month. Your receipt is on its way to your email."
-            : "Thank you for your donation. Your receipt is on its way to your email."}
+            ? "Thank you for giving every month. It means a lot."
+            : "Thank you for your donation. It means a lot."}
         </p>
       )}
 
