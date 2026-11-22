@@ -3344,3 +3344,13 @@ html:root:root:root:root:root:root .film-actions > .more-menu > :is(.round-butto
 /* An announcement opened from Notifications. */
 .announcement-page { max-width: 680px; }
 .announcement-body p { white-space: pre-line; overflow-wrap: anywhere; font-size: var(--t-md); line-height: 1.6; }
+
+/* Donate: one card per way to give, and a thank-you line after Stripe sends the donor back. */
+.donate-options { display: grid; gap: var(--space-16); margin: 0; padding: 0; list-style: none; }
+.donate-option { display: grid; grid-template-rows: auto 1fr auto; gap: var(--space-8); justify-items: start; padding: var(--space-24); border: 1px solid var(--line); border-radius: var(--r); }
+.donate-option h2 { font-size: var(--t-xl); }
+.donate-option p { color: var(--muted); }
+.donate-option .button { margin-top: var(--space-8); }
+.donate-thanks { padding: var(--space-16) var(--space-20); border: 1px solid var(--line-strong); border-radius: var(--r); color: var(--ink); }
+.donate-notes { display: grid; gap: var(--space-8); }
+@media (min-width: 640px) { .donate-options { grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); } }
