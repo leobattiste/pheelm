@@ -31,8 +31,8 @@ export const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "";
  * Stripe sends donors back to /donate?thanks=1 or ?thanks=monthly. Empty: the Donate page says
  * donations open soon. Set them here or in Vercel (NEXT_PUBLIC_DONATE_URL, NEXT_PUBLIC_DONATE_MONTHLY_URL).
  */
-export const DONATE_URL = process.env.NEXT_PUBLIC_DONATE_URL || "";
-export const DONATE_MONTHLY_URL = process.env.NEXT_PUBLIC_DONATE_MONTHLY_URL || "";
+export const DONATE_URL = process.env.NEXT_PUBLIC_DONATE_URL || "https://donate.stripe.com/3cI00i8hw0qj2ch18RenS00";
+export const DONATE_MONTHLY_URL = process.env.NEXT_PUBLIC_DONATE_MONTHLY_URL || "https://buy.stripe.com/14A8wOcxMc91dUZg3LenS01";
 export const INSTAGRAM_URL = process.env.NEXT_PUBLIC_INSTAGRAM_URL ?? "";
 export const THREADS_URL = process.env.NEXT_PUBLIC_THREADS_URL ?? "";
 
