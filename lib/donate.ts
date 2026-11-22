@@ -41,7 +41,7 @@ export async function createDonationSession(kind: DonationKind, cents: number, o
     }],
     ...(monthly
       ? { subscription_data: { description: "Monthly donation to Pheelm", metadata: { purpose: "donation", kind } } }
-      : { submit_type: "donate" as const, payment_intent_data: { description: "Donation to Pheelm", metadata: { purpose: "donation", kind } } }),
+      : { submit_type: "donate" as const, customer_creation: "always" as const, payment_intent_data: { description: "Donation to Pheelm", metadata: { purpose: "donation", kind } } }),
     custom_text: { submit: { message: "Pheelm is not a tax-exempt charity, so donations are not tax-deductible. Thank you for supporting Black filmmakers." } },
     metadata: { purpose: "donation", kind, source: "pheelm.com/donate" },
     return_url: `${origin}/donate?session_id={CHECKOUT_SESSION_ID}`,

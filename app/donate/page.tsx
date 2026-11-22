@@ -2,7 +2,7 @@ import { publicPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { feedbackHref } from "@/lib/feedback";
-import { DONATE_MONTHLY_URL, DONATE_URL } from "@/lib/site";
+import { DONATE_MONTHLY_URL, DONATE_URL, DONATION_PORTAL_URL } from "@/lib/site";
 import { donationResult, EMBEDDED_DONATIONS, PUBLISHABLE_KEY } from "@/lib/donate";
 import DonateForm from "./DonateForm";
 
@@ -80,7 +80,7 @@ function Notes() {
     <div className="muted info-note donate-notes">
       <p>Payments are handled securely by Stripe. Pheelm never sees your card details.</p>
       <p>Pheelm is not a tax-exempt charity, so donations are not tax-deductible.</p>
-      <p>To change or stop a monthly gift, or for a problem with a payment, <Link href="/contact">contact us</Link>.</p>
+      <p>Already giving? <a href={DONATION_PORTAL_URL}>Update your card or change a monthly gift</a>. For a problem with a payment, <Link href="/contact">contact us</Link>.</p>
     </div>
   );
 }

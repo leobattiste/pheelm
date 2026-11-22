@@ -48,3 +48,11 @@ assert.match(action, /: "www\.pheelm\.com"/, 'donors only return to Pheelm');
 assert.match(fs.readFileSync('next.config.ts', 'utf8'), /https:\/\/js\.stripe\.com/, 'the security policy allows Stripe.js');
 assert.match(fs.readFileSync('app/donate/DonateForm.tsx', 'utf8'), /secret \? loadStripe/, 'Stripe.js loads only when paying');
 console.log('PASS: On-page donations check amounts on the server, return only to Pheelm, and load Stripe only to pay.');
+
+// Settings → Donations opens Stripe's portal, where donors update their card or cancel a monthly gift.
+const account = fs.readFileSync('app/account/page.tsx', 'utf8');
+assert.match(site, /DONATION_PORTAL_URL = process\.env\.NEXT_PUBLIC_DONATION_PORTAL_URL \|\| "https:\/\/billing\.stripe\.com\/p\/login\//);
+assert.match(account, /href=\{DONATION_PORTAL_URL\}>Manage payment details</);
+assert.match(fs.readFileSync('app/donate/page.tsx', 'utf8'), /href=\{DONATION_PORTAL_URL\}/);
+assert.match(lib, /customer_creation: "always"/, 'one-time donors get a Stripe record too, so the portal shows their receipts');
+console.log('PASS: Settings and the Donate page link to Stripe’s portal for payment details.');
