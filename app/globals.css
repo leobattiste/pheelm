@@ -811,6 +811,12 @@ main { width: 100%; }
 /* Wrapped text: the corners of cards and modals, not a pill (pills are for one line). */
 .toast.is-multiline { align-items: flex-start; border-radius: var(--r); padding-top: var(--space-12); padding-bottom: var(--space-12); }
 .toast.is-multiline :is(.toast-icon, .toast-close, .toast-action) { margin-top: -2px; }
+/* A toast that links somewhere puts its button under the message, so the text keeps the full width. */
+.toast.is-stacked { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "icon text close" ". action ."; align-items: start; row-gap: var(--space-12); border-radius: var(--r); padding-top: var(--space-12); padding-bottom: var(--space-12); }
+.toast.is-stacked .toast-icon { grid-area: icon; }
+.toast.is-stacked .toast-text { grid-area: text; }
+.toast.is-stacked .toast-close { grid-area: close; }
+.toast.is-stacked .toast-action { grid-area: action; justify-self: start; margin: 0; }
 .toast-icon { flex: none; display: grid; place-items: center; }
 .toast-success .toast-icon { color: var(--ok); }
 .toast-error .toast-icon { color: var(--error); }
