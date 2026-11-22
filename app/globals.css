@@ -3362,6 +3362,6 @@ html:root:root:root:root:root:root .film-actions > .more-menu > :is(.round-butto
 :root:root:root:root:root .more-panel .button[aria-pressed="true"]:not(dialog *) { background: none; color: var(--text); border: 0; -webkit-backdrop-filter: none; backdrop-filter: none; }
 :root:root:root:root:root .more-panel .button[aria-pressed="true"]:not(dialog *):hover { background: var(--control-hover); }
 
-.toast.is-stacked { grid-template-columns: minmax(0, 1fr); grid-template-areas: "text" "action"; padding-left: var(--space-20); }
-.toast.is-stacked :is(.toast-icon, .toast-close) { display: none; }
+.toast.is-stacked { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "text close" "action ."; padding-left: var(--space-20); }
+.toast.is-stacked .toast-icon { display: none; }
 .toast.is-stacked .toast-action { margin: 0; }
