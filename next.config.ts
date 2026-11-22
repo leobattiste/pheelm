@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs/config";
 
 // Supabase and Vercel's Supabase integration name these keys in a few different ways.
 // Whichever is set, pass it to the browser under the names the site reads.
@@ -74,4 +75,11 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// Error reporting. Readable stack traces need SENTRY_AUTH_TOKEN (Vercel, Production); without it the build still works.
+export default withSentryConfig(nextConfig, {
+  org: "pheelm",
+  project: "pheelm",
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  silent: !process.env.CI,
+  telemetry: false,
+});
