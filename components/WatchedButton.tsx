@@ -12,7 +12,7 @@ import { openSignIn } from "./SignInSheet";
 type Status = "loading" | "signed-out" | "off" | "on" | "unavailable";
 
 /** "Add to Watched" in a film's menu: marks the film as seen, for the Watched tab on your profile. */
-export default function WatchedButton({ filmId }: { filmId: string }) {
+export default function WatchedButton({ filmId, title }: { filmId: string; title: string }) {
   const path = usePathname();
   const [status, setStatus] = useState<Status>("loading");
   const [userId, setUserId] = useState<string | null>(null);
@@ -57,7 +57,7 @@ export default function WatchedButton({ filmId }: { filmId: string }) {
     const prev = status === "on" ? "on" : "off";
     const next = prev === "on" ? "off" : "on";
     if (await apply(next, prev)) {
-      if (next === "on") toast.success("Marked as watched. Leave a comment?", { action: { label: "Comment", href: `${path}#comments` } });
+      if (next === "on") toast.success(`Marked as watched. Tell us what you think about “${title}”.`, { action: { label: "Leave a comment", href: `${path}#comments` } });
       else toast.success("Removed from Watched", { action: { label: "Undo", run: () => void apply(prev, next) } });
     }
   };
