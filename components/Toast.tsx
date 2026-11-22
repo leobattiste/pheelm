@@ -121,7 +121,7 @@ function ToastCard({ item, onDone }: { item: Item; onDone: () => void }) {
   };
 
   return (
-    <div className={`toast toast-${item.kind}${multiline ? " is-multiline" : ""}`} role={item.kind === "error" ? "alert" : "status"}
+    <div className={`toast toast-${item.kind}${multiline ? " is-multiline" : ""}${item.action?.href ? " is-stacked" : ""}`} role={item.kind === "error" ? "alert" : "status"}
       onMouseEnter={() => setHeld(true)} onMouseLeave={() => setHeld(false)} onFocus={() => setHeld(true)} onBlur={() => setHeld(false)}>
       {item.kind !== "info" && <span className="toast-icon">{ICONS[item.kind]}</span>}
       {/* A suggested word like “b-word” never breaks across lines. */}
