@@ -3347,8 +3347,6 @@ html:root:root:root:root:root:root .film-actions > .more-menu > :is(.round-butto
 
 /* Donate: Stripe's Buy Button inside a card like the rest of the site, and a thank-you line. */
 .donate-card { display: grid; justify-items: start; background: var(--bg); }
-.donate-button { display: grid; gap: var(--space-12); min-height: 52px; }
-.donate-button stripe-buy-button { display: block; width: 100%; max-width: 360px; }
 .donate-thanks { padding: var(--space-16) var(--space-20); border: 1px solid var(--line-strong); border-radius: var(--r); color: var(--ink); }
 .donate-notes { display: grid; gap: var(--space-8); }
 

@@ -30,10 +30,7 @@ export const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "";
  * Donations: Stripe's Buy Button on the Donate page (made in Stripe → Payment Links → Buy button).
  * The publishable key is public by design. Empty button id: the Donate page says donations open soon.
  */
-export const DONATE_BUTTON_ID = process.env.NEXT_PUBLIC_DONATE_BUTTON_ID || "buy_btn_1UedUmBVz68lGrPiXwMAIjIo";
-export const STRIPE_PUBLISHABLE_KEY =
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ||
-  "pk_live_51UZopLBVz68lGrPigDeWO052Gqod40ESr8YVOMBlbjUGFz8PDLN1oV3cixOh1lZV0zAP0T1dLHBSPmUnSLzdwItx00hU1suZ22";
+export const DONATE_URL = process.env.NEXT_PUBLIC_DONATE_URL || "https://buy.stripe.com/dRmeVc7ds8WPaIN04NenS02";
 /** Stripe's page where donors update their card, see receipts, or cancel a monthly gift (they confirm their email first). */
 export const DONATION_PORTAL_URL = process.env.NEXT_PUBLIC_DONATION_PORTAL_URL || "https://billing.stripe.com/p/login/3cI00i8hw0qj2ch18RenS00";
 export const INSTAGRAM_URL = process.env.NEXT_PUBLIC_INSTAGRAM_URL ?? "";
