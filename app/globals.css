@@ -2824,28 +2824,18 @@ html:has(.early-gate) { scroll-snap-type: y proximity; }
 .faq-card p { margin-top: var(--space-12); color: var(--muted); max-width: 64ch; }
 .statement.is-cta .cta-card { padding: calc(var(--space-40) * 3) clamp(var(--space-24), 4vw, var(--space-48)); }
 
-/* Home, "Inside Pheelm": the four parts of Pheelm as tabs. On phones, a row of pills, then a stage
-   where the real page peeks in from the corner, then three things you can do there. On wide screens
-   the parts are a list on the left (the open one shows its intro) beside the stage. */
+/* Home, "Inside Pheelm": the four parts of Pheelm as a grid of cards. Each card has the part's name and
+   intro, a stage where the real page peeks in from the corner, then three things you can do there.
+   One card across on phones, two on wide screens. */
 .hf { display: grid; gap: var(--space-32); padding: 0 var(--gutter); }
 .hf-head, .hf-grid { width: 100%; max-width: var(--home-width); margin-inline: auto; }
 .hf-head { display: grid; gap: var(--space-12); justify-items: start; }
 .hf-head h2 { font-size: var(--t-3xl); text-wrap: balance; }
 .hf-head p { color: var(--muted); max-width: 46ch; }
-.hf-grid { display: grid; gap: var(--space-24); }
-
-.hf-tabs {
-  display: flex; gap: var(--space-8); overflow-x: auto; scrollbar-width: none;
-  margin-inline: calc(var(--gutter) * -1); padding: 2px var(--gutter);
-}
-.hf-tabs::-webkit-scrollbar { display: none; }
-/* The tabs are the profile page's tabs (.profile-tabs and .chip), so they look and behave the same. */
-.hf-tabs.profile-tabs { margin-top: 0; }
-
-.hf-panels { display: grid; }
-.hf-panel { grid-area: 1 / 1; display: grid; gap: var(--space-24); align-content: start; transition: opacity 0.35s ease, visibility 0.35s; }
-/* Hidden panels stay in place (so the stage keeps its size and pictures are ready) but can't be seen or reached. */
-.hf-panel[hidden] { display: grid; visibility: hidden; opacity: 0; }
+.hf-grid { display: grid; gap: var(--space-48) var(--space-32); list-style: none; margin-block: 0; padding: 0; }
+.hf-card { display: grid; gap: var(--space-24); align-content: start; min-width: 0; }
+.hf-card-head { display: grid; gap: var(--space-8); }
+.hf-card-head h3 { font-size: var(--t-xl); }
 .hf-panel-intro { color: var(--muted); max-width: 52ch; }
 
 .hf-stage {
@@ -2855,16 +2845,14 @@ html:has(.early-gate) { scroll-snap-type: y proximity; }
 .hf-stage img {
   position: absolute; top: 9%; left: 8%; width: 132%; max-width: none; height: auto;
   border: 1px solid var(--line-strong); border-radius: 14px 0 0 0; box-shadow: var(--shadow);
-  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
-.hf-panel[hidden] .hf-stage img { transform: translateY(16px); }
 .hf-stage .shot-light { display: none; }
 :root[data-theme="light"] .hf-stage .shot-dark { display: none; }
 :root[data-theme="light"] .hf-stage .shot-light { display: block; }
 
 .hf-list { display: grid; list-style: none; margin: 0; padding: 0; }
 .hf-item { display: grid; gap: var(--space-4); padding: var(--space-16) 0; border-top: 1px solid var(--line); }
-.hf-item h3 { font-size: var(--t-md); }
+.hf-item h4 { margin: 0; color: var(--ink); font-size: var(--t-md); font-weight: 700; letter-spacing: 0; line-height: var(--lh-snug); }
 .hf-item p { color: var(--muted); font-size: var(--t-sm); line-height: 1.55; }
 
 @media (min-width: 640px) {
@@ -2873,15 +2861,10 @@ html:has(.early-gate) { scroll-snap-type: y proximity; }
   .hf-list { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-24); }
 }
 
+/* Two cards across: each is half as wide, so the three things stack instead of sitting in a row. */
 @media (min-width: 1000px) {
-  .hf-grid { grid-template-columns: minmax(260px, 4fr) minmax(0, 8fr); gap: var(--space-48); align-items: start; }
-  :root:root .hf-tabs.profile-tabs { flex-direction: column; align-items: flex-start; height: auto; overflow: visible; margin: 0; padding: 0; }
-  :root:root .hf-tabs.profile-tabs > .chip { flex: none; align-self: flex-start; margin: 0; height: var(--bar-height); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hf-panel, .hf-stage img { transition: none; }
-  .hf-panel[hidden] .hf-stage img { transform: none; }
+  .hf-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hf-list { grid-template-columns: 1fr; gap: 0; }
 }
 
 /* Director About: the awards their films won. */

@@ -2,7 +2,7 @@ import { publicPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import EarlyAccessButton, { EarlyAccessGate } from "@/components/EarlyAccessButton";
 import CurvedCarousel from "@/components/CurvedCarousel";
-import FeatureTabs, { type HomeFeature } from "@/components/home/FeatureTabs";
+import FeatureGrid, { type HomeFeature } from "@/components/home/FeatureGrid";
 import { getFilms, toCard } from "@/lib/data";
 import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
 import { SITE_URL } from "@/lib/supabase/config";
@@ -112,7 +112,7 @@ export default async function Home() {
       </div>
 
       <div className="home-block">
-        <FeatureTabs features={FEATURES} />
+        <FeatureGrid features={FEATURES} />
       </div>
       </EarlyAccessGate>
 
