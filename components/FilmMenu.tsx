@@ -7,7 +7,7 @@ import WatchedButton from "./WatchedButton";
 export default function FilmMenu({ filmId, slug, title }: { filmId: string; slug: string; title: string }) {
   return (
     <MoreMenu label={`More for ${title}`}>
-      <WatchedButton filmId={filmId} />
+      <WatchedButton filmId={filmId} title={title} />
       <FeedbackLink about={`/films/${slug}`} label={title} />
       <ShareButton item title={title} />
     </MoreMenu>
