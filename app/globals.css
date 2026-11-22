@@ -3354,3 +3354,14 @@ html:root:root:root:root:root:root .film-actions > .more-menu > :is(.round-butto
 .donate-thanks { padding: var(--space-16) var(--space-20); border: 1px solid var(--line-strong); border-radius: var(--r); color: var(--ink); }
 .donate-notes { display: grid; gap: var(--space-8); }
 @media (min-width: 640px) { .donate-options { grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); } }
+
+/* Donate, on-page checkout: once or monthly, an amount, then Stripe's form in place. */
+.donate-form { display: grid; gap: var(--space-20); justify-items: start; padding: var(--space-24); border: 1px solid var(--line); border-radius: var(--r); }
+.donate-kind, .donate-amounts { display: flex; flex-wrap: wrap; gap: var(--space-8); }
+.donate-amounts .chip { min-width: 72px; justify-content: center; }
+.donate-custom { width: 100%; max-width: 280px; }
+.donate-submit { min-width: 200px; justify-content: center; }
+.donate-checkout { display: grid; gap: var(--space-16); }
+.donate-checkout-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-12); }
+/* Stripe draws its own light card; give it room and round it like the rest of the page. */
+.donate-embed { min-height: 520px; overflow: hidden; border-radius: var(--r); }

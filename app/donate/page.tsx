@@ -2,16 +2,21 @@ import { publicPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { feedbackHref } from "@/lib/feedback";
-import { DONATE_MONTHLY_URL, DONATE_URL } from "@/lib/site";
+import { DONATE_MONTHLY_URL, DONATE_URL, DONATION_PORTAL_URL } from "@/lib/site";
+import { donationResult, EMBEDDED_DONATIONS, PUBLISHABLE_KEY } from "@/lib/donate";
+import DonateForm from "./DonateForm";
 
 export const metadata: Metadata = publicPageMetadata("/donate");
 
 /**
- * Support Pheelm. Each option opens Stripe's secure checkout (cards, Apple Pay, Google Pay), so no
- * payment details ever touch Pheelm. After paying, Stripe sends the donor back here with ?thanks.
+ * Support Pheelm. With Stripe keys set, donors choose an amount and pay in Stripe's secure form right
+ * on this page (cards, Apple Pay, Google Pay); card details go to Stripe, never to Pheelm. Without the
+ * keys, the options link to Stripe's own checkout. Either way the donor comes back here to a thank-you.
  */
-export default async function DonatePage({ searchParams }: { searchParams: Promise<{ thanks?: string }> }) {
-  const { thanks } = await searchParams;
+export default async function DonatePage({ searchParams }: { searchParams: Promise<{ thanks?: string; session_id?: string }> }) {
+  const { thanks: linkThanks, session_id } = await searchParams;
+  const result = session_id ? await donationResult(session_id) : null;
+  const thanks = result?.paid ? (result.monthly ? "monthly" : "1") : linkThanks;
   const open = Boolean(DONATE_URL || DONATE_MONTHLY_URL);
   return (
     <article className="page narrow info-page donate-page">
@@ -31,7 +36,16 @@ export default async function DonatePage({ searchParams }: { searchParams: Promi
         </p>
       )}
 
-      {open ? (
+      {session_id && result && !result.paid && (
+        <p className="notice error" role="alert">That payment didn&rsquo;t go through. You haven&rsquo;t been charged; please try again.</p>
+      )}
+
+      {EMBEDDED_DONATIONS ? (
+        <>
+          <DonateForm publishableKey={PUBLISHABLE_KEY} />
+          <Notes />
+        </>
+      ) : open ? (
         <>
           <ul className="donate-options">
             {DONATE_URL && (
@@ -49,11 +63,7 @@ export default async function DonatePage({ searchParams }: { searchParams: Promi
               </li>
             )}
           </ul>
-          <div className="muted info-note donate-notes">
-            <p>Payments are handled securely by Stripe. Pheelm never sees your card details.</p>
-            <p>Pheelm is not a tax-exempt charity, so donations are not tax-deductible.</p>
-            <p>To change or stop a monthly gift, or for a problem with a payment, <Link href="/contact">contact us</Link>.</p>
-          </div>
+          <Notes />
         </>
       ) : (
         <p className="muted info-note">
@@ -62,5 +72,15 @@ export default async function DonatePage({ searchParams }: { searchParams: Promi
         </p>
       )}
     </article>
+  );
+}
+
+function Notes() {
+  return (
+    <div className="muted info-note donate-notes">
+      <p>Payments are handled securely by Stripe. Pheelm never sees your card details.</p>
+      <p>Pheelm is not a tax-exempt charity, so donations are not tax-deductible.</p>
+      <p>Already giving? <a href={DONATION_PORTAL_URL}>Update your card or change a monthly gift</a>. For a problem with a payment, <Link href="/contact">contact us</Link>.</p>
+    </div>
   );
 }

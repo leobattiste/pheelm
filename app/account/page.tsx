@@ -2,6 +2,7 @@ import { privateMetadata } from "@/lib/seo";
 import { canUseUnlimitedBio } from "@/lib/profile-bio";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { DONATION_PORTAL_URL } from "@/lib/site";
 import { redirect } from "next/navigation";
 import GridToggle from "@/components/GridToggle";
 import type { IconName } from "@/components/Icon";
@@ -95,6 +96,14 @@ export default async function AccountPage() {
             <div className="actions">
               <form action="/auth/signout" method="post"><button className="button" type="submit">Sign out</button></form>
               <SignOutEverywhere />
+            </div>
+          </section>
+          <section className="account-section" aria-labelledby="donations-h">
+            <h2 id="donations-h">Donations</h2>
+            <p className="muted">Update your card, see your receipts, or change or cancel a monthly gift. Stripe emails you a link to confirm it&rsquo;s you; use the email you donated with.</p>
+            <div className="actions">
+              <a className="button" href={DONATION_PORTAL_URL}>Manage payment details</a>
+              <Link className="button ghost" href="/donate">Donate</Link>
             </div>
           </section>
         </div>
