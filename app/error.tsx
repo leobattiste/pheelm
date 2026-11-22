@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
 
 /** After a new version goes live, a page opened earlier asks for code files that no longer exist. */
@@ -14,7 +15,10 @@ const isStaleVersion = (e: Error) =>
 export default function PageError({ error, reset: _reset }: { error: Error & { digest?: string }; reset: () => void }) {
   useEffect(() => {
     console.error(error);
-    if (!isStaleVersion(error)) return;
+    if (!isStaleVersion(error)) {
+      Sentry.captureException(error);
+      return;
+    }
     // Reload at most once a minute, so a real problem can't cause a reload loop.
     try {
       const last = Number(sessionStorage.getItem("reloaded-for-update") ?? 0);

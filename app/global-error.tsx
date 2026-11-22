@@ -1,12 +1,16 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
 
 /** The last-resort error page, for failures in the site's frame itself. Plain on purpose. */
 export default function GlobalError({ error }: { error: Error & { digest?: string } }) {
   useEffect(() => {
     console.error(error);
-    if (!/ChunkLoadError|Loading chunk|Loading CSS chunk|dynamically imported module|Importing a module script failed/i.test(`${error.name} ${error.message}`)) return;
+    if (!/ChunkLoadError|Loading chunk|Loading CSS chunk|dynamically imported module|Importing a module script failed/i.test(`${error.name} ${error.message}`)) {
+      Sentry.captureException(error);
+      return;
+    }
     // Reload at most once a minute, so a real problem can't cause a reload loop.
     try {
       const last = Number(sessionStorage.getItem("reloaded-for-update") ?? 0);
