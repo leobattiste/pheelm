@@ -62,7 +62,7 @@ const nextConfig: NextConfig = {
           // Nobody else can put the site in a frame (stops clickjacking on sign-in and the admin).
           // Scripts only from Pheelm itself and Cloudflare's bot check, so an injected <script src>
           // from anywhere else won't run. (Next's own inline scripts need 'unsafe-inline'.)
-          { key: "Content-Security-Policy", value: `frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "production" ? "" : " 'unsafe-eval'"} https://challenges.cloudflare.com https://va.vercel-scripts.com` },
+          { key: "Content-Security-Policy", value: `frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "production" ? "" : " 'unsafe-eval'"} https://challenges.cloudflare.com https://va.vercel-scripts.com https://js.stripe.com` },
           { key: "X-Frame-Options", value: "DENY" },
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), browsing-topics=()" },
         ],

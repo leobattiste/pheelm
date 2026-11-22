@@ -23,3 +23,28 @@ assert.match(page, /not a tax-exempt charity/);
 assert.match(header, /<Link href="\/donate"[^>]*>.*Donate<\/Link>/);
 assert.doesNotMatch(header, /DONATE_URL/);
 console.log('PASS: The Donate page offers one-time and monthly gifts through Stripe, thanks donors on return, and says donations open soon until links are set.');
+
+// On-page checkout: amounts are re-checked on the server, and only Stripe's form ever sees card details.
+import ts from 'typescript';
+import vm from 'node:vm';
+const lib = fs.readFileSync('lib/donate.ts', 'utf8');
+const code = ts.transpileModule(lib, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
+const mod = { exports: {} };
+vm.runInNewContext(code, { exports: mod.exports, module: mod, process: { env: {} }, require: (n) => (n === 'stripe' ? { default: class {} } : {}) });
+const { donationCents, EMBEDDED_DONATIONS } = mod.exports;
+assert.equal(EMBEDDED_DONATIONS, false, 'without keys the page falls back to the Stripe links');
+assert.equal(donationCents('once', 1), 100);
+assert.equal(donationCents('once', 0.5), null);
+assert.equal(donationCents('monthly', 4), null, 'monthly gifts start at $5');
+assert.equal(donationCents('monthly', 5), 500);
+assert.equal(donationCents('once', 1000), 100000);
+assert.equal(donationCents('once', 1001), null);
+assert.equal(donationCents('once', NaN), null);
+assert.match(lib, /ui_mode: "embedded_page"/);
+assert.match(lib, /import "server-only"/);
+const action = fs.readFileSync('app/donate/actions.ts', 'utf8');
+assert.match(action, /const cents = donationCents\(kind, dollars\)/, 'the server re-checks the amount');
+assert.match(action, /: "www\.pheelm\.com"/, 'donors only return to Pheelm');
+assert.match(fs.readFileSync('next.config.ts', 'utf8'), /https:\/\/js\.stripe\.com/, 'the security policy allows Stripe.js');
+assert.match(fs.readFileSync('app/donate/DonateForm.tsx', 'utf8'), /secret \? loadStripe/, 'Stripe.js loads only when paying');
+console.log('PASS: On-page donations check amounts on the server, return only to Pheelm, and load Stripe only to pay.');
