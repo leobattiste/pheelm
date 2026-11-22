@@ -79,7 +79,7 @@ export default function FilmComments({ filmId, filmTitle }: { filmId: string; fi
   return (
     <div ref={box} className="film-comments">
       {state === "loading" ? (
-        <section className="comments" aria-busy="true" aria-label="Comments">
+        <section className="comments" id="comments" aria-busy="true" aria-label="Comments">
           <div className="comments-head"><h2>Comments</h2></div>
           <p className="comments-empty">Loading comments…</p>
         </section>

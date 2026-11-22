@@ -116,7 +116,20 @@ function ToastCard({ item, onDone }: { item: Item; onDone: () => void }) {
     const { action } = item;
     if (!action) return;
     onDone();
-    if (action.href) router.push(action.href);
+    if (action.href) {
+      const [base, hash] = action.href.split("#");
+      // A link to a spot on this page: scroll there ourselves, waiting for it if it is still loading.
+      if (hash && (!base || base === window.location.pathname)) {
+        history.replaceState(null, "", `#${hash}`);
+        let tries = 0;
+        const go = () => {
+          const el = document.getElementById(hash);
+          if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+          else if (++tries < 30) setTimeout(go, 150);
+        };
+        go();
+      } else router.push(action.href);
+    }
     try { await action.run?.(); } catch {}
   };
 
