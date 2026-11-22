@@ -26,11 +26,7 @@ export default async function DonatePage({ searchParams }: { searchParams: Promi
 
       {DONATE_BUTTON_ID && STRIPE_PUBLISHABLE_KEY ? (
         <>
-          <section className="donate-card" aria-labelledby="donate-h">
-            <div className="donate-card-text">
-              <h2 id="donate-h">Give to Pheelm</h2>
-              <p>Every gift helps us add more films by Black directors and keep Pheelm free for everyone.</p>
-            </div>
+          <section className="donate-card" aria-label="Donate">
             <BuyButton buttonId={DONATE_BUTTON_ID} publishableKey={STRIPE_PUBLISHABLE_KEY} />
           </section>
           <div className="muted info-note donate-notes">
