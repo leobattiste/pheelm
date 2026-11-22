@@ -3350,3 +3350,4 @@ html:root:root:root:root:root:root .film-actions > .more-menu > :is(.round-butto
 .donate-thanks { padding: var(--space-16) var(--space-20); border: 1px solid var(--line-strong); border-radius: var(--r); color: var(--ink); }
 .donate-notes { display: grid; gap: var(--space-8); }
 
+.comments { scroll-margin-top: var(--space-96); }
