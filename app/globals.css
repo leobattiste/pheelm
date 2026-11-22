@@ -3269,9 +3269,10 @@ html:root:root:root:root:root:root:root:root:root:root .floating-controls .film-
   min-width: 0;
   height: var(--film-dot);
   border: 1px solid var(--line) !important;
-  background: var(--glass-bg);
-  -webkit-backdrop-filter: var(--glass-filter);
-  backdrop-filter: var(--glass-filter);
+  /* The same fill as the menu bar below them (and the back-to-top button): the page color, no blur. */
+  background: var(--bg);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 html:root:root:root:root:root:root:root:root:root:root .floating-controls .film-bar > :is(.pill-button, .round-button):hover { background: var(--glass-hover); }
 html:root:root:root:root:root:root:root:root:root:root .floating-controls .film-bar > .pill-button.primary { border-color: transparent !important; }
