@@ -3346,17 +3346,9 @@ html:root:root:root:root:root:root .film-actions > .more-menu > :is(.round-butto
 .announcement-body p { white-space: pre-line; overflow-wrap: anywhere; font-size: var(--t-md); line-height: 1.6; }
 
 /* Donate: Stripe's Buy Button inside a card like the rest of the site, and a thank-you line. */
-.donate-card {
-  display: grid; gap: var(--space-24); align-items: center;
-  padding: var(--space-24); border: 1px solid var(--line); border-radius: var(--r); background: var(--bg);
-}
-.donate-card-text { display: grid; gap: var(--space-8); }
-.donate-card-text h2 { font-size: var(--t-xl); }
-.donate-card-text p { color: var(--muted); max-width: 46ch; }
-/* Stripe's button sits in its own frame; keep room for it so the card doesn't jump as it loads. */
+.donate-card { display: grid; justify-items: start; background: var(--bg); }
 .donate-button { display: grid; gap: var(--space-12); min-height: 52px; }
 .donate-button stripe-buy-button { display: block; width: 100%; max-width: 360px; }
 .donate-thanks { padding: var(--space-16) var(--space-20); border: 1px solid var(--line-strong); border-radius: var(--r); color: var(--ink); }
 .donate-notes { display: grid; gap: var(--space-8); }
-@media (min-width: 760px) { .donate-card { grid-template-columns: minmax(0, 1fr) auto; } }
 
