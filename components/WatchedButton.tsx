@@ -57,7 +57,7 @@ export default function WatchedButton({ filmId }: { filmId: string }) {
     const prev = status === "on" ? "on" : "off";
     const next = prev === "on" ? "off" : "on";
     if (await apply(next, prev)) {
-      if (next === "on") toast.success("Marked as watched. What did you think?", { action: { label: "Comment", href: `${path}#comments` } });
+      if (next === "on") toast.success("Marked as watched. Leave a comment?", { action: { label: "Comment", href: `${path}#comments` } });
       else toast.success("Removed from Watched", { action: { label: "Undo", run: () => void apply(prev, next) } });
     }
   };
