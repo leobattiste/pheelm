@@ -1,5 +1,6 @@
 import { requireAdmin } from "@/lib/admin";
 import { PageHeader, Panel, Row } from "../ui";
+import SentryTest from "./SentryTest";
 
 /** The few things that change rarely: moderation rules and the records of what happened. */
 export default async function AdminSettings() {
@@ -12,7 +13,7 @@ export default async function AdminSettings() {
   const refusedTotal = refused.error ? null : Number((refused.data as { total?: number }[] | null)?.[0]?.total ?? 0);
   return (
     <>
-      <PageHeader title="Settings" description="Moderation rules, and the records of what happened in admin." />
+      <PageHeader title="Settings" description="Moderation rules, the records of what happened in admin, and a check that error reporting works." />
       <div className="admin-grid">
         <Panel title="Moderation" icon="flag">
           <Row href="/admin/community/banned-words" detail="Words members can't use in comments, bios and watchlist descriptions." aside={<strong className="admin-number">{wordCount}</strong>}>Banned words</Row>
@@ -22,6 +23,9 @@ export default async function AdminSettings() {
         <Panel title="Records" icon="clock">
           <Row href="/admin/activity" detail="Every change made in admin, newest first.">Activity log</Row>
           <Row href="/admin/analytics" detail="How the catalog and community grow. Visitors aren't tracked.">Analytics</Row>
+        </Panel>
+        <Panel title="Error reporting" icon="flag">
+          <SentryTest />
         </Panel>
       </div>
     </>
