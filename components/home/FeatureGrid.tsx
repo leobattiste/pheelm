@@ -4,7 +4,7 @@ export type HomeFeature = {
 };
 
 /**
- * "Inside Pheelm" on the home page: the four parts of Pheelm as a grid of cards. Each card shows a
+ * The features section on the home page: the four parts of Pheelm as a grid of cards. Each card shows a
  * screenshot of the real page (in the visitor's theme), what that part is for, and three things you
  * can do there. Two cards across on wide screens, one on phones. Nothing to click, so it needs no
  * script. Screenshots live in public/home (scripts/capture-home-screenshots.mjs).
@@ -13,7 +13,7 @@ export default function FeatureGrid({ features }: { features: HomeFeature[] }) {
   return (
     <section className="hf" aria-labelledby="hf-title">
       <div className="hf-head">
-        <h2 id="hf-title">Inside Pheelm</h2>
+        <h2 id="hf-title">A space to support Black filmmakers around the world.</h2>
         <p>Four ways to discover, save and share films by Black directors.</p>
       </div>
       <ul className="hf-grid">
