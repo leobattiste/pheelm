@@ -21,6 +21,7 @@ import { SITE_URL } from "@/lib/supabase/config";
 import { themeScript } from "@/lib/theme";
 import "./globals.css";
 import InstallBanner from "@/components/InstallBanner";
+import Tour from "@/components/Tour";
 
 // The typeface is Switzer, loaded from Fontshare in the head. Inter (SIL Open Font License), served
 // from the site itself, backs it up: for letters Switzer doesn't have, like ẹ and ọ in Yoruba
@@ -188,6 +189,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <BackToTop />
         <InstallBanner />
         <WelcomeNudge />
+        <Tour />
         <Toaster />
         <NotificationToasts />
         <TransitionWatcher />

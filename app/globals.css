@@ -3337,3 +3337,17 @@ html:root:root:root .trailer-dialog { height: fit-content; min-height: 0; paddin
 html:root:root:root .trailer-dialog[open] { display: grid; gap: var(--space-12); }
 .trailer-foot { display: flex; justify-content: center; }
 html:root:root:root .trailer-foot .button.ghost { border: 1px solid var(--control-border-strong); color: var(--ink); }
+
+/* Onboarding tour: a dimmed page, one tab in a spotlight, and a small card with Back and Next. */
+.tour { position: fixed; inset: 0; z-index: 1002; }
+.tour-scrim { position: absolute; inset: 0; background: rgb(0 0 0 / 0.62); }
+.tour-spot { position: absolute; border-radius: var(--pill); border: 1px solid var(--control-border-strong); pointer-events: none; transition: top 0.25s var(--ease), left 0.25s var(--ease), width 0.25s var(--ease), height 0.25s var(--ease); }
+.tour-card { position: absolute; display: grid; gap: var(--space-8); padding: var(--space-20); border: 1px solid var(--line); border-radius: var(--r); background: var(--bg); color: var(--text); box-shadow: var(--glass-shadow); animation: fade 0.2s var(--ease); }
+.tour-x { position: absolute; top: var(--space-8); right: var(--space-8); font-size: 22px; line-height: 1; }
+.tour-count { margin: 0; color: var(--muted); font-size: var(--t-sm); }
+.tour-title { margin: 0; font-size: var(--t-xl, 22px); line-height: var(--lh-tight); }
+.tour-text { margin: 0; line-height: 1.5; }
+.tour-actions { display: flex; gap: var(--space-8); margin-top: var(--space-8); }
+.tour-actions .button { flex: 1; justify-content: center; }
+.tour-off { justify-self: center; margin-top: var(--space-4, 4px); padding: var(--space-8); border: 0; background: none; color: var(--muted); font-size: var(--t-sm); text-decoration: underline; cursor: pointer; }
+@media (prefers-reduced-motion: reduce) { .tour-spot { transition: none; } .tour-card { animation: none; } }

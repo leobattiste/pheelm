@@ -20,6 +20,7 @@ jobs:
       - run: node tests/profile-bio.mjs
       - run: node tests/sentry-scrub.mjs
       - run: node tests/donate.mjs
+      - run: node tests/tour.mjs
       - run: node tests/profile-seo.mjs
       - run: node tests/profile-loading.mjs
       - run: node tests/viewer-from-token.mjs
@@ -76,6 +77,9 @@ jobs:
         env:
           BASE_URL: http://localhost:3000
       - run: node tests/toast-shape-browser.mjs
+        env:
+          BASE_URL: http://localhost:3000
+      - run: node tests/tour-browser.mjs
         env:
           BASE_URL: http://localhost:3000
       - run: node tests/catalog-search-browser.mjs
