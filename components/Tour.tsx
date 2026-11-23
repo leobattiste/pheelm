@@ -58,6 +58,8 @@ export default function Tour() {
   // Open it once the page has settled, if this person has any showings left.
   useEffect(() => {
     if (SKIP.test(path)) return;
+    // Automated browsers (the site's own checks) don't get the tour unless a test asks for it.
+    try { if (navigator.webdriver && !localStorage.getItem("pheelm:tour:test")) return; } catch {}
     let cancelled = false;
     const timer = window.setTimeout(async () => {
       if (cancelled || document.documentElement.dataset.chrome !== "app" || document.querySelector("dialog[open]")) return;
