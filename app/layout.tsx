@@ -154,7 +154,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <h2 id="footer-pheelm">{SITE_NAME}</h2>
               <Link href="/about">About</Link>
               <Link href="/help">Help</Link>
-              <Link href="/shop">Shop</Link>
               <Link href="/partnerships">Partnership</Link>
               <Link href="/contact">Contact</Link>
               <Link className="member-only" href="/submit">Suggest a film</Link>
