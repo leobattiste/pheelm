@@ -3336,3 +3336,4 @@ html:root:root:root .trailer-dialog[open] { animation: fade 0.2s var(--ease); }
 html:root:root:root .trailer-dialog { height: fit-content; min-height: 0; padding: var(--space-12); overflow: hidden; }
 html:root:root:root .trailer-dialog[open] { display: grid; gap: var(--space-12); }
 .trailer-foot { display: flex; justify-content: center; }
+html:root:root:root .trailer-foot .button.ghost { border: 1px solid var(--control-border-strong); color: var(--ink); }
