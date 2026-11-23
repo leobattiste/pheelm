@@ -12,7 +12,6 @@ export const PUBLIC_PAGES:Record<string,{title:string;description:string;label:s
  '/help':{title:'Help',description:'Find answers about discovering films, watchlists, accounts, privacy and using Pheelm.',label:'Help center'},
  '/legal':{title:'Legal',description:'Read Pheelm’s Privacy Policy, Copyright Policy, Terms of Use and Community Guidelines. Contact hey@pheelm.com for legal inquiries.',label:'Privacy, rights and community'},
  '/donate':{title:'Support Pheelm',description:'Help keep Pheelm independent, accessible and growing. Support the discovery of films by Black directors from around the world.',label:'For the love of cinema'},
- '/shop':{title:'Shop',description:'Pheelm merch, printed to order. Every purchase helps keep Pheelm free.',label:'Merch'},
  '/newsletter':{title:'Pheelm Digest',description:'Discover new films, directors and community watchlists from Pheelm by email.',label:'Stay in the picture'},
  '/feedback':{title:'Feedback',description:'Report a problem, suggest an improvement or help correct film information on Pheelm.',label:'Help improve Pheelm'},
  '/submit':{title:'Suggest a film',description:PAGE_COPY.submit,label:'Help grow the catalog'},
