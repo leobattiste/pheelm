@@ -50,7 +50,7 @@ console.log('PASS: seeded film shuffle is stable, complete, changes per visit, a
 
 // Sort by and filter lists: no Best match; Latest added for films and directors; Genre then Type first.
 const J=JSON.stringify;assert.equal(J(SORTS.films.map(([id])=>id)),J(['shuffle','added','newest','oldest','title','awards']));
-assert.equal(J(SORTS.directors.map(([id])=>id)),J(['added','films','az','earliest','latest']));
+assert.equal(J(SORTS.directors.map(([id])=>id)),J(['shuffle','added','films','az','earliest','latest']));
 assert.ok(![...SORTS.films,...SORTS.directors].some(([id,label])=>id==='relevance'||/best match/i.test(label)));
 assert.equal(SORTS.films.find(([id])=>id==='added')[1],'Latest added');assert.equal(SORTS.directors.find(([id])=>id==='added')[1],'Latest added');
 assert.equal(J(FILM_FILTERS.slice(0,2)),J(['genre','type']));assert.ok(!FILM_FILTERS.some(k=>['year','length','access'].includes(k)));assert.equal(J(DIRECTOR_FILTERS),J(['country','decade','type','min']));
