@@ -3331,3 +3331,8 @@ html:root:root:root .trailer-dialog {
   max-height: calc(100dvh - 40px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
 }
 html:root:root:root .trailer-dialog[open] { animation: fade 0.2s var(--ease); }
+
+/* The dialog is as tall as the video and its Close button, with nothing left over. */
+html:root:root:root .trailer-dialog { height: fit-content; min-height: 0; padding: var(--space-12); overflow: hidden; }
+html:root:root:root .trailer-dialog[open] { display: grid; gap: var(--space-12); }
+.trailer-foot { display: flex; justify-content: center; }

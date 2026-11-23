@@ -37,7 +37,7 @@ export default function TrailerButton({ embed, title, className = "button play",
         <div className="trailer-frame">
           <iframe ref={frame} title={`${title} trailer`} allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen />
         </div>
-        <button type="button" className="trailer-close" onClick={close}>Close</button>
+        <div className="trailer-foot"><button type="button" className="button ghost" onClick={close}>Close</button></div>
       </dialog>
     </>
   );
