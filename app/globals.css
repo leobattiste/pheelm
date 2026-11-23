@@ -3323,3 +3323,11 @@ html:root:root:root:root:root:root .film-actions > .more-menu > :is(.round-butto
 .toast.is-stacked { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "text close" "action ."; padding-left: var(--space-20); }
 .toast.is-stacked .toast-icon { display: none; }
 .toast.is-stacked .toast-action { margin: 0; }
+
+/* The trailer opens at the same size and place as every other dialog. */
+html:root:root:root .trailer-dialog {
+  inset: 0; margin: auto; transform: none; transform-origin: center;
+  width: min(480px, calc(100vw - 40px)); max-width: none;
+  max-height: calc(100dvh - 40px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+}
+html:root:root:root .trailer-dialog[open] { animation: fade 0.2s var(--ease); }
