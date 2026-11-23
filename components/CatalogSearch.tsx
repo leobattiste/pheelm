@@ -138,8 +138,7 @@ function Browser({ entries: packed, mode, afterSearch }: {
     const historyKey = 'pheelm:catalog-search:' + mode + ':v1';
     useEffect(() => { setState(cleanState(new URLSearchParams(params), mode)); setShown(PAGE); }, [params, mode]);
     useEffect(() => {
-        if (mode !== 'films') { setVisitReady(true); return; }
-        documentVisitId ??= crypto.randomUUID();
+                documentVisitId ??= crypto.randomUUID();
         const saved = window.history.state?.pheelmFilmVisit;
         const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
         const restore = saved && (saved.document === documentVisitId || navigation?.type === 'back_forward') && Number.isInteger(saved.seed);
@@ -154,7 +153,7 @@ function Browser({ entries: packed, mode, afterSearch }: {
         setVisitReady(true);
     }, [mode, entries.length]);
     const saveVisit = () => {
-        if (mode !== 'films' || !visitReady || window.location.pathname !== '/films') return;
+        if (!visitReady || window.location.pathname !== '/' + mode) return;
         window.history.replaceState({ ...window.history.state, pheelmFilmVisit: {
             document: documentVisitId, seed: shuffleSeed, shown, scroll: window.scrollY, query: window.location.search,
         } }, '', window.location.href);
@@ -209,7 +208,7 @@ function Browser({ entries: packed, mode, afterSearch }: {
     const submit = () => { const next = proposal ? { ...state, q: undefined, ...proposal } : state; commit(next); remember(next); };
     const clearFilters = () => commit({ q: state.q, sort: state.sort });
     // With text in the search box and no sort chosen, the closest matches come first.
-    const sortDefault = mode === 'films' ? 'shuffle' : 'films';
+    const sortDefault = 'shuffle';
     const correction = useMemo(() => state.q ? (rows.length > 0 && rows[0].score === 450 ? rows[0].entry.title : rows.length === 0 && !index.some(i => relevance(i, state.q!) > 0) ? spellingCorrection(index, state.q) : null) : null, [state.q, rows, index]);
     const matchingIndex = useMemo(() => filtersOpen ? index.filter(i => relevance(i, state.q ?? '') > 0) : [], [index, state.q, filtersOpen]);
     const relaxed = state.q && active.length ? searchEntries(index, { q: state.q, sort: state.sort }, mode).length : 0;

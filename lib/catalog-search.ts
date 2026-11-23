@@ -48,7 +48,7 @@ export const SORTS: Record<SearchMode, [
     string
 ][]> = {
     films: [['shuffle', 'Shuffled'], ['added', 'Latest added'], ['newest', 'Newest'], ['oldest', 'Oldest'], ['title', 'A to Z'], ['awards', 'Most awarded']],
-    directors: [['added', 'Latest added'], ['films', 'Most films'], ['az', 'A to Z'], ['earliest', 'Earliest film'], ['latest', 'Latest film']],
+    directors: [['shuffle', 'Shuffled'], ['added', 'Latest added'], ['films', 'Most films'], ['az', 'A to Z'], ['earliest', 'Earliest film'], ['latest', 'Latest film']],
 };
 const normalized = (s: string) => plain(s).replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 const unique = (xs: string[]) => [...new Set(xs.filter(Boolean))].sort((a, b) => a.localeCompare(b));
@@ -159,7 +159,7 @@ export function relevance(index: IndexedEntry, query: string) {
 }
 export function searchEntries(index: IndexedEntry[], state: SearchState, mode: SearchMode, shuffleSeed = 0) {
     const q = state.q ?? '';
-    const sort = state.sort ?? (q ? 'relevance' : mode === 'films' ? 'shuffle' : 'films');
+    const sort = state.sort ?? (q ? 'relevance' : 'shuffle');
     return index.filter(i => matchesFilters(i.entry, state, mode)).map(i => ({ entry: i.entry, score: relevance(i, q) })).filter(r => r.score > 0).sort((a, b) => {
         if (sort === 'relevance' && q && a.score !== b.score)
             return b.score - a.score;
