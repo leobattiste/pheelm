@@ -6,6 +6,7 @@ import { DONATION_PORTAL_URL } from "@/lib/site";
 import { redirect } from "next/navigation";
 import GridToggle from "@/components/GridToggle";
 import ReplayTour from "./ReplayTour";
+import GettingStarted, { type StartCounts } from "./GettingStarted";
 import type { IconName } from "@/components/Icon";
 import Tabs from "@/components/Tabs";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -56,6 +57,10 @@ export default async function AccountPage() {
 
   const { data: emailPrefs } = await db.from("email_preferences").select("collaboration_emails,activity_emails,announcement_emails,digest_frequency").eq("user_id", user.id).maybeSingle();
 
+  // What the member has done so far, for the Getting started list (counts only, nothing is fetched).
+  const count = async (table: string, column = "user_id") => (await db.from(table).select("*", { count: "exact", head: true }).eq(column, user.id)).count ?? 0;
+  const [watched, saved, lists, follows, comments] = await Promise.all([count("watched"), count("watchlist"), count("lists"), count("follows"), count("list_comments")]);
+  const started: StartCounts = { watched, saved, lists, follows, comments };
 
   const tabs = [
     {
@@ -64,6 +69,7 @@ export default async function AccountPage() {
       icon: "user" as IconName,
       panel: (
         <div className="account-panel">
+          <GettingStarted counts={started} />
           <section className="account-section" aria-labelledby="profile-h">
             <h2 id="profile-h">Your profile</h2>
             <p className="muted">
