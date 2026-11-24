@@ -42,11 +42,28 @@ try {
   await page.waitForTimeout(3000);
   assert.equal(await page.locator('.tour').count(), 0, 'off for good');
 
+  // Every card is the same size, as wide as a dialog, with 40px between the words and the buttons.
+  await page.evaluate(() => window.dispatchEvent(new Event('pheelm:tour-replay')));
+  await page.waitForSelector('.tour-card');
+  const sizes = new Set();
+  for (let i = 0; i < 5; i++) {
+    const b = await page.locator('.tour-card').boundingBox();
+    sizes.add(`${Math.round(b.width)}x${Math.round(b.height)}`);
+    assert.equal(Math.round(b.width), 350, `as wide as a dialog on a 390px screen: ${b.width}`);
+    const gap = await page.evaluate(() => document.querySelector('.tour-actions').getBoundingClientRect().top - document.querySelector('.tour-copy').getBoundingClientRect().bottom);
+    assert(Math.abs(gap - 40) < 2, `40px between text and buttons, got ${gap}`);
+    if (i === 3) assert.match(await page.locator('.tour-copy-item.is-current').innerText(), /Join the community/);
+    if (i < 4) await page.locator('.tour-actions .button:not(.ghost)').click();
+  }
+  assert.equal(sizes.size, 1, `all cards one size: ${[...sizes]}`);
+  assert.equal((await page.locator('.tour-actions .button:not(.ghost)').innerText()), 'Start exploring');
+  await page.locator('.tour-x').click();
+
   // Settings -> Display -> Replay starts it again from the first step, even after "Don't show again".
   await page.evaluate(() => window.dispatchEvent(new Event('pheelm:tour-replay')));
   await page.waitForSelector('.tour-card', { timeout: 15000 });
   assert.match(await page.locator('.tour-count').innerText(), /1 of 5/);
-  assert.match(await page.locator('.tour-text').innerText(), /Browse films by Black directors from around the world/);
+  assert.match(await page.locator('.tour-copy-item.is-current .tour-text').innerText(), /Browse films by Black directors from around the world/);
   console.log('PASS: the tour steps, comes back twice after closing, and stops on Don’t show again.');
 } finally {
   await browser.close();
