@@ -10,7 +10,7 @@ import Poster from "./Poster";
 const BADGE_ICONS: Record<string, IconName> = { Private: "lock", Public: "globe", Shared: "users" };
 
 /** A collection: three posters, its title, then how many films ("12 films"). No usernames. */
-export default function CommunityTile({ c, showOwner = true, badge, filmCount, footer, plain }: { c: CollectionTileData | CommunityCollection; showOwner?: boolean; badge?: string; filmCount?: number; footer?: ReactNode; plain?: boolean }) {
+export default function CommunityTile({ c, badge, filmCount, footer, plain }: { c: CollectionTileData | CommunityCollection; badge?: string; filmCount?: number; footer?: ReactNode; plain?: boolean }) {
   const Wrap = (plain ? "span" : Link) as React.ElementType;
   const count = `${filmCount ?? c.films.length} ${(filmCount ?? c.films.length) === 1 ? "film" : "films"}`;
   const meta = count;
