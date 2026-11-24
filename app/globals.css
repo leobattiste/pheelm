@@ -3358,3 +3358,9 @@ html:root:root:root .trailer-foot .button.ghost { border: 1px solid var(--contro
 .tour-welcome { top: 50%; transform: translateY(-50%); }
 .tour-choices { display: grid; gap: var(--space-8); margin: var(--space-16) 0 var(--space-8); }
 .tour-choices .button { justify-content: center; }
+.started-list { list-style: none; margin: var(--space-12) 0 0; padding: 0; display: grid; gap: var(--space-8); }
+.started-item { display: flex; align-items: center; gap: var(--space-12); }
+.started-check { flex: none; width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--control-border-strong); display: grid; place-items: center; }
+.started-item.is-done { color: var(--muted); }
+.started-item.is-done .started-check { background: var(--ink); color: var(--on-ink); border-color: var(--ink); }
+.started-go { margin-left: auto; font-size: var(--t-sm); }

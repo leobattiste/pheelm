@@ -128,7 +128,10 @@ export default function WatchlistButton({ filmId, filmTitle, pickerOnly = false,
     else {
       mark(!remove);
       if (remove) await loadLists(true);
-      if (!undo) toast.success(remove ? `Removed ${filmTitle} from your Watchlist` : `Added ${filmTitle} to your Watchlist`, { action: { label: "Undo", run: () => { setBusy(false); return setAll(!remove, true); } } });
+      // The first film someone saves on this device: say where it went.
+      let first = false;
+      if (!remove && !undo) { try { first = !localStorage.getItem("pheelm:first-save"); if (first) localStorage.setItem("pheelm:first-save", "1"); } catch {} }
+      if (!undo) toast.success(remove ? `Removed ${filmTitle} from your Watchlist` : `Added ${filmTitle} to your Watchlist${first ? ". Find it on your profile." : ""}`, { action: { label: "Undo", run: () => { setBusy(false); return setAll(!remove, true); } } });
       else toast.success("Undone");
     }
     setBusy(false);
