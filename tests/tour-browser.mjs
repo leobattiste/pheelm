@@ -82,6 +82,19 @@ try {
   assert.equal(await page.locator('.tour-actions .button:not(.ghost)').innerText(), 'Got it');
   await page.locator('.tour-actions .button:not(.ghost)').click();
   assert.equal(JSON.parse(await page.evaluate(() => localStorage.getItem('pheelm:tour:v1'))).tours.films.done, true, 'finishing stops it');
+
+  // Directors and Watchlists have their own tours too.
+  for (const [path, first] of [['/directors', /Search|Sort/], ['/watchlists', /Browse/]]) {
+    await page.goto(`${base}${path}`, { waitUntil: 'networkidle' });
+    await page.waitForSelector('.tour-card', { timeout: 15000 });
+    assert.match(await page.locator('.tour-copy-item.is-current .tour-title').innerText(), first, `${path} starts at its first step`);
+    const next = page.locator('.tour-actions .button:not(.ghost)');
+    // Steps whose target isn't on the page (an empty list, say) are skipped, so walk to the end.
+    for (let i = 0; i < 5 && (await next.innerText()) !== 'Got it'; i++) await next.click();
+    assert.equal(await next.innerText(), 'Got it', `${path} reaches its last step`);
+    await next.click();
+    assert.equal(await page.locator('.tour').count(), 0, `${path} tour finished`);
+  }
   console.log('PASS: the tour steps, comes back twice after closing, and stops on Don’t show again.');
 } finally {
   await browser.close();
