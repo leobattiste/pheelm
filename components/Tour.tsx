@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
 import {
-  TOUR_STORAGE_KEY, canShowTour, cleanTourState, emptyTourState, finishTour, mergeTourState,
+  TOUR_REPLAY_EVENT, TOUR_STORAGE_KEY, canShowTour, cleanTourState, emptyTourState, finishTour, mergeTourState,
   sameTourState, startTour, turnOffTours, type TourState,
 } from "@/lib/tour";
 
@@ -12,9 +12,9 @@ type Step = { labels: string[]; title: string; text: string };
 
 /** The menu bar tour. A step points at the first of its labels that is on screen (Profile or Sign in). */
 const MENU_TOUR: Step[] = [
-  { labels: ["Films"], title: "Films", text: "Browse every film. The order is shuffled each visit, so there is always something new." },
-  { labels: ["Watchlists"], title: "Watchlists", text: "Collections by theme, country and era, plus the ones people make." },
-  { labels: ["Directors"], title: "Directors", text: "Black directors from around the world, with every film they have made." },
+  { labels: ["Films"], title: "Films", text: "Browse films by Black directors from around the world. Search, filter, and find something new to watch." },
+  { labels: ["Watchlists"], title: "Watchlists", text: "Discover and create watchlists, share your favorites, and connect with other film enthusiasts through comments." },
+  { labels: ["Directors"], title: "Directors", text: "Learn about filmmakers, explore their work, and follow your favorites." },
   { labels: ["Profile", "Sign in"], title: "You", text: "Sign in to save films, make watchlists and mark what you have watched. Members find their profile here." },
   { labels: ["More"], title: "More", text: "Notifications, settings, ways to support Pheelm, and help." },
 ];
@@ -55,6 +55,29 @@ export default function Tour() {
     if (m.userId && db) void db.from("tour_progress").upsert({ user_id: m.userId, state: next, updated_at: new Date().toISOString() }).then(() => {}, () => {});
   }, []);
 
+  const loadMemory = useCallback(async () => {
+    if (memory.current) return;
+    let local = emptyTourState();
+    try { local = cleanTourState(JSON.parse(localStorage.getItem(TOUR_STORAGE_KEY) ?? "null")); } catch {}
+    let userId: string | null = null;
+    let state = local;
+    const db = getBrowserClient();
+    if (db) {
+      try {
+        const { data: { session } } = await db.auth.getSession();
+        userId = session?.user?.id ?? null;
+        if (userId) {
+          const { data } = await db.from("tour_progress").select("state").eq("user_id", userId).maybeSingle();
+          const remote = cleanTourState(data?.state);
+          state = mergeTourState(local, remote);
+          if (!data || !sameTourState(state, remote)) void db.from("tour_progress").upsert({ user_id: userId, state, updated_at: new Date().toISOString() }).then(() => {}, () => {});
+          try { localStorage.setItem(TOUR_STORAGE_KEY, JSON.stringify(state)); } catch {}
+        }
+      } catch {}
+    }
+    memory.current = { state, userId };
+  }, []);
+
   // Open it once the page has settled, if this person has any showings left.
   useEffect(() => {
     if (SKIP.test(path)) return;
@@ -64,34 +87,28 @@ export default function Tour() {
     const timer = window.setTimeout(async () => {
       if (cancelled || document.documentElement.dataset.chrome !== "app" || document.querySelector("dialog[open]")) return;
       if (!findTarget(MENU_TOUR[0].labels)) return;
-      if (!memory.current) {
-        let local = emptyTourState();
-        try { local = cleanTourState(JSON.parse(localStorage.getItem(TOUR_STORAGE_KEY) ?? "null")); } catch {}
-        let userId: string | null = null;
-        let state = local;
-        const db = getBrowserClient();
-        if (db) {
-          try {
-            const { data: { session } } = await db.auth.getSession();
-            userId = session?.user?.id ?? null;
-            if (userId) {
-              const { data } = await db.from("tour_progress").select("state").eq("user_id", userId).maybeSingle();
-              const remote = cleanTourState(data?.state);
-              state = mergeTourState(local, remote);
-              if (!data || !sameTourState(state, remote)) void db.from("tour_progress").upsert({ user_id: userId, state, updated_at: new Date().toISOString() }).then(() => {}, () => {});
-              try { localStorage.setItem(TOUR_STORAGE_KEY, JSON.stringify(state)); } catch {}
-            }
-          } catch {}
-        }
-        memory.current = { state, userId };
-      }
+      await loadMemory();
       if (cancelled || !memory.current || !canShowTour(memory.current.state, "menu") || document.querySelector("dialog[open]")) return;
       save(startTour(memory.current.state, "menu"));
       last.current = document.activeElement as HTMLElement | null;
       setStep(0);
     }, START_DELAY_MS);
     return () => { cancelled = true; window.clearTimeout(timer); };
-  }, [path, save]);
+  }, [path, save, loadMemory]);
+
+  // Settings → Display → "Replay the tour": forget what was seen and start from the first step.
+  useEffect(() => {
+    const replay = async () => {
+      if (document.documentElement.dataset.chrome !== "app" || !findTarget(MENU_TOUR[0].labels)) return;
+      await loadMemory();
+      if (!memory.current) return;
+      save({ off: false, tours: { ...memory.current.state.tours, menu: { shown: 1, done: false } } });
+      last.current = document.activeElement as HTMLElement | null;
+      setStep(0);
+    };
+    window.addEventListener(TOUR_REPLAY_EVENT, replay);
+    return () => window.removeEventListener(TOUR_REPLAY_EVENT, replay);
+  }, [loadMemory, save]);
 
   // Keep the spotlight on the step's tab.
   useEffect(() => {

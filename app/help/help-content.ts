@@ -476,8 +476,8 @@ export const HELP_CATEGORIES: HelpCategory[] = [
       },
       {
         "id": "account-and-settings-9",
-        "question": "Where do I change the appearance?",
-        "answer": "Open Settings → Appearance to switch the theme or film-poster grid layout. These preferences are stored on your device.",
+        "question": "Where do I change the display settings?",
+        "answer": "Open Settings → Display to switch the theme or film-poster grid layout, or to replay the tour. The theme and grid are stored on your device.",
         "href": "/account#appearance"
       },
       {

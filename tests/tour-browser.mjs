@@ -41,6 +41,12 @@ try {
   await page.reload({ waitUntil: 'networkidle' });
   await page.waitForTimeout(3000);
   assert.equal(await page.locator('.tour').count(), 0, 'off for good');
+
+  // Settings -> Display -> Replay starts it again from the first step, even after "Don't show again".
+  await page.evaluate(() => window.dispatchEvent(new Event('pheelm:tour-replay')));
+  await page.waitForSelector('.tour-card', { timeout: 15000 });
+  assert.match(await page.locator('.tour-count').innerText(), /1 of 5/);
+  assert.match(await page.locator('.tour-text').innerText(), /Browse films by Black directors from around the world/);
   console.log('PASS: the tour steps, comes back twice after closing, and stops on Don’t show again.');
 } finally {
   await browser.close();
