@@ -63,6 +63,14 @@ const tour = fs.readFileSync('components/Tour.tsx', 'utf8');
 assert.match(tour, /localStorage\.setItem\(TOUR_STORAGE_KEY/);
 assert.match(tour, /from\("tour_progress"\)/);
 assert.match(tour, /Don’t show again/);
+// Getting started: five steps ticked off by real counts, shown in Settings, hidden once all are done; the first save explains itself.
+const started = fs.readFileSync('app/account/GettingStarted.tsx', 'utf8');
+assert.equal((started.match(/\{ key: "/g) ?? []).length, 5, 'five steps');
+assert.match(started, /if \(done === STEPS\.length\) return null/);
+const account = fs.readFileSync('app/account/page.tsx', 'utf8');
+assert.match(account, /<GettingStarted counts=\{started\} \/>/);
+for (const table of ['watched', 'watchlist', 'lists', 'follows', 'list_comments']) assert.match(account, new RegExp(`count\\("${table}"\\)`), `${table} is counted`);
+assert.match(fs.readFileSync('components/WatchlistButton.tsx', 'utf8'), /pheelm:first-save/);
 const migration = fs.readFileSync('supabase/migrations/20261123210000_tour_progress.sql', 'utf8');
 assert.match(migration, /enable row level security/);
 assert.match(migration, /user_id = \(select auth\.uid\(\)\)/);
