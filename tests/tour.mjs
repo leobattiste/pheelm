@@ -38,6 +38,9 @@ const { ALL_TOURS, toursFor, tourCopy } = rm.exports;
 assert.equal(new Set(ALL_TOURS.map(t => t.id)).size, ALL_TOURS.length, 'tour ids are unique');
 assert.deepEqual(toursFor('/films').map(t => t.id), ['menu', 'films']);
 assert.deepEqual(toursFor('/films/dahomey').map(t => t.id), ['menu', 'film']);
+assert.deepEqual(toursFor('/directors').map(t => t.id), ['menu', 'directors']);
+assert.deepEqual(toursFor('/watchlists').map(t => t.id), ['menu', 'watchlists']);
+assert.deepEqual(toursFor('/directors/ava-duvernay').map(t => t.id), ['menu'], 'a director page has no tour yet');
 assert.deepEqual(toursFor('/about').map(t => t.id), ['menu']);
 for (const t of ALL_TOURS) for (const member of [true, false]) {
   const steps = t.steps(member);

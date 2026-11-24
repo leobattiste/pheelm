@@ -54,6 +54,26 @@ export const PAGE_TOURS: Tour[] = [
       { targets: ["#comments h2"], title: "Comments", text: "Tell others what you thought and join the conversation.", scroll: true, place: "bottom" },
     ],
   },
+  {
+    id: "directors",
+    match: (p) => p === "/directors",
+    doneLabel: "Got it",
+    steps: () => [
+      { targets: [".search-bar"], title: "Search", text: "Look up a director by name or country." },
+      { targets: [".filter-button"], title: "Sort", text: "Order directors by number of films, name or when they started." },
+      { targets: [".director-card .collection-tile"], title: "Open a director", text: "Tap a director to see their films and follow them.", place: "bottom" },
+    ],
+  },
+  {
+    id: "watchlists",
+    match: (p) => p === "/watchlists",
+    doneLabel: "Got it",
+    steps: () => [
+      { targets: [".feed-tabs"], title: "Browse", text: "See every watchlist, the featured ones, or the ones you follow." },
+      { targets: [".collections-toolbar .filter-button"], title: "Sort", text: "Change how the watchlists are ordered." },
+      { targets: [".collection-list .collection-tile"], title: "Open a watchlist", text: "Tap a watchlist to see its films and join the comments.", place: "bottom" },
+    ],
+  },
 ];
 
 export const ALL_TOURS: Tour[] = [MENU_TOUR, ...PAGE_TOURS];
