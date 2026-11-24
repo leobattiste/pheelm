@@ -161,12 +161,18 @@ export default function Tour() {
     if (steps.length) open(MENU_TOUR, steps, startTour(next, "menu")); else save(next);
   }, [open, path, router, save, stepsOf]);
 
+  /** X, Esc or a tap outside the welcome card: same as "Don’t show again", no tours at all. */
+  const dismissWelcome = useCallback(() => {
+    setWelcome(false);
+    if (memory.current) save(turnOffTours({ ...memory.current.state, intent: memory.current.state.intent || "skip" }));
+  }, [save]);
+
   useEffect(() => {
     if (!welcome) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") answer("skip"); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") dismissWelcome(); };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [welcome, answer]);
+  }, [welcome, dismissWelcome]);
 
   useEffect(() => {
     if (!running) return;
@@ -186,9 +192,9 @@ export default function Tour() {
   if (welcome) {
     return (
       <div className="tour" role="presentation">
-        <div className="tour-scrim" onClick={() => answer("skip")} />
+        <div className="tour-scrim" onClick={dismissWelcome} />
         <section className="tour-card tour-welcome" role="dialog" aria-label="Welcome to Pheelm" style={{ left: (window.innerWidth - Math.min(480, window.innerWidth - 40)) / 2, width: Math.min(480, window.innerWidth - 40) }}>
-          <button type="button" className="icon-button tour-x" aria-label="Close" onClick={() => answer("skip")}>×</button>
+          <button type="button" className="icon-button tour-x" aria-label="Close" onClick={dismissWelcome}>×</button>
           <h2 className="tour-title">What brings you here?</h2>
           <p className="tour-text">Pick one and we will point you to a good place to start.</p>
           <div className="tour-choices">
