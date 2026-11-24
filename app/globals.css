@@ -3351,3 +3351,7 @@ html:root:root:root .trailer-foot .button.ghost { border: 1px solid var(--contro
 .tour-actions .button { flex: 1; justify-content: center; }
 .tour-off { justify-self: center; margin-top: var(--space-4, 4px); padding: var(--space-8); border: 0; background: none; color: var(--muted); font-size: var(--t-sm); text-decoration: underline; cursor: pointer; }
 @media (prefers-reduced-motion: reduce) { .tour-spot { transition: none; } .tour-card { animation: none; } }
+.tour-copy { display: grid; margin-bottom: calc(var(--space-40) - var(--space-8)); } /* the card's own 8px gap makes it 40px in all */
+.tour-copy-item { grid-area: 1 / 1; visibility: hidden; }
+.tour-copy-item.is-current { visibility: visible; }
+.tour-actions { margin-top: 0; }
