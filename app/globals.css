@@ -3355,3 +3355,6 @@ html:root:root:root .trailer-foot .button.ghost { border: 1px solid var(--contro
 .tour-copy-item { grid-area: 1 / 1; visibility: hidden; }
 .tour-copy-item.is-current { visibility: visible; }
 .tour-actions { margin-top: 0; }
+.tour-welcome { top: 50%; transform: translateY(-50%); }
+.tour-choices { display: grid; gap: var(--space-8); margin: var(--space-16) 0 var(--space-8); }
+.tour-choices .button { justify-content: center; }
