@@ -29,11 +29,13 @@ try {
     assert.equal(JSON.parse(await page.evaluate(() => localStorage.getItem('pheelm:tour:v1'))).tours.menu.shown, n, `showing ${n}`);
     await page.locator('.tour-x').click();
   }
-  await page.reload({ waitUntil: 'networkidle' });
+  // (On a page with no tour of its own, so only the menu tour could show.)
+  await page.goto(`${base}/help`, { waitUntil: 'networkidle' });
   await page.waitForTimeout(3000);
-  assert.equal(await page.locator('.tour').count(), 0, 'not a fourth time');
+  assert.equal(await page.locator('.tour').count(), 0, 'the menu tour is not shown a fourth time');
 
   // "Don't show again" and finishing both stop it at once.
+  await page.goto(`${base}/films`, { waitUntil: 'networkidle' });
   await page.evaluate(() => localStorage.removeItem('pheelm:tour:v1'));
   await page.reload({ waitUntil: 'networkidle' });
   await page.waitForSelector('.tour-card', { timeout: 15000 });
@@ -64,6 +66,22 @@ try {
   await page.waitForSelector('.tour-card', { timeout: 15000 });
   assert.match(await page.locator('.tour-count').innerText(), /1 of 5/);
   assert.match(await page.locator('.tour-copy-item.is-current .tour-text').innerText(), /Browse films by Black directors from around the world/);
+
+  // After the menu tour is done, a page's own tour comes up the first time it is visited.
+  await page.evaluate(() => localStorage.setItem('pheelm:tour:v1', JSON.stringify({ off: false, tours: { menu: { shown: 1, done: true } } })));
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForSelector('.tour-card', { timeout: 15000 });
+  assert.match(await page.locator('.tour-copy-item.is-current .tour-title').innerText(), /Search/);
+  const films = JSON.parse(await page.evaluate(() => localStorage.getItem('pheelm:tour:v1'))).tours;
+  assert.equal(films.films.shown, 1, 'the page tour counted');
+  assert.equal(films.menu.done, true, 'the menu tour stays done');
+  await page.locator('.tour-actions .button:not(.ghost)').click();
+  assert.match(await page.locator('.tour-copy-item.is-current .tour-title').innerText(), /Filter and sort/);
+  await page.locator('.tour-actions .button:not(.ghost)').click();
+  assert.match(await page.locator('.tour-copy-item.is-current .tour-title').innerText(), /Open a film/);
+  assert.equal(await page.locator('.tour-actions .button:not(.ghost)').innerText(), 'Got it');
+  await page.locator('.tour-actions .button:not(.ghost)').click();
+  assert.equal(JSON.parse(await page.evaluate(() => localStorage.getItem('pheelm:tour:v1'))).tours.films.done, true, 'finishing stops it');
   console.log('PASS: the tour steps, comes back twice after closing, and stops on Don’t show again.');
 } finally {
   await browser.close();

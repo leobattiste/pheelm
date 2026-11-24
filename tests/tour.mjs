@@ -30,6 +30,23 @@ assert.equal(mergeTourState({ off: true, tours: {} }, emptyTourState()).off, tru
 assert.deepEqual(JSON.parse(JSON.stringify(cleanTourState('junk'))), { off: false, tours: {} });
 assert.deepEqual(JSON.parse(JSON.stringify(cleanTourState({ off: 'yes', tours: { menu: { shown: 99, done: 1 }, 'Bad Id': { shown: 1 }, x: 5 } }))), { off: false, tours: { menu: { shown: 3, done: false } } });
 
+// The tour list: the menu tour is on every page and goes first; page tours belong to their own page.
+const reg = ts.transpileModule(fs.readFileSync('lib/tours.ts', 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
+const rm = { exports: {} };
+new Function('module', 'exports', reg)(rm, rm.exports);
+const { ALL_TOURS, toursFor, tourCopy } = rm.exports;
+assert.equal(new Set(ALL_TOURS.map(t => t.id)).size, ALL_TOURS.length, 'tour ids are unique');
+assert.deepEqual(toursFor('/films').map(t => t.id), ['menu', 'films']);
+assert.deepEqual(toursFor('/films/dahomey').map(t => t.id), ['menu', 'film']);
+assert.deepEqual(toursFor('/about').map(t => t.id), ['menu']);
+for (const t of ALL_TOURS) for (const member of [true, false]) {
+  const steps = t.steps(member);
+  assert(steps.length >= 2, `${t.id} has steps`);
+  for (const st of steps) { assert(st.targets.length && st.title && st.text, `${t.id}: ${st.title} is complete`); assert(st.text.length < 140, `${t.id}: ${st.title} stays short`); }
+}
+assert.equal(ALL_TOURS.find(t => t.id === 'menu').doneLabel, 'Start exploring');
+assert(tourCopy(ALL_TOURS[0]).some(c => c.title === 'Your profile') && tourCopy(ALL_TOURS[0]).some(c => c.title === 'Join the community'));
+
 // The tour is wired in once, and remembers in the browser and on the account.
 const layout = fs.readFileSync('app/layout.tsx', 'utf8');
 assert.equal((layout.match(/<Tour \/>/g) ?? []).length, 1);
