@@ -551,7 +551,7 @@ main { width: 100%; }
 .film-card a:hover .poster { transform: translateY(-3px); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06), var(--shadow); }
 /* A poster with a measured colour casts a glow of that colour on hover. */
 .film-card[style*="--tint"] a:hover .poster { box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06), 0 22px 44px -18px color-mix(in srgb, var(--tint) 75%, transparent); }
-.film-card-title { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; min-width: 0; max-width: 100%; overflow: hidden; overflow-wrap: anywhere; color: var(--ink); font-weight: 700; line-height: 1.3; letter-spacing: -0.01em; }
+.film-card-title { display: block; min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); font-weight: 700; line-height: 1.3; letter-spacing: -0.01em; }
 .film-card-meta { font-size: var(--t-sm); color: var(--muted); line-height: 1.35; }
 
 /* Rows ------------------------------------------------------------------------------------ */
@@ -695,7 +695,7 @@ main { width: 100%; }
 }
 .collection-fan .poster-card-title { font-size: 12cqi; }
 .collection-fan .poster-card-foot { display: none; }
-.collection-title { color: var(--ink); font-size: var(--t-lg); font-weight: 700; letter-spacing: -0.015em; }
+.collection-title { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; color: var(--ink); font-size: var(--t-lg); font-weight: 700; letter-spacing: -0.015em; }
 .collection-title:last-child { margin-bottom: var(--space-16); }
 .collection-desc { margin-bottom: var(--space-16); color: var(--muted); font-size: var(--t-sm); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 /* The poster setting in the menu reshapes director and collection cards too. */
@@ -1132,7 +1132,7 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 [data-grid="list"] .film-grid .film-card .poster { grid-area: poster; width: 40px; margin: 0; border-radius: var(--r-media); transform: none; box-shadow: none; }
 [data-grid="list"] .film-grid .poster-card { padding: 0; }
 [data-grid="list"] .film-grid .poster-card > * { display: none; }
-[data-grid="list"] .film-grid .film-card-title { display: block; -webkit-line-clamp: unset; overflow: visible; grid-area: title; align-self: end; font-size: var(--t-md); }
+[data-grid="list"] .film-grid .film-card-title { display: block; grid-area: title; align-self: end; font-size: var(--t-md); }
 [data-grid="list"] .film-grid .film-card-meta { grid-area: meta; align-self: start; display: block; }
 [data-grid="list"] .film-grid .film-card-runtime { grid-area: runtime; display: block; color: var(--muted); font-size: var(--t-md); font-variant-numeric: tabular-nums; text-align: right; }
 @media (min-width: 900px) {
