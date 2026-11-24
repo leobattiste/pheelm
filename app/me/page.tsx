@@ -127,7 +127,7 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
                     <span className="collection-title">All saved films</span>
                   </Link>
                 </li>
-                {own.map((c) => <CommunityTile key={c.id} c={c} showOwner={false} badge={publicById.get(c.id) ? "Public" : "Private"} />)}
+                {own.map((c) => <CommunityTile key={c.id} c={c} badge={publicById.get(c.id) ? "Public" : "Private"} />)}
                 {shared.map((c) => <CommunityTile key={c.id} c={c} badge="Shared" />)}
                 <li>
                   <form action={createCollection} className="collection-tile new-collection-card">
