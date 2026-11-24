@@ -706,7 +706,8 @@ main { width: 100%; }
 [data-grid="small"] :is(.director-grid, .collection-list) .collection-tile { padding: var(--space-12); }
 [data-grid="small"] :is(.director-grid, .collection-list) .collection-fan { gap: var(--space-4); }
 [data-grid="small"] :is(.director-grid, .collection-list) .collection-fan .poster { border-radius: var(--r-media); }
-[data-grid="small"] :is(.director-grid, .collection-list) .collection-title { line-height: 1.3; margin-bottom: var(--space-12); }
+[data-grid="small"] :is(.director-grid, .collection-list) .collection-title { line-height: 1.3; }
+[data-grid="small"] :is(.director-grid, .collection-list) .collection-desc { margin-bottom: var(--space-12); }
 [data-grid="small"] .director-grid .director-card-head { grid-template-columns: 28px minmax(0, 1fr); gap: var(--space-8); margin-bottom: var(--space-12); }
 [data-grid="small"] .director-grid .portrait { width: 28px; height: 42px; border-radius: var(--r-media); font-size: var(--t-xs); }
 /* List: one row per card, details on the left and three small posters on the right. */
@@ -729,8 +730,8 @@ main { width: 100%; }
 }
 [data-grid="list"] :is(.director-grid, .collection-list) .collection-fan .poster { border-radius: var(--r-media); }
 [data-grid="list"] :is(.director-grid, .collection-list) .collection-fan .poster-card-title { display: none; }
-[data-grid="list"] .collection-list .collection-title { grid-column: 1; padding-left: var(--space-8); }
-[data-grid="list"] .collection-list .collection-desc { grid-column: 1; margin: 0; padding-left: var(--space-8); -webkit-line-clamp: 1; }
+[data-grid="list"] .collection-list .collection-title { grid-column: 1; grid-row: 1; align-self: end; margin: 0; padding-left: var(--space-8); }
+[data-grid="list"] .collection-list .collection-desc { grid-column: 1; grid-row: 2; align-self: start; margin: 0; padding-left: var(--space-8); -webkit-line-clamp: 1; }
 [data-grid="list"] .director-grid .director-card-head { grid-column: 1; grid-row: 1 / span 2; margin: 0; }
 @media (max-width: 479px) { [data-grid="list"] :is(.director-grid, .collection-list) .collection-fan { grid-template-columns: repeat(3, 28px); gap: 3px; } }
 
@@ -2198,9 +2199,7 @@ html[data-chrome="app"] body:has(dialog:modal) .tab-bar { z-index: 1001; }
 }
 
 /* List cards keep only their essential details, without empty metadata columns. */
-:root[data-grid="list"] .collection-tile > .collection-desc,
 :root[data-grid="list"] .film-card:not(.row-track *) .film-card-runtime { display: none; }
-:root[data-grid="list"] .collection-tile > .collection-title { grid-row: 1 / span 2; align-self: center; }
 
 /* Match profile-card spacing: 16px in large grids, 12px in small and list views.
    List links add no second inset inside the card. */
