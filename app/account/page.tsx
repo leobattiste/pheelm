@@ -5,6 +5,7 @@ import Link from "next/link";
 import { DONATION_PORTAL_URL } from "@/lib/site";
 import { redirect } from "next/navigation";
 import GridToggle from "@/components/GridToggle";
+import ReplayTour from "./ReplayTour";
 import type { IconName } from "@/components/Icon";
 import Tabs from "@/components/Tabs";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -24,7 +25,7 @@ export const metadata: Metadata = privateMetadata("Settings");
 
 /**
  * Settings, in tabs: your profile, your account (sign-in email and signing out), notifications, privacy
- * (a private profile, hiding Watched or Following, blocked people), appearance, and your data.
+ * (a private profile, hiding Watched or Following, blocked people), display, and your data.
  */
 export default async function AccountPage() {
   const db = await getServerClient();
@@ -163,13 +164,14 @@ export default async function AccountPage() {
     },
     {
       id: "appearance",
-      label: "Appearance",
+      label: "Display",
       icon: "moon" as IconName,
       panel: (
         <div className="account-panel">
           <section className="account-section settings-rows" aria-labelledby="appearance-h">
-            <h2 id="appearance-h">Appearance</h2>
+            <h2 id="appearance-h">Display</h2>
             <p className="muted">Saved on this device.</p>
+            <div className="setting-row"><span>Tour</span><ReplayTour /></div>
             <div className="setting-row"><span>Theme</span><ThemeToggle /></div>
             <div className="setting-row"><span>Grid</span><GridToggle /></div>
           </section>

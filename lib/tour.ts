@@ -5,6 +5,7 @@
  * this in the browser; signed-in members keep it on their account (table tour_progress).
  */
 export const TOUR_LIMIT = 3;
+export const TOUR_REPLAY_EVENT = "pheelm:tour-replay";
 export const TOUR_STORAGE_KEY = "pheelm:tour:v1";
 
 export type TourEntry = { shown: number; done: boolean };
