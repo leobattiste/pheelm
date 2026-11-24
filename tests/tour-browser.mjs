@@ -69,6 +69,18 @@ try {
   assert.equal((await page.locator('.tour-actions .button:not(.ghost)').innerText()), 'Start exploring');
   await page.locator('.tour-x').click();
 
+  // X on the welcome card acts like "Don't show again": nothing comes back.
+  await page.goto(`${base}/help`, { waitUntil: 'networkidle' });
+  await page.evaluate(() => localStorage.removeItem('pheelm:tour:v1'));
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForSelector('.tour-welcome', { timeout: 15000 });
+  await page.locator('.tour-welcome .tour-x').click();
+  assert.equal(await page.locator('.tour').count(), 0, 'welcome card closed');
+  assert.equal(JSON.parse(await page.evaluate(() => localStorage.getItem('pheelm:tour:v1'))).off, true, 'X turns tours off');
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForTimeout(2500);
+  assert.equal(await page.locator('.tour').count(), 0, 'nothing comes back after X');
+
   // Picking what brings you here lands somewhere that fits, and the menu tour follows there.
   await page.goto(`${base}/help`, { waitUntil: 'networkidle' });
   await page.evaluate(() => localStorage.removeItem('pheelm:tour:v1'));
