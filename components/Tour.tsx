@@ -1,17 +1,24 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
 import {
   TOUR_REPLAY_EVENT, TOUR_STORAGE_KEY, canShowTour, cleanTourState, emptyTourState, finishTour, mergeTourState,
-  sameTourState, startTour, turnOffTours, type TourState,
+  sameTourState, startTour, turnOffTours, type Intent, type TourState,
 } from "@/lib/tour";
 import { MENU_TOUR, toursFor, tourCopy, type Tour, type TourStep } from "@/lib/tours";
 
 // Pages where a tour would get in the way.
 const SKIP = /^\/(login|auth|welcome|offline|admin)(\/|$)/;
 const START_DELAY_MS = 1500;
+
+/** A first-time visitor says what brought them here and lands somewhere that fits, then the menu tour starts. */
+const WELCOME_CHOICES: { intent: Intent; label: string; to: string }[] = [
+  { intent: "discover", label: "Discover new films", to: "/films" },
+  { intent: "save", label: "Save and share watchlists", to: "/watchlists" },
+  { intent: "directors", label: "Support Black filmmakers", to: "/directors" },
+];
 
 const visible = (el: Element | null): el is HTMLElement => !!el && (el as HTMLElement).getBoundingClientRect().width > 0;
 const findTarget = (targets: string[]): HTMLElement | null => {
@@ -33,6 +40,8 @@ type Running = { tour: Tour; steps: TourStep[] };
  */
 export default function Tour() {
   const path = usePathname();
+  const router = useRouter();
+  const [welcome, setWelcome] = useState(false);
   const [running, setRunning] = useState<Running | null>(null);
   const [step, setStep] = useState(0);
   const [box, setBox] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
@@ -84,7 +93,7 @@ export default function Tour() {
 
   // Open the first tour this page has left to show, once the page has settled.
   useEffect(() => {
-    setRunning(null); setBox(null);
+    setRunning(null); setBox(null); setWelcome(false);
     if (SKIP.test(path)) return;
     // Automated browsers (the site's own checks) don't get tours unless a test asks for them.
     try { if (navigator.webdriver && !localStorage.getItem("pheelm:tour:test")) return; } catch {}
@@ -93,6 +102,8 @@ export default function Tour() {
       if (cancelled || document.documentElement.dataset.chrome !== "app" || document.querySelector("dialog[open]")) return;
       await loadMemory();
       if (cancelled || !memory.current || document.querySelector("dialog[open]")) return;
+      const st = memory.current.state;
+      if (!st.off && !st.intent && !st.tours.menu && stepsOf(MENU_TOUR).length) { last.current = document.activeElement as HTMLElement | null; setWelcome(true); return; }
       for (const tour of toursFor(path)) {
         if (!canShowTour(memory.current.state, tour.id)) continue;
         const steps = stepsOf(tour);
@@ -112,7 +123,7 @@ export default function Tour() {
       if (!memory.current) return;
       const steps = stepsOf(MENU_TOUR);
       if (!steps.length) return;
-      open(MENU_TOUR, steps, { off: false, tours: { menu: { shown: 1, done: false } } });
+      open(MENU_TOUR, steps, { off: false, intent: memory.current.state.intent || "skip", tours: { menu: { shown: 1, done: false } } });
     };
     window.addEventListener(TOUR_REPLAY_EVENT, replay);
     return () => window.removeEventListener(TOUR_REPLAY_EVENT, replay);
@@ -136,9 +147,27 @@ export default function Tour() {
     return () => { window.removeEventListener("resize", place); window.removeEventListener("scroll", place, true); };
   }, [current]);
 
-  useEffect(() => { if (current) primary.current?.focus({ preventScroll: true }); }, [current, box]);
+  useEffect(() => { if (current || welcome) primary.current?.focus({ preventScroll: true }); }, [current, box, welcome]);
 
   const close = useCallback(() => { setRunning(null); setBox(null); last.current?.focus?.({ preventScroll: true }); }, []);
+  /** Answer (or skip) the welcome card; the menu tour follows on the page they land on. */
+  const answer = useCallback((intent: Intent, to?: string) => {
+    setWelcome(false);
+    const m = memory.current;
+    if (!m) return;
+    const next = { ...m.state, intent };
+    if (to && to !== path) { save(next); router.push(to); return; }
+    const steps = stepsOf(MENU_TOUR);
+    if (steps.length) open(MENU_TOUR, steps, startTour(next, "menu")); else save(next);
+  }, [open, path, router, save, stepsOf]);
+
+  useEffect(() => {
+    if (!welcome) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") answer("skip"); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [welcome, answer]);
+
   useEffect(() => {
     if (!running) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") close(); };
@@ -148,11 +177,28 @@ export default function Tour() {
 
   // A sign-in sheet or any dialog opening takes over; the tour steps aside.
   useEffect(() => {
-    if (!running) return;
-    const watch = new MutationObserver(() => { if (document.querySelector("dialog[open]")) close(); });
+    if (!running && !welcome) return;
+    const watch = new MutationObserver(() => { if (document.querySelector("dialog[open]")) { close(); setWelcome(false); } });
     watch.observe(document.body, { subtree: true, attributes: true, attributeFilter: ["open"] });
     return () => watch.disconnect();
-  }, [running, close]);
+  }, [running, welcome, close]);
+
+  if (welcome) {
+    return (
+      <div className="tour" role="presentation">
+        <div className="tour-scrim" onClick={() => answer("skip")} />
+        <section className="tour-card tour-welcome" role="dialog" aria-label="Welcome to Pheelm" style={{ left: (window.innerWidth - Math.min(480, window.innerWidth - 40)) / 2, width: Math.min(480, window.innerWidth - 40) }}>
+          <button type="button" className="icon-button tour-x" aria-label="Close" onClick={() => answer("skip")}>×</button>
+          <h2 className="tour-title">What brings you here?</h2>
+          <p className="tour-text">Pick one and we will point you to a good place to start.</p>
+          <div className="tour-choices">
+            {WELCOME_CHOICES.map((c, i) => <button key={c.intent} type="button" className="button ghost" ref={i === 0 ? primary : undefined} onClick={() => answer(c.intent, c.to)}>{c.label}</button>)}
+          </div>
+          <button type="button" className="tour-off" onClick={() => answer("skip")}>Skip for now</button>
+        </section>
+      </div>
+    );
+  }
 
   if (!running || !current || !box) return null;
 

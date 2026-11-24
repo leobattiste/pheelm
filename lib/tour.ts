@@ -9,9 +9,12 @@ export const TOUR_REPLAY_EVENT = "pheelm:tour-replay";
 export const TOUR_STORAGE_KEY = "pheelm:tour:v1";
 
 export type TourEntry = { shown: number; done: boolean };
-export type TourState = { off: boolean; tours: Record<string, TourEntry> };
+/** What a first-time visitor said brought them here (or "skip"); "" means not asked yet. */
+export const INTENTS = ["discover", "save", "directors", "skip"] as const;
+export type Intent = (typeof INTENTS)[number] | "";
+export type TourState = { off: boolean; intent: Intent; tours: Record<string, TourEntry> };
 
-export const emptyTourState = (): TourState => ({ off: false, tours: {} });
+export const emptyTourState = (): TourState => ({ off: false, intent: "", tours: {} });
 
 /** Reads whatever was stored (browser or database) and keeps only what is valid. */
 export function cleanTourState(raw: unknown): TourState {
@@ -19,6 +22,8 @@ export function cleanTourState(raw: unknown): TourState {
   if (!raw || typeof raw !== "object") return out;
   const r = raw as { off?: unknown; tours?: unknown };
   out.off = r.off === true;
+  const intent = (raw as { intent?: unknown }).intent;
+  out.intent = (INTENTS as readonly unknown[]).includes(intent) ? (intent as Intent) : "";
   if (r.tours && typeof r.tours === "object") {
     for (const [id, v] of Object.entries(r.tours as Record<string, unknown>).slice(0, 40)) {
       if (!/^[a-z0-9-]{1,40}$/.test(id) || !v || typeof v !== "object") continue;
@@ -34,6 +39,7 @@ export function cleanTourState(raw: unknown): TourState {
 export function mergeTourState(a: TourState, b: TourState): TourState {
   const out = emptyTourState();
   out.off = a.off || b.off;
+  out.intent = a.intent || b.intent || "";
   for (const id of new Set([...Object.keys(a.tours), ...Object.keys(b.tours)])) {
     const x = a.tours[id], y = b.tours[id];
     out.tours[id] = { shown: Math.max(x?.shown ?? 0, y?.shown ?? 0), done: !!x?.done || !!y?.done };

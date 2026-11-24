@@ -23,12 +23,18 @@ assert.equal(canShowTour(finishTour(emptyTourState(), 'menu'), 'films'), true, '
 
 // Signing in: this browser and the account are combined and nothing seen is forgotten.
 const merged = mergeTourState({ off: false, tours: { menu: { shown: 2, done: false } } }, { off: false, tours: { menu: { shown: 1, done: true }, films: { shown: 1, done: false } } });
-assert.deepEqual(JSON.parse(JSON.stringify(merged)), { off: false, tours: { menu: { shown: 2, done: true }, films: { shown: 1, done: false } } });
+assert.deepEqual(JSON.parse(JSON.stringify(merged)), { off: false, intent: '', tours: { menu: { shown: 2, done: true }, films: { shown: 1, done: false } } });
 assert.equal(mergeTourState({ off: true, tours: {} }, emptyTourState()).off, true);
 
 // Whatever comes out of storage is cleaned.
-assert.deepEqual(JSON.parse(JSON.stringify(cleanTourState('junk'))), { off: false, tours: {} });
-assert.deepEqual(JSON.parse(JSON.stringify(cleanTourState({ off: 'yes', tours: { menu: { shown: 99, done: 1 }, 'Bad Id': { shown: 1 }, x: 5 } }))), { off: false, tours: { menu: { shown: 3, done: false } } });
+assert.deepEqual(JSON.parse(JSON.stringify(cleanTourState('junk'))), { off: false, intent: '', tours: {} });
+assert.deepEqual(JSON.parse(JSON.stringify(cleanTourState({ off: 'yes', tours: { menu: { shown: 99, done: 1 }, 'Bad Id': { shown: 1 }, x: 5 } }))), { off: false, intent: '', tours: { menu: { shown: 3, done: false } } });
+
+// What a visitor said brought them here is kept, merged, and cleaned like the rest.
+assert.equal(cleanTourState({ intent: 'discover' }).intent, 'discover');
+assert.equal(cleanTourState({ intent: '<script>' }).intent, '');
+assert.equal(mergeTourState({ ...emptyTourState(), intent: 'save' }, emptyTourState()).intent, 'save');
+assert.equal(mergeTourState(emptyTourState(), { ...emptyTourState(), intent: 'directors' }).intent, 'directors');
 
 // The tour list: the menu tour is on every page and goes first; page tours belong to their own page.
 const reg = ts.transpileModule(fs.readFileSync('lib/tours.ts', 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
