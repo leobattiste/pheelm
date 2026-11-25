@@ -6,16 +6,21 @@ import { DONATE_URL, DONATION_PORTAL_URL } from "@/lib/site";
 
 export const metadata: Metadata = publicPageMetadata("/donate");
 
-/** Support Pheelm: a Donate button that opens Stripe's secure checkout, and a thank-you when Stripe sends donors back with ?thanks. */
+/** Donate: a Donate button that opens Stripe's secure checkout, and a thank-you when Stripe sends donors back with ?thanks. */
 export default async function DonatePage({ searchParams }: { searchParams: Promise<{ thanks?: string }> }) {
   const { thanks } = await searchParams;
   return (
     <article className="page narrow info-page donate-page">
       <header className="page-head">
-        <h1>Support Pheelm</h1>
+        <h1>Donate</h1>
         <p className="lead">
-          Pheelm is independent and free to use. Donations pay for hosting and for the time it takes to
-          research, verify and write about every film.
+          Pheelm is an independent platform dedicated to helping people discover films by Black directors
+          around the world. We believe their stories and contributions to cinema deserve greater recognition.
+        </p>
+        <p className="lead">
+          We don&rsquo;t run ads, and your donations help us cover operating costs, improve the platform, and
+          keep Pheelm accessible to everyone. Every contribution, no matter the amount, helps us continue
+          building and growing.
         </p>
       </header>
 
