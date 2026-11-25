@@ -35,15 +35,18 @@ export async function POST(request: NextRequest) {
   for (let i = 0; i < people.length; i += 8) {
     await Promise.all(people.slice(i, i + 8).map(async (p) => {
       try {
-        // A person TMDB no longer has counts as checked, so they never hold up the rest.
-        const { photo_url } = await getPersonDetails(p.tmdb_id as number).catch(() => ({ photo_url: null }));
+        // A person TMDB no longer has (404) counts as checked; any other error leaves them for a later run.
+        const { photo_url } = await getPersonDetails(p.tmdb_id as number).catch((e: unknown) => {
+          if (/\b404\b/.test(String(e instanceof Error ? e.message : e))) return { photo_url: null };
+          throw e;
+        });
         const patch: Record<string, unknown> = { photo_checked_at: new Date().toISOString() };
         if (photo_url) patch.photo_url = photo_url;
         const { error: e } = await db.from("people").update(patch).eq("id", p.id);
         if (e) throw new Error(e.message);
         if (photo_url) filled++;
       } catch (e) {
-        // Only a database error lands here; the person stays unchecked and a later run tries again.
+        // The person stays unchecked and a later run tries again.
         failed.push(`${p.name}: ${e instanceof Error ? e.message : "failed"}`);
       }
     }));
