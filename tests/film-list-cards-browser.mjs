@@ -38,7 +38,7 @@ try {
     assert.equal((await surface(film)).border, '1px');
     assert.equal((await surface(film)).radius, '18px');
     assert.equal((await surface(film)).padding, '12px');
-    assert.equal(await film.getAttribute('href'), '/films/one');
+    assert.equal(await film.getAttribute('href'), '/films/one/by/' + 'longdirectorname'.repeat(15));
     const poster = await film.locator('.poster').boundingBox();
     const title = await film.locator('.film-card-title').boundingBox();
     const meta = await film.locator('.film-card-meta').boundingBox();
