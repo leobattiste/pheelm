@@ -17,7 +17,7 @@ import WatchSection from "@/components/WatchSection";
 import WatchlistButton from "@/components/WatchlistButton";
 import FilmComments from "@/components/FilmComments";
 import { getWatchlistTiles } from "@/lib/community";
-import { filmPageCatalog, getFilms, toCard } from "@/lib/data";
+import { filmPageCatalog, toCard } from "@/lib/data";
 import { personInfo, roleLabel, sentence } from "@/lib/roles";
 import { countryName, listJoin, runtimeLabel, trailerEmbed } from "@/lib/format";
 import { SITE_URL } from "@/lib/supabase/config";
