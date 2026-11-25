@@ -179,7 +179,7 @@ export default async function FilmPage({ params }: Params) {
                   data-action="trailer"
                   aria-label="Find trailer on YouTube"
                   title="Find trailer on YouTube"
-                  href={`https://www.youtube.com/results?search_query=${encodeURIComponent(`${film.title} ${film.year} trailer`)}`}
+                  href={`https://www.youtube.com/results?search_query=${encodeURIComponent([film.title, film.year, ...directorNames, "trailer"].join(" "))}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
