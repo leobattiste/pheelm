@@ -45,7 +45,7 @@ export const PAGE_TOURS: Tour[] = [
   },
   {
     id: "film",
-    match: (p) => /^\/films\/[^/]+$/.test(p),
+    match: (p) => /^\/films\/[^/]+(\/by\/[^/]+)?$/.test(p),
     doneLabel: "Got it",
     steps: () => [
       { targets: [`.film-actions [data-action="trailer"]`], title: "Trailer", text: "Watch the trailer right here." },

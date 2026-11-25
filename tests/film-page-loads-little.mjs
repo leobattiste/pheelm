@@ -4,7 +4,8 @@
 import assert from "node:assert";
 import { readFileSync } from "node:fs";
 
-const page = readFileSync("app/films/[slug]/page.tsx", "utf8");
+const page = readFileSync("app/films/[slug]/FilmPageView.tsx", "utf8");
+const route = readFileSync("app/films/[slug]/page.tsx", "utf8");
 const data = readFileSync("lib/data.ts", "utf8");
 
 // The page body and its metadata both go through the trimmed loader.
@@ -15,9 +16,10 @@ assert.equal((page.match(/filmPageCatalog\(/g) ?? []).length, 2, "generateMetada
 for (const banned of ["getDirectors(", "getCommunityCollections("])
   assert.ok(!page.includes(banned), `${banned} loads the whole catalog, so the film page should not call it`);
 // getFilms stays, but only for generateStaticParams, which runs at build time.
-const staticParams = page.slice(page.indexOf("generateStaticParams"), page.indexOf("generateMetadata"));
+const staticParams = route.slice(route.indexOf("generateStaticParams"), route.indexOf("generateMetadata"));
 assert.ok(staticParams.includes("getFilms()"), "generateStaticParams may use getFilms");
-assert.equal((page.match(/getFilms\(\)/g) ?? []).length, 1, "getFilms belongs to generateStaticParams alone");
+assert.equal((route.match(/getFilms\(\)/g) ?? []).length, 1, "getFilms belongs to generateStaticParams alone");
+assert.ok(!page.includes("getFilms("), "the film page view never loads the whole film list");
 
 // The tile count comes from the list, not from the three posters the tile shows.
 assert.match(page, /<CommunityTile[^>]*filmCount=\{c\.filmCount\}/, "pass the real film count, or every tile reads '3 films'");

@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { countryName, runtimeLabel, tintStyle } from "@/lib/format";
 import type { FilmCard as Card } from "@/lib/types";
+import { filmPath } from "@/lib/film-links";
 import Poster from "./Poster";
 import Paged from "./Paged";
 import FilmLink from "./Transitions";
@@ -17,7 +18,7 @@ export default function FilmCard({ film, priority, sizes, note, extra, posterOnl
   const label = posterOnly ? `${film.title}, ${film.directors.join(" and ")}, ${film.year}` : undefined;
   // Plain: the same card without a link (the home page, before sign-up).
   const Wrap = (plain ? "span" : CardLink) as React.ElementType;
-  const wrapProps = plain ? { className: "card-plain", role: "img", "aria-label": label ?? `${film.title}, ${film.year}` } : { href: href ?? `/films/${film.slug}`, "aria-label": label };
+  const wrapProps = plain ? { className: "card-plain", role: "img", "aria-label": label ?? `${film.title}, ${film.year}` } : { href: href ?? filmPath(film.slug, film.directors), "aria-label": label };
   return (
     <li className={`film-card${posterOnly ? " is-poster-only" : ""}`} style={tintStyle(film.color)}>
       <Wrap {...wrapProps}>

@@ -21,8 +21,8 @@ try{
   const path=mapPaths.find(p=>p.endsWith('/'+kind+'-1.xml'));if(!path)continue;
   const xml=await html(path);assert.ok(xml.includes('<urlset'));const urls=[...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(x=>new URL(x[1]).pathname);assert.ok(urls.length<=1000);if(kind!=='pages')entityPaths.push(urls[0]);
  }
- for(const path of entityPaths){const source=await html(path);assert.ok(canon(source)?.endsWith(path),path+' canonical');assert.ok(!/<meta name="robots" content="[^"]*noindex/.test(source),path+' noindex');}
- for(const path of ['/opengraph-image','/api/og?page=%2Fabout',film+'/opengraph-image',director+'/opengraph-image']){
+ for(const path of entityPaths){const source=await html(path);assert.ok(canon(source)?.includes(path),path+' canonical');assert.ok(!/<meta name="robots" content="[^"]*noindex/.test(source),path+' noindex');}
+ for(const path of ['/opengraph-image','/api/og?page=%2Fabout',film.replace(/\/by\/.*$/,'')+'/opengraph-image',director+'/opengraph-image']){
   const response=await context.request.get(BASE+path);assert.equal(response.status(),200,path);assert.match(response.headers()['content-type'],/image\/png/);const info=await sharp(await response.body()).metadata();assert.equal(info.width,1200);assert.equal(info.height,630);
  }
  assert.equal((await context.request.get(BASE+'/api/og?page=constructor')).status(),404);
