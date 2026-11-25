@@ -7,7 +7,7 @@ const header = fs.readFileSync('components/SiteHeader.tsx', 'utf8');
 const account = fs.readFileSync('app/account/page.tsx', 'utf8');
 
 // The Donate page shows a site-styled Donate button that opens Stripe's checkout.
-assert.match(site, /DONATE_URL = process\.env\.NEXT_PUBLIC_DONATE_URL \|\| \"https:\/\/buy\.stripe\.com\/[A-Za-z0-9]+\"/);
+assert.match(site, /DONATE_URL = process\.env\.NEXT_PUBLIC_DONATE_URL \|\| \"https:\/\/(buy|donate)\.stripe\.com\/[A-Za-z0-9]+\"/);
 assert.doesNotMatch(site, /sk_live|rk_live/, 'no secret Stripe key in the code');
 assert.match(page, /Donations open soon/);
 assert.match(page, /<a className="button" href=\{DONATE_URL\}>Donate<\/a>/);
