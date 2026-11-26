@@ -20,6 +20,7 @@ jobs:
       - run: node tests/profile-bio.mjs
       - run: node tests/sentry-scrub.mjs
       - run: node tests/donate.mjs
+      - run: node tests/donate-flow.mjs
       - run: node tests/tour.mjs
       - run: node tests/profile-seo.mjs
       - run: node tests/profile-loading.mjs
