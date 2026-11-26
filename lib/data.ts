@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { promises as fs } from "node:fs";
 import { tmpdir } from "node:os";
+import { gunzipSync } from "node:zlib";
 import { join } from "node:path";
 import { cache } from "react";
 import local from "@/data/catalog.json";
@@ -106,17 +107,54 @@ let checking: Promise<boolean> | null = null;
 
 const anonClient = () => createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: false } });
 
-/** The catalog's change counter, or null when it can't be read. */
-async function catalogVersion(db: SupabaseClient): Promise<number | null> {
-  const { data, error } = await db.from("catalog_version").select("v").eq("id", 1).maybeSingle();
-  return error || !data ? null : Number(data.v);
+/**
+ * Where the catalog comes from. Normally the snapshot: the whole published catalog as one
+ * compressed file in Storage, rebuilt by /api/internal/catalog-snapshot when catalog_version moves.
+ * One small row and one file download, where reading the tables page by page took about 55
+ * requests per server and, with many servers starting at once, timed out on the database.
+ *
+ * A snapshot a change or two behind is still used while the rebuild catches up (it runs every
+ * minute). If it has fallen more than SNAPSHOT_LAG behind a change, the rebuild is stuck, so the
+ * tables are read directly instead and the site never stays out of date.
+ */
+const SNAPSHOT_LAG = 10 * 60_000;
+type Source = { version: number | null; path: string | null };
+async function catalogSource(db: SupabaseClient): Promise<Source> {
+  const [live, snap] = await Promise.all([
+    db.from("catalog_version").select("v, changed_at").eq("id", 1).maybeSingle(),
+    db.from("catalog_snapshot").select("version, path").eq("id", 1).maybeSingle(),
+  ]);
+  const v = live.error || !live.data ? null : Number(live.data.v);
+  const snapshot = snap.error || !snap.data ? null : { version: Number(snap.data.version), path: String(snap.data.path) };
+  if (snapshot && (v === null || snapshot.version >= v || Date.now() - Date.parse(String(live.data?.changed_at)) < SNAPSHOT_LAG))
+    return snapshot;
+  return { version: v, path: null };
+}
+
+/** The snapshot file, unpacked. */
+async function readSnapshot(path: string): Promise<Raw> {
+  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/public/catalog/${path}`, { cache: "no-store" });
+  if (!res.ok) throw new Error(`Could not load the catalog snapshot: ${res.status}`);
+  const raw = JSON.parse(gunzipSync(Buffer.from(await res.arrayBuffer())).toString("utf8")) as Raw;
+  if (!Array.isArray(raw.films) || !raw.films.length) throw new Error("The catalog snapshot is empty.");
+  return raw;
+}
+
+/** The snapshot if there is a current one, else the tables page by page. */
+function readCatalog(db: SupabaseClient, source: Source): Promise<Raw> {
+  const tables = () => (building() ? sharedBuildCatalog(db) : fetchCatalog(db));
+  if (!source.path) return tables();
+  return readSnapshot(source.path).catch((e) => {
+    console.warn(`⚠ ${e instanceof Error ? e.message : e}; reading the tables instead.`);
+    return tables();
+  });
 }
 
 /** True when the copy in memory is still the current catalog. One check at a time per server. */
 function stillCurrent(copy: Copy): Promise<boolean> {
   if (copy.version === null) return Promise.resolve(false);
-  checking ??= catalogVersion(anonClient())
-    .then((v) => v !== null && v === copy.version)
+  checking ??= catalogSource(anonClient())
+    .then((s) => s.version !== null && s.version === copy.version)
     .catch(() => false)
     .finally(() => { checking = null; });
   return checking;
@@ -127,12 +165,12 @@ function refresh(previous: Copy | null): Promise<Raw> {
   const db = anonClient();
   // The version is read before the rows: a change landing mid-download leaves the copy marked with
   // the older number, so the next check reads it again rather than missing the change.
-  const version = catalogVersion(db).catch(() => null);
-  const data = version.then(() => (building() ? sharedBuildCatalog(db) : fetchCatalog(db)));
+  const source = catalogSource(db).catch((): Source => ({ version: null, path: null }));
+  const data = source.then((src) => readCatalog(db, src));
   const copy: Copy = { at, checked: at, version: null, data };
   shared = copy;
   data.then(
-    async (raw) => { copy.ready = raw; copy.version = await version; },
+    async (raw) => { copy.ready = raw; copy.version = (await source).version; },
     () => {
       // A failed download isn't kept. Outside a build, the last good copy carries on serving rather
       // than turning a busy database into error pages, and is checked again in a minute.
@@ -166,6 +204,17 @@ const load = cache(async (): Promise<Raw> => {
 
 /** True when this server already holds a checked, current copy of the catalog. */
 const warm = () => Boolean(shared?.ready && Date.now() - shared.checked < CHECK_EVERY);
+
+/**
+ * True when a current snapshot exists, so loading the whole catalog is one download and the
+ * trimmed per-page reads below (a dozen requests each) aren't worth it. Asked once a minute.
+ */
+let snapshotCheck: { at: number; on: Promise<boolean> } | null = null;
+const snapshotOn = () => {
+  if (!snapshotCheck || Date.now() - snapshotCheck.at > CHECK_EVERY)
+    snapshotCheck = { at: Date.now(), on: catalogSource(anonClient()).then((src) => Boolean(src.path), () => false) };
+  return snapshotCheck.on;
+};
 
 /**
  * A build renders pages in several processes at once, and each used to download the whole
@@ -205,7 +254,7 @@ async function sharedBuildCatalog(db: SupabaseClient): Promise<Raw> {
   return fetchCatalog(db);
 }
 
-async function fetchCatalog(db: SupabaseClient): Promise<Raw> {
+export async function fetchCatalog(db: SupabaseClient): Promise<Raw> {
   try {
     const [films, people, credits, collections, collection_films] = await Promise.all([
       readAll<FilmRow>(db, "films", (q) => q.eq("status", "published")),
@@ -340,7 +389,7 @@ export const filmPageCatalog = cache(async (slug: string) => {
   // where one page renders on its own. Local work and CI have no Supabase, and take this path too.
   // A server that already holds a current copy of the whole catalog uses it too: that costs
   // nothing, where the trimmed read is still a dozen requests.
-  if (!supabaseEnabled || building() || warm()) {
+  if (!supabaseEnabled || building() || warm() || (await snapshotOn())) {
     const c = await catalog();
     return { film: c.films.find((f) => f.slug === slug) ?? null, films: c.films, directors: c.directors };
   }
@@ -375,7 +424,7 @@ export const filmPageCatalog = cache(async (slug: string) => {
  * machine without Supabase and a server that already holds a current copy use that instead.
  */
 export const personPageCatalog = cache(async (slug: string): Promise<{ person: PersonRow | null; director: Director | null; films: Film[] }> => {
-  if (!supabaseEnabled || building() || warm()) {
+  if (!supabaseEnabled || building() || warm() || (await snapshotOn())) {
     const c = await catalog();
     const person = c.people.find((p) => p.slug === slug) ?? null;
     return { person, director: c.directors.find((d) => d.slug === slug) ?? null, films: person ? c.films : [] };
@@ -488,7 +537,7 @@ export function toCard(f: Film): FilmCard {
 export async function getFilmCards(ids: string[]): Promise<FilmCard[]> {
   const unique = [...new Set(ids)];
   if (!unique.length) return [];
-  if (!supabaseEnabled || building() || warm()) {
+  if (!supabaseEnabled || building() || warm() || (await snapshotOn())) {
     const { filmById } = await catalog();
     return unique.flatMap((id) => { const f = filmById.get(id); return f ? [toCard(f)] : []; });
   }

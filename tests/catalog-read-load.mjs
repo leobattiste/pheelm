@@ -5,6 +5,7 @@
 import { build } from "esbuild";
 import vm from "node:vm";
 import assert from "node:assert/strict";
+import zlib from "node:zlib";
 
 const AT_ONCE = 4;
 
@@ -29,7 +30,7 @@ function memoryDisk() {
   };
 }
 
-async function load({ total, building, versioned = false, disk = memoryDisk() }) {
+async function load({ total, building, versioned = false, disk = memoryDisk(), snapshot = null }) {
   const out = await build({
     stdin: { contents: `export {getFilms, getFilmCards, directorPageCatalog} from './lib/data';`, loader: "ts", resolveDir: process.cwd() },
     bundle: true, write: false, format: "cjs", platform: "node",
@@ -37,16 +38,33 @@ async function load({ total, building, versioned = false, disk = memoryDisk() })
   });
   const stats = { requests: 0, peak: 0, inFlight: 0, reads: 0, versionChecks: 0, tables: [] };
   // `version` is the catalog_version row; `failing` makes every catalog request error.
-  const db = { version: 1, failing: false, failOnce: 0 };
+  const db = { version: 1, changedAt: new Date().toISOString(), failing: false, failOnce: 0, snapshot, downloadFails: false };
   const versionQuery = () => {
     const q = {
       select: () => q, eq: () => q,
       maybeSingle: async () => {
         stats.versionChecks++;
-        return versioned ? { data: { v: db.version }, error: null } : { data: null, error: { message: "relation does not exist" } };
+        return versioned ? { data: { v: db.version, changed_at: db.changedAt }, error: null } : { data: null, error: { message: "relation does not exist" } };
       },
     };
     return q;
+  };
+  // The catalog_snapshot row: { version, path } when a snapshot exists.
+  const snapshotQuery = () => {
+    const q = { select: () => q, eq: () => q, maybeSingle: async () => (db.snapshot ? { data: db.snapshot, error: null } : { data: null, error: null }) };
+    return q;
+  };
+  // The snapshot file: the same rows the tables would give, gzipped.
+  const fileFor = () => {
+    const rows = Array.from({ length: total }, (_, i) => ({ id: `row-${i}`, slug: `f-${i}`, title: `Film ${i}`, year: 2000, status: "published", countries: [], languages: [], genres: [], aka: [] }));
+    return zlib.gzipSync(Buffer.from(JSON.stringify({ films: rows, people: [], credits: [], collections: [], collection_films: [] })));
+  };
+  const fetch = async (url) => {
+    stats.downloads = (stats.downloads ?? 0) + 1;
+    stats.lastUrl = url;
+    if (db.downloadFails) return { ok: false, status: 500, arrayBuffer: async () => new ArrayBuffer(0) };
+    const body = fileFor();
+    return { ok: true, status: 200, arrayBuffer: async () => body.buffer.slice(body.byteOffset, body.byteOffset + body.length) };
   };
   const makeQuery = () => {
     let from = 0, to = 999;
@@ -76,12 +94,13 @@ async function load({ total, building, versioned = false, disk = memoryDisk() })
   };
   const fakes = {
     "server-only": {},
-    "@supabase/supabase-js": { createClient: () => { stats.reads++; return { from: (t) => { stats.tables.push(t); return t === "catalog_version" ? versionQuery() : makeQuery(); } }; } },
+    "@supabase/supabase-js": { createClient: () => { stats.reads++; return { from: (t) => { stats.tables.push(t); return t === "catalog_version" ? versionQuery() : t === "catalog_snapshot" ? snapshotQuery() : makeQuery(); } }; } },
     "next/cache": { unstable_cache: (fn) => fn, revalidateTag: () => {} },
     react: { cache: (fn) => fn },
     "node:fs": { promises: disk.promises },
     "node:os": { tmpdir: () => "/tmp" },
     "node:path": { join: (...p) => p.join("/") },
+    "node:zlib": zlib,
   };
   const mod = { exports: {} };
   const env = { ...process.env, NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co", NEXT_PUBLIC_SUPABASE_ANON_KEY: "test-key" };
@@ -92,7 +111,7 @@ async function load({ total, building, versioned = false, disk = memoryDisk() })
   class ClockDate extends Date {}
   ClockDate.now = () => Date.now() + clock.skip;
   vm.runInNewContext(out.outputFiles[0].text, {
-    module: mod, exports: mod.exports, console, TextEncoder, TextDecoder, setTimeout, clearTimeout, Promise,
+    module: mod, exports: mod.exports, console, TextEncoder, TextDecoder, setTimeout, clearTimeout, Promise, Buffer, fetch,
     Date: ClockDate,
     process: { ...process, env },
     require: (name) => { if (name in fakes) return fakes[name]; throw new Error(`unexpected require: ${name}`); },
@@ -206,7 +225,7 @@ async function load({ total, building, versioned = false, disk = memoryDisk() })
   const { getFilmCards, stats } = await load({ total: 3, building: false, versioned: true });
   const cards = await getFilmCards(["row-0", "row-1", "row-1"]);
   assert.ok(cards.length >= 1 && cards[0].id && cards[0].slug, "should return film cards");
-  const tables = new Set(stats.tables.filter((t) => t !== "catalog_version"));
+  const tables = new Set(stats.tables.filter((t) => t !== "catalog_version" && t !== "catalog_snapshot"));
   assert.ok([...tables].every((t) => ["films", "credits", "people"].includes(t)), "only films, credits and people");
   assert.ok(!tables.has("collections") && !tables.has("collection_films"), "should not read collections");
   assert.ok(stats.requests <= 4, `a small watchlist should take a few requests, saw ${stats.requests}`);
@@ -242,7 +261,7 @@ async function load({ total, building, versioned = false, disk = memoryDisk() })
 {
   const { directorPageCatalog, stats } = await load({ total: 3, building: false, versioned: true });
   await directorPageCatalog("f-0");
-  const tables = new Set(stats.tables.filter((t) => t !== "catalog_version"));
+  const tables = new Set(stats.tables.filter((t) => t !== "catalog_version" && t !== "catalog_snapshot"));
   assert.ok([...tables].every((t) => ["films", "credits", "people"].includes(t)), "only films, credits and people");
   assert.ok(stats.requests <= 6, `a director page should take a few requests, saw ${stats.requests}`);
 }
@@ -277,4 +296,62 @@ async function load({ total, building, versioned = false, disk = memoryDisk() })
   assert.equal(films.length, 2_500, "a read that fails once should be retried, not fail the build");
 }
 
+// 18. With a current snapshot, a server downloads one file and reads no table at all, and film,
+//     director and watchlist pages answer from it.
+{
+  const { getFilms, getFilmCards, directorPageCatalog, stats } = await load({ total: 2_500, building: false, versioned: true, snapshot: { version: 1, path: "v1-abc.json.gz" } });
+  const films = await getFilms();
+  assert.equal(films.length, 2_500, "every film comes from the snapshot");
+  assert.equal(stats.requests, 0, "no table is read when the snapshot is current");
+  assert.equal(stats.downloads, 1, "one download");
+  assert.match(stats.lastUrl, /\/storage\/v1\/object\/public\/catalog\/v1-abc\.json\.gz$/);
+  await getFilmCards(["row-1"]);
+  await directorPageCatalog("f-0");
+  assert.equal(stats.requests, 0, "pages answer from the snapshot too");
+}
+
+// 19. A cold server with a snapshot doesn't do the trimmed per-page reads either.
+{
+  const { getFilmCards, stats } = await load({ total: 5, building: false, versioned: true, snapshot: { version: 1, path: "v1-abc.json.gz" } });
+  await getFilmCards(["row-1"]);
+  assert.equal(stats.requests, 0, "a watchlist on a cold server uses the snapshot");
+}
+
+// 20. A snapshot that can't be downloaded falls back to the tables.
+{
+  const { getFilms, stats, db } = await load({ total: 1_200, building: false, versioned: true, snapshot: { version: 1, path: "v1-abc.json.gz" } });
+  db.downloadFails = true;
+  assert.equal((await getFilms()).length, 1_200, "the tables fill in");
+  assert.ok(stats.requests > 0);
+}
+
+// 21. A snapshot just behind a change is still used while the rebuild catches up; one stuck behind
+//     for more than ten minutes is not, so the site never stays out of date.
+{
+  const fresh = await load({ total: 1_200, building: false, versioned: true, snapshot: { version: 1, path: "v1-abc.json.gz" } });
+  fresh.db.version = 2;
+  await fresh.getFilms();
+  assert.equal(fresh.stats.requests, 0, "a snapshot a minute behind is still used");
+  const stuck = await load({ total: 1_200, building: false, versioned: true, snapshot: { version: 1, path: "v1-abc.json.gz" } });
+  stuck.db.version = 2;
+  stuck.db.changedAt = new Date(Date.now() - 11 * 60_000).toISOString();
+  await stuck.getFilms();
+  assert.ok(stuck.stats.requests > 0, "a stuck snapshot falls back to the tables");
+}
+
+// 22. A new snapshot replaces the copy in memory at the next check.
+{
+  const { getFilms, stats, clock, db } = await load({ total: 5, building: false, versioned: true, snapshot: { version: 1, path: "v1-abc.json.gz" } });
+  await getFilms();
+  clock.skip = 2 * 60_000;
+  await getFilms();
+  assert.equal(stats.downloads, 1, "an unchanged snapshot is not downloaded again");
+  db.version = 2; db.snapshot = { version: 2, path: "v2-def.json.gz" };
+  clock.skip = 4 * 60_000;
+  await getFilms();
+  assert.equal(stats.downloads, 2, "a new snapshot is downloaded");
+  assert.match(stats.lastUrl, /v2-def/);
+}
+
+console.log("ok  the catalogue comes from one snapshot file when there is one; otherwise it");
 console.log("ok  the catalogue is read a few pages at a time, once per build, and again only when it changes");
