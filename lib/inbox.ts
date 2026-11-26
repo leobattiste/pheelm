@@ -6,15 +6,16 @@ export type PartnershipStage = "new" | "talking" | "accepted" | "declined";
 
 /** Each box collects some of the topics people choose on the contact and partnership forms. */
 export const BOXES: { id: InboxBox; label: string; topics: string[]; about: string }[] = [
-  { id: "contact", label: "Contact", topics: ["general"], about: "Questions and ideas from the contact form." },
+  { id: "contact", label: "Contact", topics: ["general", "account", "other"], about: "Questions and ideas from the contact form." },
   { id: "feedback", label: "Feedback", topics: ["feedback", "correction"], about: "Feedback and corrections, usually about a page on Pheelm." },
   { id: "partnerships", label: "Partnerships", topics: ["partnership"], about: "Requests to work with Pheelm, from the partnership form." },
   { id: "press", label: "Press and privacy", topics: ["press", "privacy"], about: "Press questions, and privacy requests, which have a 30-day deadline." },
 ];
 
 export const TOPIC_LABEL: Record<string, string> = {
-  general: "Question or idea", feedback: "Feedback", correction: "Correction",
-  partnership: "Partnership", press: "Press", privacy: "Privacy request",
+  general: "General inquiry", account: "Account support", other: "Other",
+  feedback: "Feedback", correction: "Correction",
+  partnership: "Partnership", press: "Press & media", privacy: "Privacy request",
 };
 
 export const STATUS_LABEL: Record<MessageStatus, string> = { new: "New", open: "Read", done: "Done", spam: "Spam" };
