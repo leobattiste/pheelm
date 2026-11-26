@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { getServerClient } from "./supabase/server";
+import { getServerClient, getViewer } from "./supabase/server";
 
 /**
  * Two levels: admins look after films, people, submissions, the community and the inbox; the
@@ -17,9 +17,9 @@ async function me(db: NonNullable<Awaited<ReturnType<typeof getServerClient>>>, 
 export async function requireAdmin(next = "/admin") {
   const db = await getServerClient();
   if (!db) notFound();
-  const {
-    data: { user },
-  } = await db.auth.getUser();
+  // From the signed session token, like the rest of the site: asking the sign-in service each time
+  // failed when it was busy. The role itself is still read fresh from the database below.
+  const user = await getViewer(db);
   if (!user) redirect(`/login?next=${encodeURIComponent(next)}`);
   const role = await me(db, user.id);
   if (!role?.is_admin) notFound();
@@ -41,9 +41,9 @@ export async function ownerClient() {
 async function adminContext() {
   const db = await getServerClient();
   if (!db) throw new Error("Supabase isn't connected.");
-  const {
-    data: { user },
-  } = await db.auth.getUser();
+  // From the signed session token, like the rest of the site: asking the sign-in service each time
+  // failed when it was busy. The role itself is still read fresh from the database below.
+  const user = await getViewer(db);
   if (!user) throw new Error("Sign in again.");
   const role = await me(db, user.id);
   if (!role?.is_admin) throw new Error("Only admins can do this.");

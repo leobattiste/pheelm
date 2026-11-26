@@ -2,6 +2,7 @@ import { publicPageMetadata, seoText } from "@/lib/seo";
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import Link from "next/link";
 import BackToTop from "@/components/BackToTop";
 import NewsletterForm from "@/components/NewsletterForm";
@@ -196,6 +197,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <NavProgress />
         <NavProgressLine top />
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

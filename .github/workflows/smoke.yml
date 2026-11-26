@@ -1,8 +1,9 @@
-# On every push and pull request: build the site and run the smoke checks in tests/smoke.mjs.
+# On every push and pull request: code checks, then (in parallel) build the site and run the smoke and browser checks.
 name: Smoke checks
 on: [push, pull_request]
 jobs:
-  smoke:
+  # Code checks and the tests that don't need a built site.
+  checks:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -12,8 +13,13 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - run: npx playwright-core install --with-deps chromium webkit
       - run: npm run lint
+      - run: npm run typecheck
       - run: npm run test:security
       - run: node tests/site-seo.mjs
       - run: node tests/watchlist-urls.mjs
@@ -48,6 +54,23 @@ jobs:
       - run: node tests/film-poster-save.mjs
       - run: node tests/profile-privacy-photo.mjs
       - run: node tests/packed-entries.mjs
+
+  # Builds the site, starts it and runs the browser tests against it.
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - run: npx playwright-core install --with-deps chromium webkit
       - run: npm run build
       - run: npx next start -p 3000 & npx wait-on -t 60000 http://localhost:3000
       - run: node tests/site-seo-browser.mjs

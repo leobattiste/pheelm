@@ -62,9 +62,10 @@ Deno.serve(async req=>{try{const url=new URL(req.url);const action=url.searchPar
   // One pass, so nothing inserted here is read again as a [[TOKEN]]. DIGEST is HTML built (and escaped) by digest.mjs.
   const html=layoutHtml.replace(/\[\[([A-Z0-9_]+)\]\]/g,(_,key)=>key==='DIGEST'?digestHtmlPart:key==='MESSAGE'?escapeHtml(values[key]??'').replaceAll('\n','<br>'):escapeHtml(values[key]??''));const text=layoutText.replace(/\[\[([A-Z0-9_]+)\]\]/g,(_,key)=>key==='DIGEST'?digestTextPart:values[key]??'');
   const r=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:'Bearer '+config.pheelm_resend_api_key,'Content-Type':'application/json','Idempotency-Key':'pheelm-email/'+job.id},body:JSON.stringify({from:'Pheelm <notifications@pheelm.com>',reply_to:'hey@pheelm.com',to:[job.recipient],subject,html,text,...(optional?{headers:{'List-Unsubscribe':`<${unsub}>`,'List-Unsubscribe-Post':'List-Unsubscribe=One-Click'}}:{}),tags:[{name:'template',value:job.template}]}),signal:AbortSignal.timeout(10000)});
-  if(!r.ok){await rpc('email_complete',{job_id:job.id,lease_id:job.lease,failure:'Email provider HTTP '+r.status,retryable:r.status===429||r.status>=500});failed++;}else{const result=await r.json();await rpc('email_complete',{job_id:job.id,lease_id:job.lease,provider:result.id});sent++;}
- }catch{await rpc('email_complete',{job_id:job.id,lease_id:job.lease,failure:'Delivery interrupted or invalid configuration',retryable:true});failed++;}
+  if(!r.ok){console.error(JSON.stringify({event:'send_failed',job:job.id,template:job.template,status:r.status,detail:(await r.text().catch(()=>'')).slice(0,300)}));await rpc('email_complete',{job_id:job.id,lease_id:job.lease,failure:'Email provider HTTP '+r.status,retryable:r.status===429||r.status>=500});failed++;}else{const result=await r.json();await rpc('email_complete',{job_id:job.id,lease_id:job.lease,provider:result.id});sent++;}
+ }catch(e){console.error(JSON.stringify({event:'job_error',job:job.id,template:job.template,error:String((e as Error)?.message??e).slice(0,300)}));await rpc('email_complete',{job_id:job.id,lease_id:job.lease,failure:'Delivery interrupted or invalid configuration',retryable:true});failed++;}
  await new Promise(r=>setTimeout(r,550));
  }
+ if(sent||failed)console.log(JSON.stringify({event:'batch',sent,failed}));
  return json({sent,failed});
- }catch{return json({error:'Email operation unavailable'},500);}});
+ }catch(e){console.error(JSON.stringify({event:'worker_error',error:String((e as Error)?.message??e).slice(0,300)}));return json({error:'Email operation unavailable'},500);}});
