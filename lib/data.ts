@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { promises as fs } from "node:fs";
 import { tmpdir } from "node:os";
+import { get as httpsGet } from "node:https";
 import { gunzipSync } from "node:zlib";
 import { join } from "node:path";
 import { cache } from "react";
@@ -129,11 +130,28 @@ async function catalogSource(db: SupabaseClient): Promise<Source> {
   return { version: v, path: null };
 }
 
+/**
+ * Downloads a file without Next's fetch. Next treats an uncached fetch as "this page is dynamic",
+ * which broke static film pages on refresh, and its cache won't hold a file this size anyway.
+ */
+function download(url: string): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const req = httpsGet(url, (res) => {
+      if (res.statusCode !== 200) { res.resume(); reject(new Error(`Could not load the catalog snapshot: ${res.statusCode}`)); return; }
+      const parts: Buffer[] = [];
+      res.on("data", (c: Buffer) => parts.push(c));
+      res.on("end", () => resolve(Buffer.concat(parts)));
+      res.on("error", reject);
+    });
+    req.setTimeout(30_000, () => req.destroy(new Error("The catalog snapshot download timed out.")));
+    req.on("error", reject);
+  });
+}
+
 /** The snapshot file, unpacked. */
 async function readSnapshot(path: string): Promise<Raw> {
-  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/public/catalog/${path}`, { cache: "no-store" });
-  if (!res.ok) throw new Error(`Could not load the catalog snapshot: ${res.status}`);
-  const raw = JSON.parse(gunzipSync(Buffer.from(await res.arrayBuffer())).toString("utf8")) as Raw;
+  const body = await download(`${SUPABASE_URL}/storage/v1/object/public/catalog/${path}`);
+  const raw = JSON.parse(gunzipSync(body).toString("utf8")) as Raw;
   if (!Array.isArray(raw.films) || !raw.films.length) throw new Error("The catalog snapshot is empty.");
   return raw;
 }
