@@ -3383,3 +3383,18 @@ html:root:root:root .trailer-foot .button.ghost { border: 1px solid var(--contro
   /* The form column starts level with the title, not above it. */
   .form-split-form { padding-top: clamp(var(--space-32), 6vw, var(--space-64)); }
 }
+
+
+/* Legal documents: small update labels, navigable contents and readable long-form policies. */
+.legal-page .prose > h2:first-child { margin-top: 0; }
+.legal-page .prose .legal-updated { color: var(--muted); font-size: var(--t-sm); }
+.legal-page .legal-toc { display: grid; gap: var(--space-12); padding: var(--space-16) 0; border-block: 1px solid var(--line); }
+.legal-page .legal-toc .legal-toc-title { font-size: var(--t-sm); font-weight: 600; color: var(--muted); }
+.legal-page .legal-toc ol { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-8) var(--space-20); list-style: none; padding: 0; margin: 0; }
+.legal-page .legal-toc li { min-width: 0; }
+.legal-page .legal-toc button { width: 100%; border: 0; background: transparent; color: var(--text); padding: 0; text-align: left; font: inherit; font-size: var(--t-sm); line-height: var(--lh-snug); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 0.2em; cursor: pointer; }
+.legal-page .legal-toc button:hover { text-decoration-color: currentColor; }
+.legal-page .legal-toc button:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.legal-page .prose h3[id] { scroll-margin-top: calc(var(--header) + var(--space-32)); }
+.legal-page .prose h3[id]:focus { outline: none; }
+@media (max-width: 700px) { .legal-page .legal-toc ol { grid-template-columns: minmax(0, 1fr); } }
