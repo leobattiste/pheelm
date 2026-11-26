@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import type { MouseEvent } from "react";
 
 const SHARE_URL = "https://www.pheelm.com";
 
 export default function SharePheelmButton() {
   const [copied, setCopied] = useState(false);
 
-  async function handleShare() {
+  async function handleShare(event: MouseEvent<HTMLAnchorElement>) {
+    event.preventDefault();
     setCopied(false);
     try {
       if (navigator.share) {
@@ -29,8 +31,9 @@ export default function SharePheelmButton() {
   }
 
   return (
-    <button className="button" type="button" onClick={handleShare}>
-      {copied ? "Link copied" : "Share Pheelm"}
-    </button>
+    <>
+      <a href={SHARE_URL} onClick={handleShare}>share Pheelm</a>
+      {copied && <span role="status"> (link copied)</span>}
+    </>
   );
 }
