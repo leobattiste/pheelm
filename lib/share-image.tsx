@@ -29,7 +29,10 @@ async function artwork(source:string|null|undefined):Promise<string|null>{
 /** One composition for every Pheelm preview: wordmark, title and copy, with 2:3 artwork. */
 export async function shareImage(input:ShareImage){
  const [fonts,image]=await Promise.all([ogFonts(),artwork(input.image)]);
- const title=seoText(input.title,110),description=seoText(input.description??'Discover films by Black directors around the world.',155);
+ // The image renderer crashes shaping Arabic-script text (Urdu, Persian, Arabic names in a bio), and
+ // the fonts don't carry those letters anyway, so they're left out of the picture (Sentry PHEELM-4).
+ const drawable=(t:string)=>t.replace(/[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]+/g,'').replace(/\(\s*\)/g,'').replace(/\s{2,}/g,' ').trim();
+ const title=seoText(drawable(input.title)||input.title.replace(/[^\x20-\x7E]/g,'')||'Pheelm',110),description=seoText(drawable(input.description??'Discover films by Black directors around the world.'),155);
  return new ImageResponse(
   <div style={{display:'flex',width:'100%',height:'100%',background:'#0b0b0b',color:'#fafafa',padding:64,gap:64,fontFamily:'Switzer, Inter'}}>
    <div style={{display:'flex',flexDirection:'column',justifyContent:'space-between',width:674}}>
