@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getServerClient } from '@/lib/supabase/server';
+import { SUPABASE_URL } from '@/lib/supabase/config';
 export const dynamic='force-dynamic';
-const ENDPOINT='https://mvhwfmlairwrngdttzjh.supabase.co/functions/v1/pheelm-email';
+const ENDPOINT=`${(SUPABASE_URL||'https://mvhwfmlairwrngdttzjh.supabase.co').replace(/\/$/,'')}/functions/v1/pheelm-email`;
 /** Public, token-scoped forms. A GET never subscribes or unsubscribes someone. */
 async function handle(request:Request){
  const url=new URL(request.url),action=url.searchParams.get('action');
