@@ -36,6 +36,7 @@ async function loadCatalogModule(rows, { building }) {
     'node:fs': { promises: memoryDisk() },
     'node:os': { tmpdir: () => '/tmp' },
     'node:path': { join: (...p) => p.join('/') },
+    'node:zlib': { gunzipSync: () => { throw new Error('no snapshot here'); } },
   };
   const mod = { exports: {} };
   const env = { ...process.env, NEXT_PUBLIC_SUPABASE_URL: 'https://example.supabase.co', NEXT_PUBLIC_SUPABASE_ANON_KEY: 'test-key' };
