@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { adminClient, ownerClient } from "@/lib/admin";
 import { logAdminActivity } from "@/lib/admin-activity";
+import { queueCatalogSnapshot } from "@/lib/catalog-snapshot";
 
 const MAX_SELECTION = 1000;
 const BATCH = 150;
@@ -37,6 +38,7 @@ export async function bulkFilmChange(form: FormData) {
     await logAdminActivity(db, `Bulk ${operation}`, "film", null, `${result.data?.length ?? 0} films · ${batch.join(",").slice(0, 350)}`);
   }
 
+  queueCatalogSnapshot();
   revalidatePath("/", "layout");
   redirect(`/admin/films?updated=${changed}`);
 }

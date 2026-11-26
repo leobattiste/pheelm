@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { adminClient, ownerClient } from "@/lib/admin";
 import { logAdminActivity } from "@/lib/admin-activity";
+import { queueCatalogSnapshot } from "@/lib/catalog-snapshot";
 
 const BATCH = 150;
 
@@ -36,6 +37,7 @@ export async function bulkPersonChange(form: FormData) {
     changed += result.data?.length ?? 0;
     await logAdminActivity(db, `Bulk ${operation} people`, "person", null, `${result.data?.length ?? 0} people · ${batch.join(",").slice(0, 350)}`);
   }
+  queueCatalogSnapshot();
   revalidatePath("/", "layout");
   redirect(`/admin/people?updated=${changed}`);
 }

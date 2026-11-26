@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { importFilm } from "@/lib/import";
 import { serviceClient } from "@/lib/supabase/service";
 import { workerCheck } from "@/lib/worker-auth";
+import { queueCatalogSnapshot } from "@/lib/catalog-snapshot";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -57,6 +58,6 @@ export async function POST(request: NextRequest) {
 
   const { count: left } = await db.from("films").select("*", { count: "exact", head: true })
     .eq("status", "published").or(MISSING);
-  if (done.length) revalidatePath("/", "layout");
+  if (done.length) { queueCatalogSnapshot(); revalidatePath("/", "layout"); }
   return json({ tried: films.length, filled: done.length, failed, remaining: left ?? 0 });
 }

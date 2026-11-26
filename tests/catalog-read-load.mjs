@@ -325,18 +325,14 @@ async function load({ total, building, versioned = false, disk = memoryDisk(), s
   assert.ok(stats.requests > 0);
 }
 
-// 21. A snapshot just behind a change is still used while the rebuild catches up; one stuck behind
-//     for more than ten minutes is not, so the site never stays out of date.
+// 21. A snapshot behind catalog_version (a save whose rebuild hasn't landed, or failed) is not
+//     used: the tables are read, so a change always shows straight away.
 {
-  const fresh = await load({ total: 1_200, building: false, versioned: true, snapshot: { version: 1, path: "v1-abc.json.gz" } });
-  fresh.db.version = 2;
-  await fresh.getFilms();
-  assert.equal(fresh.stats.requests, 0, "a snapshot a minute behind is still used");
-  const stuck = await load({ total: 1_200, building: false, versioned: true, snapshot: { version: 1, path: "v1-abc.json.gz" } });
-  stuck.db.version = 2;
-  stuck.db.changedAt = new Date(Date.now() - 11 * 60_000).toISOString();
-  await stuck.getFilms();
-  assert.ok(stuck.stats.requests > 0, "a stuck snapshot falls back to the tables");
+  const { getFilms, stats, db } = await load({ total: 1_200, building: false, versioned: true, snapshot: { version: 1, path: "v1-abc.json.gz" } });
+  db.version = 2;
+  assert.equal((await getFilms()).length, 1_200);
+  assert.ok(stats.requests > 0, "a snapshot behind the catalog falls back to the tables");
+  assert.equal(stats.downloads ?? 0, 0, "and is not downloaded");
 }
 
 // 22. A new snapshot replaces the copy in memory at the next check.
@@ -355,3 +351,13 @@ async function load({ total, building, versioned = false, disk = memoryDisk(), s
 
 console.log("ok  the catalogue comes from one snapshot file when there is one; otherwise it");
 console.log("ok  the catalogue is read a few pages at a time, once per build, and again only when it changes");
+
+// Every place that changes the catalog asks for a new snapshot, so servers go back to the one
+// download within seconds instead of reading the tables until the next rebuild.
+{
+  const { readFileSync } = await import("node:fs");
+  for (const f of ["app/admin/actions.ts", "app/admin/films/queue-actions.ts", "app/admin/import-selected.ts", "app/admin/films/bulk-actions.ts", "app/admin/people/bulk-actions.ts",
+    "app/api/internal/backfill/route.ts", "app/api/internal/director-photos/route.ts", "app/api/internal/awards/route.ts", "app/api/internal/queue/route.ts"])
+    assert.match(readFileSync(f, "utf8"), /queueCatalogSnapshot\(\)/, `${f} should queue a snapshot rebuild`);
+  console.log("ok  catalog changes queue a snapshot rebuild");
+}

@@ -6,6 +6,7 @@ import { processQueue, type QueueItem } from "@/lib/film-queue";
 import { tmdbEnabled } from "@/lib/tmdb";
 import { serviceClient } from "@/lib/supabase/service";
 import { workerCheck } from "@/lib/worker-auth";
+import { queueCatalogSnapshot } from "@/lib/catalog-snapshot";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -38,7 +39,7 @@ export async function POST(request: NextRequest) {
   // Five at a time keeps TMDB and Wikidata comfortable.
   for (let i = 0; i < items.length; i += 5) results.push(...await processQueue(db, items.slice(i, i + 5), true));
   const added = results.filter((r) => r.status === "added").length;
-  if (added) { revalidatePath("/", "layout"); revalidateTag("search-public", "max"); }
+  if (added) { queueCatalogSnapshot(); revalidatePath("/", "layout"); revalidateTag("search-public", "max"); }
   const { count } = await db.from("film_queue").select("*", { count: "exact", head: true }).is("last_error", null);
   return json({ tried: items.length, added, unmatched: results.filter((r) => r.status === "not-found").length, waiting: count ?? 0 });
 }

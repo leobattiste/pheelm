@@ -5,6 +5,7 @@ import { adminClient } from "@/lib/admin";
 import { logAdminActivity } from "@/lib/admin-activity";
 import { fillPerson, importFilm } from "@/lib/import";
 import { tmdbEnabled } from "@/lib/tmdb";
+import { queueCatalogSnapshot } from "@/lib/catalog-snapshot";
 
 export type ImportResult = { id: string; ok: boolean; message: string };
 
@@ -35,6 +36,7 @@ export async function importSelectedFromTmdb(entity: "films" | "people", ids: st
       return { id, ok: false, message: error instanceof Error ? error.message : "Could not import this item. Try again." };
     }
   }));
+  queueCatalogSnapshot();
   revalidatePath("/", "layout");
   return results;
 }
