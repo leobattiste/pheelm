@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { refreshAwardsBatch } from "@/lib/awards";
 import { serviceClient } from "@/lib/supabase/service";
 import { workerCheck } from "@/lib/worker-auth";
+import { queueCatalogSnapshot } from "@/lib/catalog-snapshot";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -28,6 +29,7 @@ export async function POST(request: NextRequest) {
   const updated = await refreshAwardsBatch(db, data ?? []);
   for (const f of updated) if (f.slug) revalidatePath(`/films/${f.slug}`);
   const next = offset + (data?.length ?? 0);
+  if (updated.length) queueCatalogSnapshot();
   if (next >= (count ?? 0)) revalidatePath("/", "layout");
   return json({ checked: data?.length ?? 0, updated: updated.length, next, total: count ?? 0 });
 }

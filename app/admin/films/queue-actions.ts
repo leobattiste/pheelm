@@ -6,10 +6,11 @@ import type { AddResult } from "@/lib/import";
 import { processQueue, type QueueItem } from "@/lib/film-queue";
 import { tmdbEnabled } from "@/lib/tmdb";
 import { logAdminActivity } from "@/lib/admin-activity";
+import { queueCatalogSnapshot } from "@/lib/catalog-snapshot";
 
 export type { QueueItem } from "@/lib/film-queue";
 
-const refresh = () => { revalidatePath("/admin/films/add"); revalidatePath("/", "layout"); };
+const refresh = () => { revalidatePath("/admin/films/add"); queueCatalogSnapshot(); revalidatePath("/", "layout"); };
 
 /** Adds queued films from TMDB, a few at a time (the page calls this in small batches). */
 export async function runQueue(ids: string[], publish: boolean): Promise<(AddResult & { queueId: string })[]> {

@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { serviceClient } from "@/lib/supabase/service";
 import { getPersonDetails } from "@/lib/tmdb";
 import { workerCheck } from "@/lib/worker-auth";
+import { queueCatalogSnapshot } from "@/lib/catalog-snapshot";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -53,6 +54,6 @@ export async function POST(request: NextRequest) {
   }
 
   const { data: more } = await todo().limit(1);
-  if (filled) { revalidatePath("/directors"); revalidatePath("/", "layout"); }
+  if (filled) { queueCatalogSnapshot(); revalidatePath("/directors"); revalidatePath("/", "layout"); }
   return json({ tried: people.length, filled, failed: failed.slice(0, 10), failedCount: failed.length, more: (more ?? []).length > 0 });
 }

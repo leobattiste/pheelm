@@ -113,21 +113,19 @@ const anonClient = () => createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: {
  * One small row and one file download, where reading the tables page by page took about 55
  * requests per server and, with many servers starting at once, timed out on the database.
  *
- * A snapshot a change or two behind is still used while the rebuild catches up (it runs every
- * minute). If it has fallen more than SNAPSHOT_LAG behind a change, the rebuild is stuck, so the
- * tables are read directly instead and the site never stays out of date.
+ * Admin saves and the workers rebuild it right after a change (lib/catalog-snapshot.ts). Until the
+ * new one lands — a few seconds — or if a rebuild fails, the snapshot is behind catalog_version and
+ * the tables are read directly, so a change always shows straight away and nothing stays stale.
  */
-const SNAPSHOT_LAG = 10 * 60_000;
 type Source = { version: number | null; path: string | null };
 async function catalogSource(db: SupabaseClient): Promise<Source> {
   const [live, snap] = await Promise.all([
-    db.from("catalog_version").select("v, changed_at").eq("id", 1).maybeSingle(),
+    db.from("catalog_version").select("v").eq("id", 1).maybeSingle(),
     db.from("catalog_snapshot").select("version, path").eq("id", 1).maybeSingle(),
   ]);
   const v = live.error || !live.data ? null : Number(live.data.v);
   const snapshot = snap.error || !snap.data ? null : { version: Number(snap.data.version), path: String(snap.data.path) };
-  if (snapshot && (v === null || snapshot.version >= v || Date.now() - Date.parse(String(live.data?.changed_at)) < SNAPSHOT_LAG))
-    return snapshot;
+  if (snapshot && (v === null || snapshot.version >= v)) return snapshot;
   return { version: v, path: null };
 }
 
