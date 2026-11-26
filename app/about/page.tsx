@@ -7,7 +7,7 @@ export const metadata: Metadata = publicPageMetadata("/about");
 
 export default function AboutPage() {
   return (
-    <article className="page full-width info-page">
+    <article className="page full-width info-page about-page">
       <div className="prose">
         <h2>What Is Pheelm?</h2>
         <p>
@@ -37,20 +37,22 @@ export default function AboutPage() {
 
         <h3>Suggest a Film or Director</h3>
         <p>
-          Know a film or director we haven&apos;t featured yet? You can <Link href="/submit">suggest a film</Link> or{" "}
-          <Link href="/contact">recommend a director</Link> to help us expand the collection.
+          Know a film or director we haven&apos;t featured yet? We&apos;d love to hear from you.
+          Your suggestions help us expand our collection and introduce more people to filmmakers whose
+          work deserves attention. <Link href="/submit">Suggest a film</Link> or{" "}
+          <Link href="/contact">tell us about a director</Link>.
         </p>
 
-        <h3>Spread the Word</h3>
+        <h3>Share Pheelm</h3>
         <p>
-          You can <SharePheelmButton /> with friends, family, and fellow film enthusiasts to help more
-          people discover the platform.
+          Help us reach more film lovers by <SharePheelmButton /> with your friends, family, and
+          communities. Every share helps more people discover films and the directors behind them.
         </p>
 
-        <h3>Make a Donation</h3>
+        <h3>Support Us With a Donation</h3>
         <p>
-          We don&apos;t run ads. You can <Link href="/donate">make a donation</Link> to help cover operating
-          costs, improve the platform, and keep Pheelm accessible to everyone.
+          We don&apos;t run ads. You can <Link href="/donate">make a donation</Link> to help cover
+          operating costs, improve the platform, and keep Pheelm accessible to everyone.
         </p>
       </div>
     </article>
