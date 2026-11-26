@@ -27,12 +27,12 @@ export const PAGE_COPY = {
  */
 export const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "";
 /**
- * Donations: Stripe's Buy Button on the Donate page (made in Stripe → Payment Links → Buy button).
- * The publishable key is public by design. Empty button id: the Donate page says donations open soon.
+ * Donations: PayPal's hosted Donate button on the Donate page (made in PayPal → Pay with PayPal buttons).
+ * The client id is public by design. Empty button id: the Donate page says donations open soon.
  */
-export const DONATE_URL = process.env.NEXT_PUBLIC_DONATE_URL || "https://donate.stripe.com/dRm6oG0P42yr7wBcRzenS03";
-/** Stripe's page where donors update their card, see receipts, or cancel a monthly gift (they confirm their email first). */
-export const DONATION_PORTAL_URL = process.env.NEXT_PUBLIC_DONATION_PORTAL_URL || "https://billing.stripe.com/p/login/3cI00i8hw0qj2ch18RenS00";
+export const PAYPAL_BUTTON_ID = process.env.NEXT_PUBLIC_PAYPAL_BUTTON_ID ?? "CDST4QBEP4AYA";
+/** PayPal's page where donors see or cancel a monthly gift. */
+export const DONATION_PORTAL_URL = process.env.NEXT_PUBLIC_DONATION_PORTAL_URL || "https://www.paypal.com/myaccount/autopay/";
 export const INSTAGRAM_URL = process.env.NEXT_PUBLIC_INSTAGRAM_URL ?? "";
 export const THREADS_URL = process.env.NEXT_PUBLIC_THREADS_URL ?? "";
 

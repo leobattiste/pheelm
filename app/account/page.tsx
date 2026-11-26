@@ -107,9 +107,9 @@ export default async function AccountPage() {
           </section>
           <section className="account-section" aria-labelledby="donations-h">
             <h2 id="donations-h">Donations</h2>
-            <p className="muted">Update your card, see your receipts, or change or cancel a monthly gift. Stripe emails you a link to confirm it&rsquo;s you; use the email you donated with.</p>
+            <p className="muted">Donations go through PayPal. See your receipts, or change or cancel a monthly gift, in your PayPal account.</p>
             <div className="actions">
-              <a className="button" href={DONATION_PORTAL_URL}>Manage payment details</a>
+              <a className="button" href={DONATION_PORTAL_URL}>Manage in PayPal</a>
               <Link className="button ghost" href="/donate">Donate</Link>
             </div>
           </section>
