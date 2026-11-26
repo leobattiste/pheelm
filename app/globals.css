@@ -3396,5 +3396,4 @@ html:root:root:root .trailer-foot .button.ghost { border: 1px solid var(--contro
 .legal-page .legal-toc button:hover { text-decoration-color: currentColor; }
 .legal-page .legal-toc button:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 .legal-page .prose h3[id] { scroll-margin-top: calc(var(--header) + var(--space-32)); }
-.legal-page .prose h3[id]:focus { outline: none; }
 @media (max-width: 700px) { .legal-page .legal-toc ol { grid-template-columns: minmax(0, 1fr); } }
