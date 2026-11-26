@@ -74,7 +74,7 @@ export default function ContactForm({ topic = "general", partnership = false, fe
       <input name="website" tabIndex={-1} autoComplete="off" className="visually-hidden" aria-hidden="true" />
       <Turnstile />
       <div className="actions">
-        <button className="button" type="submit" disabled={pending}>{pending ? "Sending…" : partnership ? "Send proposal" : feedback ? "Send feedback" : "Send message"}</button>
+        <button className="button" type="submit" disabled={pending}>{pending ? "Sending…" : partnership ? "Send" : feedback ? "Send feedback" : "Send message"}</button>
       </div>
     </form>
   );
