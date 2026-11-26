@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { CONTACT_EMAIL, LEGAL_UPDATED } from "@/lib/site";
+import { LEGAL_UPDATED } from "@/lib/site";
 import LegalContents from "./LegalContents";
 
-const EMAIL = CONTACT_EMAIL || "hey@pheelm.com";
+const EMAIL = "legal@pheelm.com";
 function Contact() { return <a href={`mailto:${EMAIL}`}>{EMAIL}</a>; }
 
 export function PrivacyPolicy() {
