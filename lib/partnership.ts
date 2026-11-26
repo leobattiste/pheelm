@@ -6,4 +6,4 @@ export const PARTNERSHIP_TYPES = [
   'Filmmaker or distributor collaboration',
   'Other creative project',
 ] as const;
-export const PARTNERSHIP_SUCCESS = 'Thank you for your interest in partnering with Pheelm! We’ve received your inquiry and will be in touch if there’s a good fit.';
+export const PARTNERSHIP_SUCCESS = 'Thank you for reaching out. We’ve received your proposal and will contact you if there’s an opportunity to collaborate.';
