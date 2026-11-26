@@ -10,11 +10,6 @@ const ctaStyle = { display: "flex", flexWrap: "wrap", gap: "0.75rem" } as const;
 export default function AboutPage() {
   return (
     <article className="page full-width info-page">
-      <header className="page-head">
-        <h1>About Pheelm</h1>
-        <p className="lead">Discover films by Black directors from around the world.</p>
-      </header>
-
       <div className="prose">
         <h2>What Is Pheelm?</h2>
         <p>
