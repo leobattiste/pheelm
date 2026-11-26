@@ -18,13 +18,19 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
   const topic = sp.topic === "press" || sp.topic === "privacy" ? sp.topic : "general";
   return (
     <article className="page full-width info-page enquiry-page">
-      <header className="page-head">
-        <h1>Contact</h1>
-        <p className="lead">Get in touch for general enquiries, press or privacy requests. Leave your email so we can reply.</p>
-      </header>
-      {CONTACT_EMAIL && <p className="info-note">Email us directly at <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.</p>}
-      <ContactForm topic={topic} />
-      <p className="muted info-note">Found a problem or have an improvement in mind? <Link href="/feedback">Give feedback</Link>. For collaborations, visit <Link href="/partnerships">Partnership</Link>.</p>
+      <div className="form-split">
+        <div className="form-split-intro">
+          <header className="page-head">
+            <h1>Contact</h1>
+            <p className="lead">Get in touch for general enquiries, press or privacy requests. Leave your email so we can reply.</p>
+          </header>
+          {CONTACT_EMAIL && <p className="info-note">Email us directly at <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.</p>}
+          <p className="muted info-note">Found a problem or have an improvement in mind? <Link href="/feedback">Give feedback</Link>. For collaborations, visit <Link href="/partnerships">Partnership</Link>.</p>
+        </div>
+        <div className="form-split-form">
+          <ContactForm topic={topic} />
+        </div>
+      </div>
     </article>
   );
 }

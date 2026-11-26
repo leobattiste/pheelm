@@ -15,20 +15,26 @@ export default async function SubmitOwnFilmPage() {
 
   return (
     <section className="page full-width suggestion-page own-film-page">
-      <header className="page-head">
-        <h1>Submit your film</h1>
-        <p className="lead">{PAGE_COPY.submitOwn}</p>
-      </header>
-      <p className="muted submission-intro">Want to recommend someone else&rsquo;s film? <Link href="/submit">Suggest a film</Link>.</p>
-      {!db ? (
-        <p className="notice">Submissions aren&rsquo;t open yet. Check back soon.</p>
-      ) : user ? (
-        <OwnFilmForm email={user.email ?? ""} />
-      ) : (
-        <p>
-          <Link className="button" href="/login?next=/submit/your-film">Sign in to submit your film</Link>
-        </p>
-      )}
+      <div className="form-split">
+        <div className="form-split-intro">
+          <header className="page-head">
+            <h1>Submit your film</h1>
+            <p className="lead">{PAGE_COPY.submitOwn}</p>
+          </header>
+          <p className="muted submission-intro">Want to recommend someone else&rsquo;s film? <Link href="/submit">Suggest a film</Link>.</p>
+        </div>
+        <div className="form-split-form">
+          {!db ? (
+            <p className="notice">Submissions aren&rsquo;t open yet. Check back soon.</p>
+          ) : user ? (
+            <OwnFilmForm email={user.email ?? ""} />
+          ) : (
+            <p>
+              <Link className="button" href="/login?next=/submit/your-film">Sign in to submit your film</Link>
+            </p>
+          )}
+        </div>
+      </div>
     </section>
   );
 }

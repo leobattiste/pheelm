@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 const CLIENT_ID = "BAA714jN1az7F-kzBdbi2G70PFXU75Kp8Sr7eVMC0Bfhcq57HK6mQNa5G26Lf-Jq55pd-xh3kwCma1hyY4";
 const SDK = `https://www.paypal.com/sdk/js?client-id=${CLIENT_ID}&components=hosted-buttons&enable-funding=venmo&currency=USD`;
 
-type PayPal = { HostedButtons: (o: { hostedButtonId: string }) => { render: (el: HTMLElement) => Promise<unknown> } };
+type PayPal = { HostedButtons: (o: { hostedButtonId: string }) => { render: (selector: string) => Promise<unknown> } };
 declare global { interface Window { paypal?: PayPal } }
 
 let sdk: Promise<PayPal> | null = null;
@@ -34,7 +34,8 @@ export default function PayPalDonate({ buttonId }: { buttonId: string }) {
       .then((paypal) => {
         if (cancelled || !el) return;
         el.replaceChildren();
-        return paypal.HostedButtons({ hostedButtonId: buttonId }).render(el);
+        // PayPal's own snippet: render into #paypal-container-<button id>.
+        return paypal.HostedButtons({ hostedButtonId: buttonId }).render(`#paypal-container-${buttonId}`);
       })
       .catch(() => { if (!cancelled) setFailed(true); });
     return () => { cancelled = true; el?.replaceChildren(); };
@@ -42,7 +43,7 @@ export default function PayPalDonate({ buttonId }: { buttonId: string }) {
 
   return (
     <section className="donate-card donate-paypal" aria-label="Donate">
-      <div ref={box} className="donate-paypal-box" />
+      <div ref={box} id={`paypal-container-${buttonId}`} className="donate-paypal-box" />
       {failed && <p className="error" role="alert">PayPal could not load. Turn off any content blocker for this page and try again.</p>}
     </section>
   );

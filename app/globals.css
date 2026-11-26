@@ -3368,3 +3368,16 @@ html:root:root:root .trailer-foot .button.ghost { border: 1px solid var(--contro
 .started-item.is-done { color: var(--muted); }
 .started-item.is-done .started-check { background: var(--ink); color: var(--on-ink); border-color: var(--ink); }
 .started-go { margin-left: auto; font-size: var(--t-sm); }
+
+/* Form pages (contact, feedback, newsletter, suggest, submit, partnerships, donate): on a wide screen
+   the title and description sit on the left and the form on the right; on a phone they stack. */
+.form-split { display: grid; gap: var(--space-24); }
+.form-split-intro, .form-split-form { display: grid; gap: var(--space-16); align-content: start; min-width: 0; }
+.form-split-intro .page-head { padding-bottom: 0; }
+.form-split-form > .info-section { margin: 0; }
+@media (min-width: 900px) {
+  .form-split { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(var(--space-48), 6vw, 96px); align-items: start; }
+  .form-split-intro { position: sticky; top: var(--space-24); }
+  /* The form column starts level with the title, not above it. */
+  .form-split-form { padding-top: clamp(var(--space-32), 6vw, var(--space-64)); }
+}
