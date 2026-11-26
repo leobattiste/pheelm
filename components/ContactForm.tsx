@@ -10,9 +10,11 @@ import { sendMessage, type FormState } from "@/app/platform-actions";
 import { useResultToast } from "@/components/Toast";
 
 const TOPICS: [string, string][] = [
-  ["general", "General enquiry"],
-  ["press", "Press"],
-  ["privacy", "My data and privacy"],
+  ["general", "General Inquiry"],
+  ["account", "Account Support"],
+  ["press", "Press & Media"],
+  ["privacy", "Privacy & Data"],
+  ["other", "Other"],
 ];
 
 /** Separate enquiry, feedback and partnership topics, with one inbox delivery action. */
@@ -61,7 +63,7 @@ export default function ContactForm({ topic = "general", partnership = false, fe
         </>
       ) : (
         <label className="field">
-          What&rsquo;s it about?
+          {feedback ? "What’s it about?" : "Subject"}
           <select name="topic" defaultValue={topic}>
             {(feedback ? [["feedback", "Problem or improvement"], ["correction", "Film or person correction"]] : TOPICS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
           </select>
@@ -74,7 +76,7 @@ export default function ContactForm({ topic = "general", partnership = false, fe
       <input name="website" tabIndex={-1} autoComplete="off" className="visually-hidden" aria-hidden="true" />
       <Turnstile />
       <div className="actions">
-        <button className="button" type="submit" disabled={pending}>{pending ? "Sending…" : partnership ? "Send" : feedback ? "Send feedback" : "Send message"}</button>
+        <button className="button" type="submit" disabled={pending}>{pending ? "Sending…" : partnership ? "Send" : feedback ? "Send feedback" : "Send"}</button>
       </div>
     </form>
   );
