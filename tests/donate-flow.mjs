@@ -6,7 +6,7 @@ import ts from 'typescript';
 
 const src = fs.readFileSync('lib/donate.ts', 'utf8');
 const js = ts.transpileModule(src, { compilerOptions: { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 } }).outputText;
-const { parseDonation, checkoutParams, DONATION_PRODUCT } = await import(`data:text/javascript;base64,${Buffer.from(js).toString('base64')}`);
+const { parseDonation, checkoutParams, DONATION_NAME } = await import(`data:text/javascript;base64,${Buffer.from(js).toString('base64')}`);
 
 assert.deepEqual(parseDonation({ amount: 25 }), { cents: 2500, monthly: false });
 assert.deepEqual(parseDonation({ amount: 5, monthly: true }), { cents: 500, monthly: true });
@@ -19,7 +19,7 @@ assert.equal(once.get('mode'), 'payment');
 assert.equal(once.get('ui_mode'), 'embedded_page');
 assert.equal(once.get('submit_type'), 'donate');
 assert.equal(once.get('line_items[0][price_data][unit_amount]'), '2500');
-assert.equal(once.get('line_items[0][price_data][product]'), DONATION_PRODUCT);
+assert.equal(once.get('line_items[0][price_data][product_data][name]'), DONATION_NAME);
 assert.equal(once.get('line_items[0][price_data][recurring][interval]'), null);
 assert.equal(once.get('return_url'), 'https://x.test/donate?thanks=1');
 const monthly = checkoutParams({ cents: 500, monthly: true }, 'https://x.test/donate?thanks=1');

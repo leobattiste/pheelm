@@ -2,8 +2,8 @@
 export const DONATION_PRESETS = [5, 10, 25, 50] as const;
 export const DONATION_MIN = 1;
 export const DONATION_MAX = 1000;
-/** The "Support Pheelm" product in Stripe, so every donation lands under one product. */
-export const DONATION_PRODUCT = "prod_VhAJvNh2bxQGi2";
+/** What the donation is called in Stripe; made on the spot, so it works in a test account as well as the live one. */
+export const DONATION_NAME = "Support Pheelm";
 
 export type Donation = { cents: number; monthly: boolean };
 
@@ -25,7 +25,7 @@ export function checkoutParams(d: Donation, returnUrl: string): URLSearchParams 
   p.set("submit_type", "donate");
   p.set("line_items[0][quantity]", "1");
   p.set("line_items[0][price_data][currency]", "usd");
-  p.set("line_items[0][price_data][product]", DONATION_PRODUCT);
+  p.set("line_items[0][price_data][product_data][name]", DONATION_NAME);
   p.set("line_items[0][price_data][unit_amount]", String(d.cents));
   if (d.monthly) {
     p.set("line_items[0][price_data][recurring][interval]", "month");
