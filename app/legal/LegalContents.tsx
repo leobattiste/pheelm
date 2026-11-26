@@ -11,7 +11,7 @@ export default function LegalContents({ prefix, headings }: Props) {
     const heading = document.getElementById(id);
     if (!heading) return;
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    heading.scrollIntoView({ behavior: reducedMotion ? "instant" : "smooth", block: "start" });
+    heading.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
     heading.focus({ preventScroll: true });
   }
 
