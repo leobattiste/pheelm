@@ -15,7 +15,8 @@ assert.match(button, /components=hosted-buttons/);
 assert.match(button, /enable-funding=venmo/);
 assert.match(button, /HostedButtons\(\{ hostedButtonId: buttonId \}\)\.render\(el\)/);
 assert.doesNotMatch(button, /client-secret|secret=/i, 'only the public client id');
-// The security policy lets PayPal's script run.
+// The security policy lets PayPal's script run and its Checkout form post to PayPal.
+assert.match(fs.readFileSync('next.config.ts', 'utf8'), /form-action 'self' https:\/\/www\.paypal\.com/);
 assert.match(fs.readFileSync('next.config.ts', 'utf8'), /script-src[^`]*https:\/\/www\.paypal\.com/);
 // Honest about tax status, matching the terms; a thank-you when donors come back.
 assert.match(page, /not a tax-exempt charity/);
