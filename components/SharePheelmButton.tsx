@@ -32,7 +32,7 @@ export default function SharePheelmButton() {
 
   return (
     <>
-      <a href={SHARE_URL} onClick={handleShare}>share Pheelm</a>
+      <a href={SHARE_URL} onClick={handleShare}>sharing Pheelm</a>
       {copied && <span role="status"> (link copied)</span>}
     </>
   );
