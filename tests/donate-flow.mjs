@@ -38,5 +38,6 @@ console.log('PASS: donation amounts are validated, the Stripe request is right, 
 // A failure is shown on the page with a short code (never Stripe's message, which can quote a key).
 assert.match(route, /why/); assert.doesNotMatch(route, /NextResponse\.json\(\{[^}]*json\.error\?\.message/);
 assert.match(fs.readFileSync('components/DonateCheckout.tsx', 'utf8'), /fetchClientSecret: async \(\) => secret/);
+assert.match(fs.readFileSync("components/DonateCheckout.tsx", "utf8"), /embedded\?\.destroy\(\)/);
 // Works whichever name the account's API version uses for the embedded mode.
 assert.match(route, /param !== "ui_mode"/); assert.match(route, /older\.set\("ui_mode", "embedded"\)/);
