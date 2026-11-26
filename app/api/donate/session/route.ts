@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import { NextResponse } from "next/server";
 import { checkoutParams, parseDonation } from "@/lib/donate";
 import { SITE_URL } from "@/lib/supabase/config";
@@ -23,14 +24,19 @@ export async function POST(request: Request) {
       signal: AbortSignal.timeout(15_000),
       cache: "no-store",
     });
-    const json = (await res.json()) as { client_secret?: string; error?: { message?: string } };
+    const json = (await res.json()) as { client_secret?: string; error?: { type?: string; code?: string; param?: string; message?: string } };
     if (!res.ok || !json.client_secret) {
-      console.error("Stripe checkout session failed:", res.status, json.error?.message);
-      return NextResponse.json({ error: "We could not start the payment. Please try again." }, { status: 502 });
+      // The code says what went wrong (a key without permission, a bad version...) without the message,
+      // which can quote part of the key.
+      const why = [res.status, json.error?.type, json.error?.code, json.error?.param].filter(Boolean).join(" ");
+      console.error("Stripe checkout session failed:", why, json.error?.message);
+      Sentry.captureMessage(`Stripe checkout session failed: ${why}`, "error");
+      return NextResponse.json({ error: "We could not start the payment. Please try again.", why }, { status: 502 });
     }
     return NextResponse.json({ clientSecret: json.client_secret });
   } catch (error) {
     console.error("Stripe checkout session failed:", error instanceof Error ? error.message : "unknown");
-    return NextResponse.json({ error: "We could not start the payment. Please try again." }, { status: 502 });
+    Sentry.captureException(error);
+    return NextResponse.json({ error: "We could not start the payment. Please try again.", why: "network" }, { status: 502 });
   }
 }

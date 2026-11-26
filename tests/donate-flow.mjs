@@ -6,7 +6,7 @@ import ts from 'typescript';
 
 const src = fs.readFileSync('lib/donate.ts', 'utf8');
 const js = ts.transpileModule(src, { compilerOptions: { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 } }).outputText;
-const { parseDonation, checkoutParams, DONATION_PRODUCT } = await import(`data:text/javascript;base64,${Buffer.from(js).toString('base64')}`);
+const { parseDonation, checkoutParams, DONATION_NAME } = await import(`data:text/javascript;base64,${Buffer.from(js).toString('base64')}`);
 
 assert.deepEqual(parseDonation({ amount: 25 }), { cents: 2500, monthly: false });
 assert.deepEqual(parseDonation({ amount: 5, monthly: true }), { cents: 500, monthly: true });
@@ -19,7 +19,7 @@ assert.equal(once.get('mode'), 'payment');
 assert.equal(once.get('ui_mode'), 'embedded_page');
 assert.equal(once.get('submit_type'), 'donate');
 assert.equal(once.get('line_items[0][price_data][unit_amount]'), '2500');
-assert.equal(once.get('line_items[0][price_data][product]'), DONATION_PRODUCT);
+assert.equal(once.get('line_items[0][price_data][product_data][name]'), DONATION_NAME);
 assert.equal(once.get('line_items[0][price_data][recurring][interval]'), null);
 assert.equal(once.get('return_url'), 'https://x.test/donate?thanks=1');
 const monthly = checkoutParams({ cents: 500, monthly: true }, 'https://x.test/donate?thanks=1');
@@ -35,3 +35,6 @@ const page = fs.readFileSync('app/donate/page.tsx', 'utf8');
 assert.match(page, /STRIPE_SECRET_KEY \? process\.env\.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY/, 'the picker needs both keys');
 assert.match(page, /href=\{DONATE_URL\}/, 'falls back to the payment link');
 console.log('PASS: donation amounts are validated, the Stripe request is right, and the page falls back without keys.');
+// A failure is shown on the page with a short code (never Stripe's message, which can quote a key).
+assert.match(route, /why/); assert.doesNotMatch(route, /NextResponse\.json\(\{[^}]*json\.error\?\.message/);
+assert.match(fs.readFileSync('components/DonateCheckout.tsx', 'utf8'), /fetchClientSecret: async \(\) => secret/);

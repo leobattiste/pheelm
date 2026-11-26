@@ -25,19 +25,17 @@ export default function DonateCheckout({ publishableKey }: { publishableKey: str
     setBusy(true); setError("");
     try {
       const stripe = await loadStripe(publishableKey);
-      if (!stripe) throw new Error("no stripe");
-      const embedded = await stripe.createEmbeddedCheckoutPage({
-        fetchClientSecret: async () => {
-          const res = await fetch("/api/donate/session", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ amount: chosen, monthly }) });
-          const json = (await res.json()) as { clientSecret?: string; error?: string };
-          if (!res.ok || !json.clientSecret) throw new Error(json.error || "failed");
-          return json.clientSecret;
-        },
-      });
+      if (!stripe) throw new Error("Stripe could not load");
+      // Ask for the checkout first, so a failure shows here in our own words instead of inside Stripe's box.
+      const res = await fetch("/api/donate/session", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ amount: chosen, monthly }) });
+      const json = (await res.json().catch(() => ({}))) as { clientSecret?: string; error?: string; why?: string };
+      if (!res.ok || !json.clientSecret) throw new Error(json.why ? `${json.error ?? "failed"} (${json.why})` : json.error || "failed");
+      const secret = json.clientSecret;
+      const embedded = await stripe.createEmbeddedCheckoutPage({ fetchClientSecret: async () => secret });
       setPaying(true);
       requestAnimationFrame(() => { if (mount.current) { embedded.mount(mount.current); checkout.current = embedded; } });
-    } catch {
-      setError("We could not start the payment. Please try again.");
+    } catch (e) {
+      setError(e instanceof Error && e.message.startsWith("We could not") ? e.message : "We could not start the payment. Please try again.");
     } finally {
       setBusy(false);
     }
