@@ -453,6 +453,8 @@ body:has(.has-still) .site-header .wordmark { text-shadow: 0 1px 8px rgb(0 0 0 /
 .info-page .page-head { padding-bottom: 0; }
 .info-page .prose { font-size: var(--t-md); }
 .info-page .prose h2 { margin-top: var(--space-16); font-size: var(--t-xl); }
+/* Small contribution subheadings on the About page only. */
+.about-page .prose h3 { margin-top: var(--space-16); font-size: var(--t-md); font-weight: 600; line-height: var(--lh-snug); }
 .info-page .prose ul { display: grid; gap: var(--space-8); padding-left: 1.2em; list-style: disc; }
 .info-note a, .info-page .prose a { text-decoration: underline; text-underline-offset: 0.2em; }
 .info-section { display: grid; gap: var(--space-16); }
