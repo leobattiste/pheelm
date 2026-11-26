@@ -5,8 +5,6 @@ import SharePheelmButton from "@/components/SharePheelmButton";
 
 export const metadata: Metadata = publicPageMetadata("/about");
 
-const ctaStyle = { display: "flex", flexWrap: "wrap", gap: "0.75rem" } as const;
-
 export default function AboutPage() {
   return (
     <article className="page full-width info-page">
@@ -38,26 +36,22 @@ export default function AboutPage() {
         <p>Pheelm is an independent platform that grows with the support of its community. Here are a few ways you can help:</p>
 
         <h3>Suggest a Film or Director</h3>
-        <p>Recommend films and filmmakers we haven&apos;t featured yet and help us expand the collection.</p>
-        <div style={ctaStyle}>
-          <Link className="button" href="/submit">Suggest a film</Link>
-          <Link className="button" href="/contact">Suggest a director</Link>
-        </div>
+        <p>
+          Know a film or director we haven&apos;t featured yet? You can <Link href="/submit">suggest a film</Link> or{" "}
+          <Link href="/contact">recommend a director</Link> to help us expand the collection.
+        </p>
 
         <h3>Spread the Word</h3>
-        <p>Share Pheelm with friends, family, and fellow film enthusiasts to help more people discover the platform.</p>
-        <div style={ctaStyle}>
-          <SharePheelmButton />
-        </div>
+        <p>
+          You can <SharePheelmButton /> with friends, family, and fellow film enthusiasts to help more
+          people discover the platform.
+        </p>
 
         <h3>Make a Donation</h3>
         <p>
-          We don&apos;t run ads. Your support helps cover operating costs, improve the platform,
-          and keep Pheelm accessible to everyone.
+          We don&apos;t run ads. You can <Link href="/donate">make a donation</Link> to help cover operating
+          costs, improve the platform, and keep Pheelm accessible to everyone.
         </p>
-        <div style={ctaStyle}>
-          <Link className="button" href="/donate">Donate to Pheelm</Link>
-        </div>
       </div>
     </article>
   );
