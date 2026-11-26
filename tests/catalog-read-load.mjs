@@ -59,12 +59,19 @@ async function load({ total, building, versioned = false, disk = memoryDisk(), s
     const rows = Array.from({ length: total }, (_, i) => ({ id: `row-${i}`, slug: `f-${i}`, title: `Film ${i}`, year: 2000, status: "published", countries: [], languages: [], genres: [], aka: [] }));
     return zlib.gzipSync(Buffer.from(JSON.stringify({ films: rows, people: [], credits: [], collections: [], collection_films: [] })));
   };
-  const fetch = async (url) => {
-    stats.downloads = (stats.downloads ?? 0) + 1;
-    stats.lastUrl = url;
-    if (db.downloadFails) return { ok: false, status: 500, arrayBuffer: async () => new ArrayBuffer(0) };
-    const body = fileFor();
-    return { ok: true, status: 200, arrayBuffer: async () => body.buffer.slice(body.byteOffset, body.byteOffset + body.length) };
+  // node:https, as the snapshot download uses it (not fetch, which Next would treat as dynamic).
+  const https = {
+    get: (url, onResponse) => {
+      stats.downloads = (stats.downloads ?? 0) + 1;
+      stats.lastUrl = url;
+      const handlers = {};
+      const res = { statusCode: db.downloadFails ? 500 : 200, resume: () => {}, on: (e, f) => { handlers[e] = f; return res; } };
+      setTimeout(() => {
+        onResponse(res);
+        if (res.statusCode === 200) { handlers.data?.(fileFor()); handlers.end?.(); }
+      }, 1);
+      return { setTimeout: () => {}, on: () => {}, destroy: () => {} };
+    },
   };
   const makeQuery = () => {
     let from = 0, to = 999;
@@ -101,6 +108,7 @@ async function load({ total, building, versioned = false, disk = memoryDisk(), s
     "node:os": { tmpdir: () => "/tmp" },
     "node:path": { join: (...p) => p.join("/") },
     "node:zlib": zlib,
+    "node:https": https,
   };
   const mod = { exports: {} };
   const env = { ...process.env, NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co", NEXT_PUBLIC_SUPABASE_ANON_KEY: "test-key" };
@@ -111,7 +119,7 @@ async function load({ total, building, versioned = false, disk = memoryDisk(), s
   class ClockDate extends Date {}
   ClockDate.now = () => Date.now() + clock.skip;
   vm.runInNewContext(out.outputFiles[0].text, {
-    module: mod, exports: mod.exports, console, TextEncoder, TextDecoder, setTimeout, clearTimeout, Promise, Buffer, fetch,
+    module: mod, exports: mod.exports, console, TextEncoder, TextDecoder, setTimeout, clearTimeout, Promise, Buffer,
     Date: ClockDate,
     process: { ...process, env },
     require: (name) => { if (name in fakes) return fakes[name]; throw new Error(`unexpected require: ${name}`); },
@@ -360,4 +368,6 @@ console.log("ok  the catalogue is read a few pages at a time, once per build, an
     "app/api/internal/backfill/route.ts", "app/api/internal/director-photos/route.ts", "app/api/internal/awards/route.ts", "app/api/internal/queue/route.ts"])
     assert.match(readFileSync(f, "utf8"), /queueCatalogSnapshot\(\)/, `${f} should queue a snapshot rebuild`);
   console.log("ok  catalog changes queue a snapshot rebuild");
+  // Next's fetch makes an uncached request turn a static page dynamic (Sentry PHEELM-7).
+  assert.doesNotMatch(readFileSync("lib/data.ts", "utf8"), /await fetch\(/, "the snapshot is downloaded without Next's fetch");
 }
