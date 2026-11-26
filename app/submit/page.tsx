@@ -15,20 +15,26 @@ export default async function SubmitPage() {
 
   return (
     <section className="page full-width suggestion-page">
-      <header className="page-head">
-        <h1>Suggest a film</h1>
-        <p className="lead">{PAGE_COPY.submit}</p>
-      </header>
-      <p className="muted submission-intro">If you&rsquo;re a filmmaker, <Link href="/submit/your-film">submit your own film</Link>.</p>
-      {!db ? (
-        <p className="notice">Suggestions aren&rsquo;t open yet. Check back soon.</p>
-      ) : user ? (
-        <SubmitForm />
-      ) : (
-        <p>
-          <Link className="button" href="/login?next=/submit">Sign in to suggest a film</Link>
-        </p>
-      )}
+      <div className="form-split">
+        <div className="form-split-intro">
+          <header className="page-head">
+            <h1>Suggest a film</h1>
+            <p className="lead">{PAGE_COPY.submit}</p>
+          </header>
+          <p className="muted submission-intro">If you&rsquo;re a filmmaker, <Link href="/submit/your-film">submit your own film</Link>.</p>
+        </div>
+        <div className="form-split-form">
+          {!db ? (
+            <p className="notice">Suggestions aren&rsquo;t open yet. Check back soon.</p>
+          ) : user ? (
+            <SubmitForm />
+          ) : (
+            <p>
+              <Link className="button" href="/login?next=/submit">Sign in to suggest a film</Link>
+            </p>
+          )}
+        </div>
+      </div>
     </section>
   );
 }

@@ -13,7 +13,8 @@ assert.match(page, /<PayPalDonate buttonId=\{PAYPAL_BUTTON_ID\} \/>/);
 assert.match(page, /Donations open soon/);
 assert.match(button, /components=hosted-buttons/);
 assert.match(button, /enable-funding=venmo/);
-assert.match(button, /HostedButtons\(\{ hostedButtonId: buttonId \}\)\.render\(el\)/);
+assert.match(button, /HostedButtons\(\{ hostedButtonId: buttonId \}\)\.render\(`#paypal-container-\$\{buttonId\}`\)/);
+assert.match(button, /id=\{`paypal-container-\$\{buttonId\}`\}/);
 assert.doesNotMatch(button, /client-secret|secret=/i, 'only the public client id');
 // The security policy lets PayPal's script run and its Checkout form post to PayPal.
 assert.match(fs.readFileSync('next.config.ts', 'utf8'), /form-action 'self' https:\/\/www\.paypal\.com/);
