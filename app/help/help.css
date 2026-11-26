@@ -1,6 +1,5 @@
 /* Help uses the same page header and typography as Legal. */
 .help-browser { width: 100%; min-width: 0; }
-.help-toolbar { width: 100%; }
 .help-toolbar .catalog-search-control { flex: 1; min-width: 0; }
 .help-toolbar .catalog-search-control .search-bar { width: 100%; max-width: none; }
 .help-topics { display: flex; flex-wrap: wrap; gap: var(--space-8); margin-bottom: var(--space-20); }
@@ -14,7 +13,7 @@
 .help-item h3 button { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 18px; min-height: 58px; padding: 14px 2px; border: 0; background: transparent; color: var(--text); text-align: left; font: inherit; font-weight: 500; cursor: pointer; }
 .help-item h3 button svg { flex: none; color: var(--muted); }
 .help-item h3 button:hover, .help-item h3 button:focus-visible, .help-more:hover { color: var(--muted); }
-.help-item h3 button:focus-visible, .help-clear:focus-visible, .help-more:focus-visible,  .help-topics .chip:focus-visible { outline: 2px solid currentColor !important; outline-offset: 3px; }
+.help-item h3 button:focus-visible, .help-more:focus-visible, .help-topics .chip:focus-visible { outline: 2px solid currentColor !important; outline-offset: 3px; }
 .help-answer { padding: 0 30px 20px 2px; max-width: 75ch; line-height: 1.7; }
 .help-answer p { margin: 0 0 12px; color: var(--muted); overflow-wrap: anywhere; }
 .help-answer a, .help-more { display: inline-flex; align-items: center; gap: 6px; }
