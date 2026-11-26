@@ -35,3 +35,6 @@ const page = fs.readFileSync('app/donate/page.tsx', 'utf8');
 assert.match(page, /STRIPE_SECRET_KEY \? process\.env\.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY/, 'the picker needs both keys');
 assert.match(page, /href=\{DONATE_URL\}/, 'falls back to the payment link');
 console.log('PASS: donation amounts are validated, the Stripe request is right, and the page falls back without keys.');
+// A failure is shown on the page with a short code (never Stripe's message, which can quote a key).
+assert.match(route, /why/); assert.doesNotMatch(route, /NextResponse\.json\(\{[^}]*json\.error\?\.message/);
+assert.match(fs.readFileSync('components/DonateCheckout.tsx', 'utf8'), /fetchClientSecret: async \(\) => secret/);
