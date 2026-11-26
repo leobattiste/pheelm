@@ -10,6 +10,10 @@ const project=Deno.env.get('SUPABASE_URL')!;
 const service=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const endpoint=project+'/functions/v1/pheelm-email';
 const BASE='https://www.pheelm.com';
+// Sentry cron monitor "pheelm-email-delivery": each run reports in, so a run that stops or fails is noticed.
+// Built from the project's public DSN (lib/sentry-scrub.ts); it only lets check-ins in.
+const CHECK_IN='https://o4512403675807744.ingest.us.sentry.io/api/4512403855441920/cron/pheelm-email-delivery/8df4f0fa88b24d9a2679fa7c6dd23c06/';
+const checkIn=(status:'ok'|'error')=>fetch(CHECK_IN+'?status='+status,{signal:AbortSignal.timeout(3000)}).then(()=>{},()=>{});
 async function rpc(name:string,args:Record<string,unknown>={}){const r=await fetch(project+'/rest/v1/rpc/'+name,{method:'POST',headers:{apikey:service,Authorization:'Bearer '+service,'Content-Type':'application/json'},body:JSON.stringify(args),signal:AbortSignal.timeout(10000)});if(!r.ok)throw new Error('Database operation failed: '+name);return r.status===204?null:await r.json();}
 const preview=(text:string)=>{const one=text.replace(/\s+/g,' ').trim();return one.length>140?one.slice(0,139).trimEnd()+'…':one;};
 const json=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:{'Content-Type':'application/json','Cache-Control':'no-store'}});
@@ -67,5 +71,6 @@ Deno.serve(async req=>{try{const url=new URL(req.url);const action=url.searchPar
  await new Promise(r=>setTimeout(r,550));
  }
  if(sent||failed)console.log(JSON.stringify({event:'batch',sent,failed}));
+ await checkIn('ok');
  return json({sent,failed});
- }catch(e){console.error(JSON.stringify({event:'worker_error',error:String((e as Error)?.message??e).slice(0,300)}));return json({error:'Email operation unavailable'},500);}});
+ }catch(e){console.error(JSON.stringify({event:'worker_error',error:String((e as Error)?.message??e).slice(0,300)}));if((new URL(req.url).searchParams.get('action')??'process')==='process')await checkIn('error');return json({error:'Email operation unavailable'},500);}});
