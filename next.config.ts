@@ -61,8 +61,9 @@ const nextConfig: NextConfig = {
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           // Nobody else can put the site in a frame (stops clickjacking on sign-in and the admin).
           // Scripts only from Pheelm itself and Cloudflare's bot check, so an injected <script src>
-          // from anywhere else won't run. (Next's own inline scripts need 'unsafe-inline'.)
-          { key: "Content-Security-Policy", value: `frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "production" ? "" : " 'unsafe-eval'"} https://challenges.cloudflare.com https://va.vercel-scripts.com https://www.paypal.com https://*.paypal.com https://*.paypalobjects.com` },
+          // from anywhere else won't run. (Next's own inline scripts need 'unsafe-inline'.) Forms post only to
+          // Pheelm and PayPal (the PayPal Donate button's Checkout submits a form to paypal.com).
+          { key: "Content-Security-Policy", value: `frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://www.paypal.com https://*.paypal.com; object-src 'none'; script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "production" ? "" : " 'unsafe-eval'"} https://challenges.cloudflare.com https://va.vercel-scripts.com https://www.paypal.com https://*.paypal.com https://*.paypalobjects.com` },
           { key: "X-Frame-Options", value: "DENY" },
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), browsing-topics=()" },
         ],
