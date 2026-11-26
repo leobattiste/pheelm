@@ -6,21 +6,27 @@ import FeatureGrid, { type HomeFeature } from "@/components/home/FeatureGrid";
 import { getFilms, toCard } from "@/lib/data";
 import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
 import { SITE_URL } from "@/lib/supabase/config";
+import { EARLY_ACCESS } from "@/lib/launch";
 
 export const revalidate = 3600; // admin saves refresh it right away
 export const metadata: Metadata = publicPageMetadata("/");
 
-const FAQS: [string, string][] = [
+const ALL_FAQS: [string, string, ("early" | "launched")?][] = [
   ["What is Pheelm?", "Pheelm is a platform to discover films by Black directors from around the world, explore the people behind them, and connect with other film enthusiasts."],
   ["Why was Pheelm created?", "Black directors have made significant contributions to cinema, yet many of their films remain overlooked or difficult to discover. Pheelm aims to make their work more visible and accessible to audiences everywhere."],
   ["What can I do on Pheelm?", "You can discover films, explore directors, save your favorites, create watchlists, and connect with a community of film enthusiasts."],
   ["Is Pheelm a streaming service?", "No. Pheelm is a film discovery platform. We help you find and learn about films, but we don’t host or stream them."],
   ["Is Pheelm free?", "Yes. Pheelm will be free to explore and use."],
-  ["What is early access?", "Early access gives you the opportunity to explore Pheelm before its public launch, try its features, and share feedback to help us improve the platform."],
-  ["When will Pheelm fully launch?", "We’re still working on Pheelm and don’t have an official public launch date yet."],
+  ["What is early access?", "Early access gives you the opportunity to explore Pheelm before its public launch, try its features, and share feedback to help us improve the platform.", "early"],
+  ["When will Pheelm fully launch?", "We’re still working on Pheelm and don’t have an official public launch date yet.", "early"],
   ["Who can join?", "Anyone interested in cinema is welcome. Whether you’re a casual viewer, a film enthusiast, or a filmmaker, Pheelm is for you."],
-  ["How can I support Pheelm?", "You can support us by joining the early access list, sharing Pheelm with others, and providing feedback as we build the platform."],
+  ["How can I support Pheelm?", "You can support us by joining the early access list, sharing Pheelm with others, and providing feedback as we build the platform.", "early"],
+  ["How can I support Pheelm?", "You can support us by creating an account, sharing Pheelm with others, sending feedback, or making a donation.", "launched"],
 ];
+// Early-access questions show only during early access; "launched" ones only after.
+const FAQS: [string, string][] = ALL_FAQS
+  .filter(([, , when]) => !when || (when === "early") === EARLY_ACCESS)
+  .map(([q, a]) => [q, a]);
 
 
 const ICONIC = [
@@ -63,7 +69,7 @@ const FEATURES: HomeFeature[] = [
 /**
  * The home page tells what Pheelm is in three parts (films, directors, community), each a short
  * statement followed by a row that shows it, then a closing call to sign up. While Pheelm is in
- * early access, every film, director and collection on it opens the sign-up sheet.
+ * early access (lib/launch.ts), every film, director and collection on it opens the sign-up sheet.
  */
 export default async function Home() {
   const films = await getFilms();

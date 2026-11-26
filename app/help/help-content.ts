@@ -21,13 +21,13 @@ export const HELP_CATEGORIES: HelpCategory[] = [
       {
         "id": "getting-started-3",
         "question": "Is Pheelm free?",
-        "answer": "Yes. Pheelm has free accounts and free discovery features. Some features require signing in, especially while the platform is in early access.",
+        "answer": "Yes. Pheelm has free accounts and free discovery features. Some features require signing in.",
         "href": "/login"
       },
       {
         "id": "getting-started-4",
         "question": "Why do I need an account?",
-        "answer": "An account lets you save films, follow directors and watchlists, create your own watchlists, comment and suggest films. Some discovery pages may also require an account during early access.",
+        "answer": "An account lets you save films, follow directors and watchlists, create your own watchlists, comment and suggest films.",
         "href": "/login"
       },
       {

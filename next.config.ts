@@ -81,6 +81,12 @@ export default withSentryConfig(nextConfig, {
   org: "pheelm",
   project: "pheelm",
   authToken: process.env.SENTRY_AUTH_TOKEN,
+  // With SENTRY_AUTH_TOKEN set: each Vercel build is a release tied to its commits and marked as deployed.
+  release: {
+    name: process.env.VERCEL_GIT_COMMIT_SHA,
+    setCommits: { auto: true, ignoreMissing: true, ignoreEmpty: true },
+    deploy: process.env.VERCEL_ENV ? { env: process.env.VERCEL_ENV } : undefined,
+  },
   silent: !process.env.CI,
   telemetry: false,
 });

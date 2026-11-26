@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
 import { supabaseEnabled } from "@/lib/supabase/config";
+import { EARLY_ACCESS } from "@/lib/launch";
 import { toast } from "@/components/Toast";
 import { needsPassword, MIN_PASSWORD } from "@/lib/password";
 
@@ -206,7 +207,7 @@ export default function SignInForm({ next, initialError = "", onDone, titleId, m
   const title = step === "new-password" ? "Choose a password"
     : step === "reset" ? "Reset your password"
     : step === "code" ? (codeType === "signup" ? "Confirm your email" : codeType === "recovery" ? "Reset your password" : "Sign in")
-    : signup ? "Sign up to get early access" : "Sign in";
+    : signup ? (EARLY_ACCESS ? "Sign up to get early access" : "Create your free account") : "Sign in";
 
   if (!supabaseEnabled) {
     return <div className="signin"><h2 id={titleId}>{title}</h2><p className="lead">Sign-in isn&rsquo;t available yet. Check back soon.</p></div>;
@@ -285,7 +286,7 @@ export default function SignInForm({ next, initialError = "", onDone, titleId, m
             </label>
             {passwordField("Password", signup ? "new-password" : "current-password")}
             <button className="button" type="submit" disabled={busy}>
-              {busy ? (signup ? "Creating account…" : "Signing in…") : signup ? "Get early access" : "Sign in"}
+              {busy ? (signup ? "Creating account…" : "Signing in…") : signup ? (EARLY_ACCESS ? "Get early access" : "Create account") : "Sign in"}
             </button>
           </form>
           {googleEnabled && <button className="button ghost" type="button" onClick={google}>Continue with Google</button>}
