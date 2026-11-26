@@ -15,17 +15,17 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
     for (const [key, value] of Object.entries(sp)) if (value) query.set(key, value);
     redirect(`/feedback?${query}`);
   }
-  const topic = sp.topic === "press" || sp.topic === "privacy" ? sp.topic : "general";
+  const topic = ["general", "account", "press", "privacy", "other"].includes(sp.topic ?? "") ? sp.topic! : "general";
   return (
     <article className="page full-width info-page enquiry-page">
       <div className="form-split">
         <div className="form-split-intro">
           <header className="page-head">
             <h1>Contact</h1>
-            <p className="lead">Get in touch for general enquiries, press or privacy requests. Leave your email so we can reply.</p>
+            <p className="lead">Have a question or need to get in touch? Send us a message, and we&apos;ll get back to you when we can.</p>
           </header>
           {CONTACT_EMAIL && <p className="info-note">Email us directly at <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.</p>}
-          <p className="muted info-note">Found a problem or have an improvement in mind? <Link href="/feedback">Give feedback</Link>. For collaborations, visit <Link href="/partnerships">Partnership</Link>.</p>
+          <p className="muted info-note">For partnership inquiries, visit our <Link href="/partnerships">Partnerships</Link> page. To report an issue or suggest an improvement, use our <Link href="/feedback">Feedback</Link> page.</p>
         </div>
         <div className="form-split-form">
           <ContactForm topic={topic} />
