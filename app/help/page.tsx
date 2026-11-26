@@ -10,7 +10,7 @@ export default function HelpPage() {
     <article className="page full-width info-page legal-page help-page">
       <header className="page-head">
         <h1>Help</h1>
-        <p className="lead">Find answers, explore features and learn how to use Pheelm.</p>
+        <p className="lead">Find answers to common questions about using Pheelm.</p>
       </header>
       <HelpBrowser />
     </article>
