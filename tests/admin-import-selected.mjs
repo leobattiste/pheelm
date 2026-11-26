@@ -20,6 +20,7 @@ const action = load('app/admin/import-selected.ts', name => {
   };
   if (name === '@/lib/tmdb') return {get tmdbEnabled() {return enabled;}};
   if (name === 'next/cache') return {revalidatePath: () => {}};
+  if (name === '@/lib/catalog-snapshot') return {queueCatalogSnapshot: () => {}};
   throw Error(name);
 }).importSelectedFromTmdb;
 
