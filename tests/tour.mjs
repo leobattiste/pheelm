@@ -71,7 +71,7 @@ const account = fs.readFileSync('app/account/page.tsx', 'utf8');
 assert.match(account, /<GettingStarted counts=\{started\} \/>/);
 for (const table of ['watched', 'watchlist', 'lists', 'follows', 'list_comments']) assert.match(account, new RegExp(`count\\("${table}"\\)`), `${table} is counted`);
 assert.match(fs.readFileSync('components/WatchlistButton.tsx', 'utf8'), /pheelm:first-save/);
-const migration = fs.readFileSync('supabase/migrations/20261123210000_tour_progress.sql', 'utf8');
+const migration = fs.readFileSync('supabase/migrations/20261123214154_tour_progress.sql', 'utf8');
 assert.match(migration, /enable row level security/);
 assert.match(migration, /user_id = \(select auth\.uid\(\)\)/);
 assert.doesNotMatch(migration, /to anon/);
@@ -80,7 +80,7 @@ console.log('PASS: tour shows three times at most, stops when finished or switch
 // Counting: totals only, no user id, and the table has no read policy.
 {
   const stats = fs.readFileSync('lib/tour-stats.ts', 'utf8');
-  const sql = fs.readFileSync('supabase/migrations/20261126050000_tour_stats.sql', 'utf8');
+  const sql = fs.readFileSync('supabase/migrations/20261126052846_tour_stats.sql', 'utf8');
   const call = stats.match(/rpc\("tour_count", \{([^}]*)\}/)?.[1] ?? '';
   assert.match(call, /p_tour/); assert.match(call, /p_step/); assert.match(call, /p_event/);
   assert.doesNotMatch(call, /user|ip/i, 'nothing about the person is sent');
