@@ -76,3 +76,15 @@ assert.match(migration, /enable row level security/);
 assert.match(migration, /user_id = \(select auth\.uid\(\)\)/);
 assert.doesNotMatch(migration, /to anon/);
 console.log('PASS: tour shows three times at most, stops when finished or switched off, merges browser and account, is wired in.');
+
+// Counting: totals only, no user id, and the table has no read policy.
+{
+  const stats = fs.readFileSync('lib/tour-stats.ts', 'utf8');
+  const sql = fs.readFileSync('supabase/migrations/20261126050000_tour_stats.sql', 'utf8');
+  const call = stats.match(/rpc\("tour_count", \{([^}]*)\}/)?.[1] ?? '';
+  assert.match(call, /p_tour/); assert.match(call, /p_step/); assert.match(call, /p_event/);
+  assert.doesNotMatch(call, /user|ip/i, 'nothing about the person is sent');
+  assert.match(sql, /enable row level security/); assert.doesNotMatch(sql, /create policy/);
+  assert.doesNotMatch(sql, /user_id|inet|ip_address/);
+}
+console.log('PASS: tour counts are totals only.');

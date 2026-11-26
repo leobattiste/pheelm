@@ -9,7 +9,7 @@ const base = process.env.BASE_URL || 'http://localhost:3000';
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH, headless: true });
 try {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
-  await context.addInitScript(() => { try { localStorage.setItem('pheelm:tour:test', '1'); } catch {} });
+  await context.addInitScript(() => { try { localStorage.setItem('pheelm:tour:test', 'instant'); } catch {} });
   const page = await context.newPage();
   await page.goto(`${base}/help`, { waitUntil: 'networkidle' });
   // A first-time visitor is asked what brings them here; skipping goes straight to the menu tour.
