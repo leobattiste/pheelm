@@ -7,11 +7,16 @@ import {
   TOUR_REPLAY_EVENT, TOUR_STORAGE_KEY, canShowTour, cleanTourState, emptyTourState, finishTour, mergeTourState,
   sameTourState, startTour, turnOffTours, type Intent, type TourState,
 } from "@/lib/tour";
+import { countTour } from "@/lib/tour-stats";
 import { MENU_TOUR, toursFor, tourCopy, type Tour, type TourStep } from "@/lib/tours";
 
 // Pages where a tour would get in the way.
 const SKIP = /^\/(login|auth|welcome|offline|admin)(\/|$)/;
 const START_DELAY_MS = 1500;
+// A tour waits for the visitor's first tap, scroll or key press, so it never lands on someone who is
+// still reading the page. Someone who does nothing at all gets it after this long anyway.
+const IDLE_START_MS = 8000;
+const SWIPE_PX = 50;
 
 /** A first-time visitor says what brought them here and lands somewhere that fits, then the menu tour starts. */
 const WELCOME_CHOICES: { intent: Intent; label: string; to: string }[] = [
@@ -48,6 +53,9 @@ export default function Tour() {
   const memory = useRef<{ state: TourState; userId: string | null } | null>(null);
   const primary = useRef<HTMLButtonElement>(null);
   const last = useRef<HTMLElement | null>(null);
+  const seen = useRef(new Set<string>());
+  const swipe = useRef<{ x: number; y: number } | null>(null);
+  const [announce, setAnnounce] = useState("");
 
   const save = useCallback((next: TourState) => {
     const m = memory.current;
@@ -87,6 +95,8 @@ export default function Tour() {
   const open = useCallback((tour: Tour, steps: TourStep[], state: TourState) => {
     save(state);
     last.current = document.activeElement as HTMLElement | null;
+    seen.current = new Set();
+    countTour(tour.id, 0, "started");
     setStep(0);
     setRunning({ tour, steps });
   }, [save]);
@@ -98,7 +108,11 @@ export default function Tour() {
     // Automated browsers (the site's own checks) don't get tours unless a test asks for them.
     try { if (navigator.webdriver && !localStorage.getItem("pheelm:tour:test")) return; } catch {}
     let cancelled = false;
-    const timer = window.setTimeout(async () => {
+    let begun = false;
+    const instant = (() => { try { return navigator.webdriver && localStorage.getItem("pheelm:tour:test") === "instant"; } catch { return false; } })();
+    const begin = async () => {
+      if (begun) return;
+      begun = true;
       if (cancelled || document.documentElement.dataset.chrome !== "app" || document.querySelector("dialog[open]")) return;
       await loadMemory();
       if (cancelled || !memory.current || document.querySelector("dialog[open]")) return;
@@ -111,8 +125,20 @@ export default function Tour() {
         open(tour, steps, startTour(memory.current.state, tour.id));
         return;
       }
+    };
+    // Ready once the page has settled; then it starts on the first sign the visitor is there.
+    const events = ["pointerdown", "keydown", "wheel", "touchstart", "scroll"] as const;
+    let ready = false;
+    let idle = 0;
+    const onTouch = () => { if (!ready) return; cleanup(); void begin(); };
+    const cleanup = () => { events.forEach((e) => window.removeEventListener(e, onTouch, true)); window.clearTimeout(idle); };
+    const timer = window.setTimeout(() => {
+      ready = true;
+      if (instant) { void begin(); return; }
+      idle = window.setTimeout(() => { cleanup(); void begin(); }, IDLE_START_MS - START_DELAY_MS);
     }, START_DELAY_MS);
-    return () => { cancelled = true; window.clearTimeout(timer); };
+    if (!instant) events.forEach((e) => window.addEventListener(e, onTouch, true));
+    return () => { cancelled = true; window.clearTimeout(timer); cleanup(); };
   }, [path, open, loadMemory, stepsOf]);
 
   // Settings → Display → "Replay": forget everything seen and start the menu tour from the first step.
@@ -150,9 +176,12 @@ export default function Tour() {
   useEffect(() => { if (current || welcome) primary.current?.focus({ preventScroll: true }); }, [current, box, welcome]);
 
   const close = useCallback(() => { setRunning(null); setBox(null); last.current?.focus?.({ preventScroll: true }); }, []);
+  /** Closed with X, Esc or a tap outside: counted as skipped, and the tour comes back later as before. */
+  const skip = useCallback(() => { if (running) countTour(running.tour.id, step, "skipped"); close(); }, [close, running, step]);
   /** Answer (or skip) the welcome card; the menu tour follows on the page they land on. */
   const answer = useCallback((intent: Intent, to?: string) => {
     setWelcome(false);
+    countTour("welcome", 0, intent === "skip" ? "skipped" : "finished");
     const m = memory.current;
     if (!m) return;
     const next = { ...m.state, intent };
@@ -164,6 +193,7 @@ export default function Tour() {
   /** X, Esc or a tap outside the welcome card: same as "Don’t show again", no tours at all. */
   const dismissWelcome = useCallback(() => {
     setWelcome(false);
+    countTour("welcome", 0, "off");
     if (memory.current) save(turnOffTours({ ...memory.current.state, intent: memory.current.state.intent || "skip" }));
   }, [save]);
 
@@ -176,10 +206,45 @@ export default function Tour() {
 
   useEffect(() => {
     if (!running) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") close(); };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { skip(); return; }
+      if (e.key === "ArrowRight" && step < running.steps.length - 1) { e.preventDefault(); setStep(step + 1); }
+      else if (e.key === "ArrowLeft" && step > 0) { e.preventDefault(); setStep(step - 1); }
+      else if (e.key === "Tab") {
+        // Tab stays inside the card while the tour is open.
+        const items = [...document.querySelectorAll<HTMLElement>(".tour-card button")].filter(visible);
+        if (!items.length) return;
+        const first = items[0], end = items[items.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); end.focus(); }
+        else if (!e.shiftKey && document.activeElement === end) { e.preventDefault(); first.focus(); }
+        else if (!items.includes(document.activeElement as HTMLElement)) { e.preventDefault(); first.focus(); }
+      }
+    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [running, close]);
+  }, [running, skip, step]);
+
+  // Count each step the first time it is shown, and say it aloud for screen readers.
+  useEffect(() => {
+    if (!running || !current) return;
+    const key = `${running.tour.id}:${step}`;
+    if (!seen.current.has(key)) { seen.current.add(key); countTour(running.tour.id, step, "step"); }
+    setAnnounce(`Step ${step + 1} of ${running.steps.length}: ${current.title}. ${current.text}`);
+  }, [running, current, step]);
+
+  // Tapping the highlighted menu item goes to the next step instead of leaving the page.
+  useEffect(() => {
+    if (!running || !current || !current.targets.some((t) => t.startsWith(".tab-bar"))) return;
+    const onTap = (e: MouseEvent) => {
+      const el = findTarget(current.targets);
+      if (!el || !(e.target instanceof Node) || !el.contains(e.target) || (e.target as Element).closest?.(".tour-card")) return;
+      e.preventDefault();
+      e.stopPropagation();
+      if (step < running.steps.length - 1) setStep(step + 1);
+    };
+    document.addEventListener("click", onTap, true);
+    return () => document.removeEventListener("click", onTap, true);
+  }, [running, current, step]);
 
   // A sign-in sheet or any dialog opening takes over; the tour steps aside.
   useEffect(() => {
@@ -189,11 +254,23 @@ export default function Tour() {
     return () => watch.disconnect();
   }, [running, welcome, close]);
 
+  /** A swipe left goes to the next step, a swipe right to the one before. */
+  const swipeStart = (e: React.TouchEvent) => { const t = e.touches[0]; swipe.current = t ? { x: t.clientX, y: t.clientY } : null; };
+  const swipeEnd = (e: React.TouchEvent) => {
+    const from = swipe.current; swipe.current = null;
+    const t = e.changedTouches[0];
+    if (!from || !t || !running) return;
+    const dx = t.clientX - from.x, dy = t.clientY - from.y;
+    if (Math.abs(dx) < SWIPE_PX || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    if (dx < 0 && step < running.steps.length - 1) setStep(step + 1);
+    else if (dx > 0 && step > 0) setStep(step - 1);
+  };
+
   if (welcome) {
     return (
       <div className="tour" role="presentation">
         <div className="tour-scrim" onClick={dismissWelcome} />
-        <section className="tour-card tour-welcome" role="dialog" aria-label="Welcome to Pheelm" style={{ left: (window.innerWidth - Math.min(480, window.innerWidth - 40)) / 2, width: Math.min(480, window.innerWidth - 40) }}>
+        <section className="tour-card tour-welcome" role="dialog" aria-modal="true" aria-label="Welcome to Pheelm" style={{ left: (window.innerWidth - Math.min(480, window.innerWidth - 40)) / 2, width: Math.min(480, window.innerWidth - 40) }}>
           <button type="button" className="icon-button tour-x" aria-label="Close" onClick={dismissWelcome}>×</button>
           <h2 className="tour-title">What brings you here?</h2>
           <p className="tour-text">Pick one and we will point you to a good place to start.</p>
@@ -223,13 +300,15 @@ export default function Tour() {
     ? { left, width: cardWidth, bottom: 110 }
     : { left, width: cardWidth, ...(below ? { top: box.top + box.height + pad + 14 } : { bottom: window.innerHeight - box.top + pad + 14 }) };
 
+  const tappable = current.targets.some((t) => t.startsWith(".tab-bar"));
   return (
-    <div className="tour" role="presentation">
-      <div className="tour-scrim" onClick={close} style={{ clipPath: `path(evenodd, "M0 0H${window.innerWidth}V${window.innerHeight}H0Z M${hole.l + rad} ${hole.t}H${hole.r - rad}A${rad} ${rad} 0 0 1 ${hole.r} ${hole.t + rad}V${hole.b - rad}A${rad} ${rad} 0 0 1 ${hole.r - rad} ${hole.b}H${hole.l + rad}A${rad} ${rad} 0 0 1 ${hole.l} ${hole.b - rad}V${hole.t + rad}A${rad} ${rad} 0 0 1 ${hole.l + rad} ${hole.t}Z")` }} />
+    <div className={tappable ? "tour tour-tap" : "tour"} role="presentation">
+      <div className="tour-scrim" onClick={skip} onTouchStart={swipeStart} onTouchEnd={swipeEnd} style={{ clipPath: `path(evenodd, "M0 0H${window.innerWidth}V${window.innerHeight}H0Z M${hole.l + rad} ${hole.t}H${hole.r - rad}A${rad} ${rad} 0 0 1 ${hole.r} ${hole.t + rad}V${hole.b - rad}A${rad} ${rad} 0 0 1 ${hole.r - rad} ${hole.b}H${hole.l + rad}A${rad} ${rad} 0 0 1 ${hole.l} ${hole.b - rad}V${hole.t + rad}A${rad} ${rad} 0 0 1 ${hole.l + rad} ${hole.t}Z")` }} />
       <span className="tour-spot" aria-hidden="true" style={{ top: box.top - pad, left: box.left - pad, width: box.width + pad * 2, height: box.height + pad * 2, borderRadius: rad }} />
-      <section className="tour-card" role="dialog" aria-label={`Tour: ${current.title}`} style={cardStyle}>
-        <button type="button" className="icon-button tour-x" aria-label="Close the tour" onClick={close}>×</button>
+      <section className="tour-card" role="dialog" aria-modal="true" aria-label={`Tour: ${current.title}`} style={cardStyle} onTouchStart={swipeStart} onTouchEnd={swipeEnd}>
+        <button type="button" className="icon-button tour-x" aria-label="Close the tour" onClick={skip}>×</button>
         <p className="tour-count">{step + 1} of {total}</p>
+        <p className="visually-hidden" role="status" aria-live="polite">{announce}</p>
         {/* Every step's words sit in the same cell, so all the cards are as tall as the longest one. */}
         <div className="tour-copy">
           {tourCopy(tour).map((c) => (
@@ -242,11 +321,11 @@ export default function Tour() {
         <div className="tour-actions">
           {step > 0 && <button type="button" className="button ghost" onClick={() => setStep(step - 1)}>Back</button>}
           <button ref={primary} type="button" className="button" onClick={() => {
-            if (isLast) { if (memory.current) save(finishTour(memory.current.state, tour.id)); close(); }
+            if (isLast) { countTour(tour.id, step, "finished"); if (memory.current) save(finishTour(memory.current.state, tour.id)); close(); }
             else setStep(step + 1);
           }}>{isLast ? tour.doneLabel : "Next"}</button>
         </div>
-        <button type="button" className="tour-off" onClick={() => { if (memory.current) save(turnOffTours(memory.current.state)); close(); }}>Don’t show again</button>
+        <button type="button" className="tour-off" onClick={() => { countTour(tour.id, step, "off"); if (memory.current) save(turnOffTours(memory.current.state)); close(); }}>Don’t show again</button>
       </section>
     </div>
   );
