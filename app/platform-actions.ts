@@ -9,7 +9,7 @@ import { safeInternalPath } from "@/lib/safe-navigation";
 export type FormState = { ok: boolean; message: string } | null;
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-const TOPICS = ["general", "feedback", "correction", "partnership", "press", "privacy"] as const;
+const TOPICS = ["general", "account", "other", "feedback", "correction", "partnership", "press", "privacy"] as const;
 
 /** Newsletter sign-up. Signing up twice is fine: the second time says you're already on the list. */
 export async function subscribe(_prev: FormState, f: FormData): Promise<FormState> {
@@ -81,5 +81,5 @@ export async function sendMessage(_prev: FormState, f: FormData): Promise<FormSt
     }));
   }
   if (error) return { ok: false, message: "Messages can't be sent from here yet. Check back soon." };
-  return { ok: true, message: topic === "partnership" ? PARTNERSHIP_SUCCESS : `Thanks. We'll reply to ${email}.` };
+  return { ok: true, message: topic === "partnership" ? PARTNERSHIP_SUCCESS : ["general", "account", "press", "privacy", "other"].includes(topic) ? "Your message has been sent. We'll get back to you when we can." : `Thanks. We'll reply to ${email}.` };
 }
