@@ -3432,3 +3432,106 @@ html:root:root:root .trailer-foot .button.ghost { border: 1px solid var(--contro
 .legal-page .legal-toc button:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 .legal-page .prose h3[id] { scroll-margin-top: calc(var(--header) + var(--space-32)); }
 @media (max-width: 700px) { .legal-page .legal-toc ol { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---- Film page ---------------------------------------------------------------------------
+   A cinematic hero: the film's still (or its poster, blurred) runs edge to edge behind the
+   header and fades into the page. Poster, title, the facts at a glance and the three actions
+   sit on top. Below, a reading column with a short, labelled sheet of details beside it. */
+/* Where the site header shows, the still runs up behind it, darkened at the top so the header reads. */
+html:not([data-chrome="app"]) main:has(> .film-v2) { margin-top: calc(var(--header) * -1); }
+html:not([data-chrome="app"]) .film-hero.has-still::before { content: ""; position: absolute; inset: 0 0 auto; z-index: 0; height: calc(var(--header) + 90px); background: linear-gradient(to bottom, rgb(0 0 0 / 0.5), transparent); pointer-events: none; }
+html:root:root .film-page.film-v2 {
+  display: block;
+  min-height: 0;
+  padding: 0 0 var(--space-64);
+  --film-poster: clamp(220px, 21vw, 300px);
+  --film-gap: clamp(var(--space-32), 4vw, var(--space-64));
+}
+
+.film-hero { position: relative; isolation: isolate; overflow: hidden; padding: calc(var(--header) + clamp(140px, 22vw, 300px)) var(--gutter) 0; }
+.film-hero:not(.has-still) { padding-top: calc(var(--header) + var(--space-48)); }
+.film-hero-bg { position: absolute; inset: 0 0 auto; z-index: -1; height: min(78vh, 760px); overflow: hidden; }
+.film-hero-bg img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 25%; }
+.film-hero.is-blurred .film-hero-bg img { filter: blur(48px) saturate(1.3); transform: scale(1.25); opacity: 0.7; }
+/* Fades: into the page at the bottom, darker behind the header and on the side the text sits. */
+.film-hero-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to top, var(--bg) 0%, color-mix(in srgb, var(--bg) 72%, transparent) 32%, transparent 72%),
+    linear-gradient(to right, color-mix(in srgb, var(--bg) 55%, transparent), transparent 60%);
+}
+.film-hero.is-blurred .film-hero-bg::after { background: linear-gradient(to top, var(--bg) 8%, color-mix(in srgb, var(--bg) 40%, transparent) 70%, transparent); }
+
+.film-hero-inner { display: grid; grid-template-columns: var(--film-poster) minmax(0, 1fr); align-items: end; gap: var(--film-gap); }
+html:root:root:root:root:root:root .film-v2 .film-art { position: static; display: block; }
+html:root:root:root:root:root:root .film-v2 .film-art .poster { width: 100%; box-shadow: 0 30px 70px -30px rgb(0 0 0 / 0.85), inset 0 0 0 1px rgb(255 255 255 / 0.08); }
+.film-v2 .film-art .poster-card-title { font-size: clamp(1.25rem, 2vw, 1.75rem); }
+
+.film-v2 .film-overview { display: grid; gap: var(--space-24); min-width: 0; padding-bottom: var(--space-8); }
+.film-v2 .film-head { display: grid; gap: var(--space-12); }
+.film-v2 .film-title { font-size: clamp(2.25rem, 4.6vw, 4.25rem); line-height: 1; letter-spacing: -0.035em; text-wrap: balance; }
+.film-v2 .film-byline { display: block; font-size: var(--t-lg); line-height: var(--lh-snug); }
+.film-v2 .film-byline > * + *::before { content: none; }
+.film-v2 .byline-label { color: var(--muted); }
+.film-v2 .film-byline a { color: var(--ink); font-weight: 600; text-decoration: none; }
+.film-v2 .film-byline a:hover { text-decoration: underline; text-underline-offset: 0.2em; }
+.film-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-8) var(--space-12); margin: 0; color: var(--muted); font-size: var(--t-sm); }
+.film-meta > :not(.film-genre) + :not(.film-genre)::before { content: "\00B7"; margin-right: var(--space-12); }
+.film-meta a { color: inherit; text-decoration: none; }
+.film-meta a:hover { color: var(--ink); }
+.film-meta .film-genre { padding: 3px var(--space-12); border: 1px solid var(--line-strong); border-radius: var(--pill); color: var(--ink); font-size: var(--t-xs); font-weight: 600; letter-spacing: 0.02em; }
+.film-meta .film-genre:first-of-type { margin-left: var(--space-4); }
+.film-meta .film-genre:hover { background: var(--hover); }
+.film-laurel { display: inline-flex; align-items: flex-start; flex-wrap: nowrap; gap: var(--space-8); width: fit-content; color: var(--gold); font-size: var(--t-sm); font-weight: 600; text-decoration: none; }
+.film-laurel svg { width: 20px; height: 20px; flex: none; margin-top: 1px; }
+.film-laurel-more { color: var(--muted); font-weight: 400; }
+@media (max-width: 799px) { .film-laurel-more { display: none; } }
+.film-laurel:hover span:first-of-type { text-decoration: underline; text-underline-offset: 0.2em; }
+html:root:root .film-v2 .film-actions { margin-top: 0; }
+
+/* Below the hero: details beside the reading column, which lines up with the title. */
+.film-layout { display: grid; grid-template-columns: var(--film-poster) minmax(0, 1fr); gap: var(--film-gap); padding: var(--space-48) var(--gutter) 0; }
+.film-v2 .film-body { display: grid; align-content: start; min-width: 0; max-width: 760px; }
+.film-v2 .film-story { display: grid; gap: var(--space-20); }
+html:root:root .film-v2 .film-note { margin: 0; font-size: var(--t-lg); font-weight: 600; line-height: var(--lh-snug); color: var(--ink); }
+html:root:root .film-v2 .film-essay { margin: 0; font-size: var(--t-lg); line-height: 1.55; color: color-mix(in srgb, var(--ink) 88%, var(--bg)); text-wrap: pretty; }
+html:root:root .film-v2 .film-section { margin-top: var(--space-48); padding-top: var(--space-32); }
+html:root:root .film-v2 .film-body > .film-section:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+.film-v2 .film-comments { margin-top: var(--space-48); }
+
+.film-facts { position: sticky; top: calc(var(--header) + var(--space-24)); align-self: start; display: grid; gap: var(--space-16); }
+.film-facts h2 { color: var(--muted); font-size: var(--t-xs); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+.film-facts dl { display: grid; margin: 0; }
+.film-facts dl > div { display: grid; gap: 2px; padding: var(--space-12) 0; border-top: 1px solid var(--line); }
+.film-facts dl > div:last-child { border-bottom: 1px solid var(--line); }
+.film-facts dt { color: var(--muted); font-size: var(--t-xs); }
+.film-facts dd { margin: 0; overflow-wrap: anywhere; }
+.film-facts dd a { color: var(--ink); text-decoration: none; }
+.film-facts dd a:hover { text-decoration: underline; text-underline-offset: 0.2em; }
+
+/* Tablets and phones: a shorter still, a small poster beside the title, details after the story. */
+@media (max-width: 799px) {
+  .film-hero { padding-top: calc(var(--header) + clamp(90px, 30vw, 220px)); }
+  .film-hero-bg { height: min(62vh, 520px); }
+  .film-hero-bg::after {
+    background:
+      linear-gradient(to top, var(--bg) 18%, color-mix(in srgb, var(--bg) 70%, transparent) 45%, transparent 85%);
+  }
+  .film-hero-inner { grid-template-columns: 1fr; gap: var(--space-20); }
+  .film-v2 .film-art { width: clamp(108px, 30vw, 150px); }
+  .film-v2 .film-art .poster-card-title { font-size: 0.875rem; }
+  .film-v2 .film-art .poster-card-foot { display: none; }
+  .film-v2 .film-overview { gap: var(--space-20); padding-bottom: 0; }
+  .film-v2 .film-title { font-size: clamp(2rem, 9vw, 2.75rem); }
+  .film-v2 .film-byline { font-size: var(--t-md); }
+  /* Story and where to watch first, then the details, then everything else. */
+  .film-layout { display: flex; flex-direction: column; gap: 0; padding-top: var(--space-32); }
+  .film-v2 .film-body { display: contents; }
+  .film-v2 .film-body > :nth-child(n+3) { order: 2; }
+  .film-facts { order: 1; position: static; margin-top: var(--space-48); }
+  .film-facts dl { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--space-20); }
+  .film-facts dl > div:last-child { border-bottom: 0; }
+  html:root:root .film-v2 .film-essay { font-size: var(--t-md); line-height: var(--lh-body); }
+}
