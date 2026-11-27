@@ -441,7 +441,8 @@ a.admin-attention-row:hover, .admin-attention-row a:hover { color: var(--ink); }
 /* Dashboard quick actions: the jobs reached for most, in one wrapping row above the numbers. */
 .admin-quick { display: flex; flex-wrap: wrap; gap: var(--space-8); margin-bottom: var(--space-24); }
 @media (max-width: 640px) {
-  .admin-quick { flex-wrap: nowrap; overflow-x: auto; margin-inline: calc(var(--gutter) * -1); padding-inline: var(--gutter); scrollbar-width: none; }
-  .admin-quick::-webkit-scrollbar { display: none; }
-  .admin-quick .button { flex: none; }
+  .admin-quick { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-quick .button { justify-content: flex-start; min-width: 0; white-space: normal; text-align: left; }
+  .admin-quick .button:first-child { grid-column: 1 / -1; justify-content: center; }
 }
+@media (max-width: 360px) { .admin-quick { grid-template-columns: 1fr; } }
