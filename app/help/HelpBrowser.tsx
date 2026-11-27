@@ -148,12 +148,14 @@ export default function HelpBrowser() {
         </button>
       </div>
 
-      <div className="help-results-head">
-        <p className="muted help-count" aria-live="polite">
-          {searching ? results.length + (results.length === 1 ? " answer found" : " answers found") : category !== "all" ? results.length + (results.length === 1 ? " answer" : " answers") : ALL_QUESTIONS.length + " answers across " + HELP_CATEGORIES.length + " topics"}
-        </p>
-        {(query || category !== "all") && <button type="button" className="help-reset" onClick={clearSearch}>Clear</button>}
-      </div>
+      {(searching || category !== "all") && (
+        <div className="help-results-head">
+          <p className="muted help-count" aria-live="polite">
+            {searching ? results.length + (results.length === 1 ? " answer found" : " answers found") : results.length + (results.length === 1 ? " answer" : " answers")}
+          </p>
+          <button type="button" className="help-reset" onClick={clearSearch}>Clear</button>
+        </div>
+      )}
 
       {results.length === 0 ? (
         <section className="empty-state" aria-live="polite">
