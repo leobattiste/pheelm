@@ -7,7 +7,7 @@ export const PUBLIC_PAGES:Record<string,{title:string;description:string;label:s
  '/directors':{title:'Directors',description:PAGE_COPY.directors,label:'Filmmakers'},
  '/watchlists':{title:'Watchlists',description:PAGE_COPY.collections,label:'Watchlists'},
  '/about':{title:'About Pheelm',description:'Discover the mission behind Pheelm, an independent platform celebrating films directed by Black filmmakers around the world.',label:'About'},
- '/partnerships':{title:'Partnerships',description:'Partner with Pheelm on screenings, editorial collaborations, educational projects and community initiatives celebrating Black cinema.',label:'Work with us'},
+ '/partnerships':{title:'Partnership',description:'Partner with Pheelm on screenings, editorial collaborations, educational projects and community initiatives celebrating Black cinema.',label:'Work with us'},
  '/contact':{title:'Contact',description:'Contact Pheelm for general enquiries, press and privacy requests at hey@pheelm.com.',label:'Get in touch'},
  '/help':{title:'Help',description:'Find answers about discovering films, watchlists, accounts, privacy and using Pheelm.',label:'Help center'},
  '/legal':{title:'Legal',description:'Read Pheelm’s Privacy Policy, Copyright Policy, Terms of Use and Community Guidelines. Contact legal@pheelm.com for legal inquiries.',label:'Privacy, rights and community'},
