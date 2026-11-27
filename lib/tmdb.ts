@@ -15,6 +15,40 @@ const REGIONS = (process.env.TMDB_WATCH_REGIONS ?? "US").split(",").map((r) => r
 
 const IMG = "https://image.tmdb.org/t/p";
 
+// The parts of TMDB's responses read here. TMDB leaves fields out freely, so most are optional.
+type TmdbSearchMovie = { id: number; title: string; original_title: string; release_date?: string; poster_path?: string | null; overview?: string };
+type TmdbCredit = { id: number; name: string; profile_path?: string | null; job?: string; character?: string };
+type TmdbVideo = { site?: string; key?: string; type?: string; official?: boolean };
+type TmdbProvider = { provider_name: string; logo_path?: string | null };
+type TmdbRegionProviders = { link: string } & Partial<Record<"flatrate" | "free" | "ads" | "rent" | "buy", TmdbProvider[]>>;
+type TmdbMovie = {
+  id: number;
+  imdb_id?: string | null;
+  title: string;
+  original_title?: string;
+  release_date?: string;
+  runtime?: number | null;
+  overview?: string;
+  poster_path?: string | null;
+  backdrop_path?: string | null;
+  genres?: { name: string }[];
+  production_countries?: { iso_3166_1: string }[];
+  spoken_languages?: { english_name?: string; name?: string }[];
+  credits?: { crew?: TmdbCredit[]; cast?: TmdbCredit[] };
+  videos?: { results?: TmdbVideo[] };
+  "watch/providers"?: { results?: Record<string, TmdbRegionProviders> };
+};
+type TmdbPerson = {
+  biography?: string;
+  birthday?: string | null;
+  deathday?: string | null;
+  place_of_birth?: string | null;
+  known_for_department?: string | null;
+  imdb_id?: string | null;
+  profile_path?: string | null;
+  external_ids?: { imdb_id?: string | null; instagram_id?: string | null };
+};
+
 async function get<T>(path: string, params: Record<string, string> = {}, signal?: AbortSignal): Promise<T> {
   const url = new URL(`https://api.themoviedb.org/3${path}`);
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
@@ -31,24 +65,12 @@ async function get<T>(path: string, params: Record<string, string> = {}, signal?
 
 export type SearchResult = { id: number; title: string; original_title: string; year: number | null; poster: string | null; overview: string };
 
-export type PopularMoviesPage = { page: number; results: { id: number; popularity: number }[]; total_pages: number };
-
-/**
- * TMDB's global popularity order; deliberately no region filter. Language only affects text.
- * https://developer.themoviedb.org/reference/movie-popular-list
- * Popularity uses worldwide TMDB activity, not Pheelm saves, ratings or box-office receipts:
- * https://developer.themoviedb.org/docs/popularity-and-trending
- */
-export async function getPopularMoviesPage(page: number, signal = AbortSignal.timeout(6000)): Promise<PopularMoviesPage> {
-  return get<PopularMoviesPage>("/movie/popular", { language: "en-US", page: String(page) }, signal);
-}
-
 export async function searchMovies(query: string, year?: number): Promise<SearchResult[]> {
   const params: Record<string, string> = { query, include_adult: "false" };
   if (year) params.year = String(year);
-  let data = await get<{ results: any[] }>("/search/movie", params);
+  let data = await get<{ results: TmdbSearchMovie[] }>("/search/movie", params);
   // Release years differ between festivals and theatres, so retry without one.
-  if (!data.results.length && year) data = await get<{ results: any[] }>("/search/movie", { query, include_adult: "false" });
+  if (!data.results.length && year) data = await get<{ results: TmdbSearchMovie[] }>("/search/movie", { query, include_adult: "false" });
   return data.results.slice(0, 8).map((r) => ({
     id: r.id,
     title: r.title,
@@ -69,7 +91,7 @@ export async function findMovie(title: string, year: number, directors: string[]
   const close = results.filter((r) => !r.year || Math.abs(r.year - year) <= 2).slice(0, opts.partial ? 6 : 4);
   for (const r of close) {
     if (!wanted.length) return r.id;
-    const credits = await get<{ crew: any[] }>(`/movie/${r.id}/credits`);
+    const credits = await get<{ crew: TmdbCredit[] }>(`/movie/${r.id}/credits`);
     if (credits.crew.some((c) => c.job === "Director" && matches(c.name))) return r.id;
   }
   return null;
@@ -138,28 +160,28 @@ const CREW_JOBS: Record<string, Role> = {
 
 /** The best YouTube video to offer as a trailer: an official trailer, else a trailer, else a teaser. */
 function pickTrailer(results: unknown): { key: string } | null {
-  const videos = (Array.isArray(results) ? results : []).filter((v: any) => v?.site === "YouTube" && v?.key);
+  const videos = (Array.isArray(results) ? (results as TmdbVideo[]) : []).filter((v): v is TmdbVideo & { key: string } => v?.site === "YouTube" && !!v?.key);
   for (const type of ["Trailer", "Teaser"]) {
-    const ofType = videos.filter((v: any) => v.type === type);
-    const best = ofType.find((v: any) => v.official) ?? ofType[0];
+    const ofType = videos.filter((v) => v.type === type);
+    const best = ofType.find((v) => v.official) ?? ofType[0];
     if (best) return best;
   }
   return null;
 }
 
 export async function getMovie(id: number): Promise<ImportedFilm> {
-  const m = await get<any>(`/movie/${id}`, { append_to_response: "credits,videos,watch/providers", language: "en-US" });
+  const m = await get<TmdbMovie>(`/movie/${id}`, { append_to_response: "credits,videos,watch/providers", language: "en-US" });
 
   const people: ImportedPerson[] = [];
   const seen = new Set<string>();
-  const add = (p: any, role: Role, character: string | null = null) => {
+  const add = (p: TmdbCredit, role: Role, character: string | null = null) => {
     const key = `${p.id}:${role}`;
     if (seen.has(key)) return;
     seen.add(key);
     people.push({ tmdb_id: p.id, name: p.name, role, character, photo: p.profile_path ? `${IMG}/w185${p.profile_path}` : null });
   };
   for (const role of ["director", "writer", "cinematographer", "editor", "composer", "producer"] as Role[]) {
-    const crew = (m.credits?.crew ?? []).filter((c: any) => CREW_JOBS[c.job] === role);
+    const crew = (m.credits?.crew ?? []).filter((c) => !!c.job && CREW_JOBS[c.job] === role);
     for (const c of role === "producer" ? crew.slice(0, 3) : crew) add(c, role, c.job ?? null);
   }
   for (const c of (m.credits?.cast ?? []).slice(0, 12)) add(c, "cast", c.character || null);
@@ -168,7 +190,7 @@ export async function getMovie(id: number): Promise<ImportedFilm> {
   // whose trailer is tagged Yoruba, Wolof, French or Portuguese looked as if it had none. When
   // nothing turns up, ask for that film's videos again in every language.
   let trailer = pickTrailer(m.videos?.results);
-  if (!trailer) trailer = pickTrailer((await get<any>(`/movie/${id}/videos`).catch(() => null))?.results);
+  if (!trailer) trailer = pickTrailer((await get<{ results?: TmdbVideo[] }>(`/movie/${id}/videos`).catch(() => null))?.results);
 
   const watch = parseWatch(m["watch/providers"]?.results ?? {});
 
@@ -183,16 +205,16 @@ export async function getMovie(id: number): Promise<ImportedFilm> {
     poster_url: m.poster_path ? `${IMG}/w500${m.poster_path}` : null,
     backdrop_url: m.backdrop_path ? `${IMG}/w1280${m.backdrop_path}` : null,
     trailer_url: trailer ? `https://www.youtube.com/watch?v=${trailer.key}` : null,
-    genres: (m.genres ?? []).map((g: any) => g.name),
-    countries: (m.production_countries ?? []).map((c: any) => c.iso_3166_1),
-    languages: (m.spoken_languages ?? []).map((l: any) => l.english_name || l.name).filter(Boolean),
+    genres: (m.genres ?? []).map((g) => g.name),
+    countries: (m.production_countries ?? []).map((c) => c.iso_3166_1),
+    languages: (m.spoken_languages ?? []).map((l) => l.english_name || l.name).filter((l): l is string => !!l),
     people,
     watch,
   };
 }
 
 export async function getPersonDetails(id: number) {
-  const p = await get<any>(`/person/${id}`, { append_to_response: "external_ids" });
+  const p = await get<TmdbPerson>(`/person/${id}`, { append_to_response: "external_ids" });
   return {
     bio: p.biography || null,
     birth_year: p.birthday ? Number(p.birthday.slice(0, 4)) : null,
@@ -211,9 +233,9 @@ export async function getPersonDetails(id: number) {
  * TMDB gives one page per country listing every option; film pages link each service to a
  * search for the film on that service instead (lib/watch.ts).
  */
-function parseWatch(providers: Record<string, any>): WatchOption[] {
+function parseWatch(providers: Record<string, TmdbRegionProviders>): WatchOption[] {
   const watch: WatchOption[] = [];
-  const kinds: [string, WatchOption["kind"]][] = [["flatrate", "stream"], ["free", "free"], ["ads", "free"], ["rent", "rent"], ["buy", "buy"]];
+  const kinds: ["flatrate" | "free" | "ads" | "rent" | "buy", WatchOption["kind"]][] = [["flatrate", "stream"], ["free", "free"], ["ads", "free"], ["rent", "rent"], ["buy", "buy"]];
   for (const region of REGIONS) {
     const r = providers[region];
     if (!r) continue;
@@ -234,7 +256,6 @@ function parseWatch(providers: Record<string, any>): WatchOption[] {
   return watch;
 }
 
-/** Just a film's where-to-watch options, for refreshing them without a full import. */
 const NOT_A_FILM = /(the play|\blive\b|in concert|concert for|making (of|the)|video collection|\bvol(ume)?\.? ?\d|special|behind the scenes|comedy jam|all def|sesame street|young indiana jones|pavarotti|^(dave chappelle|chappelle's|katt williams|bernie mac|cedric the entertainer|ms\. pat|bill cosby|amanda seales|mo amer|earthquake|jerrod carmichael|john leguizamo|eddie murphy|kevin hart|chris rock|robert townsend: partners)\b|anniversary|: the reunion|^untold:)/i;
 
 /** Released films a person directed, with a poster (TMDB lists plenty of unfinished or posterless entries). */
@@ -269,7 +290,8 @@ export async function getImdbId(id: number): Promise<string | null> {
   try { const r = await get<{ imdb_id?: string | null }>(`/movie/${id}/external_ids`, {}, AbortSignal.timeout(6000)); return r.imdb_id || null; } catch { return null; }
 }
 
+/** Just a film's where-to-watch options, for refreshing them without a full import. */
 export async function getWatch(id: number): Promise<WatchOption[]> {
-  const data = await get<{ results: Record<string, any> }>(`/movie/${id}/watch/providers`);
+  const data = await get<{ results?: Record<string, TmdbRegionProviders> }>(`/movie/${id}/watch/providers`);
   return parseWatch(data.results ?? {});
 }
