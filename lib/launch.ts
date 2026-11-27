@@ -1,6 +1,7 @@
 /**
- * Early access switch. While it's on, signed-out visitors only see the home page and the pages
- * about Pheelm (see proxy.ts), and the sign-up wording says "early access".
+ * Early access switch. While it's on, signed-out visitors see only the pages proxy.ts lists as
+ * open (the home page, the catalog and the pages about Pheelm), and the sign-up wording says
+ * "early access".
  *
  * To launch: set NEXT_PUBLIC_EARLY_ACCESS=off in Vercel (Production) and redeploy.
  * Anything else, or nothing, keeps early access on.

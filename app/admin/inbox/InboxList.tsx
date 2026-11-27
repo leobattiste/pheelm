@@ -65,7 +65,7 @@ export default async function InboxList({ box, searchParams }: { box?: InboxBox;
   if (error) {
     return <>
       <PageHeader title={info?.label ?? "Inbox"} />
-      <p className="notice error">The inbox couldn&apos;t load. If this keeps happening, run <code>supabase/archive/admin-inbox.sql</code> in Supabase.</p>
+      <p className="notice error">The inbox couldn&apos;t load. Refresh the page to try again.</p>
     </>;
   }
 

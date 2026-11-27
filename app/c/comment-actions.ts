@@ -17,7 +17,7 @@ async function signedIn() {
   return user ? { db, user } : null;
 }
 
-// Film comments have a spoiler mark; it's left out for watchlists and before film-comments.sql has run.
+// Film comments have a spoiler mark; watchlist comments don't use it.
 const COLUMNS = "id, parent_id, user_id, body, created_at, edited_at";
 
 /** Posts a comment on a watchlist (listId) or a film (filmId), after the banned-word check. */

@@ -2,10 +2,8 @@ import "server-only";
 
 import { createHash } from "node:crypto";
 import { gzipSync } from "node:zlib";
-import { createClient } from "@supabase/supabase-js";
 import { after } from "next/server";
-import { fetchCatalog } from "./data";
-import { SUPABASE_ANON_KEY, SUPABASE_URL } from "./supabase/config";
+import { anonClient, fetchCatalog } from "./data";
 import { serviceClient } from "./supabase/service";
 
 const KEEP = 3; // older snapshots kept for servers still downloading them
@@ -30,13 +28,13 @@ export function rebuildCatalogSnapshot(force = false): Promise<SnapshotResult> {
 async function build(force: boolean): Promise<SnapshotResult> {
   const admin = serviceClient();
   if (!admin) throw new Error("SUPABASE_SERVICE_ROLE_KEY is not set.");
-  const anon = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: false } });
+  const anon = anonClient();
 
   // The version is read before the rows, so a change landing mid-read leaves the snapshot marked
   // older and the next rebuild picks it up.
   const [{ data: live, error }, { data: current }] = await Promise.all([
     anon.from("catalog_version").select("v").eq("id", 1).single(),
-    admin.from("catalog_snapshot").select("version").eq("id", 1).maybeSingle(),
+    admin.from("catalog_snapshot").select("version, path").eq("id", 1).maybeSingle(),
   ]);
   if (error || !live) throw new Error(`No catalog version: ${error?.message ?? "missing"}`);
   const version = Number(live.v);
@@ -51,8 +49,19 @@ async function build(force: boolean): Promise<SnapshotResult> {
   const bucket = admin.storage.from("catalog");
   const up = await bucket.upload(path, body, { contentType: "application/gzip", cacheControl: "31536000", upsert: true });
   if (up.error) throw new Error(`Snapshot upload failed: ${up.error.message}`);
-  const meta = await admin.from("catalog_snapshot").upsert({ id: 1, version, path, built_at: new Date().toISOString() });
-  if (meta.error) throw new Error(`Could not record the snapshot: ${meta.error.message}`);
+  // Recorded only over an older one: when two servers rebuild at once, the slower one can't put an
+  // older snapshot back over a newer one.
+  const row = { id: 1, version, path, built_at: new Date().toISOString() };
+  const meta = current
+    ? await admin.from("catalog_snapshot").update(row).eq("id", 1)[force ? "lte" : "lt"]("version", version).select("id")
+    : await admin.from("catalog_snapshot").insert(row).select("id");
+  if (meta.error && meta.error.code !== "23505") throw new Error(`Could not record the snapshot: ${meta.error.message}`);
+  if (meta.error || !meta.data?.length) {
+    // Someone else recorded the same or a newer version meanwhile: keep theirs, drop this file.
+    const { data: now } = await admin.from("catalog_snapshot").select("path").eq("id", 1).maybeSingle();
+    if (now && now.path !== path) await bucket.remove([path]);
+    return { skipped: true, version };
+  }
 
   const { data: files } = await bucket.list("", { limit: 100, sortBy: { column: "created_at", order: "desc" } });
   const old = (files ?? []).map((f) => f.name).filter((n) => n !== path).slice(KEEP - 1);

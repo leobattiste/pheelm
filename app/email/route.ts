@@ -2,11 +2,12 @@ import { NextResponse } from 'next/server';
 import { getServerClient, getViewer } from "@/lib/supabase/server";
 import { SUPABASE_URL } from '@/lib/supabase/config';
 export const dynamic='force-dynamic';
-const ENDPOINT=`${(SUPABASE_URL||'https://mvhwfmlairwrngdttzjh.supabase.co').replace(/\/$/,'')}/functions/v1/pheelm-email`;
+const ENDPOINT=SUPABASE_URL?`${SUPABASE_URL.replace(/\/$/,'')}/functions/v1/pheelm-email`:'';
 /** Public, token-scoped forms. A GET never subscribes or unsubscribes someone. */
 async function handle(request:Request){
  const url=new URL(request.url),action=url.searchParams.get('action');
  if(action!=='confirm'&&action!=='unsubscribe')return new NextResponse('Not found',{status:404});
+ if(!ENDPOINT)return new NextResponse('Email settings are temporarily unavailable. Try again.',{status:503});
  // "Email preferences and unsubscribe" in an email footer: a signed-in member lands on their email settings,
  // where they can turn off just what they don't want. Signed out, the one-step unsubscribe page still works
  // without signing in, and mail apps' one-click unsubscribe (a POST) is unchanged.

@@ -38,7 +38,7 @@ async function upload(db: SupabaseClient, file: FormDataEntryValue | null, folde
   const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
   const path = `${folder}/${crypto.randomUUID()}.${ext}`;
   const { error } = await db.storage.from("images").upload(path, file, { contentType: file.type, upsert: false });
-  if (error) throw new Error(`Upload failed: ${error.message}. Did you run supabase/archive/storage.sql?`);
+  if (error) throw new Error(`Upload failed: ${error.message}.`);
   return db.storage.from("images").getPublicUrl(path).data.publicUrl;
 }
 

@@ -27,18 +27,13 @@ export const targetColumn = (t: CommentTarget): ["list_id" | "film_id", string] 
 /**
  * A watchlist's or film's comments, oldest first, with like counts and who wrote them. Read with
  * the visitor's own session, so the watchlist's or film's visibility rules apply. `available` is
- * false until the comments tables are set up (for films, supabase/archive/film-comments.sql), and the page
- * then leaves the section out.
+ * false when they can't be read, and the page then leaves the section out.
  */
 export async function getComments(db: SupabaseClient | null, target: CommentTarget | string, viewerId: string | null): Promise<{ available: boolean; comments: CommentItem[] }> {
   if (!db) return { available: false, comments: [] };
   const [column, id] = targetColumn(typeof target === "string" ? { list: target } : target);
   const read = (cols: string) => db.from("list_comments").select(cols).eq(column, id).order("created_at", { ascending: true }).limit(500);
-  let { data, error } = await read("id, parent_id, user_id, body, created_at, edited_at, removed_at, spoiler, comment_likes(user_id)");
-  // Before film-comments.sql has run there's no spoiler column (and no film comments at all).
-  if (error && column === "list_id") ({ data, error } = await read("id, parent_id, user_id, body, created_at, edited_at, removed_at, comment_likes(user_id)"));
-  // Before collaboration.sql has run there's no removed_at.
-  if (error && column === "list_id") ({ data, error } = await read("id, parent_id, user_id, body, created_at, edited_at, comment_likes(user_id)"));
+  const { data, error } = await read("id, parent_id, user_id, body, created_at, edited_at, removed_at, spoiler, comment_likes(user_id)");
   if (error) return { available: false, comments: [] };
   let rows = (data ?? []) as unknown as Row[];
   // Comments from people the viewer blocked, and replies to them, aren't shown to the viewer.
