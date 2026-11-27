@@ -446,3 +446,10 @@ a.admin-attention-row:hover, .admin-attention-row a:hover { color: var(--ink); }
   .admin-quick .button:first-child { grid-column: 1 / -1; justify-content: center; }
 }
 @media (max-width: 360px) { .admin-quick { grid-template-columns: 1fr; } }
+
+/* Menus: the X and title only show when the menu opens as a sheet on phones. */
+.admin-menu-head { display: none; }
+@media (max-width: 720px) {
+  .admin-menu-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-12); padding: var(--space-4) var(--space-4) var(--space-8) var(--space-12); color: var(--muted); font-size: var(--t-sm); }
+  .admin-menu-list .admin-menu-head .icon-button { flex: none; justify-content: center; width: 44px; min-height: 44px; padding: 0; border-radius: 50%; }
+}
