@@ -10,7 +10,7 @@ export default function PartnershipsPage() {
       <div className="form-split">
         <div className="form-split-intro">
           <header className="page-head">
-            <h1>Partnerships</h1>
+            <h1>Partnership</h1>
           </header>
           <div className="prose">
             <p>
