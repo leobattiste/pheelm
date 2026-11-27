@@ -53,11 +53,11 @@ async function withSlot<T>(run: () => PromiseLike<T>): Promise<T> {
 }
 
 /**
- * A read that errors is tried again (up to three times, a moment apart) before it counts as
+ * A read that errors is tried again (up to five times, a little longer apart each time) before it counts as
  * failed. One slow moment on the database (a 500 after a few seconds) used to fail a whole
  * deploy, because every page of the build depends on these reads.
  */
-export const READ_TRIES = 3;
+export const READ_TRIES = 5;
 export const RETRY_WAIT_MS = 1_500;
 async function readAll<T>(db: SupabaseClient, table: string, filter?: (q: any) => any): Promise<T[]> {
   const once = (from: number, count: boolean) => withSlot(() => {
