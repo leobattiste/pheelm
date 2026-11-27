@@ -197,11 +197,11 @@ export default function HelpBrowser() {
           </button>
         </div>
         <div className="modal-body">
-          <fieldset className="filter-field feed-choice">
+          <fieldset className="help-topic-field">
             <legend>Topic</legend>
-            <div className="chip-row filter-choices">
+            <div className="help-topic-options">
               {[{ id: "all", title: "All topics" }, ...HELP_CATEGORIES].map((group) => (
-                <button key={group.id} type="button" className="button ghost" aria-pressed={category === group.id} onClick={() => selectCategory(group.id)}>
+                <button key={group.id} type="button" className="button ghost help-topic-option" aria-pressed={category === group.id} onClick={() => selectCategory(group.id)}>
                   {group.title}
                 </button>
               ))}
