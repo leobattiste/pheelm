@@ -3458,21 +3458,11 @@ html:root:root:root .trailer-dialog[open] { display: grid; gap: var(--space-12);
 .trailer-head .icon-button:hover { background: rgb(255 255 255 / 0.22); }
 .tour-x svg { width: 18px; height: 18px; }
 
-/* Phone: the poster itself runs to the very top of the screen, under the header, and fades into
-   the page at the bottom (like Apple TV). No glow behind it. */
+/* Phone: the poster stays a rounded card, centred, with its own colours glowing softly behind it,
+   and clear space before the title. */
 @media (max-width: 799px) {
-  main:has(.film-page) { margin-top: calc(var(--header) * -1); }
-  body:has(.film-page) .site-header { background: transparent; border-color: transparent; }
-  body:has(.film-page) .site-header :is(.wordmark, .icon-button) { color: #fff; }
-  body:has(.film-page) .site-header .wordmark { text-shadow: 0 1px 8px rgb(0 0 0 / 0.45); }
-  :root:root:root .film-page { padding-top: 0; row-gap: var(--space-24); }
-  .film-page > .breadcrumbs { display: none; }
-  .film-glow { display: none; }
-  .film-art { margin-inline: calc(var(--gutter) * -1); margin-bottom: var(--space-8); }
-  .film-art::after { content: ""; position: absolute; inset: 0 0 auto; height: calc(var(--header) + 60px); background: linear-gradient(to bottom, rgb(0 0 0 / 0.5), transparent); pointer-events: none; }
-  .film-art .poster {
-    border-radius: 0;
-    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 60%, transparent 100%);
-    mask-image: linear-gradient(to bottom, #000 0%, #000 60%, transparent 100%);
-  }
+  .film-page { row-gap: var(--space-24); }
+  .film-art { margin-bottom: var(--space-8); }
+  .film-glow { inset: -10% -20%; }
+  .film-glow img { opacity: 0.7; }
 }
