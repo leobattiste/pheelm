@@ -1,32 +1,39 @@
-/* Help uses the same page header and typography as Legal. */
+/* Help follows the same full-width controls and visual system as Films. */
 .help-browser { width: 100%; min-width: 0; }
 .help-toolbar .catalog-search-control { flex: 1; min-width: 0; }
 .help-toolbar .catalog-search-control .search-bar { width: 100%; max-width: none; }
 .help-topics { display: flex; flex-wrap: wrap; gap: var(--space-8); margin-bottom: var(--space-20); }
 .help-topics .chip { flex: none; }
-.help-count { margin: 0 0 32px; font-size: var(--t-sm); }
-.help-group { margin-bottom: 36px; min-width: 0; }
-.help-group > h2 { margin: 0 0 14px; font-size: clamp(20px, 3vw, 26px); line-height: 1.25; }
+.help-results-head { display: flex; justify-content: space-between; align-items: center; gap: var(--space-16); margin-bottom: var(--space-24); }
+.help-count { margin: 0; font-size: var(--t-sm); }
+.help-reset { padding: var(--space-4) 0; border: 0; background: none; color: var(--muted); font-size: var(--t-sm); text-decoration: underline; text-underline-offset: .2em; cursor: pointer; }
+.help-reset:hover { color: var(--ink); }
+.help-group { margin-bottom: var(--space-36, 36px); min-width: 0; }
+.help-group > h2 { margin: 0 0 var(--space-16); font-size: var(--t-xl); line-height: var(--lh-snug); }
 .help-questions { border-top: 1px solid var(--line); }
 .help-item { border-bottom: 1px solid var(--line); scroll-margin-top: 90px; }
 .help-item h3 { margin: 0; font-size: inherit; font-weight: inherit; }
-.help-item h3 button { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 18px; min-height: 58px; padding: 14px 2px; border: 0; background: transparent; color: var(--text); text-align: left; font: inherit; font-weight: 500; cursor: pointer; }
+.help-item h3 button { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: var(--space-16); min-height: 58px; padding: var(--space-12) 2px; border: 0; background: transparent; color: var(--text); text-align: left; font: inherit; font-weight: 500; cursor: pointer; }
 .help-item h3 button svg { flex: none; color: var(--muted); }
-.help-item h3 button:hover, .help-item h3 button:focus-visible, .help-more:hover { color: var(--muted); }
-.help-item h3 button:focus-visible, .help-more:focus-visible, .help-topics .chip:focus-visible { outline: 2px solid currentColor !important; outline-offset: 3px; }
-.help-answer { padding: 0 30px 20px 2px; max-width: 75ch; line-height: 1.7; }
-.help-answer p { margin: 0 0 12px; color: var(--muted); overflow-wrap: anywhere; }
-.help-answer a, .help-more { display: inline-flex; align-items: center; gap: 6px; }
-.help-more { margin-top: 12px; padding: 8px 0; border: 0; background: transparent; color: var(--text); font: inherit; cursor: pointer; }
-
-.help-contact { margin-top: 32px; padding: clamp(20px, 4vw, 32px); border: 1px solid var(--line); border-radius: var(--r); background: var(--raised); }
-.help-contact h2 { margin: 0 0 8px; font-size: clamp(22px, 3vw, 28px); }
-.help-contact p { max-width: 65ch; margin: 0 0 20px; color: var(--muted); }
-.help-contact .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.help-item h3 button:hover { color: var(--muted); }
+.help-item h3 button:focus-visible, .help-reset:focus-visible, .help-copy-link:focus-visible { box-shadow: 0 0 0 2px var(--ink); border-radius: var(--r-sm); }
+.help-result-category { padding-top: var(--space-12); font-size: var(--t-xs); color: var(--muted); }
+.help-result-category + h3 button { padding-top: var(--space-8); }
+.help-answer { padding: 0 var(--space-20) var(--space-20) 2px; max-width: 75ch; line-height: 1.7; }
+.help-answer > p:first-child { margin: 0 0 var(--space-12); color: var(--muted); overflow-wrap: anywhere; }
+.help-answer-actions { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-16); }
+.help-answer-actions a { display: inline-flex; align-items: center; gap: var(--space-4); text-decoration: underline; text-underline-offset: .2em; font-size: var(--t-sm); }
+.help-copy-link { border: 0; padding: 0; background: transparent; color: var(--muted); text-decoration: underline; text-underline-offset: .2em; font-size: var(--t-sm); cursor: pointer; }
+.help-copy-link:hover { color: var(--ink); }
+.help-answer .help-copy-error { margin: var(--space-8) 0 0; font-size: var(--t-sm); color: var(--muted); }
+.help-contact { margin-top: var(--space-24); padding-top: var(--space-24); border-top: 1px solid var(--line); }
+.help-contact h2 { margin: 0 0 var(--space-8); font-size: var(--t-xl); }
+.help-contact p { max-width: 65ch; margin: 0 0 var(--space-16); color: var(--muted); }
+.help-contact .actions { display: flex; flex-wrap: wrap; gap: var(--space-8); }
 @media (max-width: 600px) {
   .help-topics { flex-wrap: nowrap; overflow-x: auto; margin-right: calc(-1 * var(--gutter)); padding-right: var(--gutter); scrollbar-width: none; }
   .help-topics::-webkit-scrollbar { display: none; }
-  .help-count { margin-bottom: 24px; }
-  .help-group { margin-bottom: 30px; }
+  .help-results-head { margin-bottom: var(--space-20); }
+  .help-group { margin-bottom: var(--space-32); }
   .help-contact .actions .button { flex: 1; justify-content: center; }
 }
