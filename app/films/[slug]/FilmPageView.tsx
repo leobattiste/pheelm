@@ -181,14 +181,20 @@ export async function FilmPageView({ params }: Params) {
               <FilmMenu filmId={film.id} slug={film.slug} title={film.title} />
             </div>
 
-            {film.note && <p className="film-note">{film.note}</p>}
-
-            {film.synopsis && (
-              <div className="film-essay">
-                {film.synopsis.split(/\n{2,}/).map((p, i) => <p key={i}>{p}</p>)}
-              </div>
-            )}
           </section>
+
+          {/* The story, headed like the sections below it. */}
+          {(film.note || film.synopsis) && (
+            <section className="film-section film-synopsis" aria-labelledby="synopsis-h">
+              <h2 id="synopsis-h">Synopsis</h2>
+              {film.note && <p className="film-note">{film.note}</p>}
+              {film.synopsis && (
+                <div className="film-essay">
+                  {film.synopsis.split(/\n{2,}/).map((p, i) => <p key={i}>{p}</p>)}
+                </div>
+              )}
+            </section>
+          )}
 
           <FilmEditorial filmId={film.id} />
 
