@@ -3377,13 +3377,22 @@ html:root:root:root .trailer-foot .button.ghost { border: 1px solid var(--contro
 .form-split-intro, .form-split-form { display: grid; gap: var(--space-16); align-content: start; min-width: 0; }
 .form-split-intro .page-head { padding-bottom: 0; }
 .form-split-form > .info-section { margin: 0; }
+/* Contact and Partnerships: align the left-side title and copy with the
+   same page-top spacing used by Help, without stacking header padding. */
+:is(.contact-page, .partnerships-page) .form-split-intro {
+  padding-top: var(--page-top);
+}
+:root:root :is(.contact-page, .partnerships-page) .form-split-intro .page-head {
+  padding-top: 0;
+}
 @media (min-width: 900px) {
   .form-split { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(var(--space-48), 6vw, 96px); align-items: start; }
   .form-split-intro { position: sticky; top: var(--space-24); }
   /* The form column starts level with the title, not above it. */
   .form-split-form { padding-top: clamp(var(--space-32), 6vw, var(--space-64)); }
-  /* Contact and Partnerships use the same 24–48px top spacing as Help. */
+  /* Both columns begin at the same top offset; keep sticky copy aligned when scrolling. */
   :is(.contact-page, .partnerships-page) .form-split-form { padding-top: var(--page-top); }
+  :is(.contact-page, .partnerships-page) .form-split-intro { top: 0; }
 }
 
 
