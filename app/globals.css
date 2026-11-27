@@ -3458,21 +3458,21 @@ html:root:root:root .trailer-dialog[open] { display: grid; gap: var(--space-12);
 .trailer-head .icon-button:hover { background: rgb(255 255 255 / 0.22); }
 .tour-x svg { width: 18px; height: 18px; }
 
-/* Phone: the poster runs edge to edge and fades into the page, so its colours become the header
-   (like Apple TV), with clear space before the title. */
+/* Phone: the poster itself runs to the very top of the screen, under the header, and fades into
+   the page at the bottom (like Apple TV). No glow behind it. */
 @media (max-width: 799px) {
-  .film-page { row-gap: var(--space-24); }
+  main:has(.film-page) { margin-top: calc(var(--header) * -1); }
+  body:has(.film-page) .site-header { background: transparent; border-color: transparent; }
+  body:has(.film-page) .site-header :is(.wordmark, .icon-button) { color: #fff; }
+  body:has(.film-page) .site-header .wordmark { text-shadow: 0 1px 8px rgb(0 0 0 / 0.45); }
+  :root:root:root .film-page { padding-top: 0; row-gap: var(--space-24); }
+  .film-page > .breadcrumbs { display: none; }
+  .film-glow { display: none; }
   .film-art { margin-inline: calc(var(--gutter) * -1); margin-bottom: var(--space-8); }
+  .film-art::after { content: ""; position: absolute; inset: 0 0 auto; height: calc(var(--header) + 60px); background: linear-gradient(to bottom, rgb(0 0 0 / 0.5), transparent); pointer-events: none; }
   .film-art .poster {
     border-radius: 0;
-    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 100%);
-    mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 60%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 0%, #000 60%, transparent 100%);
   }
-  .film-glow { inset: -10% -20% -10%; }
-  .film-glow img { opacity: 0.7; }
 }
-
-/* Comment box: the text area's own square, filled corners covered the box's rounded top corners.
-   The box now clips its contents to its shape, and the text area is see-through. */
-.composer { overflow: hidden; }
-:root:root:root:root:root .composer textarea { background: transparent; background-color: transparent; border-radius: 0; }
