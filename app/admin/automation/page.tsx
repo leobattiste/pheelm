@@ -5,6 +5,7 @@ import { JOBS, JOB_KINDS, type Job, type JobKind } from "@/lib/jobs";
 import { DataTable } from "../DataTable";
 import { PageHeader, Panel, Pill, ago } from "../ui";
 import TmdbAwardsCheck from "../TmdbAwardsCheck";
+import AdminMenu from "../AdminMenu";
 import { JobButton, JobsRefresher } from "./JobControls";
 
 // Start runs the first batches right after answering; give it room.
@@ -32,7 +33,7 @@ export default async function AutomationPage() {
     <>
       <PageHeader back={{ href: "/admin/films", label: "Films" }} title="Automation"
         description="Jobs run on the server and keep going with this page closed. They only fill empty fields, so nothing you wrote is overwritten."
-        actions={<><Link className="button ghost small" href="/admin/quality">Content quality</Link><Link className="button ghost small" href="/admin/searches">Searches with no results</Link></>} />
+        actions={<AdminMenu><Link href="/admin/quality">Content quality</Link><Link href="/admin/searches">Searches with no results</Link></AdminMenu>} />
       {!tmdbEnabled && <p className="notice error">TMDB isn&apos;t connected, so most jobs can&apos;t run. Add TMDB_API_KEY in Vercel.</p>}
       {!ready && <p className="notice error">Jobs need a database update (admin_jobs) before they can run.</p>}
       {anyRunning && <JobsRefresher />}

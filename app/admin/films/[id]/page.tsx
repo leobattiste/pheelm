@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/admin";
 import { tmdbEnabled } from "@/lib/tmdb";
 import FilmEditor from "./FilmEditor";
+import { PageHeader, Pill, ago } from "../../ui";
 
 export default async function EditFilm({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -21,13 +22,13 @@ export default async function EditFilm({ params }: { params: Promise<{ id: strin
 
   return (
     <>
-      <div className="admin-head">
-        <h2 className="admin-section-heading">{film.title}</h2>
-        <div className="actions">
-          {film.status === "published" && <Link className="button ghost small" href={`/films/${film.slug}`}>View on site</Link>}
-          <Link className="button ghost small" href="/admin/films">All films</Link>
-        </div>
-      </div>
+      <PageHeader back={{ href: "/admin/films", label: "Films" }} title={film.title}
+        description={<span className="admin-head-meta">
+          {film.status === "published" ? <Pill tone="ok">Published</Pill> : <Pill tone="warn">Draft</Pill>}
+          <span>{film.year}</span>
+          {film.updated_at && <span>Updated {ago(film.updated_at, false)}</span>}
+        </span>}
+        actions={film.status === "published" ? <Link className="button ghost small" href={`/films/${film.slug}`}>View on site</Link> : undefined} />
       <FilmEditor
         canDelete={owner}
         key={`${film.tmdb_id ?? ""}|${(credits ?? []).length}`}

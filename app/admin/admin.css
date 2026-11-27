@@ -706,3 +706,59 @@ a.admin-attention-row:hover, .admin-attention-row a:hover { color: var(--ink); }
   .admin-job-summary { display: none; }
   .admin-job-progress .admin-meter { max-width: none; }
 }
+
+/* Editors -------------------------------------------------------------------------------------- */
+/* Sections as cards on the left, publishing and tools on the right, and a Save bar pinned to the
+   bottom of the screen that says whether there's anything to save. */
+.admin-editor { display: grid; gap: var(--space-16); align-items: start; min-width: 0; }
+.admin-editor-main, .admin-editor-side { display: grid; gap: var(--space-16); min-width: 0; }
+@media (min-width: 1100px) {
+  .admin-editor:not(.is-single) { grid-template-columns: minmax(0, 1fr) 300px; }
+  .admin-editor-side { position: sticky; top: var(--space-24); }
+}
+.admin-editor.is-single { max-width: 880px; }
+.admin-form-section { min-width: 0; border: 1px solid var(--line); border-radius: var(--r); background: var(--bg); scroll-margin-top: var(--space-24); }
+.admin-form-section > header { display: grid; gap: 2px; padding: var(--space-12) var(--space-16); border-bottom: 1px solid var(--line); }
+.admin-form-section > header h2 { font-size: var(--t-sm); font-weight: 600; }
+.admin-form-section > header p { color: var(--muted); font-size: var(--t-xs); }
+.admin-form-body { display: grid; gap: var(--space-16); padding: var(--space-16); min-width: 0; }
+.admin-form-body .field { gap: 6px; font-size: var(--t-xs); font-weight: 550; color: var(--text); }
+.admin-form-body .hint { font-weight: 400; }
+.admin-mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px !important; line-height: 1.6; }
+.admin-fit { width: fit-content; }
+.admin-section-nav { display: flex; gap: var(--space-4); overflow-x: auto; scrollbar-width: none; }
+.admin-section-nav::-webkit-scrollbar { display: none; }
+.admin-section-nav a { flex: none; display: inline-flex; align-items: center; height: 30px; padding: 0 var(--space-12); border-radius: var(--r-sm); color: var(--muted); font-size: var(--t-xs); font-weight: 550; text-decoration: none; white-space: nowrap; }
+.admin-section-nav a:hover { background: var(--admin-hover); color: var(--ink); }
+.admin-side-card { display: grid; gap: var(--space-12); padding: var(--space-16); border: 1px solid var(--line); border-radius: var(--r); background: var(--bg); min-width: 0; }
+.admin-side-card > h2 { color: var(--muted); font-size: var(--t-xs); font-weight: 600; }
+.admin-side-card .field { gap: 6px; font-size: var(--t-xs); font-weight: 550; }
+.admin-side-card .button { width: 100%; }
+.admin-side-card.is-danger > h2 { color: var(--error); }
+.admin-side-card .muted { font-size: var(--t-xs); }
+.admin-side-poster { width: 100%; max-width: 160px; }
+.admin-head-meta { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--space-8); }
+.admin-savebar {
+  position: sticky; bottom: var(--space-16); z-index: 30; grid-column: 1 / -1;
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-12); min-width: 0;
+  padding: var(--space-8) var(--space-8) var(--space-8) var(--space-16);
+  border: 1px solid var(--line-strong); border-radius: var(--r);
+  background: var(--glass-bg); -webkit-backdrop-filter: var(--glass-filter); backdrop-filter: var(--glass-filter);
+  box-shadow: 0 10px 30px -12px rgb(0 0 0 / 0.5);
+}
+.admin-savebar-state { display: inline-flex; align-items: center; gap: var(--space-8); min-width: 0; color: var(--muted); font-size: var(--t-xs); white-space: nowrap; }
+.admin-savebar-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); }
+.admin-savebar.is-dirty .admin-savebar-state { color: var(--ink); font-weight: 550; }
+.admin-savebar.is-dirty .admin-savebar-dot { background: var(--gold); }
+.admin-savebar-actions { display: flex; align-items: center; gap: var(--space-8); }
+@media (max-width: 899px) { .admin-savebar { bottom: calc(72px + env(safe-area-inset-bottom)); } }
+/* A table inside a panel uses the panel's frame. */
+.admin-panel > .admin-table-wrap { border: 0; border-radius: 0; }
+/* Columns other than the main one take only the room they need; the main one takes the rest. */
+@media (min-width: 721px) {
+  .admin-table td:not(.col-main), .admin-table th:not(.col-main) { width: 1%; }
+  .admin-table td.col-last { min-width: 220px; }
+}
+.admin-table .button { white-space: nowrap; }
+/* Fields in a row line up on their inputs, whether or not they have a hint. */
+.admin-form-body .form-row, .admin-side-card .form-row { align-items: end; }

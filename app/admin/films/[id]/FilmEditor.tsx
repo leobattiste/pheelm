@@ -7,6 +7,7 @@ import Poster from "@/components/Poster";
 import type { Award, FilmRow, WatchOption } from "@/lib/types";
 import { deleteFilm, importOne, saveFilm, type Result } from "../../actions";
 import { useResultToast } from "@/components/Toast";
+import { FormSection, SaveBar, SectionNav, useUnsaved } from "../../EditForm";
 
 type Props = {
   film: FilmRow;
@@ -23,6 +24,7 @@ export default function FilmEditor({ film, creditText, collections, chosen, tmdb
   const router = useRouter();
   const [state, action, pending] = useActionState<Result, FormData>(saveFilm, { ok: false, message: "" });
   useResultToast(state);
+  const { dirty, formProps, discard } = useUnsaved(state);
   const [importing, setImporting] = useState(false);
   const [importMsg, setImportMsg] = useState<Result | null>(null);
   const [poster, setPoster] = useState(film.poster_url ?? "");
@@ -46,12 +48,18 @@ export default function FilmEditor({ film, creditText, collections, chosen, tmdb
     if (r.ok) router.refresh();
   };
 
+  const resetAll = () => { discard(); setPoster(film.poster_url ?? ""); setColour(film.color ?? ""); };
+
   return (
-    <form action={action} className="editor">
+    <form action={action} className="admin-editor" {...formProps}>
       <input type="hidden" name="id" value={film.id} />
-      <div className="form">
-        <fieldset className="fieldset">
-          <legend>Basics</legend>
+      <div className="admin-editor-main">
+        <SectionNav items={[
+          { id: "basics", label: "Basics" }, { id: "story", label: "Story" }, { id: "people", label: "Cast & crew" },
+          { id: "media", label: "Media" }, { id: "awards", label: "Awards" }, { id: "watch", label: "Where to watch" }, { id: "collections", label: "Collections" },
+        ]} />
+
+        <FormSection id="basics" title="Basics">
           <div className="form-row">
             <label className="field">Title<input name="title" defaultValue={film.title} required /></label>
             <label className="field">Original title <span className="hint">if different</span><input name="original_title" defaultValue={film.original_title ?? ""} /></label>
@@ -73,31 +81,36 @@ export default function FilmEditor({ film, creditText, collections, chosen, tmdb
             <label className="field">Languages <span className="hint">comma-separated</span><input name="languages" defaultValue={film.languages.join(", ")} /></label>
           </div>
           <label className="field">Genres <span className="hint">comma-separated</span><input name="genres" defaultValue={film.genres.join(", ")} /></label>
-          <label className="field">Synopsis<textarea name="synopsis" defaultValue={film.synopsis ?? ""} /></label>
           {/* Shown once the database has these columns. */}
           {"aka" in film && (
             <label className="field">Also known as <span className="hint">other titles, separated by semicolons</span><input name="aka" defaultValue={(film.aka ?? []).join("; ")} /></label>
           )}
+        </FormSection>
+
+        <FormSection id="story" title="Story">
           {"note" in film && (
             <label className="field">Why it matters <span className="hint">one or two sentences, shown above the synopsis</span><textarea name="note" rows={3} defaultValue={film.note ?? ""} /></label>
           )}
-        </fieldset>
+          <label className="field">Synopsis<textarea name="synopsis" rows={6} defaultValue={film.synopsis ?? ""} /></label>
+          <Link className="button ghost small admin-fit" href={`/admin/editorial/${film.id}`}>Edit our perspective</Link>
+        </FormSection>
 
-        <fieldset className="fieldset">
-          <legend>Cast &amp; crew</legend>
-          <label className="field">
-            One person per line <span className="hint">director: Name · writer · producer · cinematographer · editor · composer · cast: Name as Character</span>
-            <textarea name="credits" className="tall" defaultValue={creditText} required />
+        <FormSection id="people" title="Cast & crew" hint="One person per line: director: Name, writer, producer, cinematographer, editor, composer, cast: Name as Character.">
+          <label className="field"><span className="visually-hidden">Cast and crew</span>
+            <textarea name="credits" className="tall admin-mono" defaultValue={creditText} required />
           </label>
-        </fieldset>
+        </FormSection>
 
-        <fieldset className="fieldset">
-          <legend>Media</legend>
-          <label className="field">Poster link<input name="poster_url" type="url" value={poster} onChange={(e) => setPoster(e.target.value)} placeholder="https://" /></label>
-          {film.poster_url && <label className="field check"><input type="checkbox" name="remove_poster" /> Remove poster <span className="hint">clearing the box above leaves the poster as it is</span></label>}
-          <label className="field">…or upload a poster <span className="hint">JPEG, PNG or WebP, portrait 2:3</span><input name="poster_file" type="file" accept="image/jpeg,image/png,image/webp" /></label>
-          <label className="field">Trailer <span className="hint">YouTube or Vimeo link</span><input name="trailer_url" type="url" defaultValue={film.trailer_url ?? ""} /></label>
-          <label className="field">Still <span className="hint">a wide frame from the film, shown across the top of its page</span><input name="backdrop_url" type="url" defaultValue={film.backdrop_url ?? ""} /></label>
+        <FormSection id="media" title="Media">
+          <div className="form-row">
+            <label className="field">Poster link<input name="poster_url" type="url" value={poster} onChange={(e) => setPoster(e.target.value)} placeholder="https://" /></label>
+            <label className="field">…or upload a poster <span className="hint">JPEG, PNG or WebP, portrait 2:3</span><input name="poster_file" type="file" accept="image/jpeg,image/png,image/webp" /></label>
+          </div>
+          {film.poster_url && <label className="check"><input type="checkbox" name="remove_poster" /> Remove poster <span className="hint">clearing the link leaves the poster as it is</span></label>}
+          <div className="form-row">
+            <label className="field">Trailer <span className="hint">YouTube or Vimeo link</span><input name="trailer_url" type="url" defaultValue={film.trailer_url ?? ""} /></label>
+            <label className="field">Still <span className="hint">a wide frame from the film</span><input name="backdrop_url" type="url" defaultValue={film.backdrop_url ?? ""} /></label>
+          </div>
           <input type="hidden" name="previous_poster" value={film.poster_url ?? ""} />
           <input type="hidden" name="previous_color" value={film.color ?? ""} />
           <label className="field">Page colour <span className="hint">taken from the poster automatically; pick one to override</span>
@@ -106,60 +119,68 @@ export default function FilmEditor({ film, creditText, collections, chosen, tmdb
               <input name="color" value={colour} onChange={(e) => setColour(e.target.value)} placeholder="#7d2a1f" pattern="#[0-9a-fA-F]{6}" />
             </span>
           </label>
-        </fieldset>
+        </FormSection>
 
-        <fieldset className="fieldset">
-          <legend>Awards</legend>
-          <label className="field">
-            One per line <span className="hint">Award | Category | won or nominated | Year</span>
-            <textarea name="awards" defaultValue={film.awards.map(awardLine).join("\n")} placeholder="Cannes Film Festival | Grand Prix | won | 2019" />
+        <FormSection id="awards" title="Awards" hint="One per line: Award | Category | won or nominated | Year.">
+          <label className="field"><span className="visually-hidden">Awards</span>
+            <textarea name="awards" className="admin-mono" defaultValue={film.awards.map(awardLine).join("\n")} placeholder="Cannes Film Festival | Grand Prix | won | 2019" />
           </label>
-        </fieldset>
+        </FormSection>
 
-        <fieldset className="fieldset">
-          <legend>Where to watch</legend>
-          <label className="field">
-            One per line <span className="hint">Service | Link | stream, free, rent or buy | Country code</span>
-            <textarea name="watch" defaultValue={film.watch.map(watchLine).join("\n")} placeholder="Criterion Channel | https://www.criterionchannel.com/… | stream | US" />
+        <FormSection id="watch" title="Where to watch" hint="One per line: Service | Link | stream, free, rent or buy | Country code.">
+          <label className="field"><span className="visually-hidden">Where to watch</span>
+            <textarea name="watch" className="admin-mono" defaultValue={film.watch.map(watchLine).join("\n")} placeholder="Criterion Channel | https://www.criterionchannel.com/… | stream | US" />
           </label>
-        </fieldset>
+        </FormSection>
 
-        <fieldset className="fieldset">
-          <legend>Collections</legend>
+        <FormSection id="collections" title="Collections">
           <div className="film-picker">
             {collections.map((c) => (
               <label key={c.id}><input type="checkbox" name="collections" value={c.id} defaultChecked={chosen.includes(c.id)} /> {c.title}</label>
             ))}
           </div>
-        </fieldset>
+        </FormSection>
       </div>
 
-      <aside>
-        <Poster title={film.title} year={film.year} directors={[]} src={poster || null} />
-        <label className="field">Status
-          <select name="status" defaultValue={film.status}>
-            <option value="published">Published</option>
-            <option value="draft">Draft</option>
-          </select>
-        </label>
-        <label className="check"><input type="checkbox" name="featured" defaultChecked={film.featured} /> Feature on the home page</label>
-        <label className="field">Address<input name="slug" defaultValue={film.slug} /></label>
-        <label className="field">TMDB id<input name="tmdb_id" inputMode="numeric" defaultValue={film.tmdb_id ?? ""} /></label>
-        <Link className="button ghost" href={`/admin/editorial/${film.id}`}>Edit film essay</Link>
-        <button className="button" type="submit" disabled={pending}>{pending ? "Saving…" : "Save"}</button>
-        <button className="button ghost" type="button" onClick={runImport} disabled={!tmdbEnabled || importing}
-          title={tmdbEnabled ? "Fill empty fields from TMDB" : "Add TMDB_API_KEY to switch this on"}>
-          {importing ? "Importing…" : "Import from TMDB"}
-        </button>
-        {!tmdbEnabled && <p className="muted" style={{ fontSize: 13 }}>TMDB import switches on when TMDB_API_KEY is set.</p>}
-        {importMsg && <p className={`notice ${importMsg.ok ? "ok" : "error"}`}>{importMsg.message}</p>}
-        {canDelete && (
-          <button className="button danger small" type="submit" formAction={deleteFilm} formNoValidate
-            onClick={(e) => { if (!confirm(`Delete ${film.title}? This can't be undone.`)) e.preventDefault(); }}>
-            Delete film
+      <aside className="admin-editor-side">
+        <section className="admin-side-card">
+          <h2>Publishing</h2>
+          <label className="field">Status
+            <select name="status" defaultValue={film.status}>
+              <option value="published">Published</option>
+              <option value="draft">Draft</option>
+            </select>
+          </label>
+          <label className="check"><input type="checkbox" name="featured" defaultChecked={film.featured} /> Feature on the home page</label>
+          <label className="field">Address<input name="slug" defaultValue={film.slug} /></label>
+        </section>
+        <section className="admin-side-card">
+          <h2>Poster</h2>
+          <div className="admin-side-poster"><Poster title={film.title} year={film.year} directors={[]} src={poster || null} /></div>
+        </section>
+        <section className="admin-side-card">
+          <h2>TMDB</h2>
+          <label className="field">TMDB id<input name="tmdb_id" inputMode="numeric" defaultValue={film.tmdb_id ?? ""} /></label>
+          <button className="button ghost small" type="button" onClick={runImport} disabled={!tmdbEnabled || importing}
+            title={tmdbEnabled ? "Fill empty fields from TMDB" : "Add TMDB_API_KEY to switch this on"}>
+            {importing ? "Importing…" : "Fill empty fields from TMDB"}
           </button>
+          {!tmdbEnabled && <p className="muted">Switches on when TMDB_API_KEY is set.</p>}
+          {importMsg && <p className={`notice ${importMsg.ok ? "ok" : "error"}`}>{importMsg.message}</p>}
+        </section>
+        {canDelete && (
+          <section className="admin-side-card is-danger">
+            <h2>Delete</h2>
+            <p className="muted">Removes the film, its credits and its place in watchlists. This can&apos;t be undone.</p>
+            <button className="button danger small" type="submit" formAction={deleteFilm} formNoValidate
+              onClick={(e) => { if (!confirm(`Delete ${film.title}? This can't be undone.`)) e.preventDefault(); }}>
+              Delete film
+            </button>
+          </section>
         )}
       </aside>
+
+      <SaveBar dirty={dirty} pending={pending} onDiscard={resetAll} />
     </form>
   );
 }

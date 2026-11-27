@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/admin";
 import PersonEditor from "./PersonEditor";
+import { DataTable, MainCell } from "../../DataTable";
+import { PageHeader, Panel } from "../../ui";
 
 export default async function EditPerson({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -15,23 +17,21 @@ export default async function EditPerson({ params }: { params: Promise<{ id: str
 
   return (
     <>
-      <div className="admin-head">
-        <h2 className="admin-section-heading">{person.name}</h2>
-        <div className="actions">
-          <Link className="button ghost small" href={`/${directs ? "directors" : "people"}/${person.slug}`}>View on site</Link>
-        </div>
-      </div>
+      <PageHeader back={{ href: "/admin/people", label: "Directors" }} title={person.name}
+        description={`${(credits ?? []).length} ${(credits ?? []).length === 1 ? "credit" : "credits"}${directs ? ", directs" : ""}`}
+        actions={<Link className="button ghost small" href={`/${directs ? "directors" : "people"}/${person.slug}`}>View on site</Link>} />
       <PersonEditor person={person} />
-      <section className="fieldset">
-        <h2>Credits</h2>
-        <ul>
-          {(credits ?? []).map((c: any, i) => (
-            <li key={i}>
-              <Link href={`/admin/films/${c.films?.id}`}>{c.films?.title}</Link> ({c.films?.year}) · {c.role}
-            </li>
-          ))}
-        </ul>
-      </section>
+      <Panel title="Credits" icon="film">
+        <DataTable label="Credits" empty={<p className="muted">No film credits.</p>}
+          columns={[{ key: "film", label: "Film" }, { key: "role", label: "Role", phone: true, width: "160px" }]}
+          rows={(credits ?? []).map((c: any, i: number) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
+            id: `${c.films?.id}-${c.role}-${i}`,
+            cells: {
+              film: <MainCell href={`/admin/films/${c.films?.id}`} title={c.films?.title ?? "Untitled"} detail={c.films?.year ? String(c.films.year) : undefined} />,
+              role: <span className="muted">{c.role === "cast" ? "Actor" : c.role[0].toUpperCase() + c.role.slice(1)}</span>,
+            },
+          }))} />
+      </Panel>
     </>
   );
 }
