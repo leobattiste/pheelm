@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
   // Claim the films first: only rows still unclaimed are updated, so runs that overlap never
   // add the same film twice. Each claimed film ends up added (and removed) or with its reason.
   const { data: claimed } = next?.length
-    ? await db.from("film_queue").update({ last_error: "Adding…" }).in("id", next.map((r) => r.id)).is("last_error", null).select("*")
+    ? await db.from("film_queue").update({ last_error: "Adding…", claimed_at: new Date().toISOString() }).in("id", next.map((r) => r.id)).is("last_error", null).select("*")
     : { data: [] };
   const items = (claimed ?? []) as QueueItem[];
   const results: Awaited<ReturnType<typeof processQueue>> = [];

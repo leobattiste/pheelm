@@ -105,6 +105,6 @@ Digests go out at 4 pm New York time: every day for Daily, on Fridays for Weekly
 - The Send button shows the count. It is checked again when sending; if it changed, nothing is sent. The same subject can't be sent twice within 10 minutes.
 - Each email is an outbox job with `campaign_id`, its own `subject` and `action_label`; the worker fills `[[SUBJECT]]`, `[[PREVIEW]]` (the message's start) and `[[ACTION_LABEL]]`. The Sent list counts waiting, delivered, bounced, failed and skipped emails from `outbox.delivery` (Resend webhooks) and in-app reads.
 - Throughput: the worker sends 20 every 5 minutes (about 240 an hour) and expires jobs after 12 hours, so one send reaches at most about 2,800 emails. Raise the batch or the schedule before sending to more.
-- Database: `supabase/migrations/20261121230000_admin_send.sql`; tests `tests/admin-send.sql`, `tests/email-worker-send.mjs`, `tests/admin-send-browser.mjs`.
+- Database: `supabase/migrations/20261121223002_admin_send.sql`; tests `tests/admin-send.sql`, `tests/email-worker-send.mjs`, `tests/admin-send-browser.mjs`.
 
 Activity emails follow “Replies, mentions and new films” only. Before this migration `email_claim` also suppressed them whenever the Digest was off.

@@ -1,4 +1,4 @@
--- Admin → Send (supabase/migrations/20261121230000_admin_send.sql). Runs after the email archive
+-- Admin → Send (supabase/migrations/20261121223002_admin_send.sql). Runs after the email archive
 -- scripts and tests/admin-send-bootstrap.sql in a disposable database.
 \set ON_ERROR_STOP on
 begin;

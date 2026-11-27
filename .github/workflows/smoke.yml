@@ -145,8 +145,8 @@ jobs:
       - run: psql -v ON_ERROR_STOP=1 -f supabase/archive/activity-emails.sql
       - run: psql -v ON_ERROR_STOP=1 -f tests/activity-emails.sql
       - run: psql -v ON_ERROR_STOP=1 -f tests/admin-send-bootstrap.sql
-      - run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261121230000_admin_send.sql
-      - run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261121230000_admin_send.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261121223002_admin_send.sql
+      - run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261121223002_admin_send.sql
       - run: psql -v ON_ERROR_STOP=1 -f tests/admin-send.sql
 
   profile-database:
