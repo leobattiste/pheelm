@@ -13,7 +13,7 @@ export default async function FeedbackPage({ searchParams }: { searchParams: Pro
   const page = safeAbout(sp.about) ?? (film ? `/films/${film.slug}` : null);
   const about = page ? { page, title: (sp.label || film?.title || page).slice(0, 200) } : undefined;
   return (
-    <article className="page full-width info-page enquiry-page">
+    <article className="page full-width info-page enquiry-page feedback-page">
       <div className="form-split">
         <div className="form-split-intro">
           <header className="page-head">
