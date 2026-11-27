@@ -31,11 +31,13 @@ export async function bulkPersonChange(form: FormData) {
   for (let i = 0; i < ids.length; i += BATCH) {
     const batch = ids.slice(i, i + BATCH);
     const result = operation === "delete"
-      ? await db.from("people").delete().in("id", batch).select("id")
-      : await db.from("people").update({ in_directory: operation === "publish" }).in("id", batch).select("id");
+      ? await db.from("people").delete().in("id", batch).select("id, name")
+      : await db.from("people").update({ in_directory: operation === "publish" }).in("id", batch).select("id, name");
     if (result.error) throw new Error(result.error.message);
     changed += result.data?.length ?? 0;
-    await logAdminActivity(db, `Bulk ${operation} people`, "person", null, `${result.data?.length ?? 0} people · ${batch.join(",").slice(0, 350)}`);
+    const names = (result.data ?? []).map((r) => r.name as string);
+    const verb = ({ publish: "Showed", draft: "Hid", delete: "Deleted" } as Record<string, string>)[operation] ?? `Bulk ${operation}`;
+    await logAdminActivity(db, `${verb} ${names.length} ${names.length === 1 ? "person" : "people"}`, "person", null, names.join(", ").slice(0, 480));
   }
   queueCatalogSnapshot();
   revalidatePath("/", "layout");

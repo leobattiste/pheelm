@@ -7,11 +7,11 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { adminClient, ownerClient } from "@/lib/admin";
 import { logAdminActivity } from "@/lib/admin-activity";
+import { FILM_FIELDS, PERSON_FIELDS, diff, listChange } from "@/lib/changes";
 import { resolvePoster } from "@/lib/film-fields";
 import { slugify } from "@/lib/format";
-import { addFilmByTitle, fillPerson, importFilm, posterColour, refreshCredits, type AddResult } from "@/lib/import";
-import { getWatch, probeTmdbAwards, tmdbEnabled } from "@/lib/tmdb";
-import { refreshAwardsBatch } from "@/lib/awards";
+import { addFilmByTitle, importFilm, posterColour, type AddResult } from "@/lib/import";
+import { probeTmdbAwards, tmdbEnabled } from "@/lib/tmdb";
 import type { Award, Role, WatchOption } from "@/lib/types";
 import { queueCatalogSnapshot } from "@/lib/catalog-snapshot";
 
@@ -64,6 +64,11 @@ function parseCredits(text: string) {
   return out;
 }
 
+/** Entries parsed from a text box, each with the extra fields of the saved entry it matches. */
+function keep<T extends object>(parsed: T[], saved: T[], key: (entry: T) => string): T[] {
+  const byKey = new Map(saved.map((entry) => [key(entry), entry]));
+  return parsed.map((entry) => ({ ...(byKey.get(key(entry)) ?? {}), ...entry }));
+}
 function parseAwards(text: string): Award[] {
   return text.split(/\r?\n|\r/).map((l) => l.trim()).filter(Boolean).map((line) => {
     const [award, category, result, year] = line.split("|").map((s) => s.trim());
@@ -103,6 +108,11 @@ export async function saveFilm(_prev: Result, f: FormData): Promise<Result> {
     const credits = parseCredits(str(f, "credits", 20000));
     if (!credits.some((c) => c.role === "director")) return { ok: false, message: "Add at least one director in Cast & crew, on its own line, like  director: Name" };
 
+    // What it was: for the change history, and to keep details the text boxes don't show.
+    const [{ data: before }, { data: oldCredits }] = await Promise.all([
+      db.from("films").select("*").eq("id", id).maybeSingle(),
+      db.from("credits").select("role, character, people(name)").eq("film_id", id).order("sort"),
+    ]);
     const poster = resolvePoster({
       uploaded: await upload(db, f.get("poster_file"), "posters"),
       typed: nullable(f, "poster_url", 1000),
@@ -133,8 +143,10 @@ export async function saveFilm(_prev: Result, f: FormData): Promise<Result> {
       backdrop_url: nullable(f, "backdrop_url", 1000),
       trailer_url: nullable(f, "trailer_url", 1000),
       tmdb_id: int(f, "tmdb_id"),
-      awards: parseAwards(str(f, "awards", 20000)),
-      watch: parseWatch(str(f, "watch", 20000)),
+      // The boxes show one line per entry; details they don't show (a service's logo, who an award
+      // went to) are kept from the saved entry with the same line.
+      awards: keep(parseAwards(str(f, "awards", 20000)), (before?.awards ?? []) as Award[], (a) => [a.award, a.category, a.result, a.year].join("|")),
+      watch: keep(parseWatch(str(f, "watch", 20000)), (before?.watch ?? []) as WatchOption[], (w) => [w.provider, w.url, w.kind, w.region ?? ""].join("|")),
       updated_at: new Date().toISOString(),
       // Only sent when the editor showed these fields (they need the aka and note columns).
       ...(f.has("aka") ? { aka: str(f, "aka", 2000).split(";").map((s) => s.trim()).filter(Boolean) } : {}),
@@ -155,7 +167,13 @@ export async function saveFilm(_prev: Result, f: FormData): Promise<Result> {
     await db.from("collection_films").delete().eq("film_id", id);
     if (chosen.length) await db.from("collection_films").insert(chosen.map((c) => ({ collection_id: c, film_id: id, sort: year })));
 
-    await logAdminActivity(db, "Saved film", "film", id, `${title} (${year}) · ${row.status}`);
+    const line = (c: { role: string; name: string; character?: string | null }) => `${c.role}: ${c.name}${c.character ? ` as ${c.character}` : ""}`;
+    const changes = diff(before ?? {}, row, FILM_FIELDS);
+    const creditChange = listChange("Cast & crew",
+      ((oldCredits ?? []) as unknown as { role: string; character: string | null; people: { name: string } | null }[]).map((c) => line({ role: c.role, name: c.people?.name ?? "", character: c.character })),
+      credits.map((c) => line(c)));
+    if (creditChange) changes.push(creditChange);
+    await logAdminActivity(db, changes.length ? "Edited film" : "Saved film", "film", id, `${title} (${year})${changes.length ? ` · ${changes.map((c) => c.field.toLowerCase()).join(", ")}` : " · no changes"}`, changes);
     refresh();
     return { ok: true, message: row.status === "draft" ? "Saved as a draft." : "Saved and live." };
   } catch (e) {
@@ -188,9 +206,9 @@ export async function createFilm(f: FormData) {
 export async function deleteFilm(f: FormData) {
   const db = await ownerClient();
   const id = str(f, "id");
-  const { error } = await db.from("films").delete().eq("id", id);
+  const { data: gone, error } = await db.from("films").delete().eq("id", id).select("title, year").maybeSingle();
   if (error) throw new Error(error.message);
-  await logAdminActivity(db, "Deleted film", "film", id);
+  await logAdminActivity(db, "Deleted film", "film", id, gone ? `${gone.title} (${gone.year})` : "");
   refresh();
   redirect("/admin/films");
 }
@@ -208,71 +226,6 @@ export async function importOne(id: string): Promise<Result> {
   }
 }
 
-/**
- * Fills in up to twenty people from TMDB (biography, dates, birthplace, links). The admin page calls
- * it repeatedly until none are left, so it never hits a server time limit.
- */
-export async function fillPeople(): Promise<Result & { remaining: number }> {
-  try {
-    if (!tmdbEnabled) return { ok: false, message: "Add TMDB_API_KEY in Vercel to switch on the import.", remaining: 0 };
-    const db = await adminClient();
-    const { data, error } = await db.from("people").select("*").not("tmdb_id", "is", null).is("details_at", null).limit(20);
-    if (error) return { ok: false, message: "Run supabase/archive/people-details.sql in Supabase first, then try again.", remaining: 0 };
-    await Promise.all((data ?? []).map((p) => fillPerson(db, p)));
-    if (data?.length) await logAdminActivity(db, "Filled people from TMDB", "person", null, `${data.length} people`);
-    const { count } = await db.from("people").select("*", { count: "exact", head: true }).not("tmdb_id", "is", null).is("details_at", null);
-    refresh();
-    return { ok: true, message: `Filled ${data?.length ?? 0} people.`, remaining: count ?? 0 };
-  } catch (e) {
-    return { ...fail(e), remaining: 0 };
-  }
-}
-
-/**
- * Refreshes where to watch (and the services' logos) for fifteen films at a time, starting after
- * `offset`, so it never hits a server time limit. Links added by hand are kept.
- */
-export async function refreshWatch(offset: number): Promise<Result & { next: number; total: number }> {
-  try {
-    if (!tmdbEnabled) return { ok: false, message: "Add TMDB_API_KEY in Vercel to switch on the import.", next: 0, total: 0 };
-    const db = await adminClient();
-    const { count } = await db.from("films").select("*", { count: "exact", head: true }).not("tmdb_id", "is", null);
-    const { data } = await db.from("films").select("id, tmdb_id, watch").not("tmdb_id", "is", null).order("id").range(offset, offset + 14);
-    await Promise.all((data ?? []).map(async (f) => {
-      const fresh = await getWatch(f.tmdb_id as number);
-      const manual = ((f.watch ?? []) as WatchOption[]).filter((w) => !w.url.includes("themoviedb.org") && !w.url.includes("justwatch.com"));
-      await db.from("films").update({ watch: [...manual, ...fresh], updated_at: new Date().toISOString() }).eq("id", f.id);
-    }));
-    const next = offset + (data?.length ?? 0);
-    if (next >= (count ?? 0)) {
-      await logAdminActivity(db, "Refreshed where to watch", "film", null, `${count ?? 0} films`);
-      refresh();
-    }
-    return { ok: true, message: `Refreshed ${next} of ${count ?? 0}.`, next, total: count ?? 0 };
-  } catch (e) {
-    return { ...fail(e), next: offset, total: 0 };
-  }
-}
-
-/** Updates every TMDB-linked film's awards and nominations from Wikidata, ten films at a time. */
-export async function refreshAwards(offset: number): Promise<Result & { next: number; total: number; updated: number; failed: number }> {
-  try {
-    const db = await adminClient();
-    const { count } = await db.from("films").select("*", { count: "exact", head: true }).not("tmdb_id", "is", null);
-    const { data } = await db.from("films").select("id, tmdb_id, year, awards").not("tmdb_id", "is", null).order("id").range(offset, offset + 5);
-    const batch = await refreshAwardsBatch(db, data ?? []);
-    const updated = batch.updated.length, failed = batch.failed;
-    const next = offset + (data?.length ?? 0);
-    if (next >= (count ?? 0)) {
-      await logAdminActivity(db, "Updated awards from Wikidata", "film", null, `${count ?? 0} films checked`);
-      refresh();
-    }
-    return { ok: true, message: `Checked ${next} of ${count ?? 0}.`, next, total: count ?? 0, updated, failed };
-  } catch (e) {
-    return { ...fail(e), next: offset, total: 0, updated: 0, failed: 0 };
-  }
-}
-
 /** Admin only: what TMDB's API answers for a film's awards, for deciding where awards should come from. */
 export async function checkTmdbAwards(tmdbId: number) {
   try {
@@ -283,32 +236,6 @@ export async function checkTmdbAwards(tmdbId: number) {
     return { ok: true as const, results };
   } catch (e) {
     return { ok: false as const, message: e instanceof Error ? e.message : "Something went wrong." };
-  }
-}
-
-/** Adds the missing cast and crew to ten films at a time, five at once so TMDB isn't flooded. */
-export async function refreshCastAndCrew(offset: number): Promise<Result & { next: number; total: number; added: number; failed: number }> {
-  try {
-    const db = await adminClient();
-    const { count } = await db.from("films").select("*", { count: "exact", head: true }).not("tmdb_id", "is", null);
-    const { data } = await db.from("films").select("id, tmdb_id").not("tmdb_id", "is", null).order("id").range(offset, offset + 9);
-    const films = data ?? [];
-    let added = 0, failed = 0;
-    for (let i = 0; i < films.length; i += 5) {
-      const results = await Promise.allSettled(films.slice(i, i + 5).map((f) => refreshCredits(db, f.id, f.tmdb_id)));
-      for (const r of results) {
-        if (r.status === "fulfilled") added += r.value;
-        else failed++;
-      }
-    }
-    const next = offset + films.length;
-    if (next >= (count ?? 0)) {
-      await logAdminActivity(db, "Added missing cast and crew from TMDB", "film", null, `${count ?? 0} films checked`);
-      refresh();
-    }
-    return { ok: true, message: `Checked ${next} of ${count ?? 0}.`, next, total: count ?? 0, added, failed };
-  } catch (e) {
-    return { ...fail(e), next: offset, total: 0, added: 0, failed: 0 };
   }
 }
 
@@ -349,7 +276,8 @@ export async function savePerson(_prev: Result, f: FormData): Promise<Result> {
     const name = str(f, "name", 200);
     if (!name) return { ok: false, message: "Add a name." };
     const photo = (await upload(db, f.get("photo_file"), "people")) ?? nullable(f, "photo_url", 1000);
-    const { error } = await db.from("people").update({
+    const { data: before } = await db.from("people").select("*").eq("id", str(f, "id")).maybeSingle();
+    const row = {
       name,
       slug: slugify(str(f, "slug") || name),
       country: nullable(f, "country", 2)?.toUpperCase() ?? null,
@@ -358,9 +286,11 @@ export async function savePerson(_prev: Result, f: FormData): Promise<Result> {
       photo_url: photo,
       tmdb_id: int(f, "tmdb_id"),
       ...(f.has("has_in_directory") ? { in_directory: f.get("in_directory") === "on" } : {}),
-    }).eq("id", str(f, "id"));
+    };
+    const { error } = await db.from("people").update(row).eq("id", str(f, "id"));
     if (error) return { ok: false, message: error.code === "23505" ? "Someone else already uses that address or TMDB id." : error.message };
-    await logAdminActivity(db, "Saved person", "person", str(f, "id"), name);
+    const changes = diff(before ?? {}, row, PERSON_FIELDS);
+    await logAdminActivity(db, changes.length ? "Edited person" : "Saved person", "person", str(f, "id"), `${name}${changes.length ? ` · ${changes.map((c) => c.field.toLowerCase()).join(", ")}` : " · no changes"}`, changes);
     refresh();
     return { ok: true, message: "Saved." };
   } catch (e) {

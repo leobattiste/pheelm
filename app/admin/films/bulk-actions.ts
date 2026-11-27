@@ -29,13 +29,15 @@ export async function bulkFilmChange(form: FormData) {
   for (let i = 0; i < ids.length; i += BATCH) {
     const batch = ids.slice(i, i + BATCH);
     const result = operation === "delete"
-      ? await db.from("films").delete().in("id", batch).select("id")
+      ? await db.from("films").delete().in("id", batch).select("id, title, year")
       : await db.from("films").update({
           ...patch[operation as keyof typeof patch], updated_at: new Date().toISOString(),
-        }).in("id", batch).select("id");
+        }).in("id", batch).select("id, title, year");
     if (result.error) throw new Error(result.error.message);
     changed += result.data?.length ?? 0;
-    await logAdminActivity(db, `Bulk ${operation}`, "film", null, `${result.data?.length ?? 0} films · ${batch.join(",").slice(0, 350)}`);
+    const names = (result.data ?? []).map((r) => `${r.title} (${r.year})`);
+    const verb = ({ publish: "Published", draft: "Moved to drafts", feature: "Featured", unfeature: "Stopped featuring", delete: "Deleted" } as Record<string, string>)[operation];
+    await logAdminActivity(db, `${verb} ${names.length} ${names.length === 1 ? "film" : "films"}`, "film", null, names.join(", ").slice(0, 480));
   }
 
   queueCatalogSnapshot();

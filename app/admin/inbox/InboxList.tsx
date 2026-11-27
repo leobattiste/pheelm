@@ -4,7 +4,8 @@ import { requireAdmin } from "@/lib/admin";
 import { BOXES, STAGES, TOPIC_LABEL, type InboxBox } from "@/lib/inbox";
 import AdminBrowserToolbar from "../AdminBrowserToolbar";
 import AdminMenu from "../AdminMenu";
-import { Empty, Flash, PageHeader, Pager, Panel, Pill, Row, ViewTabs, ago, pageNumber, plural } from "../ui";
+import { Empty, Flash, PageHeader, Pager, Pill, ViewTabs, ago, pageNumber, plural } from "../ui";
+import { DataTable, MainCell, Thumb } from "../DataTable";
 
 const PAGE_SIZE = 30;
 type Params = { view?: string; q?: string; page?: string; deleted?: string };
@@ -82,30 +83,40 @@ export default async function InboxList({ box, searchParams }: { box?: InboxBox;
         <ViewTabs label="Messages by status" items={views.map((v, i) => ({
           label: v.label, href: `${base}?view=${v.id}`, active: v === view, count: viewCounts[i].count ?? 0,
         }))} />
-      <Flash ok={sp.deleted ? "Message deleted." : null} />
         <AdminBrowserToolbar action={base} query={q} placeholder="Search messages" />
       </div>
-      {messages.length ? (
-        <Panel>
-          {messages.map((m) => (
-            <Row key={m.id} href={`/admin/inbox/message/${m.id}`}
-              detail={[box && info && info.topics.length === 1 ? null : TOPIC_LABEL[m.topic] ?? m.topic, m.organization, m.body.replace(/\s+/g, " ").slice(0, 140)].filter(Boolean).join(" · ")}
-              aside={<>
-                {m.status === "new" && <Pill tone="info">New</Pill>}
+      <Flash ok={sp.deleted ? "Message deleted." : null} />
+      <DataTable label="Messages"
+        empty={<Empty title={q ? "No messages match your search" : view.id === "open" ? "You're all caught up" : `Nothing in ${view.label.toLowerCase()}`}>
+          {q ? "Try a name, an email address or a word from the message." : view.id === "open" ? "New messages appear here as soon as they're sent." : null}
+        </Empty>}
+        columns={[
+          { key: "from", label: "From" },
+          { key: "status", label: "Status", width: "200px" },
+          { key: "when", label: "Received", phone: true, align: "end", width: "110px" },
+        ]}
+        rows={messages.map((m) => {
+          const topic = box && info && info.topics.length === 1 ? null : TOPIC_LABEL[m.topic] ?? m.topic;
+          const snippet = m.body.replace(/\s+/g, " ").slice(0, 160);
+          const unread = m.status === "new";
+          return {
+            id: m.id,
+            cells: {
+              from: <MainCell href={`/admin/inbox/message/${m.id}`} media={<Thumb name={m.name || m.email} shape="round" />}
+                title={unread ? <strong>{m.name || m.email}</strong> : m.name || m.email}
+                after={unread ? <span className="admin-unread" aria-label="New" /> : null}
+                detail={[topic, m.organization, snippet].filter(Boolean).join(" · ")} />,
+              status: <span className="admin-tags">
+                {unread && <Pill tone="info">New</Pill>}
                 {m.replied_at && <Pill tone="ok">Replied</Pill>}
                 {m.topic === "privacy" && m.due_at && m.status !== "done" && deadline(m.due_at)}
                 {!partnerships && m.stage && m.stage !== "new" && <Pill>{STAGES.find((s) => s.id === m.stage)?.label}</Pill>}
-                <span className="muted">{ago(m.created_at)}</span>
-              </>}>
-              {m.status === "new" ? <strong>{m.name || m.email}</strong> : m.name || m.email}
-            </Row>
-          ))}
-        </Panel>
-      ) : (
-        <Empty title={q ? "No messages match your search" : view.id === "open" ? "You're all caught up" : `Nothing in ${view.label.toLowerCase()}`}>
-          {q ? "Try a name, an email address or a word from the message." : view.id === "open" ? "New messages appear here as soon as they're sent." : null}
-        </Empty>
-      )}
+                {!unread && !m.replied_at && m.status !== "done" && !(m.topic === "privacy" && m.due_at) && <span className="muted">Waiting</span>}
+              </span>,
+              when: <span className="muted">{ago(m.created_at)}</span>,
+            },
+          };
+        })} />
       <Pager page={page} total={count ?? 0} size={PAGE_SIZE} href={href} />
     </>
   );

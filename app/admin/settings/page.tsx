@@ -13,7 +13,7 @@ export default async function AdminSettings() {
   const refusedTotal = refused.error ? null : Number((refused.data as { total?: number }[] | null)?.[0]?.total ?? 0);
   return (
     <>
-      <PageHeader title="Settings" description="Moderation rules, the records of what happened in admin, and a check that error reporting works." />
+      <PageHeader title="Settings" description="Moderation, records of what happened in admin, and error reporting." />
       <div className="admin-grid">
         <Panel title="Moderation" icon="flag">
           <Row href="/admin/community/banned-words" detail="Words members can't use in comments, bios and watchlist descriptions." aside={<strong className="admin-number">{wordCount}</strong>}>Banned words</Row>
