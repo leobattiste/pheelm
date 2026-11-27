@@ -123,7 +123,7 @@ const CSS =
   ".clc-top{position:absolute;left:clamp(20px,4vw,48px);right:clamp(20px,4vw,48px);top:clamp(18px,3.4vw,36px);display:flex;justify-content:space-between;align-items:center;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--clc-ink);opacity:.62;pointer-events:none}" +
   ".clc-top b{font-weight:500;letter-spacing:.14em}" +
   ".clc-copy{position:absolute;left:clamp(20px,4vw,48px);bottom:clamp(22px,4vw,44px);max-width:min(560px,70%);color:var(--clc-ink);pointer-events:none}" +
-  ".clc-kicker{display:block;font-size:14px;letter-spacing:0;opacity:.7;margin-bottom:10px}" +
+  ".clc-kicker{display:block;font-size:14px;letter-spacing:0;opacity:.7;margin-bottom:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}" +
   ".clc-title{font-family:var(--clc-font);font-weight:400;font-size:clamp(44px,7.2vw,104px);line-height:.92;letter-spacing:-.02em;margin:0;display:block}" +
   ".clc-ch{display:inline-block;transform:translateY(105%) rotate(6deg);opacity:0;transition:transform .9s cubic-bezier(.2,.9,.1,1),opacity .6s ease}" +
   ".clc-line{display:block;overflow:hidden;padding-bottom:.06em}" +

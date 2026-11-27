@@ -62,8 +62,8 @@ export default function Poster({ title, year, directors, src, sizes = "(min-widt
     <div className={`${cls} poster-card`} data-poster="" style={{ background: bg, color: fg }} role="img" aria-label={`${title}, ${year}`}>
       <span className="poster-card-title">{title}</span>
       <span className="poster-card-foot">
-        <span>{directors.join(", ")}</span>
         <span>{year}</span>
+        <span>{directors.join(", ")}</span>
       </span>
     </div>
   );

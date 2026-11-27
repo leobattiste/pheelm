@@ -79,7 +79,7 @@ export default async function Home() {
   const essential = ICONIC.map((slug) => bySlug.get(slug)).filter((f) => !!f);
   const slides = essential.flatMap((f) => {
     const c = toCard(f);
-    return c.poster_url ? [{ title: c.title, kicker: `${c.directors.join(" and ")} • ${c.year}`, image: c.poster_url.replace("/w500/", "/w780/"), alt: `Poster for ${c.title}` }] : [];
+    return c.poster_url ? [{ title: c.title, kicker: `${c.year} • ${c.directors.join(" and ")}`, image: c.poster_url.replace("/w500/", "/w780/"), alt: `Poster for ${c.title}` }] : [];
   });
   // For search engines: the site, with a search box that opens the Films page's search.
   const jsonLd = {
