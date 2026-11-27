@@ -29,7 +29,7 @@ export default async function SubmitPage() {
           ) : user ? (
             <SubmitForm />
           ) : (
-            <p>
+            <p className="suggestion-signin">
               <Link className="button" href="/login?next=/submit">Sign in to suggest a film</Link>
             </p>
           )}
