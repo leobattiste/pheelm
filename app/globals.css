@@ -3316,7 +3316,15 @@ html:root:root:root:root [data-grid] :is(.film-card-title, .director-card-name, 
    and fill (other ⋯ controls stay borderless). */
 html:root:root:root:root:root:root .film-actions > .more-menu > :is(.round-button, .more-button) {
   border: 1px solid var(--line) !important;
-  background: var(--bg) !important;
+  background: transparent !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+/* Watchlist is see-through too, so the poster's colour shows behind it. Trailer stays solid. */
+html:root:root:root:root:root:root .film-actions > .pill-button:not(.primary) {
+  background: transparent !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
 }
 
 /* An announcement opened from Notifications. */
@@ -3449,3 +3457,17 @@ html:root:root:root .trailer-dialog[open] { display: grid; gap: var(--space-12);
 .trailer-head .icon-button { color: #fff; background: rgb(255 255 255 / 0.12); }
 .trailer-head .icon-button:hover { background: rgb(255 255 255 / 0.22); }
 .tour-x svg { width: 18px; height: 18px; }
+
+/* Phone: the poster runs edge to edge and fades into the page, so its colours become the header
+   (like Apple TV), with clear space before the title. */
+@media (max-width: 799px) {
+  .film-page { row-gap: var(--space-24); }
+  .film-art { margin-inline: calc(var(--gutter) * -1); margin-bottom: var(--space-8); }
+  .film-art .poster {
+    border-radius: 0;
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 100%);
+  }
+  .film-glow { inset: -10% -20% -10%; }
+  .film-glow img { opacity: 0.7; }
+}
