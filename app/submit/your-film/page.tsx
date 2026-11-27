@@ -29,7 +29,7 @@ export default async function SubmitOwnFilmPage() {
           ) : user ? (
             <OwnFilmForm email={user.email ?? ""} />
           ) : (
-            <p>
+            <p className="suggestion-signin">
               <Link className="button" href="/login?next=/submit/your-film">Sign in to submit your film</Link>
             </p>
           )}
