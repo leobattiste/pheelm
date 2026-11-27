@@ -20,7 +20,6 @@ export default function HelpBrowser() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
   const [open, setOpen] = useState<string | null>(null);
-  const [copyStatus, setCopyStatus] = useState<{ id: string; error: boolean } | null>(null);
   const pendingScroll = useRef<string | null>(null);
   const searchInput = useRef<HTMLInputElement>(null);
 
@@ -45,7 +44,6 @@ export default function HelpBrowser() {
     setQuery("");
     setCategory("all");
     setOpen(null);
-    setCopyStatus(null);
     resetHash();
     searchInput.current?.focus();
   };
@@ -54,26 +52,14 @@ export default function HelpBrowser() {
     setCategory(id);
     setQuery("");
     setOpen(null);
-    setCopyStatus(null);
     window.history.replaceState(null, "", window.location.pathname + window.location.search + (id === "all" ? "" : "#" + id));
   };
 
   const toggleQuestion = (id: string) => {
     const next = open === id ? null : id;
     setOpen(next);
-    setCopyStatus(null);
     window.history.replaceState(null, "", window.location.pathname + window.location.search + (next ? "#" + next : ""));
   };
-
-  async function copyAnswerLink(id: string) {
-    const address = new URL("/help#" + encodeURIComponent(id), window.location.origin).href;
-    try {
-      await navigator.clipboard.writeText(address);
-      setCopyStatus({ id, error: false });
-    } catch {
-      setCopyStatus({ id, error: true });
-    }
-  }
 
   // Keep existing /help#category links working and make every /help#question-id a direct link.
   useEffect(() => {
@@ -86,7 +72,6 @@ export default function HelpBrowser() {
         setQuery("");
         setCategory("all");
         setOpen(id);
-        setCopyStatus(null);
       } else if (HELP_CATEGORIES.some((group) => group.id === id)) {
         pendingScroll.current = null;
         setQuery("");
@@ -125,11 +110,7 @@ export default function HelpBrowser() {
           <p>{item.answer}</p>
           <div className="help-answer-actions">
             <Link href={item.href}>{item.linkLabel}<Icon name="arrowRight" size={17} /></Link>
-            <button type="button" className="help-copy-link" onClick={() => void copyAnswerLink(item.id)} aria-label={"Copy a direct link to " + item.question}>
-              {copyStatus?.id === item.id ? (copyStatus.error ? "Copy unavailable" : "Copied") : "Copy link"}
-            </button>
           </div>
-          {copyStatus?.id === item.id && copyStatus.error && <p role="status" className="help-copy-error">You can copy the link from your browser address bar.</p>}
         </div>
       )}
     </div>
@@ -147,7 +128,6 @@ export default function HelpBrowser() {
               id="help-q"
               type="search"
               value={query}
-              onChange={(event) => { setQuery(event.target.value); setOpen(null); setCopyStatus(null); resetHash(); }}
               placeholder="Search for help"
               autoComplete="off"
             />
