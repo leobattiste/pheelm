@@ -26,14 +26,9 @@
 .help-copy-link { border: 0; padding: 0; background: transparent; color: var(--muted); text-decoration: underline; text-underline-offset: .2em; font-size: var(--t-sm); cursor: pointer; }
 .help-copy-link:hover { color: var(--ink); }
 .help-answer .help-copy-error { margin: var(--space-8) 0 0; font-size: var(--t-sm); color: var(--muted); }
-.help-contact { margin-top: var(--space-24); padding-top: var(--space-24); border-top: 1px solid var(--line); }
-.help-contact h2 { margin: 0 0 var(--space-8); font-size: var(--t-xl); }
-.help-contact p { max-width: 65ch; margin: 0 0 var(--space-16); color: var(--muted); }
-.help-contact .actions { display: flex; flex-wrap: wrap; gap: var(--space-8); }
 @media (max-width: 600px) {
   .help-topics { flex-wrap: nowrap; overflow-x: auto; margin-right: calc(-1 * var(--gutter)); padding-right: var(--gutter); scrollbar-width: none; }
   .help-topics::-webkit-scrollbar { display: none; }
   .help-results-head { margin-bottom: var(--space-20); }
   .help-group { margin-bottom: var(--space-32); }
-  .help-contact .actions .button { flex: 1; justify-content: center; }
 }
