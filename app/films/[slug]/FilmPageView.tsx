@@ -96,12 +96,15 @@ export async function FilmPageView({ params }: Params) {
   // The crew and the first six of the cast show; the rest sit behind "Show all".
   const crewCount = new Set(crew.flatMap((g) => g.people.map((c) => c.person.id))).size;
   const shown = Math.min(people.length, crewCount + CAST_SHOWN);
-  // The hero already says the year, running time and genres, so the facts beside the page don't repeat them.
+  // The hero already says the year and running time, so the facts beside the page don't repeat them.
   const details: [string, React.ReactNode][] = [
     [film.countries.length > 1 ? "Countries" : "Country", film.countries.length ? film.countries.map((c, i) => (
       <span key={c}>{i > 0 && ", "}<Link href={`/films?country=${c}`}>{countryName(c)}</Link></span>
     )) : null],
     [film.languages.length > 1 ? "Languages" : "Language", film.languages.length ? film.languages.join(", ") : null],
+    [film.genres.length > 1 ? "Genres" : "Genre", film.genres.length ? film.genres.map((g, i) => (
+      <span key={g}>{i > 0 && ", "}<Link href={`/films?genre=${encodeURIComponent(g)}`}>{g}</Link></span>
+    )) : null],
     ...(film.original_title && film.original_title !== film.title ? ([["Original title", film.original_title]] as [string, React.ReactNode][]) : []),
     ...(aka.length ? ([["Also known as", aka.join(", ")]] as [string, React.ReactNode][]) : []),
   ];
@@ -162,9 +165,6 @@ export async function FilmPageView({ params }: Params) {
                 <p className="film-meta">
                   <Link href={decadeHref}>{film.year}</Link>
                   {runtime && <span>{runtime}</span>}
-                  {film.genres.slice(0, 3).map((g) => (
-                    <Link key={g} className="film-genre" href={`/films?genre=${encodeURIComponent(g)}`}>{g}</Link>
-                  ))}
                 </p>
                 {topAward && (
                   <a className="film-laurel" href="#awards-h">
@@ -231,15 +231,9 @@ export async function FilmPageView({ params }: Params) {
               </section>
             )}
 
-            {/* 3. Where to watch: what most people come for, right under the story. */}
-            <section className="film-section" aria-labelledby="watch-h">
-              <h2 id="watch-h">Where to watch</h2>
-              <WatchSection watch={film.watch} title={film.title} slug={film.slug} />
-            </section>
-
             <FilmEditorial filmId={film.id} />
 
-            {/* 4. Cast and crew: who made it, each with what they did. */}
+            {/* 3. Cast and crew: who made it, each with what they did. */}
             {people.length > 0 && (
               <section className="film-section" aria-labelledby="people-h">
                 <h2 id="people-h">Cast and crew</h2>
@@ -255,6 +249,12 @@ export async function FilmPageView({ params }: Params) {
                 )}
               </section>
             )}
+
+            {/* 4. Where to watch, once you know who made it. */}
+            <section className="film-section" aria-labelledby="watch-h">
+              <h2 id="watch-h">Where to watch</h2>
+              <WatchSection watch={film.watch} title={film.title} slug={film.slug} />
+            </section>
 
             {/* 5. Awards: the first two (wins first), then every win and nomination in a sheet. */}
             {(wins.length > 0 || noms.length > 0) && (

@@ -3527,10 +3527,10 @@ html:root:root .film-v2 .film-facts dd a:hover { text-decoration: underline; tex
   .film-v2 .film-overview { gap: var(--space-20); padding-bottom: 0; }
   .film-v2 .film-title { font-size: clamp(2rem, 9vw, 2.75rem); }
   .film-v2 .film-byline { font-size: var(--t-md); }
-  /* Story and where to watch first, then the details, then everything else. */
+  /* The story first, then the details, then everything else. */
   .film-layout { display: flex; flex-direction: column; gap: 0; padding-top: var(--space-32); }
   .film-v2 .film-body { display: contents; }
-  .film-v2 .film-body > :nth-child(n+3) { order: 2; }
+  .film-v2 .film-body > :not(.film-story) { order: 2; }
   html:root:root .film-v2 .film-facts { order: 1; position: static; align-self: stretch; margin-top: var(--space-48); padding-top: var(--space-32); border-top: 1px solid var(--line); }
   .film-facts dl { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--space-20); }
   .film-facts dl > div:last-child { border-bottom: 0; }
