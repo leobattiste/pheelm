@@ -194,14 +194,6 @@ export default function HelpBrowser() {
         ))
       )}
 
-      <section className="help-contact" aria-labelledby="help-contact-heading">
-        <h2 id="help-contact-heading">Still need help?</h2>
-        <p>Contact us with a question, or send feedback about an issue.</p>
-        <div className="actions">
-          <Link className="button" href="/contact">Contact us</Link>
-          <Link className="button ghost" href="/feedback">Give feedback</Link>
-        </div>
-      </section>
     </div>
   );
 }
