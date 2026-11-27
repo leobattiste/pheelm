@@ -440,9 +440,9 @@ body:has(.has-still) .site-header .wordmark { text-shadow: 0 1px 8px rgb(0 0 0 /
 
 /* Newsletter and contact forms */
 .newsletter-form { display: grid; gap: var(--space-8); }
-.newsletter-row { display: flex; gap: var(--space-8); }
-.newsletter-row input { flex: 1; min-width: 0; }
-.newsletter-row .button { flex: none; }
+.newsletter-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-8); }
+.newsletter-row input { width: 100%; min-width: 0; }
+.newsletter-row .button[type="submit"] { width: 100%; min-width: 0; }
 .form-note { min-height: 1.4em; color: var(--ok); font-size: var(--t-sm); }
 .form-note.is-error { color: var(--error); }
 .form-note:empty { min-height: 0; }
@@ -1031,6 +1031,19 @@ body:has(.film-page) .site-header { border-bottom-color: transparent; }
 
 .panel { max-width: 560px; margin: 0 auto; padding: clamp(var(--space-40), 7vw, var(--space-96)) var(--gutter) 0; display: grid; gap: var(--space-20); }
 .form { display: grid; gap: var(--space-16); }
+/* Form submissions fill the form column without affecting unrelated actions
+   such as inline search, navigation, and comment controls. */
+form.form :is(button.button[type="submit"], input.button[type="submit"]) {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+}
+form.form :is(.actions, .modal-foot):has(> :is(button.button[type="submit"], input.button[type="submit"])) {
+  flex-wrap: wrap;
+}
+form.form :is(.actions, .modal-foot) > :is(button.button[type="submit"], input.button[type="submit"]) {
+  flex: 1 0 100%;
+}
 .field { display: grid; gap: var(--space-8); font-size: var(--t-sm); font-weight: 700; }
 .field .hint { font-weight: 400; color: var(--muted); font-size: var(--t-xs); }
 .field textarea.tall { min-height: 280px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: var(--t-sm); }
