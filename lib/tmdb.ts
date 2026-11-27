@@ -182,9 +182,11 @@ export async function getMovie(id: number): Promise<ImportedFilm> {
   };
   for (const role of ["director", "writer", "cinematographer", "editor", "composer", "producer"] as Role[]) {
     const crew = (m.credits?.crew ?? []).filter((c) => !!c.job && CREW_JOBS[c.job] === role);
-    for (const c of role === "producer" ? crew.slice(0, 3) : crew) add(c, role, c.job ?? null);
+    for (const c of crew) add(c, role, c.job ?? null);
   }
-  for (const c of (m.credits?.cast ?? []).slice(0, 12)) add(c, "cast", c.character || null);
+  // Everyone TMDB lists, in billing order. The film page shows the crew and the first six of the
+  // cast, with the rest behind "Show all".
+  for (const c of m.credits?.cast ?? []) add(c, "cast", c.character || null);
 
   // The request above asks TMDB for English, which also filters the videos it appends, so a film
   // whose trailer is tagged Yoruba, Wolof, French or Portuguese looked as if it had none. When

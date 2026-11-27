@@ -3435,3 +3435,13 @@ html:root:root:root .trailer-foot .button.ghost { border: 1px solid var(--contro
 
 /* Synopsis: a section like Cast and crew; the section's own gap spaces the note and the text. */
 .film-synopsis :is(.film-note, .film-essay) { margin-top: 0; }
+
+/* Film page: a blurred copy of the poster glows behind it, spreading its colours into the page. */
+.film-page { isolation: isolate; overflow-x: clip; }
+/* The sticky poster column paints in its own layer, glow included, so the text sits above it. */
+.film-page > .film-body { position: relative; z-index: 1; }
+.film-glow { position: absolute; inset: -18% -30%; z-index: -1; pointer-events: none; }
+.film-glow img { width: 100%; height: 100%; object-fit: cover; filter: blur(90px) saturate(1.5); opacity: 0.55; transform: translateZ(0); }
+:root[data-theme="light"] .film-glow img { opacity: 0.4; }
+@media (max-width: 799px) { .film-art { position: relative; } .film-glow { inset: -12% -20%; } .film-glow img { filter: blur(70px) saturate(1.5); } }
+@media (prefers-reduced-transparency: reduce) { .film-glow { display: none; } }

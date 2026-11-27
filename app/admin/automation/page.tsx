@@ -6,6 +6,10 @@ import BulkImport from "../BulkImport";
 import PeopleFill from "../PeopleFill";
 import WatchRefresh from "../WatchRefresh";
 import AwardsRefresh from "../AwardsRefresh";
+import CreditsRefresh from "../CreditsRefresh";
+
+// The batch buttons here run server actions that wait on TMDB and Wikidata.
+export const maxDuration = 300;
 
 export default async function AutomationPage() {
   const { db } = await requireAdmin("/admin/automation");
@@ -28,6 +32,9 @@ export default async function AutomationPage() {
         <p className="muted">{missingSynopses ?? 0} TMDB-linked films have no synopsis. Existing editorial text is preserved.</p>
         {tmdbEnabled && <BulkImport films={synopses ?? []} label="synopsis" />}
         {(missingSynopses ?? 0) > 200 && <p className="muted">Showing the first 200. Reload after this batch to continue.</p>}
+      </Panel>
+      <Panel title="Add full cast and crew" icon="users2">
+        {tmdbEnabled && <CreditsRefresh />}
       </Panel>
       <Panel title="Fill people details" icon="users2">
         <PeopleFill waiting={peopleWaiting ?? 0} />

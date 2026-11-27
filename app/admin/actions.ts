@@ -9,7 +9,7 @@ import { adminClient, ownerClient } from "@/lib/admin";
 import { logAdminActivity } from "@/lib/admin-activity";
 import { resolvePoster } from "@/lib/film-fields";
 import { slugify } from "@/lib/format";
-import { addFilmByTitle, fillPerson, importFilm, posterColour, type AddResult } from "@/lib/import";
+import { addFilmByTitle, fillPerson, importFilm, posterColour, refreshCredits, type AddResult } from "@/lib/import";
 import { getWatch, tmdbEnabled } from "@/lib/tmdb";
 import { refreshAwardsBatch } from "@/lib/awards";
 import type { Award, Role, WatchOption } from "@/lib/types";
@@ -255,20 +255,47 @@ export async function refreshWatch(offset: number): Promise<Result & { next: num
 }
 
 /** Updates every TMDB-linked film's awards and nominations from Wikidata, ten films at a time. */
-export async function refreshAwards(offset: number): Promise<Result & { next: number; total: number; updated: number }> {
+export async function refreshAwards(offset: number): Promise<Result & { next: number; total: number; updated: number; failed: number }> {
   try {
     const db = await adminClient();
     const { count } = await db.from("films").select("*", { count: "exact", head: true }).not("tmdb_id", "is", null);
-    const { data } = await db.from("films").select("id, tmdb_id, year, awards").not("tmdb_id", "is", null).order("id").range(offset, offset + 9);
-    const updated = (await refreshAwardsBatch(db, data ?? [])).length;
+    const { data } = await db.from("films").select("id, tmdb_id, year, awards").not("tmdb_id", "is", null).order("id").range(offset, offset + 5);
+    const batch = await refreshAwardsBatch(db, data ?? []);
+    const updated = batch.updated.length, failed = batch.failed;
     const next = offset + (data?.length ?? 0);
     if (next >= (count ?? 0)) {
       await logAdminActivity(db, "Updated awards from Wikidata", "film", null, `${count ?? 0} films checked`);
       refresh();
     }
-    return { ok: true, message: `Checked ${next} of ${count ?? 0}.`, next, total: count ?? 0, updated };
+    return { ok: true, message: `Checked ${next} of ${count ?? 0}.`, next, total: count ?? 0, updated, failed };
   } catch (e) {
-    return { ...fail(e), next: offset, total: 0, updated: 0 };
+    return { ...fail(e), next: offset, total: 0, updated: 0, failed: 0 };
+  }
+}
+
+/** Adds the missing cast and crew to ten films at a time, five at once so TMDB isn't flooded. */
+export async function refreshCastAndCrew(offset: number): Promise<Result & { next: number; total: number; added: number; failed: number }> {
+  try {
+    const db = await adminClient();
+    const { count } = await db.from("films").select("*", { count: "exact", head: true }).not("tmdb_id", "is", null);
+    const { data } = await db.from("films").select("id, tmdb_id").not("tmdb_id", "is", null).order("id").range(offset, offset + 9);
+    const films = data ?? [];
+    let added = 0, failed = 0;
+    for (let i = 0; i < films.length; i += 5) {
+      const results = await Promise.allSettled(films.slice(i, i + 5).map((f) => refreshCredits(db, f.id, f.tmdb_id)));
+      for (const r of results) {
+        if (r.status === "fulfilled") added += r.value;
+        else failed++;
+      }
+    }
+    const next = offset + films.length;
+    if (next >= (count ?? 0)) {
+      await logAdminActivity(db, "Added missing cast and crew from TMDB", "film", null, `${count ?? 0} films checked`);
+      refresh();
+    }
+    return { ok: true, message: `Checked ${next} of ${count ?? 0}.`, next, total: count ?? 0, added, failed };
+  } catch (e) {
+    return { ...fail(e), next: offset, total: 0, added: 0, failed: 0 };
   }
 }
 
