@@ -437,3 +437,12 @@ a.admin-attention-row:hover, .admin-attention-row a:hover { color: var(--ink); }
 .admin-send-reach strong { color: var(--ink); }
 .admin-send-confirm { align-items: center; }
 .admin-send-confirm > span { flex: 1 1 100%; font-weight: 700; }
+
+/* Dashboard quick actions: the jobs reached for most, in one wrapping row above the numbers. */
+.admin-quick { display: flex; flex-wrap: wrap; gap: var(--space-8); margin-bottom: var(--space-24); }
+.admin-quick .button svg { width: 18px; height: 18px; }
+@media (max-width: 640px) {
+  .admin-quick { flex-wrap: nowrap; overflow-x: auto; margin-inline: calc(var(--gutter) * -1); padding-inline: var(--gutter); scrollbar-width: none; }
+  .admin-quick::-webkit-scrollbar { display: none; }
+  .admin-quick .button { flex: none; }
+}

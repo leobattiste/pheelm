@@ -34,10 +34,12 @@ export default function TrailerButton({ embed, title, className = "button play",
           if (e.target === dialog.current) close();
         }}
       >
+        <div className="trailer-head">
+          <button type="button" className="icon-button" onClick={close} aria-label="Close trailer"><Icon name="close" /></button>
+        </div>
         <div className="trailer-frame">
           <iframe ref={frame} title={`${title} trailer`} allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen />
         </div>
-        <div className="trailer-foot"><button type="button" className="button ghost" onClick={close}>Close</button></div>
       </dialog>
     </>
   );

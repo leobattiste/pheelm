@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
+import Icon from "@/components/Icon";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getBrowserClient } from "@/lib/supabase/client";
 import {
@@ -271,7 +272,7 @@ export default function Tour() {
       <div className="tour" role="presentation">
         <div className="tour-scrim" onClick={dismissWelcome} />
         <section className="tour-card tour-welcome" role="dialog" aria-modal="true" aria-label="Welcome to Pheelm" style={{ left: (window.innerWidth - Math.min(480, window.innerWidth - 40)) / 2, width: Math.min(480, window.innerWidth - 40) }}>
-          <button type="button" className="icon-button tour-x" aria-label="Close" onClick={dismissWelcome}>×</button>
+          <button type="button" className="icon-button tour-x" aria-label="Close" onClick={dismissWelcome}><Icon name="close" /></button>
           <h2 className="tour-title">What brings you here?</h2>
           <p className="tour-text">Pick one and we will point you to a good place to start.</p>
           <div className="tour-choices">
@@ -306,7 +307,7 @@ export default function Tour() {
       <div className="tour-scrim" onClick={skip} onTouchStart={swipeStart} onTouchEnd={swipeEnd} style={{ clipPath: `path(evenodd, "M0 0H${window.innerWidth}V${window.innerHeight}H0Z M${hole.l + rad} ${hole.t}H${hole.r - rad}A${rad} ${rad} 0 0 1 ${hole.r} ${hole.t + rad}V${hole.b - rad}A${rad} ${rad} 0 0 1 ${hole.r - rad} ${hole.b}H${hole.l + rad}A${rad} ${rad} 0 0 1 ${hole.l} ${hole.b - rad}V${hole.t + rad}A${rad} ${rad} 0 0 1 ${hole.l + rad} ${hole.t}Z")` }} />
       <span className="tour-spot" aria-hidden="true" style={{ top: box.top - pad, left: box.left - pad, width: box.width + pad * 2, height: box.height + pad * 2, borderRadius: rad }} />
       <section className="tour-card" role="dialog" aria-modal="true" aria-label={`Tour: ${current.title}`} style={cardStyle} onTouchStart={swipeStart} onTouchEnd={swipeEnd}>
-        <button type="button" className="icon-button tour-x" aria-label="Close the tour" onClick={skip}>×</button>
+        <button type="button" className="icon-button tour-x" aria-label="Close the tour" onClick={skip}><Icon name="close" /></button>
         <p className="tour-count">{step + 1} of {total}</p>
         <p className="visually-hidden" role="status" aria-live="polite">{announce}</p>
         {/* Every step's words sit in the same cell, so all the cards are as tall as the longest one. */}

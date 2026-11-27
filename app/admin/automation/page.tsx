@@ -23,26 +23,26 @@ export default async function AutomationPage() {
       <PageHeader back={{ href: "/admin/films", label: "Films" }} title="Automation" description="Fill missing details from TMDB in batches. Imports only fill empty fields, so nothing you wrote is overwritten. Check results before publishing."
         actions={<><Link className="button ghost small" href="/admin/quality">Content quality</Link><Link className="button ghost small" href="/admin/searches">Searches with no results</Link></>} />
       {!tmdbEnabled && <p className="notice error">TMDB isn&apos;t connected, so these can&apos;t run. Add TMDB_API_KEY in Vercel.</p>}
-      <Panel title="Fill missing posters" icon="camera">
+      <Panel id="posters" title="Fill missing posters" icon="camera">
         <p className="muted">{missingPosters ?? 0} films need a poster. Each import only fills empty metadata fields.</p>
         {tmdbEnabled && <BulkImport films={posters ?? []} label="poster" />}
         {(missingPosters ?? 0) > 200 && <p className="muted">Showing the first 200. Reload after this batch to continue.</p>}
       </Panel>
-      <Panel title="Fill missing synopses" icon="pencil">
+      <Panel id="synopses" title="Fill missing synopses" icon="pencil">
         <p className="muted">{missingSynopses ?? 0} TMDB-linked films have no synopsis. Existing editorial text is preserved.</p>
         {tmdbEnabled && <BulkImport films={synopses ?? []} label="synopsis" />}
         {(missingSynopses ?? 0) > 200 && <p className="muted">Showing the first 200. Reload after this batch to continue.</p>}
       </Panel>
-      <Panel title="Add full cast and crew" icon="users2">
+      <Panel id="cast-and-crew" title="Add full cast and crew" icon="users2">
         {tmdbEnabled && <CreditsRefresh />}
       </Panel>
-      <Panel title="Fill people details" icon="users2">
+      <Panel id="people-details" title="Fill people details" icon="users2">
         <PeopleFill waiting={peopleWaiting ?? 0} />
       </Panel>
-      <Panel title="Update awards and nominations" icon="laurel">
+      <Panel id="awards" title="Update awards and nominations" icon="laurel">
         <AwardsRefresh />
       </Panel>
-      <Panel title="Refresh where to watch" icon="play">
+      <Panel id="where-to-watch" title="Refresh where to watch" icon="play">
         <WatchRefresh />
       </Panel>
       <p className="muted">Automatic matches can be wrong. Check directors, artwork and written details in the editors.</p>

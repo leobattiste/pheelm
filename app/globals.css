@@ -3352,8 +3352,6 @@ html:root:root:root .trailer-dialog[open] { animation: fade 0.2s var(--ease); }
 /* The dialog is as tall as the video and its Close button, with nothing left over. */
 html:root:root:root .trailer-dialog { height: fit-content; min-height: 0; padding: var(--space-12); overflow: hidden; }
 html:root:root:root .trailer-dialog[open] { display: grid; gap: var(--space-12); }
-.trailer-foot { display: flex; justify-content: center; }
-html:root:root:root .trailer-foot .button.ghost { border: 1px solid var(--control-border-strong); color: var(--ink); }
 
 /* Onboarding tour: a dimmed page, one tab in a spotlight, and a small card with Back and Next. */
 .tour { position: fixed; inset: 0; z-index: 1002; }
@@ -3445,3 +3443,9 @@ html:root:root:root .trailer-foot .button.ghost { border: 1px solid var(--contro
 :root[data-theme="light"] .film-glow img { opacity: 0.4; }
 @media (max-width: 799px) { .film-art { position: relative; } .film-glow { inset: -12% -20%; } .film-glow img { filter: blur(70px) saturate(1.5); } }
 @media (prefers-reduced-transparency: reduce) { .film-glow { display: none; } }
+
+/* Every modal closes from its top corner: the trailer player gets an X above the video. */
+.trailer-head { display: flex; justify-content: flex-end; padding-bottom: var(--space-8); }
+.trailer-head .icon-button { color: #fff; background: rgb(255 255 255 / 0.12); }
+.trailer-head .icon-button:hover { background: rgb(255 255 255 / 0.22); }
+.tour-x svg { width: 18px; height: 18px; }
