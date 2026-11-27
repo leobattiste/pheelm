@@ -1,8 +1,7 @@
-import Link from "next/link";
-import DirectorCard from "@/components/DirectorCard";
 import AdminBrowserToolbar from "../AdminBrowserToolbar";
 import { requireAdmin } from "@/lib/admin";
-import { Empty, PageHeader, Pager, Pill, day, pageNumber, plural } from "../ui";
+import { Empty, PageHeader, Pager, Pill, ago, day, pageNumber, plural } from "../ui";
+import { DataTable, MainCell, Num, Thumb } from "../DataTable";
 
 export type MemberRow = {
   id: string; handle: string | null; display_name: string | null; email: string | null; created_at: string; last_seen: string | null;
@@ -67,30 +66,39 @@ export default async function AdminMembers({ searchParams }: { searchParams: Pro
         { name: "sort", label: "Sort by", value: sort.value, options: SORTS.map(({ value, label }) => ({ value, label })) },
       ]} />
       <p className="muted">{plural(filtered.length, "matching member")}.{owner ? "" : " Only the owner can see email addresses."}</p>
-      {pageRows.length ? (
-        <ul className="director-grid admin-member-grid">
-          {pageRows.map((r) => (
-            <DirectorCard key={r.id} href={`/admin/members/${r.id}`} showPreviews={false} director={{
-              id: r.id, slug: r.id, name: r.display_name || (r.handle ? `@${r.handle}` : "No profile yet"),
-              country: null, photo_url: photoById.get(r.id) ?? null, films: 0, first: 0, last: 0, previews: [],
-            }} meta={r.handle ? `@${r.handle}` : "Member"} footer={
-              <div className="admin-card-controls">
-                <div className="admin-tags">
-                  {r.is_owner ? <Pill tone="info">Owner</Pill> : r.is_admin ? <Pill tone="info">Admin</Pill> : <Pill>Member</Pill>}
-                  {r.suspended_at && <Pill tone="danger">Suspended</Pill>}
-                  {r.is_private && <Pill>Private</Pill>}
-                </div>
-                {owner && r.email && <p className="muted">{r.email}</p>}
-                <dl className="admin-member-stats"><div><dt>Watchlists</dt><dd>{r.lists}</dd></div><div><dt>Saved</dt><dd>{r.saved}</dd></div><div><dt>Comments</dt><dd>{r.comments}</dd></div></dl>
-                <p className="muted">Joined {day(r.created_at)}<br />Last signed in {day(r.last_seen)}</p>
-                <div className="actions">
-                  <Link className="link-button" href={`/admin/members/${r.id}`}>View member</Link>
-                </div>
-              </div>
-            } />
-          ))}
-        </ul>
-      ) : <Empty title="No matching members">Try another search or filter.</Empty>}
+      <DataTable label="Members" empty={<Empty title="No matching members">Try another search or filter.</Empty>}
+        columns={[
+          { key: "member", label: "Member" },
+          ...(owner ? [{ key: "email", label: "Email", width: "220px" }] : []),
+          { key: "role", label: "Role", phone: true, width: "130px" },
+          { key: "lists", label: "Watchlists", align: "end" as const, width: "96px" },
+          { key: "saved", label: "Saved", align: "end" as const, width: "72px", wide: true },
+          { key: "comments", label: "Comments", align: "end" as const, width: "96px", wide: true },
+          { key: "joined", label: "Joined", width: "120px", wide: true },
+          { key: "seen", label: "Last seen", width: "120px" },
+        ]}
+        rows={pageRows.map((r) => {
+          const name = r.display_name || (r.handle ? `@${r.handle}` : "No profile yet");
+          return {
+            id: r.id,
+            dim: !!r.suspended_at,
+            cells: {
+              member: <MainCell href={`/admin/members/${r.id}`} media={<Thumb src={photoById.get(r.id) ?? null} name={name} shape="round" />} title={name}
+                detail={r.handle && r.display_name ? `@${r.handle}` : r.handle ? "No display name" : "Hasn't set up a profile"}
+                phoneDetail={[r.handle && r.display_name ? `@${r.handle}` : null, `joined ${day(r.created_at)}`].filter(Boolean).join(" · ")} />,
+              email: owner && r.email ? <span className="admin-cell-email">{r.email}</span> : null,
+              role: <span className="admin-tags">
+                {r.suspended_at ? <Pill tone="danger">Suspended</Pill> : r.is_owner ? <Pill tone="info">Owner</Pill> : r.is_admin ? <Pill tone="info">Admin</Pill> : <Pill>Member</Pill>}
+                {r.is_private && <Pill>Private</Pill>}
+              </span>,
+              lists: <Num value={r.lists} />,
+              saved: <Num value={r.saved} />,
+              comments: <Num value={r.comments} />,
+              joined: <span className="muted">{day(r.created_at)}</span>,
+              seen: <span className="muted">{r.last_seen ? ago(r.last_seen) : "Never"}</span>,
+            },
+          };
+        })} />
       <Pager page={page} total={filtered.length} size={SIZE} href={href} />
     </>
   );

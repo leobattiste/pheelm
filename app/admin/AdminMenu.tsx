@@ -20,9 +20,18 @@ export default function AdminMenu({ label = "More actions", text, align = "right
       // (it is drawn by the menu itself), so a tap on it lands on the menu element: that closes too.
       if (e instanceof KeyboardEvent ? e.key === "Escape" : !el.contains(e.target as Node) || e.target === el) el.open = false;
     };
+    // Near the bottom of the screen, open upwards so the whole list stays in view.
+    const el = menu.current;
+    const place = () => {
+      if (!el?.open) return;
+      el.classList.remove("is-up");
+      const list = el.querySelector<HTMLElement>(".admin-menu-list");
+      if (list && list.getBoundingClientRect().bottom > innerHeight - 8 && el.getBoundingClientRect().top > list.offsetHeight + 16) el.classList.add("is-up");
+    };
+    el?.addEventListener("toggle", place);
     document.addEventListener("pointerdown", close);
     document.addEventListener("keydown", close);
-    return () => { document.removeEventListener("pointerdown", close); document.removeEventListener("keydown", close); };
+    return () => { el?.removeEventListener("toggle", place); document.removeEventListener("pointerdown", close); document.removeEventListener("keydown", close); };
   }, []);
   return (
     <details ref={menu} className={`admin-menu is-${align}`}>
