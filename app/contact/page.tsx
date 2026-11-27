@@ -17,7 +17,7 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
   }
   const topic = ["general", "account", "press", "privacy", "other"].includes(sp.topic ?? "") ? sp.topic! : "general";
   return (
-    <article className="page full-width info-page enquiry-page">
+    <article className="page full-width info-page enquiry-page contact-page">
       <div className="form-split">
         <div className="form-split-intro">
           <header className="page-head">
