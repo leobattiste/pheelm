@@ -1,7 +1,7 @@
 import "server-only";
 
-import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
+import { serviceClient } from "@/lib/supabase/service";
 import { workerCheck } from "@/lib/worker-auth";
 
 export const runtime = "nodejs";
@@ -35,7 +35,7 @@ function sourcesFrom(input: string[]): string[] {
 function validBiography(biography: string): boolean {
   const paragraphs = biography.trim().split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
   return biography.length >= 1500 &&
-    biography.length <= 5500 &&
+    biography.length <= 3500 &&
     paragraphs.length === 4 &&
     paragraphs.every(p => p.length >= 260 && p.length <= 1650) &&
     !/https?:\/\/|according to (wikipedia|imdb)/i.test(biography);
@@ -116,9 +116,7 @@ async function research(key: string, person: { name: string; country: string | n
 }
 
 export async function POST(request: NextRequest) {
-  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const service = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const db = url && service ? createClient(url, service, { auth: { persistSession: false, autoRefreshToken: false } }) : null;
+  const db = serviceClient();
   // Same check as the other internal workers: PHEELM_BIO_WORKER_SECRET if set, else the vault's pheelm_worker_secret.
   if ((await workerCheck(request, db)) !== "ok") return json({ error: "Unauthorized" }, 401);
   const key = process.env.OPENAI_API_KEY || process.env.OPEN_AI;

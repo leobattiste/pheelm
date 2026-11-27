@@ -36,7 +36,6 @@ export async function sendMessage(_prev: FormState, f: FormData): Promise<FormSt
   if (!body) return { ok: false, message: "Write a message first." };
   if (body.length > 5000) return { ok: false, message: "That's a long one. Keep it under 5,000 characters." };
   const name = String(f.get("name") ?? "").trim();
-  // Partnership requests keep their type and link as separate fields too (after admin-inbox.sql).
   let partnership: { partnership_type: string; website: string | null } | null = null;
   let messageBody = body;
   if (topic === "partnership") {
@@ -67,19 +66,8 @@ export async function sendMessage(_prev: FormState, f: FormData): Promise<FormSt
     body: messageBody,
   };
   const full = page ? { ...row, page, page_title: pageTitle } : row;
-  let { error } = partnership
-    ? await db.from("messages").insert({ ...full, ...partnership, body })
-    : await db.from("messages").insert(full);
-  if (error && partnership) ({ error } = await db.from("messages").insert(full));
-  // Before feedback-page.sql has run: no "feedback" topic or page columns, so keep both in the message.
-  if (error) {
-    const note = [row.topic === "feedback" ? "Feedback" : null, page ? `About: ${pageTitle} (${page})` : null].filter(Boolean).join(". ");
-    ({ error } = await db.from("messages").insert({
-      ...row,
-      topic: row.topic === "feedback" ? "general" : row.topic,
-      body: note ? `${messageBody}\n\n${note}`.slice(0, 5000) : messageBody,
-    }));
-  }
+  // A partnership request keeps its type and link in their own fields; the proposal is the body.
+  const { error } = await db.from("messages").insert(partnership ? { ...full, ...partnership, body } : full);
   if (error) return { ok: false, message: "Messages can't be sent from here yet. Check back soon." };
   return { ok: true, message: topic === "partnership" ? PARTNERSHIP_SUCCESS : ["general", "account", "press", "privacy", "other"].includes(topic) ? "Your message has been sent. We'll get back to you when we can." : `Thanks. We'll reply to ${email}.` };
 }

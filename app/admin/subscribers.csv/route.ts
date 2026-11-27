@@ -24,6 +24,6 @@ export async function GET() {
   await logAdminActivity(db, "Downloaded newsletter list", "subscriber", null, `${rows.length} addresses`);
   const csv = ["email,source,signed_up", ...rows.map((r) => [r.email, r.source ?? "", r.created_at].map((v) => `"${cell(String(v)).replace(/"/g, '""')}"`).join(","))].join("\n");
   return new NextResponse(csv, {
-    headers: { "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": `attachment; filename="pheelm-newsletter.csv"` },
+    headers: { "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": `attachment; filename="pheelm-newsletter.csv"`, "Cache-Control": "no-store" },
   });
 }

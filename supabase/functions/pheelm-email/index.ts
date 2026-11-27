@@ -9,7 +9,8 @@ const templates=unpack(packed);
 const project=Deno.env.get('SUPABASE_URL')!;
 const service=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const endpoint=project+'/functions/v1/pheelm-email';
-const BASE='https://www.pheelm.com';
+// The site's address, for links in emails. Set PHEELM_SITE_URL on the function to send from a preview or staging site.
+const BASE=(Deno.env.get('PHEELM_SITE_URL')||'https://www.pheelm.com').replace(/\/$/,'');
 // Sentry cron monitor "pheelm-email-delivery": each run reports in, so a run that stops or fails is noticed.
 // Built from the project's public DSN (lib/sentry-scrub.ts); it only lets check-ins in.
 const CHECK_IN='https://o4512403675807744.ingest.us.sentry.io/api/4512403855441920/cron/pheelm-email-delivery/8df4f0fa88b24d9a2679fa7c6dd23c06/';
@@ -66,7 +67,7 @@ Deno.serve(async req=>{try{const url=new URL(req.url);const action=url.searchPar
   // One pass, so nothing inserted here is read again as a [[TOKEN]]. DIGEST is HTML built (and escaped) by digest.mjs.
   const html=layoutHtml.replace(/\[\[([A-Z0-9_]+)\]\]/g,(_,key)=>key==='DIGEST'?digestHtmlPart:key==='MESSAGE'?escapeHtml(values[key]??'').replaceAll('\n','<br>'):escapeHtml(values[key]??''));const text=layoutText.replace(/\[\[([A-Z0-9_]+)\]\]/g,(_,key)=>key==='DIGEST'?digestTextPart:values[key]??'');
   const r=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:'Bearer '+config.pheelm_resend_api_key,'Content-Type':'application/json','Idempotency-Key':'pheelm-email/'+job.id},body:JSON.stringify({from:'Pheelm <notifications@pheelm.com>',reply_to:'hey@pheelm.com',to:[job.recipient],subject,html,text,...(optional?{headers:{'List-Unsubscribe':`<${unsub}>`,'List-Unsubscribe-Post':'List-Unsubscribe=One-Click'}}:{}),tags:[{name:'template',value:job.template}]}),signal:AbortSignal.timeout(10000)});
-  if(!r.ok){console.error(JSON.stringify({event:'send_failed',job:job.id,template:job.template,status:r.status,detail:(await r.text().catch(()=>'')).slice(0,300)}));await rpc('email_complete',{job_id:job.id,lease_id:job.lease,failure:'Email provider HTTP '+r.status,retryable:r.status===429||r.status>=500});failed++;}else{const result=await r.json();await rpc('email_complete',{job_id:job.id,lease_id:job.lease,provider:result.id});sent++;}
+  if(!r.ok){console.error(JSON.stringify({event:'send_failed',job:job.id,template:job.template,status:r.status,error:await r.json().then((b:{name?:unknown})=>typeof b?.name==='string'?b.name.slice(0,60):null,()=>null)}));await rpc('email_complete',{job_id:job.id,lease_id:job.lease,failure:'Email provider HTTP '+r.status,retryable:r.status===429||r.status>=500});failed++;}else{const result=await r.json();await rpc('email_complete',{job_id:job.id,lease_id:job.lease,provider:result.id});sent++;}
  }catch(e){console.error(JSON.stringify({event:'job_error',job:job.id,template:job.template,error:String((e as Error)?.message??e).slice(0,300)}));await rpc('email_complete',{job_id:job.id,lease_id:job.lease,failure:'Delivery interrupted or invalid configuration',retryable:true});failed++;}
  await new Promise(r=>setTimeout(r,550));
  }

@@ -106,7 +106,7 @@ type Copy = { at: number; checked: number; version: number | null; data: Promise
 let shared: Copy | null = null;
 let checking: Promise<boolean> | null = null;
 
-const anonClient = () => createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: false } });
+export const anonClient = () => createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: false } });
 
 /**
  * Where the catalog comes from. Normally the snapshot: the whole published catalog as one

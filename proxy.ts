@@ -4,8 +4,9 @@ import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseEnabled } from "@/lib/supabase
 import { EARLY_ACCESS } from "@/lib/launch";
 
 /**
- * Early access: without an account, only the home page and a few pages about Pheelm are open.
- * Everything else sends visitors home, where the sign-up sheet opens and brings them back after.
+ * Early access: without an account, the home page, the catalog (films, directors, people, watchlists
+ * and collections), the pages about Pheelm, sign-in and the forms in OPEN below are open. Everything
+ * else sends visitors home, where the sign-up sheet opens and brings them back after.
  * After launch (EARLY_ACCESS off, lib/launch.ts) everything is open except the account pages below.
  */
 const OPEN = /^\/(films|directors|people|help|submit|watchlists|c|collections|login|auth|email|feedback|legal|privacy|terms|contact|about|partnerships|donate|newsletter|offline)(\/|$)/;
