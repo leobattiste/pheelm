@@ -6,7 +6,7 @@ export const metadata: Metadata = publicPageMetadata("/partnerships");
 
 export default function PartnershipsPage() {
   return (
-    <article className="page full-width info-page">
+    <article className="page full-width info-page partnerships-page">
       <div className="form-split">
         <div className="form-split-intro">
           <header className="page-head">
