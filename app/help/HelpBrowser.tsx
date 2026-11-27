@@ -20,6 +20,8 @@ export default function HelpBrowser() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
   const [open, setOpen] = useState<string | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const filterDialog = useRef<HTMLDialogElement>(null);
   const pendingScroll = useRef<string | null>(null);
   const searchInput = useRef<HTMLInputElement>(null);
 
@@ -27,12 +29,10 @@ export default function HelpBrowser() {
   const results = useMemo(() => {
     const words = query.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
     return ALL_QUESTIONS.filter((question) => {
-      // Searching always covers every answer, even if a category was selected before typing.
-      if (words.length) {
-        const searchable = (question.categoryTitle + " " + question.question + " " + question.answer).toLocaleLowerCase();
-        return words.every((word) => searchable.includes(word));
-      }
-      return category === "all" || question.category === category;
+      if (category !== "all" && question.category !== category) return false;
+      if (!words.length) return true;
+      const searchable = (question.categoryTitle + " " + question.question + " " + question.answer).toLocaleLowerCase();
+      return words.every((word) => searchable.includes(word));
     });
   }, [query, category]);
 
@@ -50,7 +50,6 @@ export default function HelpBrowser() {
 
   const selectCategory = (id: string) => {
     setCategory(id);
-    setQuery("");
     setOpen(null);
     window.history.replaceState(null, "", window.location.pathname + window.location.search + (id === "all" ? "" : "#" + id));
   };
@@ -128,19 +127,25 @@ export default function HelpBrowser() {
               id="help-q"
               type="search"
               value={query}
+              onChange={(event) => { setQuery(event.target.value); setOpen(null); resetHash(); }}
               placeholder="Search for help"
               autoComplete="off"
             />
             {query && <button type="button" className="catalog-clear-query" aria-label="Clear search" onClick={clearSearch}><Icon name="close" /></button>}
           </form>
         </div>
-      </div>
-      <div className="help-topics" role="group" aria-label="Browse help topics">
-        {[{ id: "all", title: "All topics" }, ...HELP_CATEGORIES].map((group) => (
-          <button key={group.id} type="button" className="chip" aria-pressed={!searching && category === group.id} onClick={() => selectCategory(group.id)}>
-            {group.title}
-          </button>
-        ))}
+        <button
+          type="button"
+          className={"button ghost filter-button" + (category !== "all" ? " has-count" : "")}
+          aria-haspopup="dialog"
+          aria-controls="help-filters"
+          aria-expanded={filtersOpen}
+          onClick={() => { setFiltersOpen(true); filterDialog.current?.showModal(); }}
+        >
+          <Icon name="filter" />
+          <span className="filter-label">Filters</span>
+          {category !== "all" && <span className="badge" aria-label="1 active filter">1</span>}
+        </button>
       </div>
 
       <div className="help-results-head">
@@ -173,6 +178,41 @@ export default function HelpBrowser() {
           </section>
         ))
       )}
+
+      <dialog
+        ref={filterDialog}
+        id="help-filters"
+        className="modal catalog-filter-dialog"
+        aria-labelledby="help-filters-title"
+        onClose={() => setFiltersOpen(false)}
+        onClick={(event) => { if (event.target === filterDialog.current) filterDialog.current?.close(); }}
+      >
+        <div className="modal-head">
+          <span className="sheet-handle" aria-hidden="true" />
+          <h2 id="help-filters-title">Filters</h2>
+          <button type="button" className="icon-button" aria-label="Close filters" onClick={() => filterDialog.current?.close()}>
+            <Icon name="close" />
+          </button>
+        </div>
+        <div className="modal-body">
+          <fieldset className="filter-field feed-choice">
+            <legend>Topic</legend>
+            <div className="chip-row filter-choices">
+              {[{ id: "all", title: "All topics" }, ...HELP_CATEGORIES].map((group) => (
+                <button key={group.id} type="button" className="button ghost" aria-pressed={category === group.id} onClick={() => selectCategory(group.id)}>
+                  {group.title}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+        </div>
+        <div className="modal-foot">
+          <button type="button" className="button ghost" disabled={category === "all"} onClick={() => selectCategory("all")}>Reset</button>
+          <button type="button" className="button" onClick={() => filterDialog.current?.close()}>
+            Show {results.length} {results.length === 1 ? "answer" : "answers"}
+          </button>
+        </div>
+      </dialog>
 
     </div>
   );
