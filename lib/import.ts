@@ -73,6 +73,15 @@ export async function importFilm(db: SupabaseClient, filmId: string, prefetched?
   return `${film.title}: ${parts.join(" · ")}.`;
 }
 
+/**
+ * Adds the cast and crew a film is missing from TMDB, and nothing else: for films imported when
+ * only the first 12 of the cast and 3 producers were kept. Returns how many credits were added.
+ * New people's biographies are filled later by "Fill people details".
+ */
+export async function refreshCredits(db: SupabaseClient, filmId: string, tmdbId: number): Promise<number> {
+  return (await savePeople(db, filmId, await getMovie(tmdbId))).added;
+}
+
 export type AddResult = { status: "added" | "exists" | "not-found"; message: string; id?: string };
 
 /**

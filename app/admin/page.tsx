@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/admin";
 import { adminCounts } from "@/lib/admin-counts";
 import { tmdbEnabled } from "@/lib/tmdb";
+import Icon, { type IconName } from "@/components/Icon";
 import { Empty, PageHeader, Panel, Pill, Row, Stat, Stats, ago, plural } from "./ui";
 
 export default async function AdminHome() {
@@ -40,14 +41,32 @@ export default async function AdminHome() {
     { name: "Films in the queue", count: queued, href: "/admin/films/add?method=queue" },
   ];
   const waitingTotal = fromPeople.reduce((sum, t) => sum + t.count, 0);
+  // The jobs reached for most, one tap from the dashboard. The catalog jobs open their panel in Automation.
+  const quick: { label: string; href: string; icon: IconName; primary?: boolean; tmdb?: boolean }[] = [
+    { label: "Add a film", href: "/admin/films/add?method=one", icon: "plus", primary: true, tmdb: true },
+    { label: "Add a list of films", href: "/admin/films/add?method=list", icon: "stack", tmdb: true },
+    { label: "Write a perspective", href: "/admin/editorial", icon: "pencil" },
+    { label: "Update awards", href: "/admin/automation#awards", icon: "laurel" },
+    { label: "Add full cast and crew", href: "/admin/automation#cast-and-crew", icon: "users2", tmdb: true },
+    { label: "Fill people details", href: "/admin/automation#people-details", icon: "users2", tmdb: true },
+    { label: "Refresh where to watch", href: "/admin/automation#where-to-watch", icon: "play", tmdb: true },
+  ];
 
   return (
     <>
       <PageHeader
         title="Dashboard"
         description={waitingTotal ? `${plural(waitingTotal, "thing")} waiting for you.` : "Nothing is waiting for you. Here's how the catalog stands."}
-        actions={<Link className="button ghost" href="/admin/analytics">Analytics</Link>}
+        actions={<>
+          <Link className="button ghost" href="/admin/analytics">Analytics</Link>
+          {tmdbEnabled && <Link className="button" href="/admin/films/add?method=one"><Icon name="plus" />Add a film</Link>}
+        </>}
       />
+      <nav className="admin-quick" aria-label="Quick actions">
+        {quick.filter((q) => !q.tmdb || tmdbEnabled).map((q) => (
+          <Link key={q.label} className={q.primary ? "button" : "button ghost"} href={q.href}><Icon name={q.icon} />{q.label}</Link>
+        ))}
+      </nav>
       <Stats>
         <Stat value={films} label="Published films" href="/admin/films?status=published" />
         <Stat value={people} label="People" href="/admin/people" />

@@ -6,7 +6,7 @@ import Icon from "@/components/Icon";
 
 /**
  * Less-used actions behind one ⋯ button (or a labelled button), so each page shows a single main
- * action. Closes on a click outside, on Escape and when the page changes.
+ * action. Closes on a click outside, on its X (as a sheet on phones), on Escape and when the page changes.
  */
 export default function AdminMenu({ label = "More actions", text, align = "right", children }: { label?: string; text?: ReactNode; align?: "left" | "right"; children: ReactNode }) {
   const menu = useRef<HTMLDetailsElement>(null);
@@ -16,7 +16,9 @@ export default function AdminMenu({ label = "More actions", text, align = "right
     const close = (e: Event) => {
       const el = menu.current;
       if (!el?.open) return;
-      if (e instanceof KeyboardEvent ? e.key === "Escape" : !el.contains(e.target as Node)) el.open = false;
+      // On phones the menu opens as a sheet over a dimmed backdrop. The backdrop belongs to the menu
+      // (it is drawn by the menu itself), so a tap on it lands on the menu element: that closes too.
+      if (e instanceof KeyboardEvent ? e.key === "Escape" : !el.contains(e.target as Node) || e.target === el) el.open = false;
     };
     document.addEventListener("pointerdown", close);
     document.addEventListener("keydown", close);
@@ -27,7 +29,13 @@ export default function AdminMenu({ label = "More actions", text, align = "right
       <summary className={text ? "button ghost" : "button ghost icon-only"} aria-label={label} title={label}>
         {text ? <span className="admin-menu-text">{text}</span> : <Icon name="more" />}{text && <Icon name="arrowDown" />}
       </summary>
-      <div className="admin-menu-list" onClick={(e) => { if ((e.target as HTMLElement).closest("a")) menu.current!.open = false; }}>{children}</div>
+      <div className="admin-menu-list" onClick={(e) => { if ((e.target as HTMLElement).closest("a")) menu.current!.open = false; }}>
+        <div className="admin-menu-head">
+          <span>{typeof text === "string" ? text : label}</span>
+          <button type="button" className="icon-button" aria-label="Close" onClick={() => { if (menu.current) menu.current.open = false; }}><Icon name="close" /></button>
+        </div>
+        {children}
+      </div>
     </details>
   );
 }

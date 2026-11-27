@@ -136,6 +136,13 @@ export async function FilmPageView({ params }: Params) {
         <Breadcrumbs parent="Films" href="/films" current={film.title} currentHref={filmPath(film.slug, film.directors)} />
 
         <div className="film-art">
+          {/* A blurred copy of the poster behind it, so its colours spread into the page as a soft glow. */}
+          {film.poster_url && (
+            <div className="film-glow" aria-hidden="true">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={film.poster_url} alt="" decoding="async" />
+            </div>
+          )}
           <Poster title={film.title} year={film.year} directors={directorNames} src={film.poster_url} sizes="(min-width: 800px) 46vw, 100vw" priority hero />
         </div>
 
@@ -146,6 +153,7 @@ export async function FilmPageView({ params }: Params) {
               <h1 className="film-title" id="film-title">{film.title}</h1>
               <p className="film-byline">
                 <span className="byline-item">
+                  Directed by{" "}
                   {film.directors.map((d, i) => (
                     <span key={d.id}>
                       {i > 0 && (i === film.directors.length - 1 ? " and " : ", ")}
@@ -200,7 +208,7 @@ export async function FilmPageView({ params }: Params) {
 
           {/* 2. About: small facts to scan. */}
           <section className="film-section" aria-labelledby="details-h">
-            <h2 id="details-h">About</h2>
+            <h2 id="details-h">Details</h2>
             <dl className="details film-about">
               {details.filter(([, v]) => v).map(([k, v]) => (
                 <div key={k}>

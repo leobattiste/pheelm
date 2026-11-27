@@ -26,10 +26,10 @@ export async function POST(request: NextRequest) {
   const { count } = await db.from("films").select("*", { count: "exact", head: true }).not("tmdb_id", "is", null);
   const { data, error } = await db.from("films").select("id, slug, tmdb_id, year, awards").not("tmdb_id", "is", null).order("id").range(offset, offset + limit - 1);
   if (error) return json({ error: error.message }, 500);
-  const updated = await refreshAwardsBatch(db, data ?? []);
+  const { updated, failed } = await refreshAwardsBatch(db, data ?? []);
   for (const f of updated) if (f.slug) revalidatePath(`/films/${f.slug}`);
   const next = offset + (data?.length ?? 0);
   if (updated.length) queueCatalogSnapshot();
   if (next >= (count ?? 0)) revalidatePath("/", "layout");
-  return json({ checked: data?.length ?? 0, updated: updated.length, next, total: count ?? 0 });
+  return json({ checked: data?.length ?? 0, updated: updated.length, failed, next, total: count ?? 0 });
 }

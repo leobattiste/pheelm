@@ -437,3 +437,24 @@ a.admin-attention-row:hover, .admin-attention-row a:hover { color: var(--ink); }
 .admin-send-reach strong { color: var(--ink); }
 .admin-send-confirm { align-items: center; }
 .admin-send-confirm > span { flex: 1 1 100%; font-weight: 700; }
+
+/* Dashboard quick actions: the jobs reached for most, in one wrapping row above the numbers. */
+.admin-quick { display: flex; flex-wrap: wrap; gap: var(--space-8); margin-bottom: var(--space-24); }
+@media (max-width: 640px) {
+  .admin-quick { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-quick .button { justify-content: flex-start; min-width: 0; white-space: normal; text-align: left; }
+  .admin-quick .button:first-child { grid-column: 1 / -1; justify-content: center; }
+}
+@media (max-width: 360px) { .admin-quick { grid-template-columns: 1fr; } }
+
+/* Menus: the X and title only show when the menu opens as a sheet on phones. */
+.admin-menu-head { display: none; }
+@media (max-width: 720px) {
+  .admin-menu-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-12); padding: var(--space-4) var(--space-4) var(--space-8) var(--space-12); color: var(--muted); font-size: var(--t-sm); }
+  .admin-menu-list .admin-menu-head .icon-button { flex: none; justify-content: center; width: 44px; min-height: 44px; padding: 0; border-radius: 50%; }
+}
+
+/* TMDB awards check: one line per address tried, with what TMDB sent back when it answered. */
+.tmdb-awards-check { display: grid; gap: var(--space-8); margin: 0; padding: 0; list-style: none; font-size: var(--t-sm); }
+.tmdb-awards-check code { overflow-wrap: anywhere; }
+.tmdb-awards-check pre { max-height: 200px; margin: var(--space-4) 0 0; padding: var(--space-8); overflow: auto; border-radius: 10px; background: color-mix(in srgb, var(--ink) 6%, transparent); white-space: pre-wrap; overflow-wrap: anywhere; font-size: var(--t-xs); }

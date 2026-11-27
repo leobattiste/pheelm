@@ -12,13 +12,14 @@ export default function AwardsRefresh() {
   const run = async () => {
     setRunning(true);
     setMessage("");
-    let offset = 0, updated = 0;
+    let offset = 0, updated = 0, failed = 0;
     for (;;) {
       const r = await refreshAwards(offset);
       if (!r.ok) { setMessage(r.message); break; }
       updated += r.updated;
+      failed += r.failed;
       setProgress({ done: r.next, total: r.total });
-      if (r.next >= r.total || r.next === offset) { setMessage(`Done. ${updated} ${updated === 1 ? "film has" : "films have"} awards from Wikidata.`); break; }
+      if (r.next >= r.total || r.next === offset) { setMessage(`Done. ${updated} ${updated === 1 ? "film has" : "films have"} awards from Wikidata.${failed ? ` Wikidata didn’t answer for ${failed} ${failed === 1 ? "film" : "films"}: run it again to retry them.` : ""}`); break; }
       offset = r.next;
     }
     setRunning(false);

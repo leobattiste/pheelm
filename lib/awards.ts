@@ -13,17 +13,21 @@ const ENDPOINT = "https://query.wikidata.org/sparql";
 const HEADERS = { Accept: "application/sparql-results+json", "User-Agent": "Pheelm/1.0 (https://pheelm.com; awards for the film directory)" };
 
 // A film is found by its TMDB id or, since many Wikidata films lack that, by its IMDb id.
+// The query runs in the order written (hint:optimizer "None"): find the film first, then walk from
+// it to the awards. Left to itself, Wikidata could start the per-person branches from every award
+// statement on Wikidata and time out on films with long award lists — exactly the films that matter.
 const query = (tmdbId: number, imdbId?: string | null) => `SELECT ?kind ?awardLabel ?byLabel ?personLabel ?time ?eventTime WHERE {
+  hint:Query hint:optimizer "None".
   ${imdbId && /^tt\d+$/.test(imdbId) ? `{ ?film wdt:P4947 "${tmdbId}" } UNION { ?film wdt:P345 "${imdbId}" }` : `?film wdt:P4947 "${tmdbId}".`}
   { ?film p:P166 ?st. ?st ps:P166 ?award. BIND("won" AS ?kind) }
   UNION { ?film p:P1411 ?st. ?st ps:P1411 ?award. BIND("nominated" AS ?kind) }
-  UNION { ?person p:P166 ?st. ?st ps:P166 ?award; pq:P1686 ?film. BIND("won" AS ?kind) }
-  UNION { ?person p:P1411 ?st. ?st ps:P1411 ?award; pq:P1686 ?film. BIND("nominated" AS ?kind) }
+  UNION { ?st pq:P1686 ?film. ?person p:P166 ?st. ?st ps:P166 ?award. BIND("won" AS ?kind) }
+  UNION { ?st pq:P1686 ?film. ?person p:P1411 ?st. ?st ps:P1411 ?award. BIND("nominated" AS ?kind) }
   OPTIONAL { ?st pq:P585 ?time }
   OPTIONAL { ?st pq:P805 ?event. ?event wdt:P585 ?eventTime }
   OPTIONAL { ?award wdt:P1027 ?by }
   SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
-} LIMIT 400`;
+} LIMIT 3000`;
 
 export type WikidataRow = { kind: string; award: string; by?: string; person?: string; time?: string; eventTime?: string };
 
@@ -116,9 +120,8 @@ export function mergeAwards(list: Award[]): Award[] {
 /** The film's awards from Wikidata; null if Wikidata could not be reached (try again later). */
 export async function wikidataAwards(tmdbId: number, filmYear: number, imdbId?: string | null): Promise<Award[] | null> {
   try {
-    const res = await fetch(ENDPOINT + "?format=json&query=" + encodeURIComponent(query(tmdbId, imdbId)), { headers: HEADERS, signal: AbortSignal.timeout(12000), cache: "no-store" });
-    if (!res.ok) return null;
-    const json = await res.json() as { results?: { bindings?: Record<string, { value: string }>[] } };
+    const json = await askWikidata(query(tmdbId, imdbId));
+    if (!json) return null;
     const rows = (json.results?.bindings ?? []).map((b) => ({
       kind: b.kind?.value ?? "", award: b.awardLabel?.value ?? "", by: b.byLabel?.value, person: b.personLabel?.value, time: b.time?.value, eventTime: b.eventTime?.value,
     }));
@@ -126,6 +129,32 @@ export async function wikidataAwards(tmdbId: number, filmYear: number, imdbId?: 
   } catch {
     return null;
   }
+}
+
+/**
+ * Asks Wikidata, waiting and trying again when it's busy: it answers 429 (too many requests) or a
+ * 5xx under load, and a heavy film can take longer than a moment. Up to three tries, 30s each.
+ */
+async function askWikidata(sparql: string): Promise<{ results?: { bindings?: Record<string, { value: string }>[] } } | null> {
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      // POST: a long query in a URL can be refused before Wikidata reads it.
+      const res = await fetch(ENDPOINT, {
+        method: "POST",
+        headers: { ...HEADERS, "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ format: "json", query: sparql }),
+        signal: AbortSignal.timeout(30_000),
+        cache: "no-store",
+      });
+      if (res.ok) return await res.json();
+      if (res.status !== 429 && res.status < 500) return null;
+      const wait = Number(res.headers.get("retry-after")) || 2 * attempt;
+      await new Promise((r) => setTimeout(r, Math.min(wait, 10) * 1000));
+    } catch {
+      // A timeout or a dropped connection: try again.
+    }
+  }
+  return null;
 }
 
 /**
@@ -140,22 +169,31 @@ export function withWikidata(existing: Award[], fresh: Award[] | null): Award[] 
 
 type FilmRow = { id: string; slug?: string | null; tmdb_id: number | null; year: number; awards: unknown };
 
-/** Fetches and saves one film's awards; true when Wikidata had some. */
-export async function refreshFilmAwards(db: SupabaseClient, f: FilmRow): Promise<boolean> {
-  if (!f.tmdb_id) return false;
-  const awards = withWikidata((f.awards ?? []) as Award[], await wikidataAwards(f.tmdb_id, f.year, await getImdbId(f.tmdb_id)));
-  if (!awards) return false;
+/**
+ * Fetches and saves one film's awards: "updated" when Wikidata had some, "none" when it has none,
+ * "failed" when Wikidata couldn't be reached (so the film is worth trying again, not left as is).
+ */
+export async function refreshFilmAwards(db: SupabaseClient, f: FilmRow): Promise<"updated" | "none" | "failed"> {
+  if (!f.tmdb_id) return "none";
+  const fresh = await wikidataAwards(f.tmdb_id, f.year, await getImdbId(f.tmdb_id).catch(() => null));
+  if (!fresh) return "failed";
+  const awards = withWikidata((f.awards ?? []) as Award[], fresh);
+  if (!awards) return "none";
   const { error } = await db.from("films").update({ awards, updated_at: new Date().toISOString() }).eq("id", f.id);
-  return !error;
+  return error ? "failed" : "updated";
 }
 
-/** Refreshes films in small groups so Wikidata isn't sent too many requests at once. */
-export async function refreshAwardsBatch(db: SupabaseClient, films: FilmRow[]): Promise<FilmRow[]> {
+/** Refreshes films two at a time, so Wikidata isn't sent too many requests at once. */
+export async function refreshAwardsBatch(db: SupabaseClient, films: FilmRow[]): Promise<{ updated: FilmRow[]; failed: number }> {
   const updated: FilmRow[] = [];
-  for (let i = 0; i < films.length; i += 4) {
-    const part = films.slice(i, i + 4);
+  let failed = 0;
+  for (let i = 0; i < films.length; i += 2) {
+    const part = films.slice(i, i + 2);
     const done = await Promise.all(part.map((f) => refreshFilmAwards(db, f)));
-    part.forEach((f, j) => { if (done[j]) updated.push(f); });
+    part.forEach((f, j) => {
+      if (done[j] === "updated") updated.push(f);
+      else if (done[j] === "failed") failed++;
+    });
   }
-  return updated;
+  return { updated, failed };
 }
