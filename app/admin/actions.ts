@@ -276,9 +276,11 @@ export async function refreshAwards(offset: number): Promise<Result & { next: nu
 /** Admin only: what TMDB's API answers for a film's awards, for deciding where awards should come from. */
 export async function checkTmdbAwards(tmdbId: number) {
   try {
-    await adminClient();
+    const db = await adminClient();
     if (!Number.isInteger(tmdbId) || tmdbId <= 0) return { ok: false as const, message: "Enter a TMDB id, like 1233413 for Sinners." };
-    return { ok: true as const, results: await probeTmdbAwards(tmdbId) };
+    const results = await probeTmdbAwards(tmdbId);
+    await logAdminActivity(db, "Checked TMDB for awards", "film", null, `TMDB ${tmdbId}: ${results.some((r) => r.found) ? "answered" : "no awards in the API"}`);
+    return { ok: true as const, results };
   } catch (e) {
     return { ok: false as const, message: e instanceof Error ? e.message : "Something went wrong." };
   }
