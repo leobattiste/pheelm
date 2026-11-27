@@ -3502,14 +3502,15 @@ html:root:root .film-v2 .film-body > .film-section:first-child { margin-top: 0; 
 .film-v2 .film-comments { margin-top: var(--space-48); }
 
 .film-facts { position: sticky; top: calc(var(--header) + var(--space-24)); align-self: start; display: grid; gap: var(--space-16); }
-.film-facts h2 { color: var(--muted); font-size: var(--t-xs); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+/* Same heading and text as Cast and crew: a 24px title, names in ink, labels muted. */
+html:root:root .film-v2 .film-facts { margin-top: 0; padding-top: 0; border-top: 0; gap: var(--space-20); }
 .film-facts dl { display: grid; margin: 0; }
 .film-facts dl > div { display: grid; gap: 2px; padding: var(--space-12) 0; border-top: 1px solid var(--line); }
 .film-facts dl > div:last-child { border-bottom: 1px solid var(--line); }
-.film-facts dt { color: var(--muted); font-size: var(--t-xs); }
-.film-facts dd { margin: 0; overflow-wrap: anywhere; }
-.film-facts dd a { color: var(--ink); text-decoration: none; }
-.film-facts dd a:hover { text-decoration: underline; text-underline-offset: 0.2em; }
+.film-facts dt { color: var(--muted); font-size: var(--t-sm); }
+.film-facts dd { margin: 0; color: var(--ink); font-size: var(--t-md); overflow-wrap: anywhere; }
+html:root:root .film-v2 .film-facts dd a { color: var(--ink); text-decoration: none; }
+html:root:root .film-v2 .film-facts dd a:hover { text-decoration: underline; text-underline-offset: 0.2em; }
 
 /* Tablets and phones: a shorter still, a small poster beside the title, details after the story. */
 @media (max-width: 799px) {
@@ -3530,7 +3531,7 @@ html:root:root .film-v2 .film-body > .film-section:first-child { margin-top: 0; 
   .film-layout { display: flex; flex-direction: column; gap: 0; padding-top: var(--space-32); }
   .film-v2 .film-body { display: contents; }
   .film-v2 .film-body > :nth-child(n+3) { order: 2; }
-  .film-facts { order: 1; position: static; margin-top: var(--space-48); }
+  html:root:root .film-v2 .film-facts { order: 1; position: static; align-self: stretch; margin-top: var(--space-48); padding-top: var(--space-32); border-top: 1px solid var(--line); }
   .film-facts dl { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--space-20); }
   .film-facts dl > div:last-child { border-bottom: 0; }
   html:root:root .film-v2 .film-essay { font-size: var(--t-md); line-height: var(--lh-body); }

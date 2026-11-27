@@ -204,7 +204,7 @@ export async function FilmPageView({ params }: Params) {
         <div className="film-layout">
           {/* The facts: a short, labelled sheet beside the reading column on desktop, after the story on phones. */}
           {facts.length > 0 && (
-            <aside className="film-facts" aria-labelledby="details-h">
+            <aside className="film-section film-facts" aria-labelledby="details-h">
               <h2 id="details-h">Details</h2>
               <dl>
                 {facts.map(([k, v]) => (
@@ -220,7 +220,8 @@ export async function FilmPageView({ params }: Params) {
           <div className="film-body">
             {/* 2. The story first. */}
             {(film.note || film.synopsis) && (
-              <section className="film-story" aria-label="Synopsis">
+              <section className="film-section film-story" aria-labelledby="synopsis-h">
+                <h2 id="synopsis-h">Synopsis</h2>
                 {film.note && <p className="film-note">{film.note}</p>}
                 {film.synopsis && (
                   <div className="film-essay">
