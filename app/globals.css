@@ -3421,7 +3421,6 @@ html:root:root:root .trailer-foot .button.ghost { border: 1px solid var(--contro
 }
 
 /* Legal documents: small update labels, navigable contents and readable long-form policies. */
-.legal-page .prose > h2:first-child { margin-top: 0; }
 .legal-page .prose .legal-updated { color: var(--muted); font-size: var(--t-sm); }
 .legal-page .legal-toc { display: grid; gap: var(--space-12); padding: var(--space-16) 0; border-block: 1px solid var(--line); }
 .legal-page .legal-toc .legal-toc-title { font-size: var(--t-sm); font-weight: 600; color: var(--muted); }
