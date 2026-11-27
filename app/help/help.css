@@ -16,16 +16,13 @@
 .help-item h3 button { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: var(--space-16); min-height: 58px; padding: var(--space-12) 2px; border: 0; background: transparent; color: var(--text); text-align: left; font: inherit; font-weight: 500; cursor: pointer; }
 .help-item h3 button svg { flex: none; color: var(--muted); }
 .help-item h3 button:hover { color: var(--muted); }
-.help-item h3 button:focus-visible, .help-reset:focus-visible, .help-copy-link:focus-visible { box-shadow: 0 0 0 2px var(--ink); border-radius: var(--r-sm); }
+.help-item h3 button:focus-visible, .help-reset:focus-visible { box-shadow: 0 0 0 2px var(--ink); border-radius: var(--r-sm); }
 .help-result-category { padding-top: var(--space-12); font-size: var(--t-xs); color: var(--muted); }
 .help-result-category + h3 button { padding-top: var(--space-8); }
 .help-answer { padding: 0 var(--space-20) var(--space-20) 2px; max-width: 75ch; line-height: 1.7; }
 .help-answer > p:first-child { margin: 0 0 var(--space-12); color: var(--muted); overflow-wrap: anywhere; }
 .help-answer-actions { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-16); }
 .help-answer-actions a { display: inline-flex; align-items: center; gap: var(--space-4); text-decoration: underline; text-underline-offset: .2em; font-size: var(--t-sm); }
-.help-copy-link { border: 0; padding: 0; background: transparent; color: var(--muted); text-decoration: underline; text-underline-offset: .2em; font-size: var(--t-sm); cursor: pointer; }
-.help-copy-link:hover { color: var(--ink); }
-.help-answer .help-copy-error { margin: var(--space-8) 0 0; font-size: var(--t-sm); color: var(--muted); }
 @media (max-width: 600px) {
   .help-topics { flex-wrap: nowrap; overflow-x: auto; margin-right: calc(-1 * var(--gutter)); padding-right: var(--gutter); scrollbar-width: none; }
   .help-topics::-webkit-scrollbar { display: none; }
