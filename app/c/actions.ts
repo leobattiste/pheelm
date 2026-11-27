@@ -5,7 +5,7 @@ import { safeInternalPath } from "@/lib/safe-navigation";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { collabMessage } from "@/lib/collab";
-import { getServerClient } from "@/lib/supabase/server";
+import { getServerClient, getViewer } from "@/lib/supabase/server";
 
 export type CollabState = { ok: boolean; message: string } | null;
 
@@ -19,7 +19,7 @@ const uuid = (v: FormDataEntryValue | null) => {
 async function signedIn(next: string) {
   const db = await getServerClient();
   if (!db) throw new Error("Accounts aren't connected.");
-  const { data: { user } } = await db.auth.getUser();
+  const user = await getViewer(db);
   if (!user) redirect(`/login?next=${encodeURIComponent(next)}`);
   return db;
 }

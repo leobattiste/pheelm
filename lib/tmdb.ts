@@ -49,16 +49,28 @@ type TmdbPerson = {
   external_ids?: { imdb_id?: string | null; instagram_id?: string | null };
 };
 
-async function get<T>(path: string, params: Record<string, string> = {}, signal?: AbortSignal): Promise<T> {
+/** A TMDB failure worth trying again later: rate limiting, a TMDB outage, a timeout or a dropped connection. */
+export class TmdbTransientError extends Error {}
+
+/** Every request gives up after this long, so a stuck TMDB call can't hold a worker until its time limit. */
+const TIMEOUT_MS = 10_000;
+
+async function get<T>(path: string, params: Record<string, string> = {}, signal: AbortSignal = AbortSignal.timeout(TIMEOUT_MS)): Promise<T> {
   const url = new URL(`https://api.themoviedb.org/3${path}`);
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
   const headers: Record<string, string> = { accept: "application/json" };
   // The long token goes in a header; the short key goes in the address.
   if (KEY.length > 40) headers.authorization = `Bearer ${KEY}`;
   else url.searchParams.set("api_key", KEY);
-  const res = await fetch(url, { headers, cache: "no-store", signal });
+  let res: Response;
+  try {
+    res = await fetch(url, { headers, cache: "no-store", signal });
+  } catch {
+    throw new TmdbTransientError(`TMDB didn't answer for ${path}. Try again in a moment.`);
+  }
   if (res.status === 401) throw new Error("TMDB rejected the API key. Check TMDB_API_KEY in Vercel.");
-  if (res.status === 429) throw new Error("TMDB asked us to slow down. Wait a minute and try again.");
+  if (res.status === 429) throw new TmdbTransientError("TMDB asked us to slow down. Wait a minute and try again.");
+  if (res.status >= 500) throw new TmdbTransientError(`TMDB returned ${res.status} for ${path}.`);
   if (!res.ok) throw new Error(`TMDB returned ${res.status} for ${path}.`);
   return res.json() as Promise<T>;
 }

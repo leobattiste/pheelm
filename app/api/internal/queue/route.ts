@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
   const items = (claimed ?? []) as QueueItem[];
   const results: Awaited<ReturnType<typeof processQueue>> = [];
   // Five at a time keeps TMDB and Wikidata comfortable.
-  for (let i = 0; i < items.length; i += 5) results.push(...await processQueue(db, items.slice(i, i + 5), true));
+  for (let i = 0; i < items.length; i += 5) results.push(...await processQueue(db, items.slice(i, i + 5), true, true));
   const added = results.filter((r) => r.status === "added").length;
   if (added) { queueCatalogSnapshot(); revalidatePath("/", "layout"); revalidateTag("search-public", "max"); }
   const { count } = await db.from("film_queue").select("*", { count: "exact", head: true }).is("last_error", null);

@@ -1,6 +1,7 @@
 "use server";
 
 import { safeInternalPath } from "@/lib/safe-navigation";
+import { getViewer } from "@/lib/supabase/server";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { revalidatePath, revalidateTag } from "next/cache";
@@ -9,6 +10,7 @@ import { adminClient, ownerClient } from "@/lib/admin";
 import { logAdminActivity } from "@/lib/admin-activity";
 import { resolvePoster } from "@/lib/film-fields";
 import { slugify } from "@/lib/format";
+import { countryCode } from "@/lib/countries";
 import { addFilmByTitle, fillPerson, importFilm, posterColour, type AddResult } from "@/lib/import";
 import { getWatch, tmdbEnabled } from "@/lib/tmdb";
 import { refreshAwardsBatch } from "@/lib/awards";
@@ -101,6 +103,9 @@ export async function saveFilm(_prev: Result, f: FormData): Promise<Result> {
     const year = int(f, "year");
     if (!title || !year) return { ok: false, message: "Every film needs a title and a year." };
     const credits = parseCredits(str(f, "credits", 20000));
+    const typedCountries = list(f, "countries");
+    const unknown = typedCountries.filter((c) => !countryCode(c));
+    if (unknown.length) return { ok: false, message: `Countries take a name or a two-letter code, like Nigeria or NG. Check: ${unknown.join(", ")}` };
     if (!credits.some((c) => c.role === "director")) return { ok: false, message: "Add at least one director in Cast & crew, on its own line, like  director: Name" };
 
     const poster = resolvePoster({
@@ -123,7 +128,7 @@ export async function saveFilm(_prev: Result, f: FormData): Promise<Result> {
       type: str(f, "type") || "feature",
       status: str(f, "status") === "draft" ? "draft" : "published",
       featured: f.get("featured") === "on",
-      countries: list(f, "countries").map((c) => c.toUpperCase()),
+      countries: [...new Set(typedCountries.map((c) => countryCode(c)!))],
       languages: list(f, "languages"),
       genres: list(f, "genres"),
       runtime: int(f, "runtime"),
@@ -143,17 +148,15 @@ export async function saveFilm(_prev: Result, f: FormData): Promise<Result> {
     const { error } = await db.from("films").update(row).eq("id", id);
     if (error) return { ok: false, message: error.code === "23505" ? "Another film already uses that address or TMDB id." : error.message };
 
-    // Credits are replaced with what's in the box, in that order.
+    // Credits and collections are replaced with what's in the form, in that order, in one
+    // transaction: a failure leaves the film's previous credits in place.
     const ids = await Promise.all(credits.map((c) => personId(db, c.name)));
-    const rows = credits.map((c, i) => ({ film_id: id, person_id: ids[i], role: c.role, character: c.character, sort: i }));
-    const unique = rows.filter((r, i) => rows.findIndex((x) => x.person_id === r.person_id && x.role === r.role) === i);
-    await db.from("credits").delete().eq("film_id", id);
-    const { error: cErr } = await db.from("credits").insert(unique);
-    if (cErr) return { ok: false, message: cErr.message };
-
-    const chosen = f.getAll("collections").map(String);
-    await db.from("collection_films").delete().eq("film_id", id);
-    if (chosen.length) await db.from("collection_films").insert(chosen.map((c) => ({ collection_id: c, film_id: id, sort: year })));
+    const { error: relError } = await db.rpc("admin_save_film_relations", {
+      p_film: id,
+      p_credits: credits.map((c, i) => ({ person_id: ids[i], role: c.role, character: c.character })),
+      p_collections: f.getAll("collections").map(String).filter((c) => /^[0-9a-f-]{36}$/i.test(c)),
+    });
+    if (relError) return { ok: false, message: `Details saved, but cast & crew and collections didn't: ${relError.message}` };
 
     await logAdminActivity(db, "Saved film", "film", id, `${title} (${year}) · ${row.status}`);
     refresh();
@@ -336,7 +339,7 @@ export async function reviewSubmission(f: FormData) {
   const decision = str(f, "decision");
   if (decision !== "approve" && decision !== "reject") throw new Error("Choose approve or reject.");
   const reviewNote = nullable(f, "review_note", 1500);
-  const { data: { user: reviewer } } = await db.auth.getUser();
+  const reviewer = await getViewer(db);
   const { data: s, error: loadError } = await db.from("submissions").select("*").eq("id", id).single();
   if (loadError || !s || s.status !== "pending") throw new Error("This submission is no longer pending.");
 

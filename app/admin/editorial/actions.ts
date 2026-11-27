@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getViewer } from "@/lib/supabase/server";
 import { adminClient } from "@/lib/admin";
 import { logAdminActivity } from "@/lib/admin-activity";
 
@@ -15,7 +16,7 @@ export async function saveEditorial(_previous: EditorialResult, form: FormData):
   if (status === "published" && essay.length < 100) return { ok: false, message: "Add an original essay of at least 100 characters before publishing." };
   const { data: film } = await db.from("films").select("id, slug").eq("id", filmId).maybeSingle();
   if (!film) return { ok: false, message: "Film not found." };
-  const { data: { user } } = await db.auth.getUser();
+  const user = await getViewer(db);
   if (!user) return { ok: false, message: "Sign in again." };
   const { error } = await db.from("film_editorials").upsert({
     film_id: filmId, essay, sources, status, updated_by: user.id, updated_at: new Date().toISOString(),
@@ -43,7 +44,7 @@ export async function restoreEditorial(form: FormData) {
     db.from("films").select("slug").eq("id",filmId).maybeSingle(),
   ]);
   if (!rev || !film) throw new Error("Revision not found.");
-  const { data: { user } } = await db.auth.getUser();
+  const user = await getViewer(db);
   if (!user) throw new Error("Sign in again.");
   const { error } = await db.from("film_editorials").upsert({
     film_id:filmId, essay:rev.essay, sources:rev.sources, status:rev.status, updated_by:user.id, updated_at:new Date().toISOString(),

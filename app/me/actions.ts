@@ -9,7 +9,7 @@ import { prepareProfilePhoto, avatarObjectPath, photoForPrivacyChange, photoMove
 import { ALL_COUNTRIES } from "@/lib/countries";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getServerClient } from "@/lib/supabase/server";
+import { getServerClient, getViewer } from "@/lib/supabase/server";
 
 const clip = (v: FormDataEntryValue | null, max: number) => String(v ?? "").trim().slice(0, max);
 
@@ -17,7 +17,7 @@ const clip = (v: FormDataEntryValue | null, max: number) => String(v ?? "").trim
 async function member() {
   const db = await getServerClient();
   if (!db) throw new Error("Accounts aren't connected.");
-  const { data: { user } } = await db.auth.getUser();
+  const user = await getViewer(db);
   if (!user) redirect("/login?next=/me");
   return { db, user };
 }

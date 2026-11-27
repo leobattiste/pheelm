@@ -264,3 +264,22 @@ export const ALL_COUNTRIES: Record<string, string> = {
 
 /** [code, name] pairs sorted by name, for a select. */
 export const COUNTRY_OPTIONS = Object.entries(ALL_COUNTRIES).sort((a, b) => a[1].localeCompare(b[1]));
+
+const fold = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/&/g, "and").replace(/[^a-z0-9]+/gi, " ").trim().toLowerCase();
+const BY_NAME = new Map<string, string>([
+  ...Object.entries(ALL_COUNTRIES).map(([code, name]) => [fold(name), code] as [string, string]),
+  // Names people commonly type that differ from the list above.
+  ...([["united states of america", "US"], ["usa", "US"], ["uk", "GB"], ["great britain", "GB"], ["england", "GB"],
+    ["scotland", "GB"], ["wales", "GB"], ["ivory coast", "CI"], ["cote divoire", "CI"], ["drc", "CD"],
+    ["democratic republic of the congo", "CD"], ["republic of the congo", "CG"], ["south korea", "KR"]] as [string, string][]),
+]);
+
+/**
+ * A country as the film editor stores it: its ISO 3166 code. Takes a code ("ng") or a name
+ * ("Nigeria", "Côte d'Ivoire"); null when it's neither.
+ */
+export function countryCode(value: string): string | null {
+  const v = value.trim();
+  if (/^[a-z]{2}$/i.test(v) && ALL_COUNTRIES[v.toUpperCase()]) return v.toUpperCase();
+  return BY_NAME.get(fold(v)) ?? null;
+}

@@ -1,7 +1,7 @@
 "use server";
 
 import { bannedWordError, checkText } from "@/lib/moderation";
-import { getServerClient } from "@/lib/supabase/server";
+import { getServerClient, getViewer } from "@/lib/supabase/server";
 
 type Written = { id: string; parent_id: string | null; user_id: string; body: string; created_at: string; edited_at: string | null; spoiler?: boolean };
 export type CommentWriteResult =
@@ -13,7 +13,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 async function signedIn() {
   const db = await getServerClient();
   if (!db) return null;
-  const { data: { user } } = await db.auth.getUser();
+  const user = await getViewer(db);
   return user ? { db, user } : null;
 }
 
