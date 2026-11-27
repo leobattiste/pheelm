@@ -3459,10 +3459,16 @@ html:root:root:root .trailer-dialog[open] { display: grid; gap: var(--space-12);
 .tour-x svg { width: 18px; height: 18px; }
 
 /* Phone: the poster stays a rounded card, centred, with its own colours glowing softly behind it,
-   and clear space before the title. */
+   and clear space before the title. The glow runs up behind the header to the top of the screen. */
 @media (max-width: 799px) {
-  .film-page { row-gap: var(--space-24); }
-  .film-art { margin-bottom: var(--space-8); }
-  .film-glow { inset: -10% -20%; }
+  main:has(.film-page) { margin-top: calc(var(--header) * -1); }
+  body:has(.film-page) .site-header { background: transparent; border-color: transparent; }
+  :root:root:root .film-page { position: relative; padding-top: calc(var(--header) + var(--space-8)); row-gap: var(--space-24); }
+  .film-art { position: static; margin-bottom: var(--space-8); }
+  .film-glow {
+    inset: 0 -20% auto; height: calc(var(--header) + 170vw);
+    -webkit-mask-image: linear-gradient(to bottom, #000 65%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 65%, transparent 100%);
+  }
   .film-glow img { opacity: 0.7; }
 }
