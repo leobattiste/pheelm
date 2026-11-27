@@ -25,7 +25,7 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
             <p className="lead">Have a question or need to get in touch? Send us a message, and we&apos;ll get back to you when we can.</p>
           </header>
           {CONTACT_EMAIL && <p className="info-note">Email us directly at <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.</p>}
-          <p className="muted info-note">For partnership inquiries, visit our <Link href="/partnerships">Partnerships</Link> page. To report an issue or suggest an improvement, use our <Link href="/feedback">Feedback</Link> page.</p>
+          <p className="muted info-note">For partnership inquiries, visit our <Link href="/partnerships">Partnership</Link> page. To report an issue or suggest an improvement, use our <Link href="/feedback">Feedback</Link> page.</p>
         </div>
         <div className="form-split-form">
           <ContactForm topic={topic} />
