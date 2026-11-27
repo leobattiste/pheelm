@@ -15,7 +15,7 @@ import QuickSave from "./QuickSave";
 /** posterOnly: just the poster, with the title and director as the link's label. */
 export default function FilmCard({ film, priority, sizes, note, extra, posterOnly, href, controls, plain }: { film: Card; priority?: boolean; sizes?: string; note?: string; extra?: string; posterOnly?: boolean; href?: string; controls?: ReactNode; plain?: boolean }) {
   const CardLink = href ? Link : FilmLink;
-  const label = posterOnly ? `${film.title}, ${film.directors.join(" and ")}, ${film.year}` : undefined;
+  const label = posterOnly ? `${film.title}, ${film.year}, ${film.directors.join(" and ")}` : undefined;
   // Plain: the same card without a link (the home page, before sign-up).
   const Wrap = (plain ? "span" : CardLink) as React.ElementType;
   const wrapProps = plain ? { className: "card-plain", role: "img", "aria-label": label ?? `${film.title}, ${film.year}` } : { href: href ?? filmPath(film.slug, film.directors), "aria-label": label };
@@ -25,8 +25,8 @@ export default function FilmCard({ film, priority, sizes, note, extra, posterOnl
         <Poster title={film.title} year={film.year} directors={film.directors} src={film.poster_url} priority={priority} sizes={sizes} />
         <span className="film-card-title" title={film.title}>{film.title}</span>
         <span className="film-card-meta">
-          {/* On a person's page the line says what they did; elsewhere, who directed it. */}
-          {note ?? film.directors.join(" and ")}<span className="film-card-year"> • {film.year}</span>
+          {/* The year, then: on a person's page, what they did; elsewhere, who directed it. One line, cut with an ellipsis. */}
+          <span className="film-card-year">{film.year} • </span>{note ?? film.directors.join(" and ")}
         </span>
         {extra && <span className="film-card-extra">{extra}</span>}
         <span className="film-card-col film-card-year-col">{film.year}</span>
