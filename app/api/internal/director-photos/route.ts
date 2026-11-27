@@ -25,7 +25,9 @@ export async function POST(request: NextRequest) {
   if (!db) return json({ error: "Supabase is not configured." }, 503);
   const limit = Math.min(200, Math.max(1, Number(request.nextUrl.searchParams.get("limit")) || 100));
 
-  const todo = () => db.from("people").select("id, name, tmdb_id")
+  // Directors only: in_directory defaults to true for every person, cast and crew included.
+  const todo = () => db.from("people").select("id, name, tmdb_id, credits!inner(role)")
+    .eq("credits.role", "director")
     .eq("in_directory", true).not("tmdb_id", "is", null).is("photo_checked_at", null).or("photo_url.is.null,photo_url.eq.");
   const { data, error } = await todo().order("id").limit(limit);
   if (error) return json({ error: error.message }, 500);

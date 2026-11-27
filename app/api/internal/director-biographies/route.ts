@@ -1,8 +1,8 @@
 import "server-only";
 
-import { createHash, timingSafeEqual } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
+import { workerCheck } from "@/lib/worker-auth";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -18,16 +18,6 @@ type BioResult = {
 
 const json = (data: Record<string, unknown>, status = 200) =>
   NextResponse.json(data, { status, headers: { "Cache-Control": "no-store" } });
-
-function authorized(request: Request): boolean {
-  const secret = process.env.PHEELM_BIO_WORKER_SECRET;
-  if (!secret || secret.length < 24) return false;
-  const provided = request.headers.get("authorization") ?? "";
-  const expected = "Bearer " + secret;
-  const left = createHash("sha256").update(provided).digest();
-  const right = createHash("sha256").update(expected).digest();
-  return timingSafeEqual(left, right);
-}
 
 function sourcesFrom(input: string[]): string[] {
   const clean = new Set<string>();
@@ -126,13 +116,13 @@ async function research(key: string, person: { name: string; country: string | n
 }
 
 export async function POST(request: NextRequest) {
-  if (!authorized(request)) return json({ error: "Unauthorized" }, 401);
   const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
   const service = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const db = url && service ? createClient(url, service, { auth: { persistSession: false, autoRefreshToken: false } }) : null;
+  // Same check as the other internal workers: PHEELM_BIO_WORKER_SECRET if set, else the vault's pheelm_worker_secret.
+  if ((await workerCheck(request, db)) !== "ok") return json({ error: "Unauthorized" }, 401);
   const key = process.env.OPENAI_API_KEY || process.env.OPEN_AI;
-  if (!url || !service || !key) return json({ error: "Worker configuration incomplete" }, 503);
-
-  const db = createClient(url, service, { auth: { persistSession: false, autoRefreshToken: false } });
+  if (!db || !key) return json({ error: "Worker configuration incomplete" }, 503);
   const now = new Date().toISOString();
   const { data: waiting, error: readError } = await db.from("director_bio_jobs")
     .select("person_id,attempts").eq("status", "queued")
