@@ -4,6 +4,15 @@ import {getFilms,getDirectors} from './data';
 import {SUPABASE_URL,SUPABASE_ANON_KEY,supabaseEnabled} from './supabase/config';
 type Catalog={films:{id:string;slug:string}[];directors:{id:string;slug:string}[];people:{id:string;slug:string}[]};
 
+/** A read that errors (a slow moment on the database) is tried again, a little later each time, before it counts as failed. */
+async function retry<T extends {error:unknown}>(run:()=>PromiseLike<T>,tries=5):Promise<T>{
+ for(let attempt=1;;attempt++){
+  const result=await run();
+  if(!result.error||attempt>=tries)return result;
+  await new Promise(wait=>setTimeout(wait,1500*attempt));
+ }
+}
+
 /** Public IDs and slugs only. Shared caching prevents parallel sitemap requests loading full biographies and film content. */
 export const seoCatalog=unstable_cache(async():Promise<Catalog>=>{
  if(!supabaseEnabled){
@@ -15,7 +24,7 @@ export const seoCatalog=unstable_cache(async():Promise<Catalog>=>{
  const db=createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:false}});
  const films:{id:string;slug:string}[]=[];
  for(let from=0;;from+=1000){
-  const {data,error}=await db.from('films').select('id,slug').eq('status','published').order('id').range(from,from+999);
+  const {data,error}=await retry(()=>db.from('films').select('id,slug').eq('status','published').order('id').range(from,from+999));
   if(error)throw Error('Could not load sitemap film slugs: '+error.message);
   films.push(...data??[]);if(!data||data.length<1000)break;
  }
@@ -24,7 +33,7 @@ export const seoCatalog=unstable_cache(async():Promise<Catalog>=>{
  for(let start=0;start<films.length;start+=100){
   const ids=films.slice(start,start+100).map(f=>f.id);
   for(let from=0;;from+=1000){
-   const {data,error}=await db.from('credits').select('person_id,role,people!inner(id,slug,in_directory)').in('film_id',ids).order('film_id').order('person_id').order('role').range(from,from+999);
+   const {data,error}=await retry(()=>db.from('credits').select('person_id,role,people!inner(id,slug,in_directory)').in('film_id',ids).order('film_id').order('person_id').order('role').range(from,from+999));
    if(error)throw Error('Could not load sitemap people slugs: '+error.message);
    for(const row of (data??[]) as unknown as {person_id:string;role:string;people:{id:string;slug:string;in_directory:boolean|null}}[]){
     const person={id:row.people.id,slug:row.people.slug};people.set(person.id,person);
