@@ -151,10 +151,13 @@ try {
         await page.setContent(`<!doctype html><html data-theme="${theme}" data-grid="${grid}"><head><style>${css}</style></head><body>${html}</body></html>`);
         await page.evaluate(() => document.fonts.ready);
         const prefix = `${theme}/${width}/${grid}/${screen}`;
+        // One icon size across admin (18px), and 22px in the phone tab bar.
         const wrongIcons = await page.locator('svg').evaluateAll(icons => icons.filter(icon => {
-          const style = getComputedStyle(icon); return style.width !== '24.5px' || style.height !== '24.5px';
+          const style = getComputedStyle(icon);
+          const size = innerWidth < 900 && icon.closest('.admin-sections') ? '22px' : '18px';
+          return style.width !== size || style.height !== size;
         }).map(icon => icon.outerHTML.slice(0, 100)));
-        assert.deepEqual(wrongIcons, [], `${prefix}: all admin icons are 24.5px`);
+        assert.deepEqual(wrongIcons, [], `${prefix}: admin icons are one size`);
         assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${prefix}: page overflows`);
         assert.equal(await page.locator('.admin-sections [aria-current="page"]').count(), 1, `${prefix}: one selected section`);
         const section = screen === 'overview' || screen === 'analytics' ? '/admin'
@@ -170,19 +173,19 @@ try {
         const tooWide = await page.locator('.admin-content .button, .admin-content input:not([type="hidden"]), .admin-content textarea, .admin-content select').evaluateAll(elements => elements.filter(el => el.getBoundingClientRect().right > innerWidth || el.getBoundingClientRect().left < 0).map(el => el.outerHTML.slice(0, 150)));
         assert.deepEqual(tooWide, [], `${prefix}: overflowing controls`);
         if (screen === 'films') {
-          assert.equal(await page.locator('.admin-film-grid .film-card').count(), films.length, `${prefix}: real film cards`);
-          assert.equal(await page.locator('.admin-table').count(), 0, `${prefix}: no catalog table`);
-          assert.equal(await page.locator('.admin-film-grid .film-card > a').first().getAttribute('href'), `/admin/films/${film.id}`, `${prefix}: edit link`);
-          for (const selector of ['.admin-films', '.admin-browser-tools', '.admin-film-grid .film-card']) {
+          // Films are rows in a table (compact rows on phones), each opening its editor.
+          assert.equal(await page.locator('.admin-table tbody tr').count(), films.length, `${prefix}: one row per film`);
+          assert.equal(await page.locator('.admin-table .admin-row-link').first().getAttribute('href'), `/admin/films/${film.id}`, `${prefix}: edit link`);
+          for (const selector of ['.admin-films', '.admin-browser-tools', '.admin-table tbody tr']) {
             assert(await page.locator(selector).first().evaluate(el => el.getBoundingClientRect().width <= innerWidth), `${prefix}: ${selector} stays within screen`);
           }
         }
         if (screen === 'people' || screen === 'members') {
-          assert(await page.locator('.director-grid .director-card').count() > 0, `${prefix}: shared director/profile cards`);
-          assert.equal(await page.locator('.admin-table').count(), 0, `${prefix}: no directory table`);
+          assert(await page.locator('.admin-table tbody tr').count() > 0, `${prefix}: one row per record`);
+          assert(await page.locator('.admin-table tbody tr').first().evaluate(el => el.getBoundingClientRect().right <= innerWidth + 1), `${prefix}: rows fit the screen`);
         }
         if (screen === 'editorial') assert.equal(await page.locator('.film-grid .film-card').count(), films.length, `${prefix}: editorial poster cards`);
-        if (screen === 'community') assert.equal(await page.locator('.collection-list .collection-tile').count(), collections.length, `${prefix}: shared collection tiles`);
+        if (screen === 'community') assert.equal(await page.locator('.admin-table tbody tr').count(), collections.length, `${prefix}: one row per watchlist`);
         // The search bar lines up with the page's edges.
         for (const bar of await page.locator('.admin-browser-tools .catalog-toolbar').all()) {
           const gap = await bar.evaluate(el => { const r = el.getBoundingClientRect(), p = el.closest('.admin-content').getBoundingClientRect(); const pad = parseFloat(getComputedStyle(el.closest('.admin-content')).paddingLeft); return [Math.round(r.left - p.left - pad), Math.round(p.right - parseFloat(getComputedStyle(el.closest('.admin-content')).paddingRight) - r.right)]; });

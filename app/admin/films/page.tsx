@@ -3,9 +3,12 @@ import AdminBrowserToolbar from "../AdminBrowserToolbar";
 import AdminMenu from "../AdminMenu";
 import { AdminSelectionProvider, AdminSelectionTools } from "../AdminSelectionBar";
 import { requireAdmin } from "@/lib/admin";
-import { PageHeader } from "../ui";
+import { PageHeader, Pill, ago } from "../ui";
 import { countryName } from "@/lib/format";
-import BulkControls, { type AdminFilmRow } from "./BulkControls";
+import { DataTable, Gaps, MainCell, Thumb } from "../DataTable";
+import { SelectAll, SelectCell } from "../TableSelect";
+import { TYPE_LABELS } from "@/lib/format";
+import type { FilmType } from "@/lib/types";
 import { bulkFilmChange } from "./bulk-actions";
 
 type Params = {
@@ -56,7 +59,7 @@ export default async function AdminFilms({ searchParams }: { searchParams: Promi
 
   const build = () => {
     let query = db.from("films")
-      .select("id,slug,title,year,type,status,poster_url,featured,tmdb_id,credits(role,people(name))", { count: "exact" });
+      .select("id,slug,title,year,type,status,poster_url,featured,tmdb_id,updated_at,synopsis,trailer_url,runtime,genres,countries,credits(role,people(name))", { count: "exact" });
     if (status) query = query.eq("status", status);
     if (type) query = query.eq("type", type);
     if (missing === "any") query = query.or(MISSING_ANY);
@@ -103,10 +106,22 @@ export default async function AdminFilms({ searchParams }: { searchParams: Promi
   for (const [key, value] of Object.entries(sp)) if (!["page", "updated", "error"].includes(key) && value) baseParams.set(key, value);
   const href = (next: number) => { const p = new URLSearchParams(baseParams); p.set("page", String(next)); return `/admin/films?${p.toString()}`; };
   const shown = films?.length ?? 0;
+  type FilmRow = { id: string; title: string; year: number; type: string; status: string; poster_url: string | null; featured: boolean;
+    tmdb_id: number | null; updated_at: string | null; synopsis: string | null; trailer_url: string | null; runtime: number | null;
+    genres: string[] | null; countries: string[] | null; credits: { role: string; people: { name: string } | null }[] | null };
+  // What each film still needs, in the order it matters on the film's page.
+  const rows = ((films ?? []) as unknown as FilmRow[]).map((f) => {
+    const directors = (f.credits ?? []).filter((c) => c.role === "director").map((c) => c.people?.name).filter((n): n is string => !!n);
+    const gaps = [
+      !f.poster_url && "Poster", !directors.length && "Director", !f.synopsis && "Synopsis", !f.trailer_url && "Trailer",
+      !f.runtime && "Runtime", !f.genres?.length && "Genre", !f.countries?.length && "Country",
+    ].filter((g): g is string => !!g);
+    return { ...f, directors, gaps };
+  });
 
   return (
     <AdminSelectionProvider key="films" entity="films"><section className="admin-films">
-      <PageHeader title="Films" description="Everything in the catalog. Drafts stay hidden until you publish them."
+      <PageHeader title="Films" description="Drafts stay hidden from the site until you publish them."
         actions={<>
           <AdminMenu>
             <Link href="/admin/submissions">Suggestions from members{!!suggestions.count && <span className="admin-count">{suggestions.count}</span>}</Link>
@@ -130,7 +145,30 @@ export default async function AdminFilms({ searchParams }: { searchParams: Promi
         { name: "sort", label: "Sort by", value: sort, options: [{ value: "newest", label: "Newest releases" }, { value: "oldest", label: "Oldest releases" }, { value: "title", label: "Title A–Z" }, { value: "recent", label: "Recently updated" }, { value: "added", label: "Latest added" }] },
       ]} />
       {error ? <p className="notice error">Could not load films. Try again.</p> : (
-        <BulkControls films={(films ?? []) as unknown as AdminFilmRow[]} canDelete={owner} />
+        <DataTable label="Films" selectAll={<SelectAll entity="films" ids={rows.map((r) => r.id)} />}
+          columns={[
+            { key: "film", label: "Film" },
+            { key: "year", label: "Year", width: "72px" },
+            { key: "type", label: "Type", width: "120px", wide: true },
+            { key: "gaps", label: "Missing", width: "180px" },
+            { key: "status", label: "Status", phone: true, width: "120px" },
+            { key: "updated", label: "Updated", width: "120px", wide: true },
+          ]}
+          rows={rows.map((f) => ({
+            id: f.id,
+            dim: f.status !== "published",
+            select: <SelectCell entity="films" id={f.id} label={f.title} />,
+            cells: {
+              film: <MainCell href={`/admin/films/${f.id}`} media={<Thumb src={f.poster_url} name={f.title} />} title={f.title}
+                after={f.featured ? <span className="admin-pill">Featured</span> : null}
+                detail={f.directors.join(", ") || "No director"} phoneDetail={[f.year, f.directors[0]].filter(Boolean).join(" · ")} />,
+              year: <span className="admin-num">{f.year}</span>,
+              type: TYPE_LABELS[f.type as FilmType] ?? f.type,
+              gaps: <Gaps items={f.gaps} />,
+              status: f.status === "published" ? <Pill tone="ok">Published</Pill> : <Pill tone="warn">Draft</Pill>,
+              updated: <span className="muted">{f.updated_at ? ago(f.updated_at) : "—"}</span>,
+            },
+          }))} />
       )}
       {!shown && !error && <p className="empty">No films match your filters.</p>}
       {size !== "all" && <div className="actions admin-pagination">

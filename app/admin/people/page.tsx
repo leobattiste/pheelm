@@ -1,13 +1,13 @@
 import Link from "next/link";
-import { getProfileDirectorCards } from "@/lib/profile-data";
 import { countryName } from "@/lib/format";
 import AdminBrowserToolbar from "../AdminBrowserToolbar";
 import AdminAddPanel from "../AdminAddPanel";
 import { AdminSelectionProvider, AdminSelectionTools } from "../AdminSelectionBar";
 import AddPersonForm from "./AddPersonForm";
 import { requireAdmin } from "@/lib/admin";
-import { PageHeader } from "../ui";
-import PeopleBulkControls, { type AdminPersonRow } from "./PeopleBulkControls";
+import { PageHeader, Pill } from "../ui";
+import { DataTable, Gaps, MainCell, Num, Thumb } from "../DataTable";
+import { SelectAll, SelectCell } from "../TableSelect";
 import { bulkPersonChange } from "./bulk-actions";
 
 type Params = {
@@ -78,13 +78,15 @@ export default async function AdminPeople({ searchParams }: { searchParams: Prom
     db.from("people").select("country").not("country", "is", null).limit(10000),
   ]);
   const { data: people, count, error } = result;
-  const directors = await getProfileDirectorCards((people ?? []).map(person => person.id)).catch(() => []);
-  const summaries = new Map(directors.map(director => [director.id, director]));
-  const rows: AdminPersonRow[] = (people ?? []).map((person) => ({
-    ...person,
-    credits: (person.credits ?? []) as { role: string }[],
-    previews: summaries.get(person.id)?.previews ?? [],
-  }));
+  type PersonRow = { id: string; slug: string; name: string; country: string | null; bio: string | null; photo_url: string | null; in_directory: boolean | null; credits: { role: string }[] | null };
+  const ROLE: Record<string, string> = { director: "Director", writer: "Writer", producer: "Producer", cast: "Actor", cinematographer: "Cinematographer", editor: "Editor", composer: "Composer" };
+  const rows = ((people ?? []) as unknown as PersonRow[]).map((p) => {
+    const credits = p.credits ?? [];
+    const directed = credits.filter((c) => c.role === "director").length;
+    const roles = [...new Set(credits.map((c) => ROLE[c.role] ?? c.role))];
+    const gaps = [!p.photo_url && "Portrait", !p.bio && "Bio", !p.country && "Country"].filter((g): g is string => !!g);
+    return { ...p, directed, roles, gaps };
+  });
   const countries = [...new Set((countryRows.data ?? []).map((person) => person.country).filter((value): value is string => !!value))].sort();
   const baseParams = new URLSearchParams();
   for (const [key, value] of Object.entries(sp)) if (!["page", "updated", "error"].includes(key) && value) baseParams.set(key, value);
@@ -92,7 +94,7 @@ export default async function AdminPeople({ searchParams }: { searchParams: Prom
 
   return (
     <AdminSelectionProvider key="people" entity="people"><section className="admin-directors">
-      <PageHeader title="Directors" description="A director shows in the public directory once they direct a published film."
+      <PageHeader title="Directors" description="Directors show in the public directory once they have a published film."
         actions={<AdminAddPanel label="Add a director" text="Add director"><AddPersonForm/></AdminAddPanel>} />
       {!!sp.updated && <p className="notice ok" role="status">{sp.updated} people updated.</p>}
       {sp.error === "selection" && <p className="notice error">Select at least one person first.</p>}
@@ -107,7 +109,28 @@ export default async function AdminPeople({ searchParams }: { searchParams: Prom
         { name: "sort", label: "Sort by", value: sort, options: [{ value: "az", label: "Name A–Z" }, { value: "za", label: "Name Z–A" }, { value: "added", label: "Latest added" }] },
       ]} />
       {error ? <p className="notice error">Could not load directors. Try again.</p> : (
-        <PeopleBulkControls people={rows} canDelete={owner} />
+        <DataTable label={everyone ? "People" : "Directors"} selectAll={<SelectAll entity="people" ids={rows.map((r) => r.id)} />}
+          columns={[
+            { key: "person", label: everyone ? "Person" : "Director" },
+            { key: "country", label: "Country", width: "160px", wide: true },
+            { key: "films", label: everyone ? "Credits" : "Films", align: "end", width: "80px" },
+            { key: "gaps", label: "Missing", width: "180px" },
+            { key: "directory", label: "Directory", phone: true, width: "110px" },
+          ]}
+          rows={rows.map((p) => ({
+            id: p.id,
+            dim: p.in_directory === false,
+            select: <SelectCell entity="people" id={p.id} label={p.name} />,
+            cells: {
+              person: <MainCell href={`/admin/people/${p.id}`} media={<Thumb src={p.photo_url} name={p.name} shape="round" />} title={p.name}
+                detail={everyone ? p.roles.join(", ") || "No credits" : p.gaps.length ? `Missing ${p.gaps.join(", ").toLowerCase()}` : "Complete"}
+                phoneDetail={[p.country ? countryName(p.country) : null, everyone ? p.roles.join(", ") : `${p.directed} ${p.directed === 1 ? "film" : "films"}`].filter(Boolean).join(" · ")} />,
+              country: p.country ? countryName(p.country) : null,
+              films: <Num value={everyone ? (p.credits ?? []).length : p.directed} />,
+              gaps: <Gaps items={p.gaps} />,
+              directory: p.in_directory === false ? <Pill>Hidden</Pill> : <Pill tone="ok">Shown</Pill>,
+            },
+          }))} />
       )}
       {!rows.length && !error && <p className="empty">No matching people.</p>}
       {effectiveSize !== "all" && <div className="actions admin-pagination">

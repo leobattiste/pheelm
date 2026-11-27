@@ -438,15 +438,6 @@ a.admin-attention-row:hover, .admin-attention-row a:hover { color: var(--ink); }
 .admin-send-confirm { align-items: center; }
 .admin-send-confirm > span { flex: 1 1 100%; font-weight: 700; }
 
-/* Dashboard quick actions: the jobs reached for most, in one wrapping row above the numbers. */
-.admin-quick { display: flex; flex-wrap: wrap; gap: var(--space-8); margin-bottom: var(--space-24); }
-@media (max-width: 640px) {
-  .admin-quick { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .admin-quick .button { justify-content: flex-start; min-width: 0; white-space: normal; text-align: left; }
-  .admin-quick .button:first-child { grid-column: 1 / -1; justify-content: center; }
-}
-@media (max-width: 360px) { .admin-quick { grid-template-columns: 1fr; } }
-
 /* Menus: the X and title only show when the menu opens as a sheet on phones. */
 .admin-menu-head { display: none; }
 @media (max-width: 720px) {
@@ -458,3 +449,246 @@ a.admin-attention-row:hover, .admin-attention-row a:hover { color: var(--ink); }
 .tmdb-awards-check { display: grid; gap: var(--space-8); margin: 0; padding: 0; list-style: none; font-size: var(--t-sm); }
 .tmdb-awards-check code { overflow-wrap: anywhere; }
 .tmdb-awards-check pre { max-height: 200px; margin: var(--space-4) 0 0; padding: var(--space-8); overflow: auto; border-radius: 10px; background: color-mix(in srgb, var(--ink) 6%, transparent); white-space: pre-wrap; overflow-wrap: anywhere; font-size: var(--t-xs); }
+
+/* =============================================================================================
+   Admin design system
+   The admin is a work tool, not the public site: smaller type, tighter controls, rectangles
+   instead of pills, tables instead of poster cards. Everything below re-tunes the site's own
+   variables inside .admin, so every shared control (buttons, fields, menus, dialogs) follows.
+   ============================================================================================= */
+.admin {
+  --control: 36px; --control-sm: 30px; --bar-height: 36px;
+  --control-pad: 14px; --control-pad-sm: 10px; --control-gap: 6px; --control-icon: 18px;
+  --pill: 8px; --r: 12px; --r-sm: 8px; --r-thumb: 6px;
+  --t-xs: 0.75rem; --t-sm: 0.875rem; --t-md: 0.875rem; --t-lg: 1rem; --t-xl: 1.125rem;
+  --t-2xl: 1.25rem; --t-3xl: 1.5rem; --t-name: 0.875rem; --lh-body: 1.5;
+  --admin-raised: color-mix(in srgb, var(--ink) 4%, var(--bg));
+  --admin-hover: color-mix(in srgb, var(--ink) 6%, transparent);
+  --admin-active: color-mix(in srgb, var(--ink) 10%, transparent);
+  font-size: var(--t-sm); line-height: var(--lh-body);
+}
+/* Phones: the same look, with targets a thumb can hit. */
+@media (max-width: 720px) {
+  .admin { --control: 42px; --control-sm: 34px; --bar-height: 42px; --t-sm: 0.9375rem; --t-md: 0.9375rem; --t-name: 0.9375rem; }
+}
+.admin .button { min-height: var(--control); height: auto; padding: 0 var(--control-pad); border-radius: var(--r-sm); font-size: var(--t-sm); font-weight: 550; gap: var(--control-gap); }
+.admin .button.small { min-height: var(--control-sm); padding: 0 var(--control-pad-sm); font-size: var(--t-xs); }
+.admin :is(input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="hidden"]):not([type="file"]), select) { min-height: var(--control); border-radius: var(--r-sm); font-size: var(--t-sm); }
+.admin textarea { border-radius: var(--r-sm); font-size: var(--t-sm); line-height: 1.5; }
+.admin .icon-button { width: var(--control); height: var(--control); border-radius: var(--r-sm); }
+.admin :is(a, button, input, select, textarea, summary):focus-visible { outline: 2px solid color-mix(in srgb, var(--ink) 60%, transparent); outline-offset: 2px; }
+
+/* Shell ---------------------------------------------------------------------------------------- */
+.admin-app { --admin-side: 232px; }
+.admin-main { max-width: 1320px; padding: var(--space-24) var(--space-32) var(--space-64); }
+.admin-sidebar { gap: var(--space-16); padding: var(--space-16) var(--space-8); background: var(--admin-raised); }
+.admin-brand { padding: var(--space-4) var(--space-12) var(--space-8); }
+.admin-brand .wordmark-type { font-size: 24px; }
+.admin-brand-tag { font-size: var(--t-xs); }
+.admin-sections { display: grid; gap: var(--space-16); align-content: start; }
+.admin-nav-group { display: grid; gap: 1px; }
+.admin-nav-group.is-settings { margin-top: var(--space-8); padding-top: var(--space-12); border-top: 1px solid var(--line); }
+.admin-nav-label { padding: 0 var(--space-12) var(--space-4); color: var(--muted); font-size: var(--t-xs); font-weight: 600; }
+.admin-section-link { gap: var(--space-12); min-height: 34px; padding: 0 var(--space-12); border: 0; border-radius: var(--r-sm); background: none; font: inherit; font-size: var(--t-sm); font-weight: 500; color: var(--text); cursor: pointer; }
+.admin-section-link:hover { background: var(--admin-hover); }
+.admin-section-link[aria-current="page"] { background: var(--admin-active); font-weight: 600; }
+.admin-section-link.is-settings { margin-top: 0; }
+.admin-more-tab { display: none; }
+.admin-count { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; font-size: 10.5px; }
+.admin-sidebar-foot { padding-top: var(--space-12); }
+.admin-foot-link { min-height: 34px; border-radius: var(--r-sm); }
+
+@media (max-width: 899px) {
+  .admin-main { padding: calc(var(--space-16) + env(safe-area-inset-top)) var(--gutter) calc(96px + env(safe-area-inset-bottom)); }
+  .admin-sidebar { padding: 4px var(--space-4) calc(4px + env(safe-area-inset-bottom)); background: var(--glass-bg); }
+  .admin-sections { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 0; }
+  .admin-nav-group { display: contents; }
+  .admin-nav-label { display: none; }
+  .admin-nav-group.is-settings { margin: 0; padding: 0; border: 0; }
+  .admin-section-link:not(.is-phone):not(.admin-more-tab) { display: none; }
+  .admin-section-link, .admin-more-tab { display: flex; position: relative; flex-direction: column; justify-content: center; gap: 3px; min-height: 54px; padding: 0 2px; border-radius: var(--r-sm); }
+  .admin-section-link .icon { width: 22px; height: 22px; }
+  /* Labelled tabs: an icon alone doesn't say where it goes. */
+  .admin-section-link .admin-section-label { position: static; width: auto; height: auto; overflow: visible; clip-path: none; font-size: 10.5px; font-weight: 500; line-height: 1.2; color: var(--muted); white-space: nowrap; }
+  .admin-section-link[aria-current="page"], .admin-more-tab.is-active { background: transparent; }
+  .admin-section-link[aria-current="page"] .admin-section-label, .admin-more-tab.is-active .admin-section-label { color: var(--ink); font-weight: 650; }
+  .admin-section-link[aria-current="page"] .icon, .admin-more-tab.is-active .icon { color: var(--ink); }
+  .admin-section-link[aria-current="page"]::after { content: none; }
+  .admin-section-link .admin-count { position: absolute; top: 4px; left: calc(50% + 5px); margin: 0; }
+}
+/* The More sheet (phones). */
+.admin-more-sheet .modal-body { display: grid; gap: var(--space-8); }
+.admin-more-list { display: grid; gap: 1px; }
+.admin-more-list a { display: flex; align-items: center; gap: var(--space-12); min-height: 46px; padding: 0 var(--space-12); border-radius: var(--r-sm); color: var(--text); text-decoration: none; }
+.admin-more-list a:hover, .admin-more-list a.is-active { background: var(--admin-hover); color: var(--ink); }
+.admin-more-list a .icon { color: var(--muted); }
+.admin-more-list a .admin-count { margin-left: auto; }
+.admin-more-body > .admin-nav-label { padding-top: var(--space-12); }
+.admin-more-who { padding: var(--space-12) var(--space-12) 0; color: var(--muted); font-size: var(--t-xs); overflow-wrap: anywhere; }
+
+/* Page header: a compact title row, one line of context at most. */
+.admin-content { gap: var(--space-20); }
+.admin-page-head { gap: var(--space-4); }
+.admin-title-row { min-height: var(--control); }
+.admin-title-row > h1 { font-size: var(--t-3xl); font-weight: 650; letter-spacing: -0.015em; }
+.admin-page-head > p { font-size: var(--t-sm); }
+
+/* Panels and rows: flat surfaces with hairlines. */
+.admin-panel { gap: 0; padding: 0; border-radius: var(--r); background: var(--bg); overflow: hidden; }
+.admin-panel-head { padding: var(--space-12) var(--space-16); border-bottom: 1px solid var(--line); }
+.admin-panel-head h3 { gap: var(--space-8); font-size: var(--t-sm); font-weight: 600; }
+.admin-panel > :not(.admin-panel-head) { margin-inline: var(--space-16); }
+.admin-panel > :not(.admin-panel-head):last-child { margin-bottom: var(--space-12); }
+.admin-panel > :not(.admin-panel-head):nth-child(2) { margin-top: var(--space-4); }
+.admin-panel > .admin-table-wrap, .admin-panel > .admin-queue { margin: 0 !important; }
+.admin-row { min-height: 44px; padding: var(--space-8) 0; font-size: var(--t-sm); }
+.admin-number { min-width: 28px; height: 22px; border-radius: 6px; font-size: var(--t-xs); }
+.admin .stat { gap: var(--space-4); padding: var(--space-16); border-radius: var(--r); }
+.admin .stat strong { font-size: var(--t-2xl); }
+.admin .stat span { font-size: var(--t-xs); color: var(--muted); }
+.admin .status-pill, .admin-pill { display: inline-flex; align-items: center; gap: 5px; height: 22px; padding: 0 8px; border-radius: 6px; background: var(--admin-hover); color: var(--text); font-size: var(--t-xs); font-weight: 550; white-space: nowrap; box-shadow: none; }
+.admin .status-pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.9; }
+.admin .status-pill.tone-neutral::before, .admin .status-pill:not([class*="tone-"]):not(.published):not(.draft)::before { background: var(--muted); }
+.admin .status-pill.tone-ok, .admin .status-pill.published { color: var(--ok); background: color-mix(in srgb, var(--ok) 12%, transparent); }
+.admin .status-pill.tone-warn, .admin .status-pill.draft { color: var(--gold); background: color-mix(in srgb, var(--gold) 12%, transparent); }
+.admin .status-pill.tone-danger { color: var(--error); background: color-mix(in srgb, var(--error) 12%, transparent); }
+.admin .status-pill.tone-info { color: var(--ink); }
+
+/* Tables --------------------------------------------------------------------------------------- */
+/* Records as rows: a real table on wide screens, compact rows on phones. The name in the main
+   column is a link stretched over the whole row; checkboxes and menus sit above it. */
+.admin-table-wrap { min-width: 0; border: 1px solid var(--line); border-radius: var(--r); background: var(--bg); overflow: hidden; }
+.admin-table { width: 100%; border-collapse: collapse; table-layout: auto; font-size: var(--t-sm); }
+.admin-table thead th { position: sticky; top: 0; z-index: 2; height: 36px; padding: 0 var(--space-12); border-bottom: 1px solid var(--line); background: var(--admin-raised); color: var(--muted); font-size: var(--t-xs); font-weight: 550; text-align: left; white-space: nowrap; }
+.admin-table td { height: 56px; padding: var(--space-8) var(--space-12); border-bottom: 1px solid var(--line); color: var(--text); vertical-align: middle; }
+.admin-table tbody tr:last-child td { border-bottom: 0; }
+.admin-table tbody tr { position: relative; transition: background 0.12s; }
+.admin-table tbody tr:hover { background: var(--admin-hover); }
+.admin-table tbody tr.is-dim .admin-cell-title, .admin-table tbody tr.is-dim .admin-thumb { opacity: 0.55; }
+.admin-table .is-end { text-align: right; }
+.admin-table .col-select { width: 44px; padding-right: 0; }
+.admin-table .col-menu { width: 52px; padding-left: 0; text-align: right; }
+.admin-table :is(.col-select, .col-menu) > :not(.visually-hidden) { position: relative; z-index: 1; }
+.admin-table .col-main { width: 100%; min-width: 240px; }
+.admin-table td:not(.col-main) { white-space: nowrap; }
+.admin-cell-main { display: flex; align-items: center; gap: var(--space-12); min-width: 0; }
+.admin-cell-text { display: grid; gap: 1px; min-width: 0; }
+.admin-cell-title { display: flex; align-items: center; gap: var(--space-8); min-width: 0; color: var(--ink); font-weight: 550; }
+.admin-row-link { min-width: 0; overflow: hidden; color: inherit; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
+.admin-row-link::after { content: ""; position: absolute; inset: 0; z-index: 0; }
+.admin-row-link:focus-visible { outline: none; }
+.admin-table tbody tr:has(.admin-row-link:focus-visible) { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--ink) 60%, transparent); }
+.admin-cell-detail { overflow: hidden; color: var(--muted); font-size: var(--t-xs); text-overflow: ellipsis; white-space: nowrap; }
+.admin-cell-none { color: var(--line-strong); }
+.admin-num { font-variant-numeric: tabular-nums; }
+.admin-num.is-zero { color: var(--muted); }
+.admin-thumb { display: grid; place-items: center; flex: none; overflow: hidden; background: var(--surface); color: var(--muted); font-size: 11px; font-weight: 650; }
+.admin-thumb.is-poster { width: 28px; height: 42px; border-radius: 4px; }
+.admin-thumb.is-round { width: 32px; height: 32px; border-radius: 50%; }
+.admin-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.admin-gaps { display: inline-flex; gap: var(--space-4); }
+.admin-gaps.is-complete { color: var(--muted); font-size: var(--t-xs); }
+.admin-gap { display: inline-flex; align-items: center; height: 20px; padding: 0 6px; border-radius: 5px; background: color-mix(in srgb, var(--gold) 12%, transparent); color: var(--gold); font-size: 11px; font-weight: 550; }
+.admin-gap.is-more { background: var(--admin-hover); color: var(--muted); }
+.admin-check { display: inline-grid; place-items: center; width: 28px; height: 28px; cursor: pointer; }
+.admin-check input { width: 16px; height: 16px; margin: 0; accent-color: var(--ink); cursor: pointer; }
+.admin-table .col-menu .admin-menu > summary { width: 32px; min-height: 32px; height: 32px; border: 0; background: none; }
+.admin-table .col-menu .admin-menu > summary:hover { background: var(--admin-active); }
+.is-phone-only { display: none; }
+
+@media (max-width: 720px) {
+  .admin-table-wrap { margin-inline: calc(var(--gutter) * -1); border-inline: 0; border-radius: 0; }
+  .admin-table, .admin-table tbody { display: block; }
+  .admin-table thead { display: none; }
+  .admin-table tbody tr { display: flex; align-items: center; gap: var(--space-8); min-height: 64px; padding: var(--space-8) var(--gutter); border-bottom: 1px solid var(--line); }
+  .admin-table tbody tr:last-child { border-bottom: 0; }
+  .admin-table td { display: block; height: auto; padding: 0; border: 0; }
+  .admin-table td.is-wide-only, .admin-table .is-wide-only { display: none; }
+  .admin-table .is-phone-only { display: block; }
+  .admin-table .col-main { flex: 1 1 auto; min-width: 0; width: auto; }
+  .admin-table .col-select { width: auto; order: -1; }
+  .admin-table .col-menu { width: auto; }
+  .admin-thumb.is-poster { width: 32px; height: 48px; }
+  .admin-thumb.is-round { width: 40px; height: 40px; }
+  .admin-cell-detail { font-size: 13px; }
+}
+/* Tables keep their rounded corners without clipping: menus open past the edge. */
+.admin-table-wrap { overflow: visible; }
+.admin-table thead th:first-child { border-top-left-radius: var(--r); }
+.admin-table thead th:last-child { border-top-right-radius: var(--r); }
+.admin-table tbody tr:last-child td:first-child { border-bottom-left-radius: var(--r); }
+.admin-table tbody tr:last-child td:last-child { border-bottom-right-radius: var(--r); }
+.admin-table tbody tr:has(.admin-menu[open]) { z-index: 5; }
+.admin-menu.is-up .admin-menu-list { top: auto; bottom: calc(100% + 6px); }
+/* Actions in a menu: forms become plain rows, and destructive ones sit last, set apart. */
+.admin-menu-list form { display: grid; }
+.admin-menu-list .admin-menu-action { width: 100%; justify-content: flex-start; }
+.admin-menu-list .admin-menu-danger { margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--line); }
+.admin-menu-list .danger-text { color: var(--error); }
+.admin-menu-list .button.is-armed, .admin-menu-list .admin-menu-action.is-armed { background: var(--error); color: #fff; }
+.admin-menu-list { border-radius: var(--r); padding: 4px; min-width: 220px; }
+.admin-menu-list a, .admin-menu-list button { min-height: 36px; border-radius: 6px; font-size: var(--t-sm); }
+@media (max-width: 720px) {
+  .admin-menu-list a, .admin-menu-list button { min-height: 48px; }
+  .admin-menu.is-up .admin-menu-list { top: auto; }
+}
+@media (max-width: 720px) { .admin-menu.is-up .admin-menu-list { bottom: calc(76px + env(safe-area-inset-bottom)); } }
+
+/* Home ----------------------------------------------------------------------------------------- */
+.admin-home { display: grid; gap: var(--space-16); align-items: start; }
+.admin-home-main, .admin-home-side { display: grid; gap: var(--space-16); min-width: 0; }
+@media (min-width: 1100px) { .admin-home { grid-template-columns: minmax(0, 1fr) 340px; } }
+.admin-queue { display: grid; margin: 0; padding: 0; list-style: none; }
+.admin-queue > li { position: relative; display: flex; align-items: center; gap: var(--space-12); min-height: 60px; padding: var(--space-8) var(--space-16); border-bottom: 1px solid var(--line); }
+.admin-queue > li:last-child { border-bottom: 0; }
+.admin-queue > li:hover { background: var(--admin-hover); }
+.admin-queue-icon { display: grid; place-items: center; flex: none; width: 32px; height: 32px; border-radius: 8px; background: var(--admin-hover); color: var(--muted); }
+.admin-queue-text { display: grid; gap: 1px; flex: 1 1 auto; min-width: 0; }
+.admin-queue-text .admin-row-link { color: var(--ink); font-weight: 550; }
+.admin-queue-when { flex: none; color: var(--muted); font-size: var(--t-xs); white-space: nowrap; }
+.admin-queue-action { position: relative; z-index: 1; flex: none; }
+.admin-queue-more { justify-content: center; min-height: 44px !important; }
+.admin-queue-more a { color: var(--muted); font-size: var(--t-xs); text-decoration: none; }
+.admin-queue-more a:hover { color: var(--ink); }
+.admin-caught-up { display: flex; align-items: center; gap: var(--space-12); padding: var(--space-20) 0; }
+.admin-caught-up > .icon { flex: none; width: 32px; height: 32px; padding: 7px; border-radius: 50%; background: color-mix(in srgb, var(--ok) 14%, transparent); color: var(--ok); }
+.admin-caught-up div { display: grid; gap: 2px; }
+.admin-caught-up span { color: var(--muted); font-size: var(--t-xs); }
+.admin-health { display: grid; gap: var(--space-8); padding: var(--space-12) 0 var(--space-8); }
+.admin-health-top { display: flex; align-items: baseline; gap: var(--space-8); }
+.admin-health-top strong { font-size: var(--t-2xl); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.admin-health-top span { color: var(--muted); font-size: var(--t-xs); }
+.admin-meter { height: 6px; border-radius: 3px; background: var(--admin-active); overflow: hidden; }
+.admin-meter > span { display: block; height: 100%; border-radius: inherit; background: var(--ok); }
+.admin-home-totals { padding-top: var(--space-8); color: var(--muted); font-size: var(--t-xs); }
+.admin-shortcuts { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); padding: var(--space-8) 0; }
+.admin-shortcuts a { display: flex; align-items: center; gap: var(--space-12); min-height: 38px; padding: 0 var(--space-8); margin-inline: calc(var(--space-8) * -1); border-radius: var(--r-sm); color: var(--text); font-size: var(--t-sm); text-decoration: none; }
+.admin-shortcuts a:hover { background: var(--admin-hover); color: var(--ink); }
+.admin-shortcuts a .icon { color: var(--muted); }
+@media (max-width: 720px) {
+  .admin-queue > li { gap: var(--space-12); min-height: 68px; padding: var(--space-12) var(--space-16); }
+  .admin-queue-when { display: none; }
+  .admin-queue-text .is-phone-only { display: block; }
+}
+.admin-queue-text .is-phone-only { display: none; }
+/* One icon size in admin (the site sets every svg to 24.5px with :root rules). */
+:root .admin svg, :root .admin .icon { width: var(--control-icon); height: var(--control-icon); }
+@media (max-width: 899px) { :root .admin .admin-sections .icon { width: 22px; height: 22px; } }
+@media (max-width: 1199px) { .admin-table .is-xl-only { display: none; } }
+@media (min-width: 721px) { .admin-table .col-main { min-width: 200px; } }
+.admin-cell-email { display: inline-block; max-width: 220px; overflow: hidden; text-overflow: ellipsis; vertical-align: bottom; }
+/* One column below 1100px: what needs you, the catalog, shortcuts, then recent activity. */
+@media (max-width: 1099px) {
+  .admin-home { display: flex; flex-direction: column; }
+  .admin-home-main, .admin-home-side { display: contents; }
+  .admin-home .is-queue { order: 1; } .admin-home .is-catalog { order: 2; } .admin-home .is-shortcuts { order: 3; } .admin-home .is-activity { order: 4; }
+}
+/* The toolbar's round buttons: one fixed size, centred on the search bar, in every browser. */
+:root:root:root .admin-catalog-tools .catalog-toolbar :is(.admin-add-control, .filter-button) { box-sizing: border-box; height: var(--bar-height); min-height: var(--bar-height); max-height: var(--bar-height); margin: 0; align-self: center; line-height: 1; }
+:root:root .admin-catalog-tools .catalog-toolbar > .catalog-search-control { align-self: center; }
+/* The search field sits inside its bar; only the bar has the control height. */
+.admin .search-bar input { min-height: 0; height: 100%; border-radius: 0; }
+/* One row exactly as tall as its controls, so nothing in it can sit higher or lower. */
+:root:root:root .admin-catalog-tools .catalog-toolbar { grid-template-rows: var(--bar-height); align-items: center; }
+:root:root:root .admin-catalog-tools .catalog-toolbar > .catalog-search-control,
+:root:root:root .admin-catalog-tools .catalog-toolbar > .catalog-search-control .search-bar { height: var(--bar-height); min-height: 0; max-height: var(--bar-height); }
