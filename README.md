@@ -3,10 +3,10 @@
 A global directory of films by Black directors: features, documentaries, shorts and animation, with cast and crew, awards, trailers and where to watch.
 Built with Next.js, hosted on Vercel, with accounts and the database on Supabase. It shares its design and setup with Covvvvvers.
 
-- **Films**: browse and filter by type, decade, country, language and genre. A Popular carousel under the search bar shows up to ten posters ranked by TMDB’s worldwide popular-movie chart, independently of Pheelm activity, with only the highest-ranked Spider-Man film. The Explore grid below it keeps its own view settings; the carousel stays in poster view. It uses the existing `TMDB_API_KEY`, caches the first 20 chart pages for six hours, and shows an unavailable message when the chart or matching films are missing.
+- **Films**: browse and filter by type, decade, country, language and genre. Search for films (and directors, on the Directors page) from the search bar at the top.
 - **Directors**: biographies, countries, careers and filmographies.
-- **Collections**: curated selections by movement, theme, country, decade or genre.
-- **Members** sign in with an email link to keep a watchlist, mark films as seen and submit films.
+- **Watchlists**: curated selections by movement, theme, country, decade or genre, plus members' public watchlists.
+- **Members** sign in with an email link, a 6-digit code or a password to keep a watchlist, mark films as seen and submit films.
 - **Admins** add and edit everything at `/admin`, review submissions and import film data from TMDB.
 
 The site starts with 74 films by 54 directors in 13 collections. It runs straight away without Supabase, reading `data/catalog.json`, so you can deploy and look around before setting anything up.
@@ -41,9 +41,9 @@ In Supabase, go to **Authentication > URL Configuration**:
 - **Site URL**: your Vercel address
 - **Redirect URLs**: add `https://YOUR-ADDRESS/auth/callback` (and `http://localhost:3000/auth/callback` to run it on your computer)
 
-Unified search lives at `/search`.
+Search lives on the Films and Directors pages; old `/search` links go to Films.
 
-Community collections: members' public collections with a title, at least 5 films and a public name (set on their Watchlist page) appear under Collections → From the community, and each member gets a page at `/@handle`. Manage staff picks, hidden collections and reports in `/admin/community`.
+Community watchlists: members' public watchlists with a title, at least 5 films and a public name (set on their Watchlist page) appear on the Watchlists page (`/watchlists`), and each member gets a page at `/@handle`. Manage staff picks, hidden collections and reports in `/admin/community`.
 
 To show your contact email, Instagram and Threads in the footer and on the Contact page, add `NEXT_PUBLIC_CONTACT_EMAIL`, `NEXT_PUBLIC_INSTAGRAM_URL` and `NEXT_PUBLIC_THREADS_URL` in Vercel and redeploy. Newsletter sign-ups and messages appear in `/admin/inbox`, where the list can be downloaded as a CSV for your email service.
 
@@ -96,8 +96,6 @@ Change the name and tagline in `lib/site.ts`.
 
 ## Design
 
-Pheelm is dark by default (visitors can switch to light in the footer). Everything is set in one typeface, Nacelle by Dotcolon (SIL Open Font License), served from the site itself. Each film page takes its colour from the film's poster: the TMDB import measures it automatically, and you can override it in the film's editor. Until a film has a poster, it gets a title card in a colour picked from its name.
+Pheelm is dark by default (visitors can switch to light in the footer). Text is set in Inter, with Beth Ellen for handwritten accents (both SIL Open Font License), served from the site itself. Each film's card is tinted with a colour from its poster: the TMDB import measures it automatically, and you can override it in the film's editor. Until a film has a poster, it gets a title card in a colour picked from its name.
 
-The home page's film of the week rotates through films marked "Feature on the home page", preferring those with a still. Search opens with ⌘K, Ctrl+K or "/".
-
-Search discovery uses an editorial pool of internationally recognized films intersected with the published catalog. Selection advances every Monday at 00:00 UTC at request time, so no scheduling job is needed. At least 24 eligible films prevents adjacent-week repeats. Run `supabase/archive/film-publication-date.sql` for publication dates independent of draft creation; historical films fall back to their added date.
+Films marked "Feature on the home page" supply the poster in the site's share image. Search opens with ⌘K, Ctrl+K or "/".

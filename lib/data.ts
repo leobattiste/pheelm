@@ -491,21 +491,6 @@ export async function getDirectors() {
   return (await catalog()).directors;
 }
 
-export async function getDirector(slug: string) {
-  return (await catalog()).directors.find((d) => d.slug === slug) ?? null;
-}
-
-/** Any person, with every film they worked on, for cast and crew pages. */
-export async function getPerson(slug: string) {
-  const { films, people } = await catalog();
-  const person = people.find((p) => p.slug === slug);
-  if (!person) return null;
-  const work = films.flatMap((f) =>
-    f.credits.filter((c) => c.person.id === person.id).map((c) => ({ film: f, role: c.role, character: c.character })),
-  );
-  return work.length ? { person, work } : null;
-}
-
 const wins = (f: Film) => f.awards.filter((a) => a.result === "won").length;
 
 export function toDirectorSummary(d: Director): DirectorSummary {
