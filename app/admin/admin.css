@@ -686,3 +686,5 @@ a.admin-attention-row:hover, .admin-attention-row a:hover { color: var(--ink); }
 /* The toolbar's round buttons: one fixed size, centred on the search bar, in every browser. */
 :root:root:root .admin-catalog-tools .catalog-toolbar :is(.admin-add-control, .filter-button) { box-sizing: border-box; height: var(--bar-height); min-height: var(--bar-height); max-height: var(--bar-height); margin: 0; align-self: center; line-height: 1; }
 :root:root .admin-catalog-tools .catalog-toolbar > .catalog-search-control { align-self: center; }
+/* The search field sits inside its bar; only the bar has the control height. */
+.admin .search-bar input { min-height: 0; height: 100%; border-radius: 0; }
