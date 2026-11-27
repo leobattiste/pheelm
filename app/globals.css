@@ -3390,12 +3390,12 @@ html:root:root:root .trailer-foot .button.ghost { border: 1px solid var(--contro
 .form-split-intro, .form-split-form { display: grid; gap: var(--space-16); align-content: start; min-width: 0; }
 .form-split-intro .page-head { padding-bottom: 0; }
 .form-split-form > .info-section { margin: 0; }
-/* Contact and Partnerships: align the left-side title and copy with the
-   same page-top spacing used by Help, without stacking header padding. */
-:is(.contact-page, .partnerships-page) .form-split-intro {
+/* All two-column public forms use Help's page-top spacing for their title,
+   description, and form column, without stacking header padding. */
+:is(.contact-page, .partnerships-page, .feedback-page, .suggestion-page) .form-split-intro {
   padding-top: var(--page-top);
 }
-:root:root :is(.contact-page, .partnerships-page) .form-split-intro .page-head {
+:root:root :is(.contact-page, .partnerships-page, .feedback-page, .suggestion-page) .form-split-intro .page-head {
   padding-top: 0;
 }
 @media (min-width: 900px) {
@@ -3404,10 +3404,21 @@ html:root:root:root .trailer-foot .button.ghost { border: 1px solid var(--contro
   /* The form column starts level with the title, not above it. */
   .form-split-form { padding-top: clamp(var(--space-32), 6vw, var(--space-64)); }
   /* Both columns begin at the same top offset; keep sticky copy aligned when scrolling. */
-  :is(.contact-page, .partnerships-page) .form-split-form { padding-top: var(--page-top); }
-  :is(.contact-page, .partnerships-page) .form-split-intro { top: 0; }
+  :is(.contact-page, .partnerships-page, .feedback-page, .suggestion-page) .form-split-form { padding-top: var(--page-top); }
+  :is(.contact-page, .partnerships-page, .feedback-page, .suggestion-page) .form-split-intro { top: 0; }
 }
 
+
+/* The unauthenticated routes use a button-like link in place of the form. */
+.suggestion-page .suggestion-signin {
+  width: 100%;
+  min-width: 0;
+}
+.suggestion-page .suggestion-signin > .button {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+}
 
 /* Legal documents: small update labels, navigable contents and readable long-form policies. */
 .legal-page .prose > h2:first-child { margin-top: 0; }
