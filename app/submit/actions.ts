@@ -1,6 +1,6 @@
 "use server";
 
-import { getServerClient } from "@/lib/supabase/server";
+import { getServerClient, getViewer } from "@/lib/supabase/server";
 
 export type SubmitState = { ok: boolean; message: string };
 
@@ -9,7 +9,7 @@ const clip = (v: FormDataEntryValue | null, max: number) => String(v ?? "").trim
 export async function submitFilm(_prev: SubmitState, form: FormData): Promise<SubmitState> {
   const db = await getServerClient();
   if (!db) return { ok: false, message: "Submissions open once the site is connected to Supabase." };
-  const { data: { user } } = await db.auth.getUser();
+  const user = await getViewer(db);
   if (!user) return { ok: false, message: "Sign in to submit a film." };
 
   const title = clip(form.get("title"), 200);
@@ -44,7 +44,7 @@ export async function submitFilm(_prev: SubmitState, form: FormData): Promise<Su
 export async function submitOwnFilm(_prev: SubmitState, form: FormData): Promise<SubmitState> {
   const db = await getServerClient();
   if (!db) return { ok: false, message: "Submissions open once the site is connected to Supabase." };
-  const { data: { user } } = await db.auth.getUser();
+  const user = await getViewer(db);
   if (!user) return { ok: false, message: "Sign in to submit your film." };
 
   const title = clip(form.get("title"), 200);

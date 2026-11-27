@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getViewer } from "@/lib/supabase/server";
 import { adminClient } from "@/lib/admin";
 import { logAdminActivity } from "@/lib/admin-activity";
 import { serviceClient } from "@/lib/supabase/service";
@@ -62,7 +63,7 @@ export async function deleteMember(_prev: MemberState, f: FormData): Promise<Mem
     const who = String(f.get("id") ?? "");
     if (!ID.test(who)) return { ok: false, message: "That member no longer exists." };
     if (f.get("confirm") !== "DELETE") return { ok: false, message: "Type DELETE to confirm." };
-    const { data: { user } } = await db.auth.getUser();
+    const user = await getViewer(db);
     if (!user) return { ok: false, message: "Sign in again." };
     if (user.id === who) return { ok: false, message: "You can't delete your own account here. Use Settings." };
     const { data: roles } = await db.from("profiles").select("id, is_admin, is_owner").in("id", [user.id, who]);

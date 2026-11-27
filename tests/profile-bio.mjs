@@ -14,7 +14,7 @@ vm.runInNewContext(code,{exports,FormData,File,Buffer,require:name=>{
  if(name==='@/lib/countries')return{ALL_COUNTRIES:{}};
  if(name==='next/cache')return{revalidatePath:()=>{}};
  if(name==='next/navigation')return{redirect:()=>{throw Error('Unexpected redirect')}};
- if(name==='@/lib/supabase/server')return{getServerClient:async()=>db};
+ if(name==='@/lib/supabase/server')return{getServerClient:async()=>db,getViewer:async()=>({id:'member',email:null,user_metadata:{},app_metadata:{}})};
  throw Error(name);
 }});
 const form=bio=>{const f=new FormData();f.set('handle','member');f.set('display_name','Member');f.set('bio',bio);return f};

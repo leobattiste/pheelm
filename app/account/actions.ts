@@ -3,7 +3,7 @@
 import { photoForPrivacyChange, photoMoved } from "@/lib/profile-photo";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getServerClient } from "@/lib/supabase/server";
+import { getServerClient, getViewer } from "@/lib/supabase/server";
 
 export type DeleteState = { ok: boolean; message: string } | null;
 
@@ -15,7 +15,7 @@ export async function deleteAccount(_prev: DeleteState, f: FormData): Promise<De
   if (f.get("confirm") !== "DELETE") return { ok: false, message: "Type DELETE to confirm." };
   const db = await getServerClient();
   if (!db) return { ok: false, message: "Accounts aren't available right now." };
-  const { data: { user } } = await db.auth.getUser();
+  const user = await getViewer(db);
   if (!user) return { ok: false, message: "Sign in again, then try." };
   const { data: photos, error: photoListError } = await db.storage.from("avatars").list(user.id, { limit: 1000 });
   if (photoListError) return { ok: false, message: "Your profile photo couldn't be removed. Try again." };
@@ -35,7 +35,7 @@ export type PrivacyState = { ok: boolean; message: string } | null;
 export async function updatePrivacy(_prev: PrivacyState, f: FormData): Promise<PrivacyState> {
   const db = await getServerClient();
   if (!db) return { ok: false, message: "Accounts aren't connected." };
-  const { data: { user } } = await db.auth.getUser();
+  const user = await getViewer(db);
   if (!user) redirect("/login?next=/account");
   const changes = {
     is_private: f.get("is_private") === "on",
@@ -65,7 +65,7 @@ export async function updatePrivacy(_prev: PrivacyState, f: FormData): Promise<P
 export async function unblock(f: FormData) {
   const db = await getServerClient();
   if (!db) return;
-  const { data: { user } } = await db.auth.getUser();
+  const user = await getViewer(db);
   if (!user) redirect("/login?next=/account");
   await db.from("blocks").delete().eq("blocker_id", user.id).eq("blocked_id", String(f.get("id")));
   revalidatePath("/account");

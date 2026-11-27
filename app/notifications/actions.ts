@@ -1,11 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getServerClient } from "@/lib/supabase/server";
+import { getServerClient, getViewer } from "@/lib/supabase/server";
 
 async function me() {
   const db = await getServerClient();
-  const user = db ? (await db.auth.getUser()).data.user : null;
+  const user = await getViewer(db);
   return db && user ? { db, user } : null;
 }
 

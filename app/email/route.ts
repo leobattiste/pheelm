@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getServerClient } from '@/lib/supabase/server';
+import { getServerClient, getViewer } from "@/lib/supabase/server";
 import { SUPABASE_URL } from '@/lib/supabase/config';
 export const dynamic='force-dynamic';
 const ENDPOINT=`${(SUPABASE_URL||'https://mvhwfmlairwrngdttzjh.supabase.co').replace(/\/$/,'')}/functions/v1/pheelm-email`;
@@ -11,7 +11,7 @@ async function handle(request:Request){
  // where they can turn off just what they don't want. Signed out, the one-step unsubscribe page still works
  // without signing in, and mail apps' one-click unsubscribe (a POST) is unchanged.
  if(action==='unsubscribe'&&request.method==='GET'){
-  try{const db=await getServerClient();const user=db?(await db.auth.getUser()).data.user:null;if(user)return NextResponse.redirect(new URL('/account#notifications',url),303);}catch{}
+  try{const db=await getServerClient();const user=db?await getViewer(db):null;if(user)return NextResponse.redirect(new URL('/account#notifications',url),303);}catch{}
  }
  const body=request.method==='POST'?await request.text():undefined;
  if(body&&body.length>2048)return new NextResponse('Request too large',{status:413});

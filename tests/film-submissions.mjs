@@ -16,7 +16,7 @@ const source = ts.transpileModule(fs.readFileSync('app/submit/actions.ts', 'utf8
 const exports = {};
 vm.runInNewContext(source, { exports, FormData, require: (name) => {
   assert.equal(name, '@/lib/supabase/server');
-  return { getServerClient: async () => db };
+  return { getServerClient: async () => db, getViewer: async () => (signedIn ? { id: 'qa-member', email: null, user_metadata: {}, app_metadata: {} } : null) };
 } });
 const form = (extra = {}) => {
   const f = new FormData();
