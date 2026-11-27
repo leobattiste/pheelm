@@ -692,3 +692,17 @@ a.admin-attention-row:hover, .admin-attention-row a:hover { color: var(--ink); }
 :root:root:root .admin-catalog-tools .catalog-toolbar { grid-template-rows: var(--bar-height); align-items: center; }
 :root:root:root .admin-catalog-tools .catalog-toolbar > .catalog-search-control,
 :root:root:root .admin-catalog-tools .catalog-toolbar > .catalog-search-control .search-bar { height: var(--bar-height); min-height: 0; max-height: var(--bar-height); }
+
+/* Jobs (Automation) ---------------------------------------------------------------------------- */
+.admin-job-summary { white-space: normal; max-width: 52ch; }
+.admin-table td.col-last { white-space: normal; }
+.admin-job-progress { display: grid; gap: 6px; min-width: 0; font-size: var(--t-xs); }
+.admin-job-progress > span:first-child { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.admin-job-progress .admin-meter { display: block; width: 100%; max-width: 240px; }
+.admin-job-error { display: block; max-width: 260px; overflow: hidden; color: var(--error); font-size: var(--t-xs); text-overflow: ellipsis; white-space: nowrap; }
+.admin-job-action { display: inline-grid; justify-items: end; gap: 4px; }
+@media (max-width: 720px) {
+  .admin-table td.col-last { flex: none; max-width: 42%; }
+  .admin-job-summary { display: none; }
+  .admin-job-progress .admin-meter { max-width: none; }
+}

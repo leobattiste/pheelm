@@ -1,53 +1,86 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin";
-import { PageHeader, Panel } from "../ui";
 import { tmdbEnabled } from "@/lib/tmdb";
-import BulkImport from "../BulkImport";
-import PeopleFill from "../PeopleFill";
-import WatchRefresh from "../WatchRefresh";
-import AwardsRefresh from "../AwardsRefresh";
-import CreditsRefresh from "../CreditsRefresh";
+import { JOBS, JOB_KINDS, type Job, type JobKind } from "@/lib/jobs";
+import { DataTable } from "../DataTable";
+import { PageHeader, Panel, Pill, ago } from "../ui";
 import TmdbAwardsCheck from "../TmdbAwardsCheck";
+import { JobButton, JobsRefresher } from "./JobControls";
 
-// The batch buttons here run server actions that wait on TMDB and Wikidata.
+// Start runs the first batches right after answering; give it room.
 export const maxDuration = 300;
 
+const n = (value: number) => value.toLocaleString("en-US");
+
+/**
+ * Jobs: each automation is one row: what's left to do, how the last run went, and Start or Stop.
+ * A started job runs on the server, so it carries on with this page closed.
+ */
 export default async function AutomationPage() {
   const { db } = await requireAdmin("/admin/automation");
-  const [{ data: posters, count: missingPosters }, { data: synopses, count: missingSynopses }, { count: peopleWaiting }] = await Promise.all([
-    db.from("films").select("id,title", { count: "exact" }).or("poster_url.is.null,poster_url.eq.").order("year").limit(200),
-    db.from("films").select("id,title", { count: "exact" }).or("synopsis.is.null,synopsis.eq.").not("tmdb_id", "is", null).order("year").limit(200),
-    db.from("people").select("id", { count: "exact", head: true }).not("tmdb_id", "is", null).is("details_at", null),
+  const [jobs, ...remaining] = await Promise.all([
+    db.from("admin_jobs").select("*").order("started_at", { ascending: false }).limit(60),
+    ...JOB_KINDS.map((kind) => JOBS[kind].remaining(db).catch(() => 0)),
   ]);
+  const ready = !jobs.error;
+  const latest = new Map<JobKind, Job>();
+  for (const j of (jobs.data ?? []) as Job[]) if (!latest.has(j.kind)) latest.set(j.kind, j);
+  const left = new Map(JOB_KINDS.map((kind, i) => [kind, remaining[i] as number]));
+  const anyRunning = [...latest.values()].some((j) => j.status === "running");
+
   return (
     <>
-      <PageHeader back={{ href: "/admin/films", label: "Films" }} title="Automation" description="Fill missing details from TMDB in batches. Imports only fill empty fields, so nothing you wrote is overwritten. Check results before publishing."
+      <PageHeader back={{ href: "/admin/films", label: "Films" }} title="Automation"
+        description="Jobs run on the server and keep going with this page closed. They only fill empty fields, so nothing you wrote is overwritten."
         actions={<><Link className="button ghost small" href="/admin/quality">Content quality</Link><Link className="button ghost small" href="/admin/searches">Searches with no results</Link></>} />
-      {!tmdbEnabled && <p className="notice error">TMDB isn&apos;t connected, so these can&apos;t run. Add TMDB_API_KEY in Vercel.</p>}
-      <Panel id="posters" title="Fill missing posters" icon="camera">
-        <p className="muted">{missingPosters ?? 0} films need a poster. Each import only fills empty metadata fields.</p>
-        {tmdbEnabled && <BulkImport films={posters ?? []} label="poster" />}
-        {(missingPosters ?? 0) > 200 && <p className="muted">Showing the first 200. Reload after this batch to continue.</p>}
-      </Panel>
-      <Panel id="synopses" title="Fill missing synopses" icon="pencil">
-        <p className="muted">{missingSynopses ?? 0} TMDB-linked films have no synopsis. Existing editorial text is preserved.</p>
-        {tmdbEnabled && <BulkImport films={synopses ?? []} label="synopsis" />}
-        {(missingSynopses ?? 0) > 200 && <p className="muted">Showing the first 200. Reload after this batch to continue.</p>}
-      </Panel>
-      <Panel id="cast-and-crew" title="Add full cast and crew" icon="users2">
-        {tmdbEnabled && <CreditsRefresh />}
-      </Panel>
-      <Panel id="people-details" title="Fill people details" icon="users2">
-        <PeopleFill waiting={peopleWaiting ?? 0} />
-      </Panel>
-      <Panel id="awards" title="Update awards and nominations" icon="laurel">
-        <AwardsRefresh />
-      </Panel>
+      {!tmdbEnabled && <p className="notice error">TMDB isn&apos;t connected, so most jobs can&apos;t run. Add TMDB_API_KEY in Vercel.</p>}
+      {!ready && <p className="notice error">Jobs need a database update (admin_jobs) before they can run.</p>}
+      {anyRunning && <JobsRefresher />}
+
+      <DataTable label="Jobs"
+        columns={[
+          { key: "job", label: "Job" },
+          { key: "todo", label: "To check", align: "end", width: "100px" },
+          { key: "last", label: "Last run", phone: true, width: "260px" },
+          { key: "action", label: "", align: "end", phone: true, width: "110px" },
+        ]}
+        rows={JOB_KINDS.map((kind) => {
+          const def = JOBS[kind];
+          const job = latest.get(kind);
+          const running = job?.status === "running";
+          const pct = running && job.total ? Math.min(100, Math.round((job.processed / job.total) * 100)) : 0;
+          const blocked = !ready || (def.tmdb && !tmdbEnabled);
+          return {
+            id: kind,
+            cells: {
+              job: (
+                <div className="admin-cell-text" id={kind === "credits" ? "cast-and-crew" : kind === "watch" ? "where-to-watch" : kind === "people" ? "people-details" : kind}>
+                  <span className="admin-cell-title">{def.label}</span>
+                  <span className="admin-cell-detail admin-job-summary">{def.summary}</span>
+                </div>
+              ),
+              todo: <span className="admin-num">{n(left.get(kind) ?? 0)}</span>,
+              last: running ? (
+                <div className="admin-job-progress">
+                  <span><Pill tone="info">Running</Pill> {n(job.processed)} of {n(job.total)} · {n(job.changed)} {def.unit}</span>
+                  <span className="admin-meter" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label={`${def.label} progress`}><span style={{ width: `${pct}%` }} /></span>
+                </div>
+              ) : job ? (
+                <div className="admin-job-progress">
+                  <span>
+                    {job.status === "done" ? <Pill tone="ok">Done</Pill> : job.status === "failed" ? <Pill tone="danger">Couldn&apos;t finish</Pill> : <Pill>Stopped</Pill>}{" "}
+                    <span className="muted">{ago(job.finished_at ?? job.updated_at)} · {n(job.changed)} {def.unit}{job.failed ? ` · ${n(job.failed)} failed` : ""}</span>
+                  </span>
+                  {job.status === "failed" && job.last_error && <span className="admin-cell-detail admin-job-error" title={job.last_error}>{job.last_error}</span>}
+                </div>
+              ) : <span className="muted">Never run</span>,
+              action: <JobButton kind={kind} jobId={running ? job.id : null} disabled={blocked} />,
+            },
+          };
+        })} />
+
       <Panel id="tmdb-awards" title="Check TMDB for awards" icon="laurel">
-        {tmdbEnabled && <TmdbAwardsCheck />}
-      </Panel>
-      <Panel id="where-to-watch" title="Refresh where to watch" icon="play">
-        <WatchRefresh />
+        {tmdbEnabled ? <TmdbAwardsCheck /> : <p className="muted">Needs TMDB.</p>}
       </Panel>
       <p className="muted">Automatic matches can be wrong. Check directors, artwork and written details in the editors.</p>
     </>
