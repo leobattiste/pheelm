@@ -1,10 +1,12 @@
 import { requireAdmin } from "@/lib/admin";
-import { Empty, PageHeader, Pager, Panel, Row, ViewTabs, dayTime, pageNumber, plural } from "../ui";
+import { Empty, PageHeader, Pager, Panel, ViewTabs, pageNumber, plural } from "../ui";
+import { History } from "../History";
+import type { Change } from "@/lib/changes";
 
 const PAGE_SIZE = 50;
 const TYPES: [string, string][] = [
   ["film", "Films"], ["person", "People"], ["member", "Members"], ["collection", "Watchlists"],
-  ["comment", "Comments"], ["submission", "Submissions"], ["message", "Inbox"], ["subscriber", "Newsletter"],
+  ["comment", "Comments"], ["submission", "Submissions"], ["message", "Inbox"], ["subscriber", "Newsletter"], ["job", "Automation"],
 ];
 
 /** Where a logged change can be looked at now. */
@@ -15,7 +17,8 @@ function targetHref(type: string, id: string | null) {
     case "person": return `/admin/people/${id}`;
     case "member": return `/admin/members/${id}`;
     case "collection": return `/c/${id}`;
-    case "message": return `/admin/inbox/${id}`;
+    case "message": return `/admin/inbox/message/${id}`;
+    case "job": return "/admin/automation";
     default: return undefined;
   }
 }
@@ -25,7 +28,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
   const sp = await searchParams;
   const page = pageNumber(sp.page);
   const type = TYPES.some(([t]) => t === sp.type) ? sp.type! : "all";
-  let query = db.from("admin_activity").select("id,actor_id,action,target_type,target_id,details,created_at", { count: "exact" })
+  let query = db.from("admin_activity").select("*", { count: "exact" })
     .order("created_at", { ascending: false }).range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
   if (type !== "all") query = query.eq("target_type", type);
   const { data, count, error } = await query;
@@ -44,10 +47,10 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
       ]} />
       {error ? <p className="notice error">The activity log couldn&apos;t load. Try again in a moment.</p> : data?.length ? (
         <Panel>
-          {data.map((a) => (
-            <Row key={a.id} href={targetHref(a.target_type, a.target_id)} detail={[who(a.actor_id), a.details].filter(Boolean).join(" · ")}
-              aside={<span className="muted">{dayTime(a.created_at)}</span>}>{a.action}</Row>
-          ))}
+          <History entries={data.map((a) => ({
+            id: a.id, action: a.action, details: a.details, created_at: a.created_at, who: who(a.actor_id),
+            href: targetHref(a.target_type, a.target_id), changes: (a.changes ?? null) as Change[] | null,
+          }))} />
         </Panel>
       ) : <Empty title="No changes recorded">{type === "all" ? "Changes made in admin appear here." : "No changes of this kind yet."}</Empty>}
       <Pager page={page} total={count ?? 0} size={PAGE_SIZE} href={href} />

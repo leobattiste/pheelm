@@ -7,6 +7,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { adminClient, ownerClient } from "@/lib/admin";
 import { logAdminActivity } from "@/lib/admin-activity";
+import { FILM_FIELDS, PERSON_FIELDS, diff, listChange } from "@/lib/changes";
 import { resolvePoster } from "@/lib/film-fields";
 import { slugify } from "@/lib/format";
 import { addFilmByTitle, importFilm, posterColour, type AddResult } from "@/lib/import";
@@ -63,6 +64,11 @@ function parseCredits(text: string) {
   return out;
 }
 
+/** Entries parsed from a text box, each with the extra fields of the saved entry it matches. */
+function keep<T extends object>(parsed: T[], saved: T[], key: (entry: T) => string): T[] {
+  const byKey = new Map(saved.map((entry) => [key(entry), entry]));
+  return parsed.map((entry) => ({ ...(byKey.get(key(entry)) ?? {}), ...entry }));
+}
 function parseAwards(text: string): Award[] {
   return text.split(/\r?\n|\r/).map((l) => l.trim()).filter(Boolean).map((line) => {
     const [award, category, result, year] = line.split("|").map((s) => s.trim());
@@ -102,6 +108,11 @@ export async function saveFilm(_prev: Result, f: FormData): Promise<Result> {
     const credits = parseCredits(str(f, "credits", 20000));
     if (!credits.some((c) => c.role === "director")) return { ok: false, message: "Add at least one director in Cast & crew, on its own line, like  director: Name" };
 
+    // What it was: for the change history, and to keep details the text boxes don't show.
+    const [{ data: before }, { data: oldCredits }] = await Promise.all([
+      db.from("films").select("*").eq("id", id).maybeSingle(),
+      db.from("credits").select("role, character, people(name)").eq("film_id", id).order("sort"),
+    ]);
     const poster = resolvePoster({
       uploaded: await upload(db, f.get("poster_file"), "posters"),
       typed: nullable(f, "poster_url", 1000),
@@ -132,8 +143,10 @@ export async function saveFilm(_prev: Result, f: FormData): Promise<Result> {
       backdrop_url: nullable(f, "backdrop_url", 1000),
       trailer_url: nullable(f, "trailer_url", 1000),
       tmdb_id: int(f, "tmdb_id"),
-      awards: parseAwards(str(f, "awards", 20000)),
-      watch: parseWatch(str(f, "watch", 20000)),
+      // The boxes show one line per entry; details they don't show (a service's logo, who an award
+      // went to) are kept from the saved entry with the same line.
+      awards: keep(parseAwards(str(f, "awards", 20000)), (before?.awards ?? []) as Award[], (a) => [a.award, a.category, a.result, a.year].join("|")),
+      watch: keep(parseWatch(str(f, "watch", 20000)), (before?.watch ?? []) as WatchOption[], (w) => [w.provider, w.url, w.kind, w.region ?? ""].join("|")),
       updated_at: new Date().toISOString(),
       // Only sent when the editor showed these fields (they need the aka and note columns).
       ...(f.has("aka") ? { aka: str(f, "aka", 2000).split(";").map((s) => s.trim()).filter(Boolean) } : {}),
@@ -154,7 +167,13 @@ export async function saveFilm(_prev: Result, f: FormData): Promise<Result> {
     await db.from("collection_films").delete().eq("film_id", id);
     if (chosen.length) await db.from("collection_films").insert(chosen.map((c) => ({ collection_id: c, film_id: id, sort: year })));
 
-    await logAdminActivity(db, "Saved film", "film", id, `${title} (${year}) · ${row.status}`);
+    const line = (c: { role: string; name: string; character?: string | null }) => `${c.role}: ${c.name}${c.character ? ` as ${c.character}` : ""}`;
+    const changes = diff(before ?? {}, row, FILM_FIELDS);
+    const creditChange = listChange("Cast & crew",
+      ((oldCredits ?? []) as unknown as { role: string; character: string | null; people: { name: string } | null }[]).map((c) => line({ role: c.role, name: c.people?.name ?? "", character: c.character })),
+      credits.map((c) => line(c)));
+    if (creditChange) changes.push(creditChange);
+    await logAdminActivity(db, changes.length ? "Edited film" : "Saved film", "film", id, `${title} (${year})${changes.length ? ` · ${changes.map((c) => c.field.toLowerCase()).join(", ")}` : " · no changes"}`, changes);
     refresh();
     return { ok: true, message: row.status === "draft" ? "Saved as a draft." : "Saved and live." };
   } catch (e) {
@@ -187,9 +206,9 @@ export async function createFilm(f: FormData) {
 export async function deleteFilm(f: FormData) {
   const db = await ownerClient();
   const id = str(f, "id");
-  const { error } = await db.from("films").delete().eq("id", id);
+  const { data: gone, error } = await db.from("films").delete().eq("id", id).select("title, year").maybeSingle();
   if (error) throw new Error(error.message);
-  await logAdminActivity(db, "Deleted film", "film", id);
+  await logAdminActivity(db, "Deleted film", "film", id, gone ? `${gone.title} (${gone.year})` : "");
   refresh();
   redirect("/admin/films");
 }
@@ -257,7 +276,8 @@ export async function savePerson(_prev: Result, f: FormData): Promise<Result> {
     const name = str(f, "name", 200);
     if (!name) return { ok: false, message: "Add a name." };
     const photo = (await upload(db, f.get("photo_file"), "people")) ?? nullable(f, "photo_url", 1000);
-    const { error } = await db.from("people").update({
+    const { data: before } = await db.from("people").select("*").eq("id", str(f, "id")).maybeSingle();
+    const row = {
       name,
       slug: slugify(str(f, "slug") || name),
       country: nullable(f, "country", 2)?.toUpperCase() ?? null,
@@ -266,9 +286,11 @@ export async function savePerson(_prev: Result, f: FormData): Promise<Result> {
       photo_url: photo,
       tmdb_id: int(f, "tmdb_id"),
       ...(f.has("has_in_directory") ? { in_directory: f.get("in_directory") === "on" } : {}),
-    }).eq("id", str(f, "id"));
+    };
+    const { error } = await db.from("people").update(row).eq("id", str(f, "id"));
     if (error) return { ok: false, message: error.code === "23505" ? "Someone else already uses that address or TMDB id." : error.message };
-    await logAdminActivity(db, "Saved person", "person", str(f, "id"), name);
+    const changes = diff(before ?? {}, row, PERSON_FIELDS);
+    await logAdminActivity(db, changes.length ? "Edited person" : "Saved person", "person", str(f, "id"), `${name}${changes.length ? ` · ${changes.map((c) => c.field.toLowerCase()).join(", ")}` : " · no changes"}`, changes);
     refresh();
     return { ok: true, message: "Saved." };
   } catch (e) {
