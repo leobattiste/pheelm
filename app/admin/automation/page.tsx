@@ -7,6 +7,7 @@ import PeopleFill from "../PeopleFill";
 import WatchRefresh from "../WatchRefresh";
 import AwardsRefresh from "../AwardsRefresh";
 import CreditsRefresh from "../CreditsRefresh";
+import TmdbAwardsCheck from "../TmdbAwardsCheck";
 
 // The batch buttons here run server actions that wait on TMDB and Wikidata.
 export const maxDuration = 300;
@@ -41,6 +42,9 @@ export default async function AutomationPage() {
       </Panel>
       <Panel id="awards" title="Update awards and nominations" icon="laurel">
         <AwardsRefresh />
+      </Panel>
+      <Panel id="tmdb-awards" title="Check TMDB for awards" icon="laurel">
+        {tmdbEnabled && <TmdbAwardsCheck />}
       </Panel>
       <Panel id="where-to-watch" title="Refresh where to watch" icon="play">
         <WatchRefresh />

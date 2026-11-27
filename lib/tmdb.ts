@@ -297,3 +297,41 @@ export async function getWatch(id: number): Promise<WatchOption[]> {
   const data = await get<{ results?: Record<string, TmdbRegionProviders> }>(`/movie/${id}/watch/providers`);
   return parseWatch(data.results ?? {});
 }
+
+/**
+ * Asks TMDB, with our key, whether it serves a film's awards anywhere in its API. TMDB shows awards
+ * on its website, but its API docs don't list them, so this tries the likely addresses and reports
+ * what each one answers. Nothing is saved. Used by the check in Admin > Automation.
+ */
+export async function probeTmdbAwards(id: number): Promise<{ path: string; status: number | string; found: boolean; sample: string }[]> {
+  const tries: { path: string; v: 3 | 4; params?: Record<string, string>; pick?: (j: Record<string, unknown>) => unknown }[] = [
+    { path: `/movie/${id}/awards`, v: 3 },
+    { path: `/movie/${id}`, v: 3, params: { append_to_response: "awards" }, pick: (j) => Object.fromEntries(Object.entries(j).filter(([k]) => /award|nominat|accolade/i.test(k))) },
+    { path: `/movie/${id}/award_nominations`, v: 3 },
+    { path: `/movie/${id}/nominations`, v: 3 },
+    { path: `/movie/${id}/accolades`, v: 3 },
+    { path: `/movie/${id}/awards`, v: 4 },
+  ];
+  const out: { path: string; status: number | string; found: boolean; sample: string }[] = [];
+  for (const t of tries) {
+    const url = new URL(`https://api.themoviedb.org/${t.v}${t.path}`);
+    for (const [k, v] of Object.entries(t.params ?? {})) url.searchParams.set(k, v);
+    const headers: Record<string, string> = { accept: "application/json" };
+    if (KEY.length > 40) headers.authorization = `Bearer ${KEY}`;
+    else if (t.v === 3) url.searchParams.set("api_key", KEY);
+    const label = `v${t.v}${t.path}${t.params ? `?${new URLSearchParams(t.params)}` : ""}`;
+    try {
+      const res = await fetch(url, { headers, cache: "no-store", signal: AbortSignal.timeout(10_000) });
+      const text = await res.text();
+      let body: unknown = text;
+      try { body = JSON.parse(text); } catch { /* not JSON */ }
+      const picked = t.pick && body && typeof body === "object" ? t.pick(body as Record<string, unknown>) : body;
+      const sample = (typeof picked === "string" ? picked : JSON.stringify(picked)).slice(0, 600);
+      const found = res.ok && (t.pick ? sample !== "{}" : true);
+      out.push({ path: label, status: res.status, found, sample });
+    } catch (e) {
+      out.push({ path: label, status: e instanceof Error ? e.message : "failed", found: false, sample: "" });
+    }
+  }
+  return out;
+}

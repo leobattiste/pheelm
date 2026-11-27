@@ -10,7 +10,7 @@ import { logAdminActivity } from "@/lib/admin-activity";
 import { resolvePoster } from "@/lib/film-fields";
 import { slugify } from "@/lib/format";
 import { addFilmByTitle, fillPerson, importFilm, posterColour, refreshCredits, type AddResult } from "@/lib/import";
-import { getWatch, tmdbEnabled } from "@/lib/tmdb";
+import { getWatch, probeTmdbAwards, tmdbEnabled } from "@/lib/tmdb";
 import { refreshAwardsBatch } from "@/lib/awards";
 import type { Award, Role, WatchOption } from "@/lib/types";
 import { queueCatalogSnapshot } from "@/lib/catalog-snapshot";
@@ -270,6 +270,17 @@ export async function refreshAwards(offset: number): Promise<Result & { next: nu
     return { ok: true, message: `Checked ${next} of ${count ?? 0}.`, next, total: count ?? 0, updated, failed };
   } catch (e) {
     return { ...fail(e), next: offset, total: 0, updated: 0, failed: 0 };
+  }
+}
+
+/** Admin only: what TMDB's API answers for a film's awards, for deciding where awards should come from. */
+export async function checkTmdbAwards(tmdbId: number) {
+  try {
+    await adminClient();
+    if (!Number.isInteger(tmdbId) || tmdbId <= 0) return { ok: false as const, message: "Enter a TMDB id, like 1233413 for Sinners." };
+    return { ok: true as const, results: await probeTmdbAwards(tmdbId) };
+  } catch (e) {
+    return { ok: false as const, message: e instanceof Error ? e.message : "Something went wrong." };
   }
 }
 
