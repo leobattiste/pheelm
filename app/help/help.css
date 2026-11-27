@@ -25,3 +25,45 @@
   .help-results-head { margin-bottom: var(--space-20); }
   .help-group { margin-bottom: var(--space-32); }
 }
+
+/* Help has nine long topic names. Do not use the equal-width, single-row
+   feed-choice buttons intended for Directors' three short filters. */
+#help-filters .help-topic-field {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+#help-filters .help-topic-field legend {
+  margin-bottom: var(--space-12);
+  padding: 0;
+  color: var(--ink);
+  font-size: var(--t-sm);
+  font-weight: 700;
+}
+#help-filters .help-topic-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-8);
+}
+#help-filters .help-topic-options > .help-topic-option {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  height: auto;
+  min-height: var(--bar-height);
+  padding: 10px 14px;
+  flex: none;
+  white-space: normal;
+  overflow-wrap: break-word;
+  line-height: 1.3;
+  text-align: center;
+}
+#help-filters .help-topic-options > .help-topic-option[aria-pressed="true"] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--on-ink);
+}
+@media (max-width: 520px) {
+  #help-filters .help-topic-options { grid-template-columns: minmax(0, 1fr); }
+}
