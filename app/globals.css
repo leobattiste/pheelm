@@ -3432,3 +3432,6 @@ html:root:root:root .trailer-foot .button.ghost { border: 1px solid var(--contro
 .legal-page .legal-toc button:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 .legal-page .prose h3[id] { scroll-margin-top: calc(var(--header) + var(--space-32)); }
 @media (max-width: 700px) { .legal-page .legal-toc ol { grid-template-columns: minmax(0, 1fr); } }
+
+/* Synopsis: a section like Cast and crew; the section's own gap spaces the note and the text. */
+.film-synopsis :is(.film-note, .film-essay) { margin-top: 0; }
