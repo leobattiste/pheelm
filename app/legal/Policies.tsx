@@ -7,7 +7,6 @@ function Contact() { return <a href={`mailto:${EMAIL}`}>{EMAIL}</a>; }
 
 export function PrivacyPolicy() {
   return <div className="prose">
-    <h2>Privacy Policy</h2>
     <p className="legal-updated">Last updated: {LEGAL_UPDATED}</p>
     <p>This policy explains how Pheelm, an independent film-discovery platform, collects, uses, shares and protects personal information when you visit the website, create an account, contribute content or contact us. Pheelm is responsible for the personal information it processes to operate the platform. Privacy requests can be sent to <Contact />.</p>
     <LegalContents prefix="privacy" headings={["1. Information you provide","2. Technical information and local storage","3. How we use information","4. Public profiles and visibility controls","5. Who receives information","6. Email communications","7. Retention and deletion","8. Your privacy rights","9. International processing and security","10. Children, third-party pages and policy changes"]} />
@@ -62,7 +61,6 @@ export function PrivacyPolicy() {
 
 export function TermsPolicy() {
   return <div className="prose">
-    <h2>Terms of Use</h2>
     <p className="legal-updated">Last updated: {LEGAL_UPDATED}</p>
     <p>These terms govern access to and use of Pheelm, an independent film-discovery platform. “Pheelm,” “we” and “us” refer to the platform and its operator; “you” refers to the person using it. By accessing or using Pheelm, you agree to these terms and the <Link href="/legal#community-guidelines">Community Guidelines</Link>. Our <Link href="/legal#privacy">Privacy Policy</Link> explains personal-information practices.</p>
     <LegalContents prefix="terms" headings={["1. Eligibility and accounts","2. What the platform provides","3. Permission to use Pheelm","4. Your contributions and permissions","5. Film and rights-holder submissions","6. Prohibited conduct","7. Moderation and account restrictions","8. Third-party content, links and credits","9. Contributions, donations and partnerships","10. Availability and disclaimers","11. Responsibility and limits of liability","12. Governing law and disputes","13. Changes and general provisions"]} />
@@ -116,7 +114,6 @@ export function TermsPolicy() {
 
 export function CopyrightPolicy() {
   return <div className="prose">
-    <h2>Copyright Policy</h2>
     <p className="legal-updated">Last updated: {LEGAL_UPDATED}</p>
     <p>This policy explains ownership, permitted use and how to report copyright or other rights concerns involving content on Pheelm.</p>
     <LegalContents prefix="copyright" headings={["1. Ownership and attribution","2. Using content and submitting your own","3. Send a copyright complaint","4. Review, restrictions and confidentiality limits","5. Disputing a removal and counter-notices","6. Other rights and corrections"]} />
@@ -150,7 +147,6 @@ export function CopyrightPolicy() {
 
 export function CommunityGuidelines() {
   return <div className="prose">
-    <h2>Community Guidelines</h2>
     <p className="legal-updated">Last updated: {LEGAL_UPDATED}</p>
     <p>Pheelm exists to help people discover and appreciate films by Black directors. These guidelines apply to profiles, watchlists, watchlist descriptions, comments, links, submissions, collaboration activity and interactions with our team. They supplement the Terms of Use.</p>
     <LegalContents prefix="community-guidelines" headings={["1. Respect people and discuss ideas","2. Protect privacy and safety","3. Be truthful about identity and affiliation","4. Keep contributions useful and accurate","5. Respect creative rights and viewing choices","6. No spam, scams or manipulation","7. Collaborate with permission","8. Report concerns and use your controls","9. How enforcement works","10. Appeals and updates"]} />
