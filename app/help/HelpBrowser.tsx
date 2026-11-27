@@ -184,7 +184,7 @@ export default function HelpBrowser() {
       <dialog
         ref={filterDialog}
         id="help-filters"
-        className="modal catalog-filter-dialog"
+        className="modal sort-dialog"
         aria-labelledby="help-filters-title"
         onClose={() => setFiltersOpen(false)}
         onClick={(event) => { if (event.target === filterDialog.current) filterDialog.current?.close(); }}
@@ -197,22 +197,20 @@ export default function HelpBrowser() {
           </button>
         </div>
         <div className="modal-body">
-          <fieldset className="help-topic-field">
-            <legend>Topic</legend>
-            <div className="help-topic-options">
-              {[{ id: "all", title: "All topics" }, ...HELP_CATEGORIES].map((group) => (
-                <button key={group.id} type="button" className="button ghost help-topic-option" aria-pressed={category === group.id} onClick={() => selectCategory(group.id)}>
-                  {group.title}
-                </button>
-              ))}
-            </div>
-          </fieldset>
-        </div>
-        <div className="modal-foot">
-          <button type="button" className="button ghost" disabled={category === "all"} onClick={() => selectCategory("all")}>Reset</button>
-          <button type="button" className="button" onClick={() => filterDialog.current?.close()}>
-            Show {results.length} {results.length === 1 ? "answer" : "answers"}
-          </button>
+          <div className="chip-row sort-choices" role="group" aria-label="Filter by topic">
+            {[{ id: "all", title: "All topics" }, ...HELP_CATEGORIES].map((group) => (
+              <button
+                key={group.id}
+                type="button"
+                className="button ghost"
+                aria-pressed={category === group.id}
+                onClick={() => { selectCategory(group.id); filterDialog.current?.close(); }}
+              >
+                <span>{group.title}</span>
+                {category === group.id && <Icon name="check" />}
+              </button>
+            ))}
+          </div>
         </div>
       </dialog>
 
