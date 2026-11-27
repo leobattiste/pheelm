@@ -161,8 +161,6 @@ export async function FilmPageView({ params }: Params) {
                     </span>
                   ))}
                 </span>
-                <Link className="byline-item" href={`/films?decade=${Math.floor(film.year / 10) * 10}s`}>{film.year}</Link>
-                {runtime && <span className="byline-item">{runtime}</span>}
               </p>
             </header>
 
