@@ -5,7 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import FilmCard from "@/components/FilmCard";
 import CommunityTile from "@/components/CommunityTile";
-import Icon from "@/components/Icon";
+import Icon, { type IconName } from "@/components/Icon";
 import FilmActionBar from "@/components/FilmActionBar";
 import FilmEditorial from "@/components/FilmEditorial";
 import PeopleGrid from "@/components/PeopleGrid";
@@ -96,20 +96,19 @@ export async function FilmPageView({ params }: Params) {
   // The crew and the first six of the cast show; the rest sit behind "Show all".
   const crewCount = new Set(crew.flatMap((g) => g.people.map((c) => c.person.id))).size;
   const shown = Math.min(people.length, crewCount + CAST_SHOWN);
-  // The hero already says the year, running time and genres, so the facts beside the page don't repeat them.
   const details: [string, React.ReactNode][] = [
+    ...(film.original_title && film.original_title !== film.title ? ([["Original title", film.original_title]] as [string, React.ReactNode][]) : []),
+    ...(aka.length ? ([["Also known as", aka.join(", ")]] as [string, React.ReactNode][]) : []),
     [film.countries.length > 1 ? "Countries" : "Country", film.countries.length ? film.countries.map((c, i) => (
       <span key={c}>{i > 0 && ", "}<Link href={`/films?country=${c}`}>{countryName(c)}</Link></span>
     )) : null],
     [film.languages.length > 1 ? "Languages" : "Language", film.languages.length ? film.languages.join(", ") : null],
-    ...(film.original_title && film.original_title !== film.title ? ([["Original title", film.original_title]] as [string, React.ReactNode][]) : []),
-    ...(aka.length ? ([["Also known as", aka.join(", ")]] as [string, React.ReactNode][]) : []),
+    ["Genre", film.genres.length ? film.genres.map((g, i) => (
+      <span key={g}>{i > 0 && ", "}<Link href={`/films?genre=${encodeURIComponent(g)}`}>{g}</Link></span>
+    )) : null],
+    ["Running time", runtime],
+    ["Released", <Link key="y" href={`/films?decade=${Math.floor(film.year / 10) * 10}s`}>{film.year}</Link>],
   ];
-  const facts = details.filter(([, v]) => v);
-  // The wide still runs behind the top of the page; without one, the poster, blurred, sets the mood.
-  const still = film.backdrop_url ?? film.poster_url;
-  const topAward = wins[0] ?? null;
-  const decadeHref = `/films?decade=${Math.floor(film.year / 10) * 10}s`;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -130,148 +129,121 @@ export async function FilmPageView({ params }: Params) {
 
   return (
     <>
-      <article className="film-page film-v2">
+      <article className="film-page">
+        {/* Hands the film's colour to the whole page, header and footer included, while it's open. */}
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
+
         <Breadcrumbs parent="Films" href="/films" current={film.title} currentHref={filmPath(film.slug, film.directors)} />
 
-        {/* 1. The hero: the film's still behind its poster, title, the facts at a glance and the three things you can do. */}
-        <header className={`film-hero${still ? " has-still" : ""}${film.backdrop_url ? " is-backdrop" : " is-blurred"}`}>
-          {still && (
-            <div className="film-hero-bg" aria-hidden="true">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={still} srcSet={stillSrcSet(still)} sizes="100vw" alt="" fetchPriority="high" decoding="async" />
-            </div>
-          )}
-          <div className="film-hero-inner">
-            <div className="film-art">
-              <Poster title={film.title} year={film.year} directors={directorNames} src={film.poster_url} sizes="(min-width: 800px) 300px, 120px" priority hero />
-            </div>
+        <div className="film-art">
+          <Poster title={film.title} year={film.year} directors={directorNames} src={film.poster_url} sizes="(min-width: 800px) 46vw, 100vw" priority hero />
+        </div>
 
-            <section className="film-overview" aria-labelledby="film-title">
-              <div className="film-head">
-                <h1 className="film-title" id="film-title">{film.title}</h1>
-                <p className="film-byline">
-                  <span className="byline-label">Directed by </span>
+        <div className="film-body">
+          {/* 1. Overview: what it is, and the three things you can do. */}
+          <section className="film-overview" aria-labelledby="film-title">
+            <header className="film-head">
+              <h1 className="film-title" id="film-title">{film.title}</h1>
+              <p className="film-byline">
+                <span className="byline-item">
                   {film.directors.map((d, i) => (
                     <span key={d.id}>
                       {i > 0 && (i === film.directors.length - 1 ? " and " : ", ")}
                       <Link href={d.in_directory === false ? `/people/${d.slug}` : `/directors/${d.slug}`}>{d.name}</Link>
                     </span>
                   ))}
-                </p>
-                <p className="film-meta">
-                  <Link href={decadeHref}>{film.year}</Link>
-                  {runtime && <span>{runtime}</span>}
-                  {film.genres.slice(0, 3).map((g) => (
-                    <Link key={g} className="film-genre" href={`/films?genre=${encodeURIComponent(g)}`}>{g}</Link>
-                  ))}
-                </p>
-                {topAward && (
-                  <a className="film-laurel" href="#awards-h">
-                    <Icon name="laurel" />
-                    <span>{isRegistry(topAward) ? "National Film Registry" : `${topAward.award}${topAward.category ? `, ${topAward.category}` : ""}`}</span>
-                    {wins.length > 1 && <span className="film-laurel-more">+{wins.length - 1} more {wins.length - 1 === 1 ? "win" : "wins"}</span>}
-                  </a>
-                )}
-              </div>
+                </span>
+                <Link className="byline-item" href={`/films?decade=${Math.floor(film.year / 10) * 10}s`}>{film.year}</Link>
+                {runtime && <span className="byline-item">{runtime}</span>}
+              </p>
+            </header>
 
-              <div className="film-actions">
-                {embed ? (
-                  <TrailerButton embed={embed} title={film.title} className="pill-button primary" label="Trailer" action="trailer" />
-                ) : (
-                  // No trailer on file yet: search YouTube for it instead. Same button either way —
-                  // what differs is where it takes you, which the label on hover says.
-                  <a
-                    className="pill-button primary"
-                    data-action="trailer"
-                    aria-label="Find trailer on YouTube"
-                    title="Find trailer on YouTube"
-                    href={`https://www.youtube.com/results?search_query=${encodeURIComponent([film.title, film.year, ...directorNames, "trailer"].join(" "))}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <Icon name="play" className="solid" />
-                    Trailer
-                  </a>
-                )}
-                <WatchlistButton filmId={film.id} filmTitle={film.title} />
-                <FilmMenu filmId={film.id} slug={film.slug} title={film.title} />
+            <div className="film-actions">
+              {embed ? (
+                <TrailerButton embed={embed} title={film.title} className="pill-button primary" label="Trailer" action="trailer" />
+              ) : (
+                // No trailer on file yet: search YouTube for it instead. Same button either way —
+                // what differs is where it takes you, which the label on hover says.
+                <a
+                  className="pill-button primary"
+                  data-action="trailer"
+                  aria-label="Find trailer on YouTube"
+                  title="Find trailer on YouTube"
+                  href={`https://www.youtube.com/results?search_query=${encodeURIComponent([film.title, film.year, ...directorNames, "trailer"].join(" "))}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Icon name="play" className="solid" />
+                  Trailer
+                </a>
+              )}
+              <WatchlistButton filmId={film.id} filmTitle={film.title} />
+              <FilmMenu filmId={film.id} slug={film.slug} title={film.title} />
+            </div>
+
+            {film.note && <p className="film-note">{film.note}</p>}
+
+            {film.synopsis && (
+              <div className="film-essay">
+                {film.synopsis.split(/\n{2,}/).map((p, i) => <p key={i}>{p}</p>)}
               </div>
+            )}
+          </section>
+
+          <FilmEditorial filmId={film.id} />
+
+          {/* 2. About: small facts to scan. */}
+          <section className="film-section" aria-labelledby="details-h">
+            <h2 id="details-h">About</h2>
+            <dl className="details film-about">
+              {details.filter(([, v]) => v).map(([k, v]) => (
+                <div key={k}>
+                  <dt title={k}><Icon name={DETAIL_ICONS[k] ?? "film"} /><span className="visually-hidden">{k}</span></dt>
+                  <dd>{v}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+          {/* 3. Awards: the first two (wins first), then every win and nomination in a sheet. */}
+          {(wins.length > 0 || noms.length > 0) && (
+            <section className="film-section" aria-labelledby="awards-h">
+              <h2 id="awards-h">Awards</h2>
+              <AwardList awards={[...wins, ...noms].slice(0, 2)} />
+              {wins.length + noms.length > 2 && (
+                <AwardsDialog total={wins.length + noms.length} title={`Awards for ${film.title}`}>
+                  {wins.length > 0 && <><h3 className="awards-group">{wins.length} {wins.length === 1 ? "win" : "wins"}</h3><AwardList awards={wins} /></>}
+                  {noms.length > 0 && <><h3 className="awards-group">{noms.length} {noms.length === 1 ? "nomination" : "nominations"}</h3><AwardList awards={noms} /></>}
+                </AwardsDialog>
+              )}
             </section>
-          </div>
-        </header>
-
-        <div className="film-layout">
-          {/* The facts: a short, labelled sheet beside the reading column on desktop, after the story on phones. */}
-          {facts.length > 0 && (
-            <aside className="film-facts" aria-labelledby="details-h">
-              <h2 id="details-h">Details</h2>
-              <dl>
-                {facts.map(([k, v]) => (
-                  <div key={k}>
-                    <dt>{k}</dt>
-                    <dd>{v}</dd>
-                  </div>
-                ))}
-              </dl>
-            </aside>
           )}
 
-          <div className="film-body">
-            {/* 2. The story first. */}
-            {(film.note || film.synopsis) && (
-              <section className="film-story" aria-label="Synopsis">
-                {film.note && <p className="film-note">{film.note}</p>}
-                {film.synopsis && (
-                  <div className="film-essay">
-                    {film.synopsis.split(/\n{2,}/).map((p, i) => <p key={i}>{p}</p>)}
-                  </div>
-                )}
-              </section>
-            )}
-
-            {/* 3. Where to watch: what most people come for, right under the story. */}
-            <section className="film-section" aria-labelledby="watch-h">
-              <h2 id="watch-h">Where to watch</h2>
-              <WatchSection watch={film.watch} title={film.title} slug={film.slug} />
+          {/* 4. Cast and crew: who made it, each with what they did. */}
+          {people.length > 0 && (
+            <section className="film-section" aria-labelledby="people-h">
+              <h2 id="people-h">Cast and crew</h2>
+              <PeopleGrid people={people.slice(0, shown)} />
+              {people.length > shown && (
+                <details className="more">
+                  <summary className="button ghost small">
+                    <span className="more-closed">Show all {people.length}</span>
+                    <span className="more-open">Show fewer</span>
+                  </summary>
+                  <PeopleGrid people={people.slice(shown)} />
+                </details>
+              )}
             </section>
+          )}
 
-            <FilmEditorial filmId={film.id} />
+          {/* 5. Where to watch. */}
+          <section className="film-section" aria-labelledby="watch-h">
+            <h2 id="watch-h">Where to watch</h2>
+            <WatchSection watch={film.watch} title={film.title} slug={film.slug} />
+          </section>
 
-            {/* 4. Cast and crew: who made it, each with what they did. */}
-            {people.length > 0 && (
-              <section className="film-section" aria-labelledby="people-h">
-                <h2 id="people-h">Cast and crew</h2>
-                <PeopleGrid people={people.slice(0, shown)} />
-                {people.length > shown && (
-                  <details className="more">
-                    <summary className="button ghost small">
-                      <span className="more-closed">Show all {people.length}</span>
-                      <span className="more-open">Show fewer</span>
-                    </summary>
-                    <PeopleGrid people={people.slice(shown)} />
-                  </details>
-                )}
-              </section>
-            )}
+          {/* 6. What members thought. */}
+          <FilmComments filmId={film.id} filmTitle={film.title} />
 
-            {/* 5. Awards: the first two (wins first), then every win and nomination in a sheet. */}
-            {(wins.length > 0 || noms.length > 0) && (
-              <section className="film-section" aria-labelledby="awards-h">
-                <h2 id="awards-h">Awards</h2>
-                <AwardList awards={[...wins, ...noms].slice(0, 3)} />
-                {wins.length + noms.length > 3 && (
-                  <AwardsDialog total={wins.length + noms.length} title={`Awards for ${film.title}`}>
-                    {wins.length > 0 && <><h3 className="awards-group">{wins.length} {wins.length === 1 ? "win" : "wins"}</h3><AwardList awards={wins} /></>}
-                    {noms.length > 0 && <><h3 className="awards-group">{noms.length} {noms.length === 1 ? "nomination" : "nominations"}</h3><AwardList awards={noms} /></>}
-                  </AwardsDialog>
-                )}
-              </section>
-            )}
-
-            {/* 6. What members thought. */}
-            <FilmComments filmId={film.id} filmTitle={film.title} />
-          </div>
         </div>
       </article>
 
@@ -305,11 +277,10 @@ export async function FilmPageView({ params }: Params) {
   );
 }
 
-/** TMDB stills come in a few widths; phones fetch the smaller one. */
-function stillSrcSet(url: string) {
-  if (!url.includes("image.tmdb.org/t/p/")) return undefined;
-  return ["w780", "w1280"].map((w) => `${url.replace(/\/t\/p\/[^/]+\//, `/t/p/${w}/`)} ${w.slice(1)}w`).join(", ");
-}
+const DETAIL_ICONS: Record<string, IconName> = {
+  "Original title": "film", "Also known as": "film", Country: "globe", Countries: "globe", Language: "language", Languages: "language",
+  Genre: "sparkle", "Running time": "clock", Released: "calendar",
+};
 
 function AwardList({ awards }: { awards: Award[] }) {
   return (
