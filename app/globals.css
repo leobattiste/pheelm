@@ -3635,3 +3635,12 @@ html:root:root:root:root:root:root:root .motw :is(.motw-btn, .motw-watchlist .pi
 .film-tagline { margin-bottom: var(--space-12); font-size: var(--t-lg); font-style: italic; color: var(--muted); }
 .film-themes { display: flex; flex-wrap: wrap; gap: var(--space-8); margin: var(--space-24) 0 0; padding: 0; list-style: none; }
 .film-themes .pill-button { min-height: 0; padding: 6px 14px; font-size: var(--t-sm); }
+
+/* Film page stills: a row of wide pictures that scrolls sideways, each opening full size. */
+.film-stills { display: flex; gap: var(--space-12); margin: 0 calc(var(--gutter) * -1); padding: 0 var(--gutter) var(--space-4); list-style: none; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter); overscroll-behavior-x: contain; scrollbar-width: none; }
+.film-stills::-webkit-scrollbar { display: none; }
+.film-stills > li { flex: 0 0 min(84%, 420px); scroll-snap-align: start; }
+.film-stills a { display: block; overflow: hidden; border-radius: var(--r); background: var(--raised); aspect-ratio: 16 / 9; }
+.film-stills img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+.film-stills a:hover img { transform: scale(1.03); }
+@media (min-width: 800px) { .film-stills { margin: 0; padding: 0 0 var(--space-4); } }
