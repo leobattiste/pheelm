@@ -3484,12 +3484,14 @@ html:root:root:root:root:root:root .composer textarea { background: transparent 
 .motw { position: relative; display: flex; flex-direction: column; color: #fff; border-radius: var(--r); }
 .motw-media { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; background: #111; }
 .motw-bg { position: absolute; inset: -12%; width: 124%; height: 124%; object-fit: cover; filter: blur(40px) saturate(1.3) brightness(0.5); transform: scale(1.1); }
-.motw-poster { position: relative; display: block; }
+.motw-poster { position: relative; z-index: 0; display: block; }
+/* Darkens the blur under the text, so white type reads even on a pale poster. */
+.motw-media::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 55%, rgb(0 0 0 / 0.55)); }
 /* The poster's edges fade into the blur on every side but the top, so there's no hard line. */
-.motw-poster .poster { -webkit-mask: linear-gradient(180deg, #000 82%, transparent 100%); mask: linear-gradient(180deg, #000 82%, transparent 100%); }
+.motw-poster .poster { -webkit-mask: linear-gradient(180deg, #000 90%, transparent 100%); mask: linear-gradient(180deg, #000 90%, transparent 100%); }
 .motw-poster .poster { width: 100%; height: auto; aspect-ratio: 2 / 3; border-radius: var(--r) var(--r) 0 0; box-shadow: none; }
 .motw-link { position: absolute; inset: 0; z-index: 1; border-radius: inherit; }
-.motw-text { position: relative; z-index: 2; display: grid; gap: var(--space-4); justify-items: start; margin-top: -40px; padding: 0 var(--space-16) var(--space-16); text-align: left; min-width: 0; pointer-events: none; }
+.motw-text { position: relative; z-index: 2; display: grid; gap: var(--space-4); justify-items: start; margin-top: var(--space-8); padding: 0 var(--space-16) var(--space-16); text-align: left; min-width: 0; pointer-events: none; }
 .motw-actions { pointer-events: auto; display: flex; gap: var(--space-12); margin-top: var(--space-12); }
 .motw-title { font-size: var(--t-3xl); line-height: var(--lh-tight); letter-spacing: -0.03em; overflow-wrap: anywhere; text-shadow: 0 2px 16px rgb(0 0 0 / 0.45); }
 .motw-meta { color: rgb(255 255 255 / 0.85); font-size: var(--t-sm); text-shadow: 0 1px 8px rgb(0 0 0 / 0.4); }
