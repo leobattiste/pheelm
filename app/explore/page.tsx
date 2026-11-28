@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import CommunityTile from "@/components/CommunityTile";
 import { Portrait } from "@/components/DirectorCard";
-import ExploreActions from "@/components/ExploreActions";
 import FilmCard from "@/components/FilmCard";
 import FilmMenu from "@/components/FilmMenu";
 import Poster from "@/components/Poster";
@@ -14,7 +13,6 @@ import { getExplore } from "@/lib/explore";
 import { filmPath } from "@/lib/film-links";
 import { countryName, runtimeLabel, trailerEmbed } from "@/lib/format";
 import { publicPageMetadata } from "@/lib/seo";
-import { INSTAGRAM_URL } from "@/lib/site";
 
 export const revalidate = 3600; // the weekly picks change on Monday; admin saves refresh it right away
 export const metadata: Metadata = publicPageMetadata("/explore");
@@ -34,14 +32,13 @@ export default async function ExplorePage() {
       </header>
 
       {motw && (
-        <section className="explore-section page" aria-labelledby="motw-h">
-          <h2 id="motw-h" className="explore-h">Movie of the week</h2>
+        <section className="explore-section page" aria-label="Movie of the week">
           <article className="motw">
             <Link href={filmPath(motw.slug, motw.directors)} className="motw-poster" aria-label={`${motw.title}, ${motw.year}`}>
-              <Poster title={motw.title} year={motw.year} directors={motw.directors.map((d) => d.name)} src={motw.poster_url} sizes="(min-width: 800px) 280px, 40vw" priority />
+              <Poster title={motw.title} year={motw.year} directors={motw.directors.map((d) => d.name)} src={motw.poster_url} sizes="(min-width: 800px) 280px, 100vw" priority hero />
             </Link>
             <div className="motw-text">
-              <h3 className="motw-title"><Link href={filmPath(motw.slug, motw.directors)}>{motw.title}</Link></h3>
+              <h2 className="motw-title"><Link href={filmPath(motw.slug, motw.directors)}>{motw.title}</Link></h2>
               <p className="motw-meta">
                 {[motw.directors.map((d) => d.name).join(" and "), String(motw.year), runtimeLabel(motw.runtime)].filter(Boolean).join(" · ")}
               </p>
@@ -116,13 +113,16 @@ export default async function ExplorePage() {
         </section>
       )}
 
-      <section className="explore-section page" aria-labelledby="join-h">
-        <h2 id="join-h" className="explore-h">Join in</h2>
-        <ExploreActions
-          commentsHref={motw ? `${filmPath(motw.slug, motw.directors)}#comments` : undefined}
-          commentsTitle={motw ? `Talk about ${motw.title}` : undefined}
-          instagram={INSTAGRAM_URL || undefined}
-        />
+      <section className="explore-section page" aria-labelledby="keep-h">
+        <h2 id="keep-h" className="explore-h">Keep exploring</h2>
+        {([["Decades", x.browse.decades], ["Genres", x.browse.genres], ["Services", x.browse.services], ["Themes", x.browse.themes]] as const).map(([label, items]) =>
+          items.length > 0 && (
+            <div key={label} className="explore-chips">
+              <h3>{label}</h3>
+              <ul>{items.map((i) => <li key={i.href}><Link href={i.href} className="pill-button">{i.label}</Link></li>)}</ul>
+            </div>
+          ),
+        )}
       </section>
     </div>
   );

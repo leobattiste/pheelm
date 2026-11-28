@@ -66,16 +66,55 @@ export type Explore = {
   spotlight: Director | null;
   aroundTheWorld: { country: string; film: Film }[];
   watchlists: CommunityCollection[];
+  browse: Browse;
 };
+
+/** What "Keep exploring" links to: each chip opens the Films page filtered that way. */
+export type Browse = {
+  decades: { label: string; href: string }[];
+  genres: { label: string; href: string }[];
+  services: { label: string; href: string }[];
+  themes: { label: string; href: string }[];
+};
+
+// The big streaming services, in the order people look for them; only those with films here show.
+const SERVICES = ["Netflix", "Max", "HBO Max", "Hulu", "Amazon Prime Video", "Disney Plus", "Apple TV Plus", "Apple TV", "Paramount Plus", "Peacock", "Criterion Channel", "MUBI", "Tubi"];
+
+async function themeCollections() {
+  if (!supabaseEnabled) return [] as { slug: string; title: string }[];
+  const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: false } });
+  const { data, error } = await db.from("collections").select("slug,title").eq("kind", "theme").order("sort_order");
+  return error ? [] : ((data ?? []) as { slug: string; title: string }[]);
+}
+
+function browseLinks(films: Film[], themes: { slug: string; title: string }[]): Browse {
+  const count = <T,>(items: T[]) => {
+    const m = new Map<T, number>();
+    for (const i of items) m.set(i, (m.get(i) ?? 0) + 1);
+    return m;
+  };
+  const decades = [...count(films.map((f) => Math.floor(f.year / 10) * 10)).keys()].sort((a, b) => a - b);
+  const genres = [...count(films.flatMap((f) => f.genres)).entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 14).map(([g]) => g);
+  const providers = new Set(films.flatMap((f) => (f.watch ?? []).filter((w) => w.kind === "stream" || w.kind === "free").map((w) => w.provider)));
+  const services = SERVICES.filter((s) => providers.has(s));
+  const q = (k: string, v: string) => `/films?${k}=${encodeURIComponent(v)}`;
+  return {
+    decades: decades.map((d) => ({ label: `${d}s`, href: q("decade", `${d}s`) })),
+    genres: genres.map((g) => ({ label: g, href: q("genre", g) })),
+    services: services.map((s) => ({ label: s, href: q("provider", s) })),
+    themes: themes.map((t) => ({ label: t.title, href: `/collections/${t.slug}` })),
+  };
+}
 
 export async function getExplore(now = Date.now()): Promise<Explore> {
   const week = weekIndex(now);
   const start = weekStart(now);
-  const [films, directors, collections, pin] = await Promise.all([
+  const [films, directors, collections, pin, themes] = await Promise.all([
     getFilms(),
     getDirectors(),
     getCommunityCollections({ sort: "popular" }).catch(() => [] as CommunityCollection[]),
     pinnedFilmId(start),
+    themeCollections(),
   ]);
   const usable = films.filter((f) => !!f.poster_url);
   const hasPopularity = usable.some((f) => f.popularity != null);
@@ -120,5 +159,5 @@ export async function getExplore(now = Date.now()): Promise<Explore> {
   // Community watchlists: four a week, from those with at least five films.
   const watchlists = rotate(shuffled(collections.filter((c) => c.films.length >= MIN_FILMS), (c) => c.id), week, 4);
 
-  return { week: start, movieOfTheWeek, pinned: !!pinned, popular, recent, spotlight, aroundTheWorld, watchlists };
+  return { week: start, movieOfTheWeek, pinned: !!pinned, popular, recent, spotlight, aroundTheWorld, watchlists, browse: browseLinks(films, themes) };
 }
