@@ -2,9 +2,9 @@ import "server-only";
 
 import { createClient } from "@supabase/supabase-js";
 import { getCommunityCollections, MIN_FILMS, type CommunityCollection } from "@/lib/community";
-import { getDirectors, getFilms } from "@/lib/data";
+import { getDirectors, getFilms, toDirectorSummary } from "@/lib/data";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseEnabled } from "@/lib/supabase/config";
-import type { Director, Film } from "@/lib/types";
+import type { DirectorSummary, Film } from "@/lib/types";
 
 /**
  * What the Explore page shows this week. Every weekly pick comes from the week number, so nobody has
@@ -63,7 +63,7 @@ export type Explore = {
   pinned: boolean;
   popular: Film[];
   recent: Film[];
-  spotlight: Director | null;
+  spotlights: DirectorSummary[];
   aroundTheWorld: { country: string; film: Film }[];
   watchlists: CommunityCollection[];
   browse: Browse;
@@ -135,10 +135,15 @@ export async function getExplore(now = Date.now()): Promise<Explore> {
     .sort((a, b) => (b.published_at ?? b.created_at ?? "").localeCompare(a.published_at ?? a.created_at ?? ""))
     .slice(0, 12);
 
-  // Director spotlight: one director a week, from everyone with at least five films on Pheelm.
-  const eligible = shuffled(directors.filter((d) => d.in_directory !== false && d.films.length >= 5), (d) => d.id);
-  const chosen = rotate(eligible, week, 1)[0] ?? null;
-  const spotlight = chosen ? { ...chosen, films: [...chosen.films].filter((f) => !!f.poster_url).sort(byPopularity) } : null;
+  // Director spotlight: four directors a week, all with at least five films on Pheelm. Two are
+  // among the best known (judged by their most popular film) and two are less known, so the row mixes both.
+  const fame = (d: { films: Film[] }) => Math.max(0, ...d.films.map(popularity)) || d.films.reduce((n, f) => n + wins(f), 0);
+  const eligible = directors.filter((d) => d.in_directory !== false && d.films.length >= 5);
+  const ranked = [...eligible].sort((a, b) => fame(b) - fame(a) || a.id.localeCompare(b.id));
+  const cut = Math.ceil(ranked.length / 3);
+  const known = shuffled(ranked.slice(0, cut), (d) => d.id);
+  const lesser = shuffled(ranked.slice(cut), (d) => d.id);
+  const spotlights = [...rotate(known, week, 2), ...rotate(lesser, week, 2)].map(toDirectorSummary);
 
   // Around the world: eight countries a week, one popular film from each. Countries need at least
   // three films, so the film can change too: each country's turn takes the next of its top five.
@@ -159,5 +164,5 @@ export async function getExplore(now = Date.now()): Promise<Explore> {
   // Community watchlists: four a week, from those with at least five films.
   const watchlists = rotate(shuffled(collections.filter((c) => c.films.length >= MIN_FILMS), (c) => c.id), week, 4);
 
-  return { week: start, movieOfTheWeek, pinned: !!pinned, popular, recent, spotlight, aroundTheWorld, watchlists, browse: browseLinks(films, themes) };
+  return { week: start, movieOfTheWeek, pinned: !!pinned, popular, recent, spotlights, aroundTheWorld, watchlists, browse: browseLinks(films, themes) };
 }

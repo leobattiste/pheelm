@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import CommunityTile from "@/components/CommunityTile";
-import { Portrait } from "@/components/DirectorCard";
+import DirectorCard from "@/components/DirectorCard";
 import FilmCard from "@/components/FilmCard";
 import FilmMenu from "@/components/FilmMenu";
 import Poster from "@/components/Poster";
@@ -66,33 +66,24 @@ export default async function ExplorePage() {
       )}
 
       {x.popular.length > 0 && (
-        <Row title="Most popular" href="/films" className="explore-row">
+        <Row title="Most popular" className="explore-row">
           {x.popular.map((f, i) => <FilmCard key={f.id} film={toCard(f)} sizes={SIZES} priority={i < 3} />)}
         </Row>
       )}
 
       {x.recent.length > 0 && (
-        <Row title="Recently added" href="/films" className="explore-row">
+        <Row title="Recently added" className="explore-row">
           {x.recent.map((f) => <FilmCard key={f.id} film={toCard(f)} sizes={SIZES} />)}
         </Row>
       )}
 
-      {x.spotlight && (
+      {x.spotlights.length > 0 && (
         <section className="explore-section page" aria-labelledby="spotlight-h">
           <h2 id="spotlight-h" className="explore-h">Director spotlight</h2>
-          <Link href={`/directors/${x.spotlight.slug}`} className="spotlight-head">
-            <Portrait director={x.spotlight} className="spotlight-portrait" />
-            <span className="spotlight-text">
-              <span className="spotlight-name">{x.spotlight.name}</span>
-              {x.spotlight.country && <span className="spotlight-meta">{countryName(x.spotlight.country)}</span>}
-            </span>
-          </Link>
+          <ul className="collection-list explore-lists">
+            {x.spotlights.map((d) => <DirectorCard key={d.id} director={d} />)}
+          </ul>
         </section>
-      )}
-      {x.spotlight && x.spotlight.films.length > 0 && (
-        <Row title={`Films by ${x.spotlight.name}`} bare className="explore-row spotlight-row">
-          {x.spotlight.films.map((f) => <FilmCard key={f.id} film={toCard(f)} sizes={SIZES} posterOnly />)}
-        </Row>
       )}
 
       {x.aroundTheWorld.length > 0 && (
@@ -103,10 +94,7 @@ export default async function ExplorePage() {
 
       {x.watchlists.length > 0 && (
         <section className="explore-section page" aria-labelledby="lists-h">
-          <div className="explore-h-row">
-            <h2 id="lists-h" className="explore-h">Community watchlists</h2>
-            <Link href="/watchlists" className="explore-more">See all</Link>
-          </div>
+          <h2 id="lists-h" className="explore-h">Community watchlists</h2>
           <ul className="collection-list explore-lists">
             {x.watchlists.map((c) => <CommunityTile key={c.id} c={c} />)}
           </ul>
