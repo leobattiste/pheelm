@@ -23,7 +23,7 @@ type Section = {
 export const ADMIN_SECTIONS: Section[] = [
   { label: "Home", href: "/admin", icon: "dashboardSettings", routes: ["/admin/analytics"], group: "main", phone: true },
   { label: "Inbox", href: "/admin/inbox", icon: "mail", badges: ["inbox"], routes: [], group: "main", phone: true },
-  { label: "Films", href: "/admin/films", icon: "film", badges: ["submissions"], routes: ["/admin/submissions", "/admin/quality", "/admin/automation", "/admin/editorial", "/admin/searches"], group: "catalog", phone: true },
+  { label: "Films", href: "/admin/films", icon: "film", badges: ["submissions"], routes: ["/admin/submissions", "/admin/quality", "/admin/automation", "/admin/editorial", "/admin/searches", "/admin/films/discover"], group: "catalog", phone: true },
   { label: "Directors", href: "/admin/people", icon: "users", routes: [], group: "catalog", phone: true },
   { label: "Watchlists", href: "/admin/community/watchlists", icon: "stack", badges: ["reports"], routes: ["/admin/community/comments"], group: "community" },
   { label: "Members", href: "/admin/members", icon: "user", routes: [], group: "community" },
@@ -38,6 +38,7 @@ const GROUPS: { key: Section["group"]; label?: string }[] = [
 const TOOLS: { label: string; href: string; icon: IconName }[] = [
   { label: "Automation", href: "/admin/automation", icon: "sparkle" },
   { label: "Content quality", href: "/admin/quality", icon: "check" },
+  { label: "Find missing films", href: "/admin/films/discover", icon: "search" },
   { label: "Suggestions from members", href: "/admin/submissions", icon: "send" },
   { label: "Reports", href: "/admin/community", icon: "flag" },
   { label: "Activity log", href: "/admin/activity", icon: "clock" },

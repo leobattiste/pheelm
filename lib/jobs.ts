@@ -3,7 +3,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { refreshAwardsBatch } from "@/lib/awards";
 import { fillPerson, importFilm, refreshCredits } from "@/lib/import";
-import { getWatch } from "@/lib/tmdb";
+import { getChanges, getWatch } from "@/lib/tmdb";
 import { fillExtras } from "@/lib/extras";
 import type { WatchOption } from "@/lib/types";
 
@@ -12,7 +12,7 @@ import type { WatchOption } from "@/lib/types";
  * at a time; `cursor` is the last id handled, so a job picks up where it stopped. The worker
  * (/api/internal/jobs, every minute while something runs) and the Start button both call runJobs.
  */
-export type JobKind = "posters" | "synopses" | "credits" | "people" | "awards" | "watch" | "extras";
+export type JobKind = "posters" | "synopses" | "credits" | "people" | "awards" | "watch" | "extras" | "changes";
 export type Job = {
   id: string; kind: JobKind; status: "running" | "done" | "stopped" | "failed"; cursor: string | null;
   total: number; processed: number; changed: number; failed: number; last_error: string | null;
@@ -47,6 +47,18 @@ async function inGroups<T>(rows: T[], size: number, work: (row: T) => Promise<bo
     }
   }
   return { changed, failed };
+}
+
+/**
+ * The dates "Refresh changed films" covers: from the last time it finished (or a week ago the first
+ * time) to today, never more than the 14 days TMDB allows.
+ */
+async function changesWindow(db: SupabaseClient) {
+  const day = (d: Date) => d.toISOString().slice(0, 10);
+  const { data } = await db.from("admin_jobs").select("finished_at").eq("kind", "changes").eq("status", "done").order("finished_at", { ascending: false }).limit(1).maybeSingle();
+  const earliest = Date.now() - 13 * 86_400_000;
+  const from = data?.finished_at ? Math.max(earliest, Date.parse(data.finished_at) - 86_400_000) : Date.now() - 7 * 86_400_000;
+  return { start: day(new Date(from)), end: day(new Date()) };
 }
 
 const done = (rows: { id: string }[], limit: number, cursor: string | null, counts: { changed: number; failed: number }): Batch => ({
@@ -135,6 +147,30 @@ export const JOBS: Record<JobKind, Kind> = {
       if (error) throw error;
       const rows = data ?? [];
       return done(rows, 15, cursor, await inGroups(rows, 5, (f) => fillExtras(db, f)));
+    },
+  },
+  changes: {
+    label: "Refresh changed films", summary: "Asks TMDB which films changed since this last ran (up to two weeks) and refreshes only those of ours: empty fields, cast and crew, where to watch and extra details.", unit: "films refreshed", tmdb: true,
+    remaining: async (db) => {
+      const w = await changesWindow(db);
+      return (await getChanges(w.start, w.end, 1)).total;
+    },
+    // The cursor is "start|end|next page|pages".
+    batch: async (db, cursor) => {
+      let [start, end, page, pages] = (cursor ?? "").split("|") as [string, string, string, string];
+      if (!cursor) {
+        const w = await changesWindow(db);
+        start = w.start; end = w.end; page = "1"; pages = String((await getChanges(start, end, 1)).pages);
+      }
+      const from = Number(page), last = Number(pages);
+      const upto = Math.min(last, from + 9);
+      const lists = await Promise.all(Array.from({ length: upto - from + 1 }, (_, i) => getChanges(start, end, from + i).then((r) => r.ids)));
+      const ids = [...new Set(lists.flat())];
+      const { data, error } = ids.length ? await db.from("films").select("id").in("tmdb_id", ids) : { data: [], error: null };
+      if (error) throw error;
+      const ours = (data ?? []) as { id: string }[];
+      const counts = await inGroups(ours, 3, async (f) => { await importFilm(db, f.id); return true; });
+      return { cursor: `${start}|${end}|${upto + 1}|${last}`, processed: ids.length, ...counts, done: upto >= last };
     },
   },
 };
