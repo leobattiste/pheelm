@@ -7,6 +7,7 @@ import FilmCard from "@/components/FilmCard";
 import CommunityTile from "@/components/CommunityTile";
 import Icon, { type IconName } from "@/components/Icon";
 import FilmActionBar from "@/components/FilmActionBar";
+import FilmStills from "@/components/FilmStills";
 import FilmEditorial from "@/components/FilmEditorial";
 import PeopleGrid from "@/components/PeopleGrid";
 import Poster from "@/components/Poster";
@@ -225,16 +226,7 @@ export async function FilmPageView({ params }: Params) {
           {(film.stills?.length ?? 0) > 1 && (
             <section className="film-section" aria-labelledby="stills-h">
               <h2 id="stills-h">Stills</h2>
-              <ul className="film-stills">
-                {film.stills!.map((src, i) => (
-                  <li key={src}>
-                    <a href={src.replace("/w1280/", "/original/")} target="_blank" rel="noopener noreferrer" aria-label={`Still ${i + 1} from ${film.title}, full size`}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={src.replace("/w1280/", "/w780/")} alt="" loading="lazy" decoding="async" />
-                    </a>
-                  </li>
-                ))}
-              </ul>
+              <FilmStills stills={film.stills!} title={film.title} />
             </section>
           )}
           {/* 3. Awards: the first two (wins first), then every win and nomination in a sheet. */}
