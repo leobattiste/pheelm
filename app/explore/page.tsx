@@ -35,16 +35,15 @@ export default async function ExplorePage() {
       {motw && (
         <section className="explore-section page" aria-label="Movie of the week">
           <article className="motw">
-            <Link href={filmPath(motw.slug, motw.directors)} className="motw-still" aria-label={`${motw.title}, ${motw.year}`} tabIndex={-1}>
-              {motw.backdrop_url ? (
-                <img src={motw.backdrop_url.replace("/w1280/", "/original/")} alt="" fetchPriority="high" />
-              ) : (
-                <Poster title={motw.title} year={motw.year} directors={motw.directors.map((d) => d.name)} src={motw.poster_url} sizes="100vw" priority hero />
-              )}
-            </Link>
-            <span className="motw-blur" aria-hidden="true" />
+            <div className="motw-media" aria-hidden="true">
+              {motw.poster_url && <img className="motw-bg" src={motw.poster_url} alt="" />}
+              <span className="motw-poster">
+                <Poster title={motw.title} year={motw.year} directors={motw.directors.map((d) => d.name)} src={motw.poster_url} sizes="(min-width: 800px) 440px, 100vw" priority hero />
+              </span>
+            </div>
+            <Link href={filmPath(motw.slug, motw.directors)} className="motw-link" aria-label={`${motw.title}, ${motw.year}`} />
             <div className="motw-text">
-              <h2 className="motw-title"><Link href={filmPath(motw.slug, motw.directors)}>{motw.title}</Link></h2>
+              <h2 className="motw-title">{motw.title}</h2>
               <p className="motw-meta">
                 {[motw.directors.map((d) => d.name).join(" and "), String(motw.year), runtimeLabel(motw.runtime)].filter(Boolean).join(" · ")}
               </p>
