@@ -3458,3 +3458,8 @@ html:root:root:root .trailer-dialog[open] { display: grid; gap: var(--space-12);
   .film-page { row-gap: var(--space-24); }
   .film-art { position: relative; top: auto; margin-bottom: var(--space-8); }
 }
+
+/* Comment box: the text area's square, filled corners covered the box's rounded corners and border.
+   The box clips its contents to its shape, and the text area is see-through. */
+html:root:root:root:root:root:root .composer { overflow: hidden; }
+html:root:root:root:root:root:root .composer textarea { background: transparent !important; background-color: transparent !important; border-radius: 0; }
