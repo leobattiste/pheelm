@@ -3612,3 +3612,10 @@ html:root:root:root:root:root:root:root .motw :is(.motw-btn, .motw-watchlist .pi
 .era-2020 .browse-big { padding-left: 6px; font-weight: 600; letter-spacing: -0.05em; }
 
 .browse-big.is-long { font-size: 2rem; }
+
+/* Film page: Trailer and Watchlist are icon-only round buttons, matching the ⋯ beside them. */
+html:root:root:root:root:root:root:root .film-page .film-actions > .pill-button { width: var(--control); min-width: var(--control); height: var(--control); padding: 0; gap: 0; justify-content: center; font-size: 0 !important; border-radius: 50%; }
+html:root:root:root:root:root:root:root .film-page .film-actions > .pill-button svg { margin: 0; }
+html:root:root:root:root:root:root:root .film-page .film-actions > .pill-button.primary svg { margin-left: 2px; }
+html:root:root:root:root:root:root:root .film-page .film-actions { display: flex !important; grid-template-columns: none !important; justify-content: flex-start !important; gap: var(--space-12) !important; }
+html:root:root:root:root:root:root:root .film-page .film-actions > * { flex: 0 0 auto !important; }
