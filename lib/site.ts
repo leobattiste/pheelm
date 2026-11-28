@@ -9,6 +9,7 @@ export const SITE_DESCRIPTION =
 /** Each page's one-line description: shown under its title and used for search and sharing. */
 export const PAGE_COPY = {
   home: "Discover films, explore directors, and learn more about Black cinema around the world.",
+  explore: "This week on Pheelm: the movie of the week, a director in the spotlight, popular films and films from around the world.",
   films: "Explore films by Black directors across countries, genres, and years.",
   directors: "Discover Black directors, their backgrounds, and their work.",
   collections: "Explore watchlists shared by the Pheelm community.",

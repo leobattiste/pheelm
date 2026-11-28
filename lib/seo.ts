@@ -3,6 +3,7 @@ import { PAGE_COPY, SITE_DESCRIPTION, SITE_NAME } from './site';
 
 export const PUBLIC_PAGES:Record<string,{title:string;description:string;label:string}>={
  '/':{title:'Discover films by Black directors',description:SITE_DESCRIPTION,label:'Black cinema around the world'},
+ '/explore':{title:'Explore',description:PAGE_COPY.explore,label:'This week on Pheelm'},
  '/films':{title:'Films',description:PAGE_COPY.films,label:'Discover'},
  '/directors':{title:'Directors',description:PAGE_COPY.directors,label:'Filmmakers'},
  '/watchlists':{title:'Watchlists',description:PAGE_COPY.collections,label:'Watchlists'},

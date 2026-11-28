@@ -148,6 +148,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <nav className="member-only" aria-labelledby="footer-explore">
               <h2 id="footer-explore">Explore</h2>
               {/* Footer links sit on every page; the catalogue pages are too big to fetch unasked. */}
+              <Link href="/explore" prefetch={false}>Explore</Link>
               <Link href="/films" prefetch={false}>Films</Link>
               <Link href="/watchlists" prefetch={false}>Watchlists</Link>
               <Link href="/directors" prefetch={false}>Directors</Link>

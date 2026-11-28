@@ -3,7 +3,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { refreshAwardsBatch } from "@/lib/awards";
 import { fillPerson, importFilm, refreshCredits } from "@/lib/import";
-import { getWatch } from "@/lib/tmdb";
+import { getPopularity, getWatch } from "@/lib/tmdb";
 import type { WatchOption } from "@/lib/types";
 
 /**
@@ -11,7 +11,7 @@ import type { WatchOption } from "@/lib/types";
  * at a time; `cursor` is the last id handled, so a job picks up where it stopped. The worker
  * (/api/internal/jobs, every minute while something runs) and the Start button both call runJobs.
  */
-export type JobKind = "posters" | "synopses" | "credits" | "people" | "awards" | "watch";
+export type JobKind = "posters" | "synopses" | "credits" | "people" | "awards" | "watch" | "popularity";
 export type Job = {
   id: string; kind: JobKind; status: "running" | "done" | "stopped" | "failed"; cursor: string | null;
   total: number; processed: number; changed: number; failed: number; last_error: string | null;
@@ -108,6 +108,22 @@ export const JOBS: Record<JobKind, Kind> = {
       const rows = data ?? [];
       const { updated, failed } = await refreshAwardsBatch(db, rows);
       return done(rows, 6, cursor, { changed: updated.length, failed });
+    },
+  },
+  popularity: {
+    label: "Update popularity", summary: "TMDB's worldwide popularity score for every film, for Most popular and the weekly picks on Explore.", unit: "films updated", tmdb: true,
+    remaining: async (db) => (await db.from("films").select("id", { count: "exact", head: true }).not("tmdb_id", "is", null)).count ?? 0,
+    batch: async (db, cursor) => {
+      const { data, error } = await after(db.from("films").select("id, tmdb_id").not("tmdb_id", "is", null).order("id").limit(20), cursor);
+      if (error) throw error;
+      const rows = data ?? [];
+      return done(rows, 20, cursor, await inGroups(rows, 5, async (f) => {
+        const popularity = await getPopularity(f.tmdb_id as number);
+        if (popularity === null) return false;
+        const { error } = await db.from("films").update({ popularity, popularity_at: new Date().toISOString() }).eq("id", f.id);
+        if (error) throw error;
+        return true;
+      }));
     },
   },
   watch: {

@@ -5,6 +5,8 @@ import { History } from "../../History";
 import type { Change } from "@/lib/changes";
 import { tmdbEnabled } from "@/lib/tmdb";
 import FilmEditor from "./FilmEditor";
+import PinMovieOfTheWeek from "./PinMovieOfTheWeek";
+import { weekStart } from "@/lib/explore";
 import { PageHeader, Panel, Pill, ago } from "../../ui";
 
 export default async function EditFilm({ params }: { params: Promise<{ id: string }> }) {
@@ -16,7 +18,11 @@ export default async function EditFilm({ params }: { params: Promise<{ id: strin
     db.from("collections").select("id, title").order("sort_order"),
     db.from("collection_films").select("collection_id").eq("film_id", id),
   ]);
-  const history = await recentHistory(db, "film", id);
+  const [history, { data: pin }] = await Promise.all([
+    recentHistory(db, "film", id),
+    db.from("explore_pins").select("film_id, films(title)").eq("week", weekStart()).maybeSingle(),
+  ]);
+  const pinnedTitle = (pin as { films?: { title?: string } | null } | null)?.films?.title ?? null;
   if (!film) notFound();
 
   const creditText = (credits ?? [])
@@ -41,6 +47,9 @@ export default async function EditFilm({ params }: { params: Promise<{ id: strin
         chosen={(chosen ?? []).map((c) => c.collection_id)}
         tmdbEnabled={tmdbEnabled}
       />
+      <Panel title="Movie of the week" icon="discover">
+        <PinMovieOfTheWeek filmId={film.id} pinned={pin?.film_id === film.id} current={pin?.film_id === film.id ? null : pinnedTitle} published={film.status === "published"} />
+      </Panel>
       <Panel title="History" icon="clock" actions={<Link className="link-button" href="/admin/activity?type=film">All activity</Link>}>
         {history.length ? <History entries={history} compact /> : <p className="muted">No changes recorded yet.</p>}
       </Panel>

@@ -21,7 +21,7 @@ type Me = { email: string; handle: string | null; name: string | null; isPrivate
 
 /**
  * The account part of the menu. Signed out: Sign in. Signed in: Notifications (with a
- * count of new ones), Settings, then Theme and Grid, then Log out. Profile is in
+ * count of new ones) after Profile, Settings, then Theme and Grid, then Log out. Profile is in
  * the tab bar and the footer.
  */
 export default function AccountMenu({ onNavigate, children }: { onNavigate: () => void; children?: ReactNode }) {
@@ -79,6 +79,7 @@ export default function AccountMenu({ onNavigate, children }: { onNavigate: () =
 
   return (
     <><nav className="menu-more menu-account" aria-label="Your account">
+      <Link href={me.handle ? `/@${me.handle}` : "/profile"} aria-current={me.handle && path === `/@${me.handle}` ? "page" : current("/profile")}><Icon name="userAccount" />Profile</Link>
       <Link href="/notifications" aria-current={current("/notifications")}>
         <Icon name="bell" />Notifications
         {me.unread > 0 && <span className="badge" aria-label={`${me.unread} new`}>{me.unread > 9 ? "9+" : me.unread}</span>}

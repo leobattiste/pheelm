@@ -787,3 +787,6 @@ a.admin-attention-row:hover, .admin-attention-row a:hover { color: var(--ink); }
 /* A new message: a dot beside the sender. */
 .admin-unread { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--ink); }
 .admin-table .admin-tags { display: inline-flex; flex-wrap: nowrap; gap: 4px; }
+
+/* Film editor: pin as Explore's Movie of the week. */
+.admin-pin { display: grid; gap: var(--space-12); justify-items: start; }
