@@ -124,8 +124,10 @@ export async function FilmPageView({ params }: Params) {
     )) : null],
     ["Running time", runtime],
     ["Released", <Link key="y" href={`/films?decade=${Math.floor(film.year / 10) * 10}s`}>{film.year}</Link>],
-    ["Rated", film.certification ? `Rated ${film.certification}${film.certification_country && film.certification_country !== "US" ? ` (${countryName(film.certification_country)})` : ""}` : null],
-    ...(film.series ? ([["Series", <Link key="s" href={`/films?series=${film.series.tmdb_id}`}>{film.series.name}</Link>]] as [string, React.ReactNode][]) : []),
+    ["Rated", film.certification ? (!film.certification_country || film.certification_country === "US"
+      ? <Link key="r" href={`/films?rating=${encodeURIComponent(film.certification)}`}>Rated {film.certification}</Link>
+      : `Rated ${film.certification} (${countryName(film.certification_country)})`) : null],
+    ...(film.series ? ([["Series", <Link key="s" href={`/films?series=${encodeURIComponent(film.series.name)}`}>{film.series.name}</Link>]] as [string, React.ReactNode][]) : []),
     [(film.companies?.length ?? 0) > 1 ? "Studios" : "Studio", film.companies?.length ? film.companies.slice(0, 4).map((c, i) => (
       <span key={c}>{i > 0 && ", "}<Link href={`/films?studio=${encodeURIComponent(c)}`}>{c}</Link></span>
     )) : null],

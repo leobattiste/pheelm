@@ -236,7 +236,7 @@ function Browser({ entries: packed, mode, afterSearch }: {
             return facets[key as keyof typeof facets].map(v => [v, key === 'country' || key === 'region' ? countryName(v) : key === 'type' ? TYPE_LABELS[v] ?? v : v]);
         return [];
     };
-    const titles: Partial<Record<SearchKey, string>> = { min: 'Films in the directory', country: 'Country', decade: 'Decade', language: 'Language', genre: 'Genre', type: 'Type', provider: 'Where to watch' };
+    const titles: Partial<Record<SearchKey, string>> = { min: 'Films in the directory', country: 'Country', decade: 'Decade', language: 'Language', genre: 'Genre', type: 'Type', provider: 'Where to watch', theme: 'Theme', rating: 'Age rating', studio: 'Studio', series: 'Series' };
     const countFor = (key: SearchKey, value: string) => matchingIndex.filter(i => matchesFilters(i.entry, { ...state, [key]: value }, mode)).length;
     const boundsInvalid = !!((state.minRuntime && state.maxRuntime && +state.minRuntime > +state.maxRuntime) || (state.from && state.to && +state.from > +state.to));
     return <div className="browser catalog-browser" data-shuffle-ready={visitReady} aria-busy={state !== deferred} onClickCapture={e => { if ((e.target as Element).closest(".film-grid a, .director-grid a"))

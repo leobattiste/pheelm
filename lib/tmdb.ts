@@ -356,7 +356,19 @@ export type TmdbExtras = {
 // Keywords that say nothing about what a film is about (credits scenes, sources, formats, who made it).
 const NOISE = /^(aftercreditsstinger|duringcreditsstinger|woman director|black director|female director|based on .*|remake|sequel|prequel|biography|3d|imax|duringcreditsstinger|short film|anthology|independent film|black and white|silent film|live action and animation|dogme 95)$/i;
 
-const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+// TMDB's mood tags (how a film feels, not what it's about).
+const MOODS = /^(admiring|amused|hilarious|absurd|appreciative|approving|audacious|awestruck|bewildered|cautionary|celebratory|compassionate|complicated|defiant|depressing|dramatic|empathetic|enchant(ed|ing)?|frightened|hopeful|horrified|inspirational|intense|joyful|joyous|melancholy|playful|provocative|reflective|sad|sentimental|suspenseful|sympathetic|tense|thoughtful|tragic|witty|zealous|whimsical|cheerful|comforting|disheartening|exhilarated|harsh|aggressive|angry|anxious|bold|calm|cynical|dark|dreary|earnest|embarrassed|excited|familiar|frustrated|grim|gloomy|ironic|loving|mocking|nostalgic|optimistic|powerful|sarcastic|serious|shocking|sincere|straightforward|vibrant|wistful|matter of fact|antagonistic|introspective|informative|exuberant|enthusiastic|distressing|demanding|critical|baffled|candid|romantic|vindictive|urgent|inspiring|touching|heartfelt|lighthearted|feel-good|sincere|dignified|respectful|comedic|incredulous|dismissive|assertive|callous|condescending|hopeless|ambiguous|amazed|annoyed|arrogant|awkward|confident|curious|desperate|detached|disgusted|empowering|grand|grieving|hateful|horrifying|humorous|impassioned|indifferent|insightful|irreverent|loud|mysterious|outrageous|pessimistic|pitiful|proud|questioning|relaxed|scared|sexy|shameful|silly|skeptical|sweet|threatening|tired|tranquil|uplifting|violent)$/i;
+
+// Names, places and acronyms TMDB stores in lower case.
+const UPPER = new Map(["lgbt", "lgbtq", "lgbtq+", "usa", "uk", "nyc", "hiv", "aids", "fbi", "cia", "nba", "nfl", "wwii", "ww2", "dea", "kkk", "bfi", "hbcu", "l.a."].map((w) => [w, w === "l.a." ? "L.A." : w.toUpperCase()]));
+const cap = (s: string) => {
+  const place = /,|\bcity$|\b(new york|los angeles|london|paris|chicago|atlanta|harlem|brooklyn|lagos|dakar|johannesburg|nairobi|kingston|havana|detroit|oakland|new orleans|washington|philadelphia|baltimore|miami|houston|memphis|mississippi|alabama|georgia|louisiana|texas|california|jamaica|nigeria|ghana|kenya|south africa)\b/i.test(s);
+  return s.split(" ").map((w, i) => {
+    const up = UPPER.get(w.toLowerCase());
+    if (up) return up;
+    return i === 0 || place ? w.charAt(0).toUpperCase() + w.slice(1) : w;
+  }).join(" ").replace(/\b(l\.a\.)/gi, "L.A.");
+};
 
 export async function getExtras(id: number): Promise<TmdbExtras> {
   type Img = { file_path: string; iso_639_1?: string | null; vote_average?: number };
@@ -403,7 +415,7 @@ export async function getExtras(id: number): Promise<TmdbExtras> {
   ].map((t) => t.trim()).filter(Boolean);
 
   return {
-    keywords: [...new Set((m.keywords?.keywords ?? []).map((k) => k.name.trim()).filter((k) => k && !NOISE.test(k)).map(cap))].slice(0, 15),
+    keywords: [...new Set((m.keywords?.keywords ?? []).map((k) => k.name.trim()).filter((k) => k && !NOISE.test(k) && !MOODS.test(k)).map(cap))].slice(0, 15),
     certification: cert?.cert ?? null,
     certification_country: cert?.country ?? null,
     series: m.belongs_to_collection ? { tmdb_id: m.belongs_to_collection.id, name: m.belongs_to_collection.name.replace(/\s+-\s+Collection$|\s+Collection$/i, "") } : null,
