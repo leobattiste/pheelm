@@ -3612,3 +3612,7 @@ html:root:root:root:root:root:root:root .motw :is(.motw-btn, .motw-watchlist .pi
 .era-2020 .browse-big { padding-left: 6px; font-weight: 600; letter-spacing: -0.05em; }
 
 .browse-big.is-long { font-size: 2rem; }
+
+/* Cast and crew: a small heading over each job's people. */
+.people-group + .people-group { margin-top: var(--space-32); }
+.people-group > h3 { margin-bottom: var(--space-12); font-size: var(--t-md); font-weight: 600; color: var(--muted); }

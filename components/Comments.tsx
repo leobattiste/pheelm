@@ -363,9 +363,9 @@ export default function Comments({ listId, filmId, filmTitle, watchedIds = [], o
   return (
     <section className="comments" id="comments" aria-labelledby="comments-h">
       <div className="comments-head">
-        <h2 id="comments-h">Comments{total ? <span className="comments-count"> {total}</span> : null}</h2>
+        <h2 id="comments-h">Discussions{total ? <span className="comments-count"> {total}</span> : null}</h2>
         {total > 1 && (
-          <div className="segmented" role="radiogroup" aria-label="Order comments">
+          <div className="segmented" role="radiogroup" aria-label="Order discussion">
             <button type="button" role="radio" aria-checked={sort === "top"} onClick={() => setSort("top")}>Top</button>
             <button type="button" role="radio" aria-checked={sort === "new"} onClick={() => setSort("new")}>Newest</button>
           </div>
@@ -373,7 +373,7 @@ export default function Comments({ listId, filmId, filmTitle, watchedIds = [], o
       </div>
 
       {!enabled ? (
-        <p className="comments-gate">Comments are turned off for this watchlist.</p>
+        <p className="comments-gate">Discussion is turned off for this watchlist.</p>
       ) : me ? (
         <div className="comment-new">
           <Composer label="Add a comment" submitLabel="Post" busy={busy} spoilers={isFilm}
@@ -424,7 +424,7 @@ export default function Comments({ listId, filmId, filmTitle, watchedIds = [], o
           })}
         </ol>
       ) : (
-        <p className="comments-empty">{isFilm ? "No comments yet. Seen it? Say what you thought." : "No comments yet. Start the conversation."}</p>
+        <p className="comments-empty">{isFilm ? "No discussion yet. Seen it? Say what you thought." : "No discussion yet. Start the conversation."}</p>
       )}
     </section>
   );

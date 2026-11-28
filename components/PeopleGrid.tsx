@@ -36,7 +36,7 @@ export default function PeopleGrid({ people }: { people: PersonEntry[] }) {
               )}
               <span className="cast-text">
                 <span className="cast-name">{info.name}</span>
-                <span className="cast-role">{role}</span>
+                {role && <span className="cast-role">{role}</span>}
               </span>
             </>
           );
