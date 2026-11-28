@@ -21,7 +21,6 @@ import { WORDMARK, INSTAGRAM_URL, SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE, THR
 import { SITE_URL } from "@/lib/supabase/config";
 import { themeScript } from "@/lib/theme";
 import "./globals.css";
-import InstallBanner from "@/components/InstallBanner";
 import Tour from "@/components/Tour";
 
 // The typeface is Switzer, loaded from Fontshare in the head. Inter (SIL Open Font License), served
@@ -189,7 +188,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <TabBar />
         <PhotoZoom />
         <BackToTop />
-        <InstallBanner />
         <WelcomeNudge />
         <Tour />
         <Toaster />
