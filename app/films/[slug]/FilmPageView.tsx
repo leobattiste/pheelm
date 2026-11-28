@@ -19,7 +19,7 @@ import FilmComments from "@/components/FilmComments";
 import { getWatchlistTiles } from "@/lib/community";
 import { filmPageCatalog, toCard } from "@/lib/data";
 import { personInfo, roleLabel } from "@/lib/roles";
-import { countryName, listJoin, runtimeLabel, trailerEmbed } from "@/lib/format";
+import { countryName, listJoin, moneyLabel, runtimeLabel, trailerEmbed } from "@/lib/format";
 import { SITE_URL } from "@/lib/supabase/config";
 import type { Award, Credit, Role } from "@/lib/types";
 import Row from "@/components/Row";
@@ -112,6 +112,13 @@ export async function FilmPageView({ params }: Params) {
     )) : null],
     ["Running time", runtime],
     ["Released", <Link key="y" href={`/films?decade=${Math.floor(film.year / 10) * 10}s`}>{film.year}</Link>],
+    ["Rated", film.certification ? `Rated ${film.certification}${film.certification_country && film.certification_country !== "US" ? ` (${countryName(film.certification_country)})` : ""}` : null],
+    ...(film.series ? ([["Series", <Link key="s" href={`/films?series=${film.series.tmdb_id}`}>{film.series.name}</Link>]] as [string, React.ReactNode][]) : []),
+    [(film.companies?.length ?? 0) > 1 ? "Studios" : "Studio", film.companies?.length ? film.companies.slice(0, 4).map((c, i) => (
+      <span key={c}>{i > 0 && ", "}<Link href={`/films?studio=${encodeURIComponent(c)}`}>{c}</Link></span>
+    )) : null],
+    ["Budget", film.budget ? `${moneyLabel(film.budget)} budget` : null],
+    ["Box office", film.revenue ? `${moneyLabel(film.revenue)} box office` : null],
   ];
 
   const jsonLd = {
@@ -176,9 +183,10 @@ export async function FilmPageView({ params }: Params) {
           </section>
 
           {/* The story, headed like the sections below it. */}
-          {(film.note || film.synopsis) && (
+          {(film.note || film.synopsis || film.tagline) && (
             <section className="film-section film-synopsis" aria-labelledby="synopsis-h">
               <h2 id="synopsis-h">Synopsis</h2>
+              {film.tagline && <p className="film-tagline">{film.tagline}</p>}
               {film.note && <p className="film-note">{film.note}</p>}
               {film.synopsis && (
                 <div className="film-essay">
@@ -201,6 +209,13 @@ export async function FilmPageView({ params }: Params) {
                 </div>
               ))}
             </dl>
+            {(film.keywords?.length ?? 0) > 0 && (
+              <ul className="film-themes" aria-label="Themes">
+                {film.keywords!.slice(0, 10).map((k) => (
+                  <li key={k}><Link className="pill-button small" href={`/films?theme=${encodeURIComponent(k)}`}>{k}</Link></li>
+                ))}
+              </ul>
+            )}
           </section>
           {/* 3. Awards: the first two (wins first), then every win and nomination in a sheet. */}
           {(wins.length > 0 || noms.length > 0) && (
@@ -289,6 +304,7 @@ export async function FilmPageView({ params }: Params) {
 const DETAIL_ICONS: Record<string, IconName> = {
   "Original title": "film", "Also known as": "film", Country: "globe", Countries: "globe", Language: "language", Languages: "language",
   Genre: "sparkle", "Running time": "clock", Released: "calendar",
+  Rated: "rating", Series: "stack", Studio: "studio", Studios: "studio", Budget: "money", "Box office": "money",
 };
 
 function AwardList({ awards }: { awards: Award[] }) {

@@ -12,6 +12,7 @@ import {
   PencilEdit02Icon, PinIcon, PlayIcon, Search01Icon, Settings02Icon, Share08Icon, ShuffleIcon, SparklesIcon,
   SquareLock02Icon, ThreadsIcon, Tick02Icon, TranslateIcon, UserAdd01Icon, UserGroupIcon, UserIcon, ViewIcon, ViewOffIcon,
   UserCircleIcon, UserAccountIcon, UserMultiple02Icon, UserGroup02Icon,
+  Building04Icon, MoneyBag02Icon, ShieldUserIcon, Image03Icon,
 } from "@hugeicons/core-free-icons";
 
 import { GalleryHorizontalEndIcon, RectangleVerticalIcon } from "lucide-react";
@@ -86,6 +87,10 @@ const ICONS = {
   sort: ArrowUpDownIcon,
   dice: DiceFaces03Icon,
   tag: Tag01Icon,
+  studio: Building04Icon,
+  money: MoneyBag02Icon,
+  rating: ShieldUserIcon,
+  image: Image03Icon,
   userCircle: UserCircleIcon,
   userAccount: UserAccountIcon,
   userMultiple: UserMultiple02Icon,

@@ -3630,3 +3630,8 @@ html:root:root:root:root:root:root:root .motw :is(.motw-btn, .motw-watchlist .pi
 /* A watchlist's breadcrumb shares its top line with the ⋯ menu, and its description reads in full white. */
 :root:root .page-head.has-corner > .crumbs { min-height: 0; display: flex; align-items: center; padding-top: 0; margin: 0 0 var(--space-8); }
 :root:root .collection-about .lead { color: var(--ink); }
+
+/* Film page: the tagline above the synopsis, and the film's themes as small links under Details. */
+.film-tagline { margin-bottom: var(--space-12); font-size: var(--t-lg); font-style: italic; color: var(--muted); }
+.film-themes { display: flex; flex-wrap: wrap; gap: var(--space-8); margin: var(--space-24) 0 0; padding: 0; list-style: none; }
+.film-themes .pill-button { min-height: 0; padding: 6px 14px; font-size: var(--t-sm); }

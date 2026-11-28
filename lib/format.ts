@@ -115,3 +115,12 @@ export function initials(name: string) {
     .slice(0, 2)
     .join("");
 }
+
+/** "$8 million", "$301.9 million", "$1.2 billion", "$950,000". */
+export function moneyLabel(n: number | null | undefined) {
+  if (!n || n <= 0) return null;
+  const short = (v: number) => (Math.round(v * 10) / 10).toLocaleString("en-US");
+  if (n >= 1e9) return `$${short(n / 1e9)} billion`;
+  if (n >= 1e6) return `$${short(n / 1e6)} million`;
+  return `$${Math.round(n).toLocaleString("en-US")}`;
+}
