@@ -10,7 +10,7 @@ import {
   FavouriteIcon, FilterHorizontalIcon, Film02Icon, Flag02Icon, Globe02Icon, InstagramIcon, Layers01Icon,
   LinkSquare02Icon, Login03Icon, Logout03Icon, Mail01Icon, Moon02Icon, Sun03Icon, Megaphone01Icon, InformationCircleIcon, MailSend01Icon, EllipsisIcon, Notification03Icon,
   PencilEdit02Icon, PinIcon, PlayIcon, Search01Icon, Settings02Icon, Share08Icon, ShuffleIcon, SparklesIcon,
-  SquareLock02Icon, ThreadsIcon, Tick02Icon, TranslateIcon, UserAdd01Icon, UserGroupIcon, UserIcon, ViewIcon,
+  SquareLock02Icon, ThreadsIcon, Tick02Icon, TranslateIcon, UserAdd01Icon, UserGroupIcon, UserIcon, ViewIcon, ViewOffIcon,
   UserCircleIcon, UserAccountIcon, UserMultiple02Icon, UserGroup02Icon,
 } from "@hugeicons/core-free-icons";
 
@@ -49,6 +49,7 @@ const ICONS = {
   laurel: Award01Icon,
   lock: SquareLock02Icon,
   eye: ViewIcon,
+  eyeOff: ViewOffIcon,
   check: Tick02Icon,
   x: Cancel01Icon,
   close: Cancel01Icon,

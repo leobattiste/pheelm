@@ -79,13 +79,13 @@ export default function FilmComments({ filmId, filmTitle }: { filmId: string; fi
   return (
     <div ref={box} className="film-comments">
       {state === "loading" ? (
-        <section className="comments" id="comments" aria-busy="true" aria-label="Comments">
-          <div className="comments-head"><h2>Comments</h2></div>
-          <p className="comments-empty">Loading comments…</p>
+        <section className="comments" id="comments" aria-busy="true" aria-label="Discussions">
+          <div className="comments-head"><h2>Discussions</h2></div>
+          <p className="comments-empty">Loading discussions…</p>
         </section>
       ) : state === "failed" ? (
-        <section className="comments" aria-label="Comments">
-          <div className="comments-head"><h2>Comments</h2></div>
+        <section className="comments" aria-label="Discussions">
+          <div className="comments-head"><h2>Discussions</h2></div>
           <p className="comments-empty" role="status">
             Comments didn&apos;t load.{" "}
             <button type="button" className="link-button" onClick={() => setAttempt((n) => n + 1)}>Try again</button>

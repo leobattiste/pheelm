@@ -58,14 +58,14 @@ export default function WatchedButton({ filmId, title, className = "button ghost
     const prev = status === "on" ? "on" : "off";
     const next = prev === "on" ? "off" : "on";
     if (await apply(next, prev)) {
-      if (next === "on") toast.success(`Marked as watched. Tell us what you think about “${title}”.`, { action: { label: "Leave a comment", href: `${filmHref ?? path}#comments` } });
+      if (next === "on") toast.success(`Marked as watched. Tell us what you think about “${title}”.`, { action: { label: "Join the discussion", href: `${filmHref ?? path}#comments` } });
       else toast.success("Removed from Watched", { action: { label: "Undo", run: () => void apply(prev, next) } });
     }
   };
 
   return (
     <button type="button" className={className} aria-pressed={status === "on"} onClick={toggle} title={status === "on" ? "Watched" : "Add to Watched"}>
-      <Icon name={status === "on" ? "check" : "eye"} />
+      <Icon name={status === "on" ? "eyeOff" : "eye"} />
       {text(status === "on" ? "Watched" : "Add to Watched")}
     </button>
   );

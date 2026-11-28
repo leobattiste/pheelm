@@ -18,7 +18,7 @@ import WatchlistButton from "@/components/WatchlistButton";
 import FilmComments from "@/components/FilmComments";
 import { getWatchlistTiles } from "@/lib/community";
 import { filmPageCatalog, toCard } from "@/lib/data";
-import { personInfo, roleLabel, sentence } from "@/lib/roles";
+import { personInfo, roleLabel } from "@/lib/roles";
 import { countryName, listJoin, runtimeLabel, trailerEmbed } from "@/lib/format";
 import { SITE_URL } from "@/lib/supabase/config";
 import type { Award, Credit, Role } from "@/lib/types";
@@ -81,21 +81,25 @@ export async function FilmPageView({ params }: Params) {
   const runtime = runtimeLabel(film.runtime);
   const aka = (film.aka ?? []).filter((t) => t && t !== film.title && t !== film.original_title);
 
-  // Everyone once, with all they did: crew in the usual order, then the cast by billing.
-  // Someone who directed and acted reads "Director and actor".
+  // Cast and crew, one group per job: Director(s), Writer(s), and so on, then the cast by billing.
+  // Someone with two jobs appears under each. The first few of the cast show; the rest sit behind "Show all".
   const counts = new Map<Role, number>();
   for (const c of film.credits) counts.set(c.role, (counts.get(c.role) ?? 0) + 1);
-  const byPerson = new Map<string, { person: Credit["person"]; roles: string[] }>();
-  for (const c of [...crew.flatMap((g) => g.people), ...cast]) {
-    const entry = byPerson.get(c.person.id) ?? { person: c.person, roles: [] };
-    const label = roleLabel(c, counts.get(c.role) ?? 1);
-    if (!entry.roles.includes(label)) entry.roles.push(label);
-    byPerson.set(c.person.id, entry);
-  }
-  const people = [...byPerson.values()].map((p) => ({ info: personInfo(p.person, all, anyDirector), role: sentence(p.roles) }));
-  // The crew and the first six of the cast show; the rest sit behind "Show all".
-  const crewCount = new Set(crew.flatMap((g) => g.people.map((c) => c.person.id))).size;
-  const shown = Math.min(people.length, crewCount + CAST_SHOWN);
+  const GROUP_TITLES: Record<string, [string, string]> = {
+    director: ["Director", "Directors"], writer: ["Writer", "Writers"], cinematographer: ["Cinematographer", "Cinematographers"],
+    editor: ["Editor", "Editors"], composer: ["Composer", "Composers"], producer: ["Producer", "Producers"],
+  };
+  const entry = (c: Credit) => ({
+    info: personInfo(c.person, all, anyDirector),
+    role: c.role === "cast" ? (c.character?.trim() || "Actor") : roleLabel(c, counts.get(c.role) ?? 1),
+  });
+  // Under a heading, a name only repeats its job when it's something more specific (Co-director, Screenplay).
+  const groups = crew.map((g) => {
+    const [one] = GROUP_TITLES[g.role];
+    return { key: g.role as string, title: GROUP_TITLES[g.role][g.people.length > 1 ? 1 : 0], items: g.people.map((c) => { const e = entry(c); return e.role === one ? { ...e, role: "" } : e; }) };
+  });
+  const castItems = cast.map(entry);
+  const peopleCount = groups.reduce((n, g) => n + g.items.length, 0) + castItems.length;
   const details: [string, React.ReactNode][] = [
     ...(film.original_title && film.original_title !== film.title ? ([["Original title", film.original_title]] as [string, React.ReactNode][]) : []),
     ...(aka.length ? ([["Also known as", aka.join(", ")]] as [string, React.ReactNode][]) : []),
@@ -224,18 +228,29 @@ export async function FilmPageView({ params }: Params) {
           )}
 
           {/* 4. Cast and crew: who made it, each with what they did. */}
-          {people.length > 0 && (
+          {peopleCount > 0 && (
             <section className="film-section" aria-labelledby="people-h">
               <h2 id="people-h">Cast and crew</h2>
-              <PeopleGrid people={people.slice(0, shown)} />
-              {people.length > shown && (
-                <details className="more">
-                  <summary className="button ghost small">
-                    <span className="more-closed">Show all {people.length}</span>
-                    <span className="more-open">Show fewer</span>
-                  </summary>
-                  <PeopleGrid people={people.slice(shown)} />
-                </details>
+              {groups.map((g) => (
+                <div key={g.key} className="people-group">
+                  <h3>{g.title}</h3>
+                  <PeopleGrid people={g.items} />
+                </div>
+              ))}
+              {castItems.length > 0 && (
+                <div className="people-group">
+                  <h3>Cast</h3>
+                  <PeopleGrid people={castItems.slice(0, CAST_SHOWN)} />
+                  {castItems.length > CAST_SHOWN && (
+                    <details className="more">
+                      <summary className="button ghost small">
+                        <span className="more-closed">Show all {castItems.length}</span>
+                        <span className="more-open">Show fewer</span>
+                      </summary>
+                      <PeopleGrid people={castItems.slice(CAST_SHOWN)} />
+                    </details>
+                  )}
+                </div>
               )}
             </section>
           )}

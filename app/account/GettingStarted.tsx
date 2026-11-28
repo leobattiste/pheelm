@@ -8,7 +8,7 @@ const STEPS: { key: keyof StartCounts; label: string; href: string; cta: string 
   { key: "saved", label: "Add a film to your Watchlist", href: "/films", cta: "Browse films" },
   { key: "lists", label: "Make your own watchlist", href: "/watchlists", cta: "See watchlists" },
   { key: "follows", label: "Follow a director", href: "/directors", cta: "Find directors" },
-  { key: "comments", label: "Leave a comment", href: "/films", cta: "Find a film" },
+  { key: "comments", label: "Join a discussion", href: "/films", cta: "Find a film" },
 ];
 
 /** A short list of first things to do, ticked off by what the member has actually done. Gone once all are done. */
