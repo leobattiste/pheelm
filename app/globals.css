@@ -3654,7 +3654,7 @@ html:root:root:root:root:root:root:root .motw :is(.motw-btn, .motw-watchlist .pi
 .still-count { margin-right: auto; color: rgb(255 255 255 / 0.7); font-size: var(--t-sm); }
 
 .motw-grid { max-width: 440px; }
-/* Movie of the week: a light gray label, the name big, the line under it white. */
+/* Movie of the week: the label and the line under the name share the same light gray; the name is big. */
 .motw-grid .film-card-title { overflow: visible; white-space: normal; font-size: var(--t-2xl); line-height: 1.1; letter-spacing: -0.02em; }
-.motw-grid .film-card-title::before { content: "Movie of the week"; display: block; margin-bottom: var(--space-4); color: var(--muted); font-size: var(--t-sm); font-weight: 500; letter-spacing: 0; line-height: 1.3; }
-.motw-grid .film-card-meta, .motw-grid .film-card-year { color: var(--ink); font-size: var(--t-md); }
+.motw-grid .film-card-title::before { content: "Movie of the week"; display: block; margin-bottom: var(--space-4); color: var(--muted); font-size: var(--t-md); font-weight: 400; letter-spacing: 0; line-height: 1.3; }
+.motw-grid .film-card-meta { font-size: var(--t-md); }
