@@ -36,12 +36,10 @@ export default async function ExplorePage() {
       {motw && (
         <section className="explore-section page" aria-label="Movie of the week">
           <article className="motw">
-            <div className="motw-media" aria-hidden="true">
-              {motw.poster_url && <img className="motw-bg" src={motw.poster_url} alt="" />}
-            </div>
             <span className="motw-poster" aria-hidden="true">
               <Poster title={motw.title} year={motw.year} directors={motw.directors.map((d) => d.name)} src={motw.poster_url} sizes="(min-width: 800px) 440px, 100vw" priority hero />
             </span>
+            {motw.poster_url && <img className="motw-blur" src={motw.poster_url} alt="" aria-hidden="true" />}
             <Link href={filmPath(motw.slug, motw.directors)} className="motw-link" aria-label={`${motw.title}, ${motw.year}`} />
             <div className="motw-text">
               <h2 className="motw-title">{motw.title}</h2>

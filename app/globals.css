@@ -3477,24 +3477,20 @@ html:root:root:root:root:root:root .composer textarea { background: transparent 
 .explore-more { color: var(--muted); font-size: var(--t-sm); }
 .explore-more:hover { color: var(--ink); }
 
-/* Movie of the week: fills the screen above the tab bar. The whole poster, uncut, sits at the top,
-   as tall as the space allows; the card carries on around and below it in a blurred copy of the
-   same poster, so the poster melts into it. Title, line and round icon buttons sit at the bottom
-   left, in white. The whole card opens the film. */
-.motw { position: relative; display: flex; flex-direction: column; color: #fff; border-radius: var(--r); }
-.motw-media { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; background: #111; }
-.motw-bg { position: absolute; inset: -12%; width: 124%; height: 124%; object-fit: cover; filter: blur(40px) saturate(1.3) brightness(0.5); transform: scale(1.1); }
-.motw-poster { position: relative; z-index: 0; display: block; }
-/* Darkens the blur under the text, so white type reads even on a pale poster. */
-.motw-media::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 55%, rgb(0 0 0 / 0.55)); }
-/* The poster's edges fade into the blur on every side but the top, so there's no hard line. */
-.motw-poster .poster { -webkit-mask: linear-gradient(180deg, #000 90%, transparent 100%); mask: linear-gradient(180deg, #000 90%, transparent 100%); }
-.motw-poster .poster { width: 100%; height: auto; aspect-ratio: 2 / 3; border-radius: var(--r) var(--r) 0 0; box-shadow: none; }
+/* Movie of the week: just the poster, uncut, with rounded corners. The title, line and buttons
+   sit on its bottom in white, over a soft blur that fades up into the poster so white text still
+   reads on a pale one. The whole card opens the film. */
+.motw { position: relative; display: block; overflow: hidden; color: #fff; border-radius: var(--r); background: #111; }
+.motw-poster { display: block; }
+.motw-poster .poster { width: 100%; height: auto; aspect-ratio: 2 / 3; border-radius: 0; box-shadow: none; }
 .motw-link { position: absolute; inset: 0; z-index: 1; border-radius: inherit; }
-.motw-text { position: relative; z-index: 2; display: grid; gap: var(--space-4); justify-items: start; margin-top: var(--space-8); padding: 0 var(--space-16) var(--space-16); text-align: left; min-width: 0; pointer-events: none; }
+.motw-text { position: absolute; inset: auto 0 0; z-index: 2; display: grid; gap: var(--space-4); justify-items: start; padding: 72px var(--space-16) var(--space-16); text-align: left; min-width: 0; pointer-events: none; }
+/* The blur: the same poster, blurred and a little darker, showing only at the bottom and fading
+   in smoothly, so it blends instead of making a band. */
+.motw-blur { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: blur(16px) brightness(0.62); transform: scale(1.06); pointer-events: none; -webkit-mask: linear-gradient(180deg, transparent 52%, rgb(0 0 0 / 0.7) 68%, #000 82%); mask: linear-gradient(180deg, transparent 52%, rgb(0 0 0 / 0.7) 68%, #000 82%); }
 .motw-actions { pointer-events: auto; display: flex; gap: var(--space-12); margin-top: var(--space-12); }
 .motw-title { font-size: var(--t-3xl); line-height: var(--lh-tight); letter-spacing: -0.03em; overflow-wrap: anywhere; text-shadow: 0 2px 16px rgb(0 0 0 / 0.45); }
-.motw-meta { color: rgb(255 255 255 / 0.85); font-size: var(--t-sm); text-shadow: 0 1px 8px rgb(0 0 0 / 0.4); }
+.motw-meta { color: rgb(255 255 255 / 0.88); font-size: var(--t-sm); text-shadow: 0 1px 8px rgb(0 0 0 / 0.4); }
 /* Round icon buttons: Trailer filled white, Watchlist and Watched outlined and see-through. */
 html:root:root:root:root:root:root:root .motw :is(.motw-btn, .motw-watchlist .pill-button) { display: grid; place-items: center; width: 48px; height: 48px; min-width: 0; padding: 0; border: 1px solid rgb(255 255 255 / 0.6) !important; border-radius: 50%; background: transparent !important; color: #fff !important; font-size: 0 !important; gap: 0; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; cursor: pointer; }
 html:root:root:root:root:root:root:root .motw :is(.motw-btn, .motw-watchlist .pill-button) svg { width: 22px; height: 22px; margin: 0; }
