@@ -1,3 +1,4 @@
+import { serviceName } from "@/lib/watch";
 import "server-only";
 
 import { createClient } from "@supabase/supabase-js";
@@ -84,7 +85,7 @@ export type BrowseCard = { label: string; href: string; count: number; poster?: 
 export type Browse = { decades: BrowseCard[]; genres: BrowseCard[]; services: BrowseCard[] };
 
 // The big streaming services, in the order people look for them; only those with films here show.
-const SERVICES = ["Netflix", "Max", "HBO Max", "Hulu", "Amazon Prime Video", "Disney Plus", "Apple TV Plus", "Apple TV", "Paramount Plus", "Peacock", "Criterion Channel", "MUBI", "Tubi"];
+const SERVICES = ["Netflix", "Max", "Hulu", "Prime Video", "Disney+", "Apple TV", "Paramount+", "Peacock", "Criterion Channel", "MUBI", "Tubi"];
 
 function browseLinks(films: Film[]): Browse {
   const q = (k: string, v: string) => `/films?${k}=${encodeURIComponent(v)}`;
@@ -110,10 +111,10 @@ function browseLinks(films: Film[]): Browse {
     });
 
   // The big streaming services only, with TMDB's logo for each.
-  const streams = group((f) => [...new Set((f.watch ?? []).filter((w) => w.kind === "stream" || w.kind === "free").map((w) => w.provider))]);
+  const streams = group((f) => [...new Set((f.watch ?? []).filter((w) => w.kind === "stream" || w.kind === "free").map((w) => serviceName(w.provider)))]);
   const logos = new Map<string, string>();
-  for (const f of films) for (const w of f.watch ?? []) if (w.logo && !logos.has(w.provider)) logos.set(w.provider, w.logo.replace("/w92/", "/w300/"));
-  const services = SERVICES.filter((s) => streams.has(s)).map((s) => ({ label: s.replace(" Plus", "+"), href: q("provider", s), count: streams.get(s)!.length, logo: logos.get(s) ?? null }));
+  for (const f of films) for (const w of f.watch ?? []) if (w.logo && !logos.has(serviceName(w.provider))) logos.set(serviceName(w.provider), w.logo.replace("/w92/", "/w300/"));
+  const services = SERVICES.filter((s) => streams.has(s)).map((s) => ({ label: s, href: q("provider", s), count: streams.get(s)!.length, logo: logos.get(s) ?? null }));
 
   return { decades, genres, services };
 }
