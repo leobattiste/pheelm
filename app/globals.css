@@ -3626,3 +3626,7 @@ html:root:root:root:root:root:root:root .motw :is(.motw-btn, .motw-watchlist .pi
 .film-overview .crumbs ol { font-size: var(--t-md); }
 .page > .crumbs { padding-top: var(--page-top); }
 :root:root .page > .crumbs + .page-head, :root:root .page > .crumbs + .person-head { padding-top: var(--space-16); margin-top: var(--space-16); }
+
+/* A watchlist's breadcrumb shares its top line with the ⋯ menu, and its description reads in full white. */
+:root:root .page-head.has-corner > .crumbs { min-height: 0; display: flex; align-items: center; padding-top: 0; margin: 0 0 var(--space-8); }
+:root:root .collection-about .lead { color: var(--ink); }
