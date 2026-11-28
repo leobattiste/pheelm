@@ -114,7 +114,7 @@ export default async function DirectorPage({ params }: { params: Promise<{ slug:
   return (
     <article className="page profile">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
-      <Breadcrumbs parent="Directors" href="/directors" current={director.name} currentHref={`/directors/${director.slug}`} />
+      <Breadcrumbs silent parent="Directors" href="/directors" current={director.name} currentHref={`/directors/${director.slug}`} />
       <header className="person-head">
         <MoreMenu corner label={`Actions for ${director.name}`}>
           <FollowButton personId={director.id} name={director.name} />
