@@ -429,3 +429,44 @@ export async function getExtras(id: number): Promise<TmdbExtras> {
     titles: [...new Set(titles)],
   };
 }
+
+/** TMDB's movie genres, for Discover. */
+export const TMDB_GENRES: [number, string][] = [
+  [28, "Action"], [12, "Adventure"], [16, "Animation"], [35, "Comedy"], [80, "Crime"], [99, "Documentary"], [18, "Drama"],
+  [10751, "Family"], [14, "Fantasy"], [36, "History"], [27, "Horror"], [10402, "Music"], [9648, "Mystery"], [10749, "Romance"],
+  [878, "Science Fiction"], [53, "Thriller"], [10752, "War"], [37, "Western"],
+];
+
+export type DiscoverResult = { id: number; title: string; year: number | null; poster: string | null; overview: string; votes: number; directors: string[] };
+
+/**
+ * Films on TMDB matching a country, decade, genre and language, most-voted first, each with its
+ * director (one extra request per film). For finding what Pheelm is missing.
+ */
+export async function discoverMovies(opts: { country?: string; decade?: number; genre?: number; language?: string; page?: number }): Promise<{ results: DiscoverResult[]; pages: number }> {
+  const params: Record<string, string> = { include_adult: "false", sort_by: "vote_count.desc", page: String(Math.max(1, Math.min(20, opts.page ?? 1))), language: "en-US" };
+  if (opts.country) params.with_origin_country = opts.country;
+  if (opts.decade) { params["primary_release_date.gte"] = `${opts.decade}-01-01`; params["primary_release_date.lte"] = `${opts.decade + 9}-12-31`; }
+  if (opts.genre) params.with_genres = String(opts.genre);
+  if (opts.language) params.with_original_language = opts.language;
+  const r = await get<{ results?: { id: number; title: string; release_date?: string; poster_path?: string | null; overview?: string; vote_count?: number }[]; total_pages?: number }>("/discover/movie", params, AbortSignal.timeout(10000));
+  const rows = r.results ?? [];
+  const directors = await Promise.all(rows.map((m) =>
+    get<{ crew?: { name: string; job?: string }[] }>(`/movie/${m.id}/credits`, {}, AbortSignal.timeout(8000))
+      .then((c) => (c.crew ?? []).filter((p) => p.job === "Director").map((p) => p.name))
+      .catch(() => [] as string[]),
+  ));
+  return {
+    results: rows.map((m, i) => ({
+      id: m.id, title: m.title, year: m.release_date ? Number(m.release_date.slice(0, 4)) : null,
+      poster: m.poster_path ? `${IMG}/w185${m.poster_path}` : null, overview: m.overview ?? "", votes: m.vote_count ?? 0, directors: directors[i],
+    })),
+    pages: Math.min(20, r.total_pages ?? 1),
+  };
+}
+
+/** One page of the films changed on TMDB between two dates (at most 14 days apart). */
+export async function getChanges(start: string, end: string, page: number): Promise<{ ids: number[]; pages: number; total: number }> {
+  const r = await get<{ results?: { id: number }[]; total_pages?: number; total_results?: number }>("/movie/changes", { start_date: start, end_date: end, page: String(page) }, AbortSignal.timeout(10000));
+  return { ids: (r.results ?? []).map((x) => x.id), pages: r.total_pages ?? 1, total: r.total_results ?? 0 };
+}
