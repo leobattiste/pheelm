@@ -137,8 +137,6 @@ export async function FilmPageView({ params }: Params) {
         {/* Hands the film's colour to the whole page, header and footer included, while it's open. */}
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
 
-        <Breadcrumbs parent="Films" href="/films" current={film.title} currentHref={filmPath(film.slug, film.directors)} />
-
         <div className="film-art">
           <Poster title={film.title} year={film.year} directors={directorNames} src={film.poster_url} sizes="(min-width: 800px) 46vw, 100vw" priority hero />
         </div>
@@ -146,20 +144,15 @@ export async function FilmPageView({ params }: Params) {
         <div className="film-body">
           {/* 1. Overview: what it is, and the three things you can do. */}
           <section className="film-overview" aria-labelledby="film-title">
-            <header className="film-head">
-              <h1 className="film-title" id="film-title">{film.title}</h1>
-              <p className="film-byline">
-                <span className="byline-item">
-                  Directed by{" "}
-                  {film.directors.map((d, i) => (
-                    <span key={d.id}>
-                      {i > 0 && (i === film.directors.length - 1 ? " and " : ", ")}
-                      <Link href={d.in_directory === false ? `/people/${d.slug}` : `/directors/${d.slug}`}>{d.name}</Link>
-                    </span>
-                  ))}
-                </span>
-              </p>
-            </header>
+            {/* The title and director live in the breadcrumb under the poster; the heading stays for screen readers and search. */}
+            <h1 className="visually-hidden" id="film-title">{film.title}</h1>
+            <Breadcrumbs
+              parent="Films"
+              href="/films"
+              middle={film.directors.map((d) => ({ label: d.name, href: d.in_directory === false ? `/people/${d.slug}` : `/directors/${d.slug}` }))}
+              current={film.title}
+              currentHref={filmPath(film.slug, film.directors)}
+            />
 
             <div className="film-actions">
               {embed ? (

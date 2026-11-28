@@ -3616,3 +3616,13 @@ html:root:root:root:root:root:root:root .motw :is(.motw-btn, .motw-watchlist .pi
 /* Cast and crew: a small heading over each job's people. */
 .people-group + .people-group { margin-top: var(--space-32); }
 .people-group > h3 { margin-bottom: var(--space-12); font-size: var(--t-md); font-weight: 600; color: var(--muted); }
+
+/* Breadcrumbs: a quiet line, Films / Director / Title, with the page you're on in full white. */
+.crumbs ol { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--space-8); margin: 0; padding: 0; list-style: none; font-size: var(--t-sm); color: var(--muted); }
+.crumbs li + li::before { content: "/"; margin-right: var(--space-8); opacity: 0.5; }
+.crumbs a { color: inherit; text-decoration: none; }
+.crumbs a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 0.2em; }
+.crumbs [aria-current] { color: var(--ink); overflow-wrap: anywhere; }
+.film-overview .crumbs ol { font-size: var(--t-md); }
+.page > .crumbs { padding-top: var(--page-top); }
+:root:root .page > .crumbs + .page-head, :root:root .page > .crumbs + .person-head { padding-top: var(--space-16); margin-top: var(--space-16); }
