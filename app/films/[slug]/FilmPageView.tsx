@@ -91,7 +91,6 @@ export async function FilmPageView({ params }: Params) {
   const directorNames = film.directors.map((d) => d.name);
 
   const runtime = runtimeLabel(film.runtime);
-  const aka = (film.aka ?? []).filter((t) => t && t !== film.title && t !== film.original_title);
 
   // Cast and crew, one group per job: Director(s), Writer(s), and so on, then the cast by billing.
   // Someone with two jobs appears under each. The first few of the cast show; the rest sit behind "Show all".
@@ -114,7 +113,6 @@ export async function FilmPageView({ params }: Params) {
   const peopleCount = groups.reduce((n, g) => n + g.items.length, 0) + castItems.length;
   const details: [string, React.ReactNode][] = [
     ...(film.original_title && film.original_title !== film.title ? ([["Original title", film.original_title]] as [string, React.ReactNode][]) : []),
-    ...(aka.length ? ([["Also known as", aka.join(", ")]] as [string, React.ReactNode][]) : []),
     [film.countries.length > 1 ? "Countries" : "Country", film.countries.length ? film.countries.map((c, i) => (
       <span key={c}>{i > 0 && ", "}<Link href={`/films?country=${c}`}>{countryName(c)}</Link></span>
     )) : null],
@@ -197,10 +195,9 @@ export async function FilmPageView({ params }: Params) {
           </section>
 
           {/* The story, headed like the sections below it. */}
-          {(film.note || film.synopsis || film.tagline) && (
+          {(film.note || film.synopsis) && (
             <section className="film-section film-synopsis" aria-labelledby="synopsis-h">
               <h2 id="synopsis-h">Synopsis</h2>
-              {film.tagline && <p className="film-tagline">{film.tagline}</p>}
               {film.note && <p className="film-note">{film.note}</p>}
               {film.synopsis && (
                 <div className="film-essay">
@@ -223,13 +220,6 @@ export async function FilmPageView({ params }: Params) {
                 </div>
               ))}
             </dl>
-            {(film.keywords?.length ?? 0) > 0 && (
-              <ul className="film-themes" aria-label="Themes">
-                {film.keywords!.slice(0, 10).map((k) => (
-                  <li key={k}><Link className="pill-button small" href={`/films?theme=${encodeURIComponent(k)}`}>{k}</Link></li>
-                ))}
-              </ul>
-            )}
           </section>
 
           {(film.stills?.length ?? 0) > 1 && (
