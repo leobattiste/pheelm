@@ -2,10 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 
-// A strip of stills; tapping one opens it large in a modal (arrows, swipe-free: tap sides or use keys).
+// A strip of stills; tapping one opens it large in a modal (swipe or arrow keys to move between them).
 export default function FilmStills({ stills, title }: { stills: string[]; title: string }) {
   const [open, setOpen] = useState<number | null>(null);
   const ref = useRef<HTMLDialogElement>(null);
+  const startX = useRef<number | null>(null);
+  const go = (d: number) => setOpen((i) => (i === null ? i : (i + d + stills.length) % stills.length));
 
   useEffect(() => {
     const d = ref.current;
@@ -40,7 +42,20 @@ export default function FilmStills({ stills, title }: { stills: string[]; title:
         {open !== null && (
           <>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={stills[open].replace("/w1280/", "/original/")} alt={`Still ${open + 1} from ${title}`} onClick={() => setOpen((open + 1) % stills.length)} />
+            <img
+              src={stills[open].replace("/w1280/", "/original/")}
+              alt={`Still ${open + 1} from ${title}`}
+              draggable={false}
+              onClick={(e) => e.stopPropagation()}
+              onTouchStart={(e) => { startX.current = e.touches[0].clientX; }}
+              onTouchEnd={(e) => {
+                if (startX.current === null) return;
+                const dx = e.changedTouches[0].clientX - startX.current;
+                startX.current = null;
+                if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
+              }}
+            />
+            <span className="still-count">{open + 1} / {stills.length}</span>
             <button type="button" className="still-close" onClick={() => setOpen(null)} aria-label="Close">×</button>
           </>
         )}
