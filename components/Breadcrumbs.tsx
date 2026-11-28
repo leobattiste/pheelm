@@ -7,7 +7,7 @@ type Crumb = { label: string; href: string };
  * Where a page sits: Films / Spike Lee / Clockers. Shown on the page and given to search engines.
  * `middle` is the level between the section and the page (a film's directors); it can hold several links.
  */
-export default function Breadcrumbs({ parent, href, middle, current, currentHref }: { parent: string; href: string; middle?: Crumb[]; current: string; currentHref?: string }) {
+export default function Breadcrumbs({ parent, href, middle, current, currentHref, silent }: { parent: string; href: string; middle?: Crumb[]; current: string; currentHref?: string; silent?: boolean }) {
   const ld = currentHref && {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -21,7 +21,7 @@ export default function Breadcrumbs({ parent, href, middle, current, currentHref
   return (
     <>
       {ld && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld).replace(/</g, "\\u003c") }} />}
-      <nav className="crumbs" aria-label="Breadcrumb">
+      {!silent && <nav className="crumbs" aria-label="Breadcrumb">
         <ol>
           <li><Link href={href}>{parent}</Link></li>
           {middle && middle.length > 0 && (
@@ -33,7 +33,7 @@ export default function Breadcrumbs({ parent, href, middle, current, currentHref
           )}
           <li aria-current="page"><span>{current}</span></li>
         </ol>
-      </nav>
+      </nav>}
     </>
   );
 }

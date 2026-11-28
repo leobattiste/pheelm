@@ -156,7 +156,7 @@ export default async function MemberCollectionPage({ params, searchParams }: Par
           {canFeature && <FeatureCollection listId={list.id} featured={featured} />}
           {!canEdit && list.is_public && <ReportCollection listId={list.id} />}
         </MoreMenu>
-        <h1>{list.title}</h1>
+        <h1 className="visually-hidden">{list.title}</h1>
         {list.description && <CollectionDescription title={list.title} text={list.description} />}
         {canEdit && (
           <ul className="collection-meta">
