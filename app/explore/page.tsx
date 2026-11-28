@@ -110,10 +110,10 @@ export default async function ExplorePage() {
             <ul className="browse-track">
               {x.browse.decades.map((d) => (
                 <li key={d.href}>
-                  <Link href={d.href} className="browse-card is-decade">
+                  <Link href={d.href} className={`browse-card is-decade era-${d.label.slice(0, 4)}`}>
                     {d.poster && <img src={d.poster} alt="" loading="lazy" />}
-                    <span className="browse-big">{`’${d.label.slice(2)}`}</span>
-                    <span className="browse-sub">{d.label} · {d.count} {d.count === 1 ? "film" : "films"}</span>
+                    <span className={`browse-big${Number(d.label.slice(0, 4)) < 1930 ? " is-long" : ""}`}>{Number(d.label.slice(0, 4)) < 1930 ? d.label : `’${d.label.slice(2)}`}</span>
+                    <span className="browse-era" aria-hidden="true" />
                   </Link>
                 </li>
               ))}
@@ -131,7 +131,6 @@ export default async function ExplorePage() {
                       {(g.posters ?? []).map((p, i) => p && <img key={i} src={p} alt="" loading="lazy" />)}
                     </span>
                     <span className="browse-name">{g.label}</span>
-                    <span className="browse-sub">{g.count} {g.count === 1 ? "film" : "films"}</span>
                   </Link>
                 </li>
               ))}
@@ -154,7 +153,6 @@ export default async function ExplorePage() {
                       <span className="browse-logo browse-initial">{v.label[0]}</span>
                     )}
                     <span className="browse-name">{v.label}</span>
-                    <span className="browse-sub">{v.count} {v.count === 1 ? "film" : "films"}</span>
                   </Link>
                 </li>
               ))}
