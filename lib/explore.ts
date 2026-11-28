@@ -57,7 +57,7 @@ function rotate<T>(pool: T[], week: number, count: number) {
 const wins = (f: Film) => f.awards.filter((a) => a.result === "won").length;
 const noms = (f: Film) => f.awards.length;
 const byPopularity = (a: Film, b: Film) => wins(b) - wins(a) || noms(b) - noms(a) || b.year - a.year;
-const complete = (f: Film) => !!f.poster_url && !!f.backdrop_url && !!f.synopsis;
+const complete = (f: Film) => !!f.poster_url && !!f.synopsis;
 
 async function pinnedFilmId(week: string) {
   if (!supabaseEnabled) return null;
