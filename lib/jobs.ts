@@ -150,7 +150,7 @@ export const JOBS: Record<JobKind, Kind> = {
     },
   },
   changes: {
-    label: "Refresh changed films", summary: "Asks TMDB which films changed since this last ran (up to two weeks) and refreshes only those of ours: empty fields, cast and crew, where to watch and extra details.", unit: "films refreshed", tmdb: true,
+    label: "Refresh changed films", summary: "Asks TMDB which films changed since this last ran (up to two weeks) and refreshes only those of ours: cast and crew, where to watch and extra details.", unit: "films refreshed", tmdb: true,
     remaining: async (db) => {
       const w = await changesWindow(db);
       return (await getChanges(w.start, w.end, 1)).total;
@@ -166,10 +166,18 @@ export const JOBS: Record<JobKind, Kind> = {
       const upto = Math.min(last, from + 3); // four pages a batch, so refreshing the films found stays well inside the time limit
       const lists = await Promise.all(Array.from({ length: upto - from + 1 }, (_, i) => getChanges(start, end, from + i).then((r) => r.ids)));
       const ids = [...new Set(lists.flat())];
-      const { data, error } = ids.length ? await db.from("films").select("id").in("tmdb_id", ids) : { data: [], error: null };
+      const { data, error } = ids.length ? await db.from("films").select("id, tmdb_id, title, original_title, aka, watch").in("tmdb_id", ids) : { data: [], error: null };
       if (error) throw error;
-      const ours = (data ?? []) as { id: string }[];
-      const counts = await inGroups(ours, 3, async (f) => { await importFilm(db, f.id); return true; });
+      // TMDB-only, so it stays quick: extra details, where to watch, and cast and crew. Awards come
+      // from Wikidata and keep their own job.
+      const ours = (data ?? []) as { id: string; tmdb_id: number; title: string; original_title: string | null; aka: string[] | null; watch: WatchOption[] | null }[];
+      const counts = await inGroups(ours, 5, async (f) => {
+        const [fresh] = await Promise.all([getWatch(f.tmdb_id), fillExtras(db, f), refreshCredits(db, f.id, f.tmdb_id)]);
+        const manual = (f.watch ?? []).filter((w) => !w.url.includes("themoviedb.org") && !w.url.includes("justwatch.com"));
+        const { error } = await db.from("films").update({ watch: [...manual, ...fresh], updated_at: new Date().toISOString() }).eq("id", f.id);
+        if (error) throw error;
+        return true;
+      });
       return { cursor: `${start}|${end}|${upto + 1}|${last}`, processed: ids.length, ...counts, done: upto >= last };
     },
   },
