@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { refreshAwardsBatch } from "@/lib/awards";
 import { fillPerson, importFilm, refreshCredits } from "@/lib/import";
 import { getWatch } from "@/lib/tmdb";
+import { fillExtras } from "@/lib/extras";
 import type { WatchOption } from "@/lib/types";
 
 /**
@@ -11,7 +12,7 @@ import type { WatchOption } from "@/lib/types";
  * at a time; `cursor` is the last id handled, so a job picks up where it stopped. The worker
  * (/api/internal/jobs, every minute while something runs) and the Start button both call runJobs.
  */
-export type JobKind = "posters" | "synopses" | "credits" | "people" | "awards" | "watch";
+export type JobKind = "posters" | "synopses" | "credits" | "people" | "awards" | "watch" | "extras";
 export type Job = {
   id: string; kind: JobKind; status: "running" | "done" | "stopped" | "failed"; cursor: string | null;
   total: number; processed: number; changed: number; failed: number; last_error: string | null;
@@ -124,6 +125,16 @@ export const JOBS: Record<JobKind, Kind> = {
         if (error) throw error;
         return true;
       }));
+    },
+  },
+  extras: {
+    label: "Fill extra details", summary: "Themes, age rating, series, title logo, stills, studios, tagline, budget, box office, recommendations and other titles from TMDB.", unit: "films filled", tmdb: true,
+    remaining: async (db) => (await db.from("films").select("id", { count: "exact", head: true }).not("tmdb_id", "is", null)).count ?? 0,
+    batch: async (db, cursor) => {
+      const { data, error } = await after(db.from("films").select("id, tmdb_id, title, original_title, aka").not("tmdb_id", "is", null).order("id").limit(15), cursor);
+      if (error) throw error;
+      const rows = data ?? [];
+      return done(rows, 15, cursor, await inGroups(rows, 5, (f) => fillExtras(db, f)));
     },
   },
 };

@@ -336,3 +336,84 @@ export async function probeTmdbAwards(id: number): Promise<{ path: string; statu
   }
   return out;
 }
+
+/** The extra details Pheelm shows for a film, from one TMDB request. */
+export type TmdbExtras = {
+  keywords: string[];
+  certification: string | null;
+  certification_country: string | null;
+  series: { tmdb_id: number; name: string } | null;
+  logo_url: string | null;
+  stills: string[];
+  companies: string[];
+  tagline: string | null;
+  budget: number | null;
+  revenue: number | null;
+  tmdb_recs: number[];
+  titles: string[];
+};
+
+// Keywords that say nothing about what a film is about (credits scenes, sources, formats, who made it).
+const NOISE = /^(aftercreditsstinger|duringcreditsstinger|woman director|black director|female director|based on .*|remake|sequel|prequel|biography|3d|imax|duringcreditsstinger|short film|anthology|independent film|black and white|silent film|live action and animation|dogme 95)$/i;
+
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+export async function getExtras(id: number): Promise<TmdbExtras> {
+  type Img = { file_path: string; iso_639_1?: string | null; vote_average?: number };
+  const m = await get<{
+    original_language?: string;
+    tagline?: string; budget?: number; revenue?: number;
+    belongs_to_collection?: { id: number; name: string } | null;
+    production_companies?: { name: string }[];
+    keywords?: { keywords?: { name: string }[] };
+    release_dates?: { results?: { iso_3166_1: string; release_dates?: { certification?: string; type?: number }[] }[] };
+    images?: { logos?: Img[]; backdrops?: Img[] };
+    recommendations?: { results?: { id: number }[] };
+    similar?: { results?: { id: number }[] };
+    alternative_titles?: { titles?: { title: string }[] };
+    translations?: { translations?: { data?: { title?: string } }[] };
+  }>(`/movie/${id}`, {
+    append_to_response: "keywords,release_dates,images,recommendations,similar,alternative_titles,translations",
+    include_image_language: "en,null,fr,pt,es,de,it",
+    language: "en-US",
+  });
+
+  // Age rating: the US one, else the first country that has one.
+  const rated = (m.release_dates?.results ?? [])
+    .map((r) => ({ country: r.iso_3166_1, cert: (r.release_dates ?? []).map((d) => d.certification?.trim()).find(Boolean) ?? null }))
+    .filter((r) => r.cert);
+  const cert = rated.find((r) => r.country === "US") ?? rated[0] ?? null;
+
+  // The title logo in English if there is one, else the film's own language, else any.
+  const logos = [...(m.images?.logos ?? [])].sort((a, b) => (b.vote_average ?? 0) - (a.vote_average ?? 0));
+  const logo = logos.find((l) => l.iso_639_1 === "en") ?? logos.find((l) => l.iso_639_1 === m.original_language) ?? logos[0];
+  const logoUrl = logo ? `${IMG}/${logo.file_path.endsWith(".svg") ? "original" : "w500"}${logo.file_path}` : null;
+
+  // Stills: the best-voted backdrops without text on them.
+  const stills = [...(m.images?.backdrops ?? [])]
+    .filter((b) => !b.iso_639_1)
+    .sort((a, b) => (b.vote_average ?? 0) - (a.vote_average ?? 0))
+    .slice(0, 8)
+    .map((b) => `${IMG}/w1280${b.file_path}`);
+
+  const recs = [...(m.recommendations?.results ?? []), ...(m.similar?.results ?? [])].map((r) => r.id);
+  const titles = [
+    ...(m.alternative_titles?.titles ?? []).map((t) => t.title),
+    ...(m.translations?.translations ?? []).map((t) => t.data?.title ?? ""),
+  ].map((t) => t.trim()).filter(Boolean);
+
+  return {
+    keywords: [...new Set((m.keywords?.keywords ?? []).map((k) => k.name.trim()).filter((k) => k && !NOISE.test(k)).map(cap))].slice(0, 15),
+    certification: cert?.cert ?? null,
+    certification_country: cert?.country ?? null,
+    series: m.belongs_to_collection ? { tmdb_id: m.belongs_to_collection.id, name: m.belongs_to_collection.name.replace(/\s+-\s+Collection$|\s+Collection$/i, "") } : null,
+    logo_url: logoUrl,
+    stills,
+    companies: [...new Set((m.production_companies ?? []).map((c) => c.name.trim()).filter(Boolean))].slice(0, 6),
+    tagline: m.tagline?.trim() || null,
+    budget: m.budget && m.budget > 0 ? m.budget : null,
+    revenue: m.revenue && m.revenue > 0 ? m.revenue : null,
+    tmdb_recs: [...new Set(recs)].slice(0, 40),
+    titles: [...new Set(titles)],
+  };
+}

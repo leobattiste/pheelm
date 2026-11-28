@@ -33,6 +33,19 @@ export type FilmRow = {
   /** When the film was added to the directory (only in the database, not the starter file). */
   published_at?: string | null;
   created_at?: string;
+  /** From TMDB's extra details (supabase/migrations/20261128150000_tmdb_extras.sql). */
+  keywords?: string[] | null;
+  certification?: string | null;
+  certification_country?: string | null;
+  series?: { tmdb_id: number; name: string } | null;
+  logo_url?: string | null;
+  stills?: string[] | null;
+  companies?: string[] | null;
+  tagline?: string | null;
+  budget?: number | null;
+  revenue?: number | null;
+  tmdb_recs?: number[] | null;
+  extras_at?: string | null;
 };
 
 export type PersonRow = {
