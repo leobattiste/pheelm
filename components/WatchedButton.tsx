@@ -12,7 +12,8 @@ import { openSignIn } from "./SignInSheet";
 type Status = "loading" | "signed-out" | "off" | "on" | "unavailable";
 
 /** "Add to Watched" in a film's menu: marks the film as seen, for the Watched tab on your profile. */
-export default function WatchedButton({ filmId, title }: { filmId: string; title: string }) {
+export default function WatchedButton({ filmId, title, className = "button ghost", iconOnly, filmHref }: { filmId: string; title: string; className?: string; iconOnly?: boolean; filmHref?: string }) {
+  const text = (t: string) => (iconOnly ? <span className="visually-hidden">{t}</span> : t);
   const path = usePathname();
   const [status, setStatus] = useState<Status>("loading");
   const [userId, setUserId] = useState<string | null>(null);
@@ -31,13 +32,13 @@ export default function WatchedButton({ filmId, title }: { filmId: string; title
 
   if (status === "unavailable") return null;
   // Until we know, the button shows but waits: a signed-in member is never sent to Sign in.
-  if (status === "loading") return <button type="button" className="button ghost" disabled aria-busy="true"><Icon name="eye" />Add to Watched</button>;
+  if (status === "loading") return <button type="button" className={className} disabled aria-busy="true" title="Add to Watched"><Icon name="eye" />{text("Add to Watched")}</button>;
   if (status === "signed-out") {
     return (
-      <Link className="button ghost" href={`/login?next=${encodeURIComponent(path)}`}
+      <Link className={className} title="Add to Watched" href={`/login?next=${encodeURIComponent(path)}`}
         onClick={(e) => { if (openSignIn()) e.preventDefault(); }}>
         <Icon name="eye" />
-        Add to Watched
+        {text("Add to Watched")}
       </Link>
     );
   }
@@ -57,15 +58,15 @@ export default function WatchedButton({ filmId, title }: { filmId: string; title
     const prev = status === "on" ? "on" : "off";
     const next = prev === "on" ? "off" : "on";
     if (await apply(next, prev)) {
-      if (next === "on") toast.success(`Marked as watched. Tell us what you think about “${title}”.`, { action: { label: "Leave a comment", href: `${path}#comments` } });
+      if (next === "on") toast.success(`Marked as watched. Tell us what you think about “${title}”.`, { action: { label: "Leave a comment", href: `${filmHref ?? path}#comments` } });
       else toast.success("Removed from Watched", { action: { label: "Undo", run: () => void apply(prev, next) } });
     }
   };
 
   return (
-    <button type="button" className="button ghost" aria-pressed={status === "on"} onClick={toggle}>
+    <button type="button" className={className} aria-pressed={status === "on"} onClick={toggle} title={status === "on" ? "Watched" : "Add to Watched"}>
       <Icon name={status === "on" ? "check" : "eye"} />
-      {status === "on" ? "Watched" : "Add to Watched"}
+      {text(status === "on" ? "Watched" : "Add to Watched")}
     </button>
   );
 }
