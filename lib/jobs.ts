@@ -163,7 +163,7 @@ export const JOBS: Record<JobKind, Kind> = {
         start = w.start; end = w.end; page = "1"; pages = String((await getChanges(start, end, 1)).pages);
       }
       const from = Number(page), last = Number(pages);
-      const upto = Math.min(last, from + 9);
+      const upto = Math.min(last, from + 3); // four pages a batch, so refreshing the films found stays well inside the time limit
       const lists = await Promise.all(Array.from({ length: upto - from + 1 }, (_, i) => getChanges(start, end, from + i).then((r) => r.ids)));
       const ids = [...new Set(lists.flat())];
       const { data, error } = ids.length ? await db.from("films").select("id").in("tmdb_id", ids) : { data: [], error: null };
