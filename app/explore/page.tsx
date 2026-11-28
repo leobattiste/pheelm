@@ -3,16 +3,10 @@ import Link from "next/link";
 import CommunityTile from "@/components/CommunityTile";
 import DirectorCard from "@/components/DirectorCard";
 import FilmCard from "@/components/FilmCard";
-import Icon from "@/components/Icon";
-import WatchedButton from "@/components/WatchedButton";
-import Poster from "@/components/Poster";
 import Row from "@/components/Row";
-import TrailerButton from "@/components/TrailerButton";
-import WatchlistButton from "@/components/WatchlistButton";
 import { toCard } from "@/lib/data";
 import { getExplore } from "@/lib/explore";
-import { filmPath } from "@/lib/film-links";
-import { countryName, runtimeLabel, tintStyle, trailerEmbed } from "@/lib/format";
+import { countryName, tintStyle } from "@/lib/format";
 import { publicPageMetadata } from "@/lib/seo";
 
 export const revalidate = 3600; // the weekly picks change on Monday; admin saves refresh it right away
@@ -24,7 +18,6 @@ const SIZES = "(min-width: 900px) 188px, (min-width: 640px) 27vw, 40vw";
 export default async function ExplorePage() {
   const x = await getExplore();
   const motw = x.movieOfTheWeek;
-  const embed = motw ? trailerEmbed(motw.trailer_url) : null;
 
   return (
     <div className="explore">
@@ -35,44 +28,9 @@ export default async function ExplorePage() {
 
       {motw && (
         <section className="explore-section page" aria-label="Movie of the week">
-          <article className="motw">
-            <span className="motw-poster" aria-hidden="true">
-              <Poster title={motw.title} year={motw.year} directors={motw.directors.map((d) => d.name)} src={motw.poster_url} sizes="(min-width: 800px) 440px, 100vw" priority hero />
-            </span>
-            {motw.poster_url && <img className="motw-blur" src={motw.poster_url} alt="" aria-hidden="true" />}
-            <Link href={filmPath(motw.slug, motw.directors)} className="motw-link" aria-label={`${motw.title}, ${motw.year}`} />
-            <div className="motw-text">
-              {motw.logo_url ? (
-                <h2 className="motw-title has-logo">
-                  <img className="motw-logo" src={motw.logo_url} alt={motw.title} />
-                </h2>
-              ) : (
-                <h2 className="motw-title">{motw.title}</h2>
-              )}
-              <p className="motw-meta">
-                {[motw.directors.map((d) => d.name).join(" and "), String(motw.year), runtimeLabel(motw.runtime), motw.certification && (!motw.certification_country || motw.certification_country === "US") ? motw.certification : null].filter(Boolean).join(" · ")}
-              </p>
-              <div className="motw-actions">
-                {embed ? (
-                  <TrailerButton embed={embed} title={motw.title} className="motw-btn is-primary" label="Trailer" action="trailer" />
-                ) : (
-                  <a
-                    className="motw-btn is-primary"
-                    data-action="trailer"
-                    aria-label="Find trailer on YouTube"
-                    title="Trailer"
-                    href={`https://www.youtube.com/results?search_query=${encodeURIComponent([motw.title, motw.year, ...motw.directors.map((d) => d.name), "trailer"].join(" "))}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <Icon name="play" className="solid" />
-                  </a>
-                )}
-                <span className="motw-watchlist"><WatchlistButton filmId={motw.id} filmTitle={motw.title} /></span>
-                <WatchedButton filmId={motw.id} title={motw.title} className="motw-btn" iconOnly filmHref={filmPath(motw.slug, motw.directors)} />
-              </div>
-            </div>
-          </article>
+          <ul className="film-grid motw-grid">
+            <FilmCard film={toCard(motw)} sizes="(min-width: 800px) 440px, 100vw" priority />
+          </ul>
         </section>
       )}
 
