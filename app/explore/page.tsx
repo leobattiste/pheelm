@@ -168,40 +168,6 @@ export default async function ExplorePage() {
             </ul>
           </div>
         )}
-        {x.browse.themes.length > 0 && (
-          <div className="browse">
-            <h3>Themes</h3>
-            <ul className="browse-track">
-              {x.browse.themes.map((t) => (
-                <li key={t.href}>
-                  <Link href={t.href} className="browse-card is-theme">
-                    <span className="browse-mosaic" aria-hidden="true">
-                      {(t.posters ?? []).map((p, i) => (p ? <img key={i} src={p} alt="" loading="lazy" /> : <span key={i} />))}
-                    </span>
-                    <span className="browse-name">{t.label}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-        {x.browse.studios.length > 0 && (
-          <div className="browse">
-            <h3>Studios</h3>
-            <ul className="browse-track">
-              {x.browse.studios.map((c) => (
-                <li key={c.href}>
-                  <Link href={c.href} className="browse-card is-studio">
-                    <span className="browse-name">{c.label}</span>
-                    <span className="browse-strip" aria-hidden="true">
-                      {(c.posters ?? []).map((p, i) => (p ? <img key={i} src={p} alt="" loading="lazy" /> : <span key={i} />))}
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
       </section>
     </div>
   );
