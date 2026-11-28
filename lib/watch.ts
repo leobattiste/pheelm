@@ -44,14 +44,23 @@ const SERVICES: [RegExp, Builder][] = [
  */
 export function serviceName(provider: string) {
   const name = provider
-    .replace(/\s+(amazon|apple tv|roku premium) channel$/i, "")
-    .replace(/\s+(standard|basic|premium|essential|ultimate|plus)?\s*with ads$/i, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    // Where it's sold: a store, or a channel inside another app.
+    .replace(/\s+(amazon|amzon|apple tv|roku premium) channel$/i, "")
+    .replace(/\s+store$/i, "")
+    // Plans and tiers.
+    .replace(/\s+(standard|basic|premium|essential|ultimate)?\s*with ads$/i, "")
+    .replace(/\s+free$/i, "")
     .replace(/\s+(premium plus|premium|essential|basic|standard|ultimate|ad-free)$/i, "")
     .trim();
   const tidy: Record<string, string> = {
-    "disney plus": "Disney+", "paramount plus": "Paramount+", "apple tv plus": "Apple TV+", "amc plus": "AMC+",
+    "disney plus": "Disney+", "paramount plus": "Paramount+", "apple tv plus": "Apple TV", "amc plus": "AMC+",
     "hbo max": "Max", "mgm plus": "MGM+", "amazon prime video": "Prime Video", "amazon video": "Prime Video", "tubi tv": "Tubi",
     "the criterion channel": "Criterion Channel", "fandango at home": "Fandango at Home",
+    "hallmark tv": "Hallmark+", "history vault": "History Vault", "vix": "VIX", "plex channel": "Plex",
+    "justwatch tv plus": "JustWatch TV", "shout! factory tv": "Shout! Factory", "indieflix shorts": "IndieFlix",
+    "lionsgate+": "Lionsgate+", "starz": "Starz",
   };
   return tidy[name.toLowerCase()] ?? name;
 }
