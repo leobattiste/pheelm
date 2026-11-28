@@ -3442,15 +3442,9 @@ html:root:root:root .trailer-dialog[open] { display: grid; gap: var(--space-12);
 /* Synopsis: a section like Cast and crew; the section's own gap spaces the note and the text. */
 .film-synopsis :is(.film-note, .film-essay) { margin-top: 0; }
 
-/* Film page: a blurred copy of the poster glows behind it, spreading its colours into the page. */
 .film-page { isolation: isolate; overflow-x: clip; }
 /* The sticky poster column paints in its own layer, glow included, so the text sits above it. */
 .film-page > .film-body { position: relative; z-index: 1; }
-.film-glow { position: absolute; inset: -18% -30%; z-index: -1; pointer-events: none; }
-.film-glow img { width: 100%; height: 100%; object-fit: cover; filter: blur(90px) saturate(1.5); opacity: 0.55; transform: translateZ(0); }
-:root[data-theme="light"] .film-glow img { opacity: 0.4; }
-@media (max-width: 799px) { .film-art { position: relative; } .film-glow { inset: -12% -20%; } .film-glow img { filter: blur(70px) saturate(1.5); } }
-@media (prefers-reduced-transparency: reduce) { .film-glow { display: none; } }
 
 /* Every modal closes from its top corner: the trailer player gets an X above the video. */
 .trailer-head { display: flex; justify-content: flex-end; padding-bottom: var(--space-8); }
@@ -3458,17 +3452,9 @@ html:root:root:root .trailer-dialog[open] { display: grid; gap: var(--space-12);
 .trailer-head .icon-button:hover { background: rgb(255 255 255 / 0.22); }
 .tour-x svg { width: 18px; height: 18px; }
 
-/* Phone: the poster stays a rounded card, centred, with its own colours glowing softly behind it,
-   and clear space before the title. The glow runs up behind the header to the top of the screen. */
+/* Phone: the poster is a plain rounded card on the normal page background (no glow), with clear
+   space before the title. */
 @media (max-width: 799px) {
-  main:has(.film-page) { margin-top: calc(var(--header) * -1); }
-  body:has(.film-page) .site-header { background: transparent; border-color: transparent; }
-  :root:root:root .film-page { position: relative; padding-top: calc(var(--header) + var(--space-8)); row-gap: var(--space-24); }
-  .film-art { position: static; margin-bottom: var(--space-8); }
-  .film-glow {
-    inset: 0 -20% auto; height: calc(var(--header) + 170vw);
-    -webkit-mask-image: linear-gradient(to bottom, #000 65%, transparent 100%);
-    mask-image: linear-gradient(to bottom, #000 65%, transparent 100%);
-  }
-  .film-glow img { opacity: 0.7; }
+  .film-page { row-gap: var(--space-24); }
+  .film-art { position: relative; top: auto; margin-bottom: var(--space-8); }
 }
