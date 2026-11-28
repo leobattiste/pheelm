@@ -1,4 +1,5 @@
 import "server-only";
+import { fillExtras } from "@/lib/extras";
 import { wikidataAwards, withWikidata } from "./awards";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import sharp from "sharp";
@@ -57,6 +58,7 @@ export async function importFilm(db: SupabaseClient, filmId: string, prefetched?
     throw new Error(upErr.message);
   }
   const added = people.added;
+  await fillExtras(db, { ...film, tmdb_id: tmdbId }).catch(() => false);
 
   // Everyone on the film gets their biography, dates, birthplace and links, once, ten at a time.
   // (Before supabase/archive/people-details.sql has run, only people missing a bio, birth year or portrait.)
