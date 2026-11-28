@@ -11,7 +11,7 @@ import WatchlistButton from "@/components/WatchlistButton";
 import { toCard } from "@/lib/data";
 import { getExplore } from "@/lib/explore";
 import { filmPath } from "@/lib/film-links";
-import { countryName, runtimeLabel, trailerEmbed } from "@/lib/format";
+import { countryName, runtimeLabel, tintStyle, trailerEmbed } from "@/lib/format";
 import { publicPageMetadata } from "@/lib/seo";
 
 export const revalidate = 3600; // the weekly picks change on Monday; admin saves refresh it right away
@@ -19,6 +19,7 @@ export const metadata: Metadata = publicPageMetadata("/explore");
 
 const SIZES = "(min-width: 900px) 188px, (min-width: 640px) 27vw, 40vw";
 
+/* eslint-disable @next/next/no-img-element */
 export default async function ExplorePage() {
   const x = await getExplore();
   const motw = x.movieOfTheWeek;
@@ -103,13 +104,62 @@ export default async function ExplorePage() {
 
       <section className="explore-section page" aria-labelledby="keep-h">
         <h2 id="keep-h" className="explore-h">Keep exploring</h2>
-        {([["Decades", x.browse.decades], ["Genres", x.browse.genres], ["Services", x.browse.services], ["Themes", x.browse.themes]] as const).map(([label, items]) =>
-          items.length > 0 && (
-            <div key={label} className="explore-chips">
-              <h3>{label}</h3>
-              <ul>{items.map((i) => <li key={i.href}><Link href={i.href} className="pill-button">{i.label}</Link></li>)}</ul>
-            </div>
-          ),
+        {x.browse.decades.length > 0 && (
+          <div className="browse">
+            <h3>Decades</h3>
+            <ul className="browse-track">
+              {x.browse.decades.map((d) => (
+                <li key={d.href}>
+                  <Link href={d.href} className="browse-card is-decade">
+                    {d.poster && <img src={d.poster} alt="" loading="lazy" />}
+                    <span className="browse-big">{`’${d.label.slice(2)}`}</span>
+                    <span className="browse-sub">{d.label} · {d.count} {d.count === 1 ? "film" : "films"}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {x.browse.genres.length > 0 && (
+          <div className="browse">
+            <h3>Genres</h3>
+            <ul className="browse-track">
+              {x.browse.genres.map((g) => (
+                <li key={g.href}>
+                  <Link href={g.href} className="browse-card is-genre" style={tintStyle(g.color)}>
+                    <span className="browse-fan" aria-hidden="true">
+                      {(g.posters ?? []).map((p, i) => p && <img key={i} src={p} alt="" loading="lazy" />)}
+                    </span>
+                    <span className="browse-name">{g.label}</span>
+                    <span className="browse-sub">{g.count} {g.count === 1 ? "film" : "films"}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {x.browse.services.length > 0 && (
+          <div className="browse">
+            <h3>Streaming</h3>
+            <ul className="browse-track">
+              {x.browse.services.map((v) => (
+                <li key={v.href}>
+                  <Link href={v.href} className="browse-card is-service">
+                    {v.logo ? (
+                      <>
+                        <img className="browse-glow" src={v.logo} alt="" aria-hidden="true" loading="lazy" />
+                        <img className="browse-logo" src={v.logo} alt="" loading="lazy" />
+                      </>
+                    ) : (
+                      <span className="browse-logo browse-initial">{v.label[0]}</span>
+                    )}
+                    <span className="browse-name">{v.label}</span>
+                    <span className="browse-sub">{v.count} {v.count === 1 ? "film" : "films"}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
       </section>
     </div>

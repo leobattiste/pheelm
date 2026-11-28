@@ -3507,7 +3507,38 @@ html:root:root:root:root:root:root .composer textarea { background: transparent 
 }
 @media (min-width: 1100px) { .explore-lists { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 
-/* Keep exploring: a few lines of chips, each opening the Films page filtered that way. */
-.explore-chips { display: grid; gap: var(--space-8); margin-top: var(--space-24); }
-.explore-chips h3 { font-size: var(--t-sm); font-weight: 600; color: var(--muted); }
-.explore-chips ul { display: flex; flex-wrap: wrap; gap: var(--space-8); list-style: none; padding: 0; margin: 0; }
+/* Keep exploring: three scrolling rows of small square cards, each designed for what it opens.
+   Decades sit behind their best-known poster, genres take that film's colour with two posters
+   fanned in the corner, and services show their logo over a soft glow of itself. */
+.browse { margin-top: var(--space-24); }
+.browse h3 { margin-bottom: var(--space-12); font-size: var(--t-sm); font-weight: 600; color: var(--muted); }
+.browse-track { display: flex; gap: var(--space-12); margin: 0 calc(var(--gutter) * -1); padding: 0 var(--gutter) var(--space-4); list-style: none; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter); overscroll-behavior-x: contain; scrollbar-width: none; }
+.browse-track::-webkit-scrollbar { display: none; }
+.browse-track > li { flex: 0 0 132px; scroll-snap-align: start; }
+@media (min-width: 900px) { .browse-track > li { flex-basis: 160px; } }
+.browse-card { position: relative; isolation: isolate; display: flex; flex-direction: column; justify-content: flex-end; aspect-ratio: 1; padding: var(--space-12); overflow: hidden; border-radius: var(--r); background: var(--raised); color: #fff; text-decoration: none; transition: transform 0.2s ease; }
+.browse-card:hover { transform: translateY(-2px); }
+.browse-card:active { transform: scale(0.97); }
+.browse-name { position: relative; font-weight: 700; font-size: var(--t-md, 1rem); line-height: 1.15; letter-spacing: -0.01em; }
+.browse-sub { position: relative; margin-top: 2px; font-size: var(--t-xs); opacity: 0.72; }
+
+/* Decades: the poster, darkened and pushed into duotone, with the year huge across it. */
+.browse-card.is-decade img { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.15) brightness(0.7); transform: scale(1.08); transition: filter 0.3s, transform 0.4s; }
+.browse-card.is-decade::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgb(0 0 0 / 0.05), rgb(0 0 0 / 0.75)); }
+.browse-card.is-decade:hover img { filter: grayscale(0) brightness(0.75); transform: scale(1.14); }
+.browse-big { position: relative; font-size: 2.8rem; font-weight: 800; line-height: 0.9; letter-spacing: -0.06em; font-variant-numeric: tabular-nums; }
+
+/* Genres: a gradient in the genre's colour, two posters leaning in from the top right. */
+.browse-card.is-genre { --tint: #5b5b66; background: radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--tint) 85%, #fff 10%), color-mix(in srgb, var(--tint) 55%, #000) 70%); }
+.browse-fan { position: absolute; top: -8%; right: -10%; z-index: -1; width: 78%; height: 70%; }
+.browse-fan img { position: absolute; top: 0; right: 0; width: 56%; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 6px; box-shadow: 0 10px 24px -8px rgb(0 0 0 / 0.6); transform: rotate(14deg); transition: transform 0.3s ease; }
+.browse-fan img:nth-child(2) { right: 38%; top: 12%; transform: rotate(-8deg); }
+.browse-card.is-genre:hover .browse-fan img { transform: rotate(18deg) translateY(4px); }
+.browse-card.is-genre:hover .browse-fan img:nth-child(2) { transform: rotate(-12deg) translateY(6px); }
+
+/* Services: the logo as an app icon, over a blurred, enlarged copy of itself. */
+.browse-card.is-service { align-items: flex-start; background: #111; }
+.browse-glow { position: absolute; inset: -30%; z-index: -1; width: 160%; height: 160%; object-fit: cover; filter: blur(28px) saturate(1.6); opacity: 0.55; }
+.browse-logo { position: relative; width: 52px; height: 52px; margin-bottom: auto; border-radius: 12px; object-fit: cover; box-shadow: 0 6px 16px rgb(0 0 0 / 0.45), inset 0 0 0 1px rgb(255 255 255 / 0.08); }
+.browse-initial { display: grid; place-items: center; background: #333; font-weight: 800; font-size: 1.4rem; }
+@media (prefers-reduced-motion: reduce) { .browse-card, .browse-card * { transition: none !important; } }
