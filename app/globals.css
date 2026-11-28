@@ -3546,59 +3546,85 @@ html:root:root:root:root:root:root .composer textarea { background: transparent 
 .browse-initial { display: grid; place-items: center; background: #333; font-weight: 800; font-size: 1.4rem; }
 @media (prefers-reduced-motion: reduce) { .browse-card, .browse-card * { transition: none !important; } }
 
-/* Decades, each dressed in its own era: the poster is filtered the way films of the time looked,
-   with a texture and type to match. */
-.browse-era { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
-.browse-card.is-decade .browse-big { font-family: var(--font-sans, system-ui); }
-/* Silent era: sepia, a burnt vignette and a flickering frame. */
-:is(.era-1900, .era-1910) img { filter: sepia(1) contrast(1.1) brightness(0.65) !important; }
-:is(.era-1900, .era-1910) .browse-era { background: radial-gradient(circle, transparent 40%, rgb(30 15 0 / 0.85)); box-shadow: inset 0 0 0 4px rgb(240 220 180 / 0.5); }
-:is(.era-1900, .era-1910) .browse-big { font-family: Georgia, "Times New Roman", serif; font-style: italic; color: #f1e2c0; }
-/* 1920s Art Deco: gold on black, a sunburst fan from the bottom. */
-.era-1920 img { filter: sepia(0.8) brightness(0.45) !important; }
-.era-1920 .browse-era { background: repeating-conic-gradient(from -60deg at 50% 110%, rgb(212 175 55 / 0.35) 0 4deg, transparent 4deg 12deg); border: 1px solid rgb(212 175 55 / 0.7); border-radius: inherit; }
-.era-1920 .browse-big { font-family: Georgia, serif; font-weight: 400; letter-spacing: 0.02em; color: #e6c46a; }
-/* 1930s silver screen: silver tones and a spotlight from above. */
-.era-1930 img { filter: grayscale(1) brightness(0.6) contrast(1.2) !important; }
-.era-1930 .browse-era { background: radial-gradient(60% 80% at 50% -10%, rgb(255 255 255 / 0.45), transparent 70%); }
-.era-1930 .browse-big { font-family: Georgia, serif; background: linear-gradient(180deg, #fff, #8d8d8d); -webkit-background-clip: text; background-clip: text; color: transparent; }
-/* 1940s noir: hard black and white through venetian blinds. */
-.era-1940 img { filter: grayscale(1) contrast(1.8) brightness(0.55) !important; }
-.era-1940 .browse-era { background: repeating-linear-gradient(-28deg, rgb(0 0 0 / 0.65) 0 9px, transparent 9px 18px); }
-.era-1940 .browse-big { font-family: "Courier New", monospace; font-weight: 700; letter-spacing: -0.04em; }
-/* 1950s Technicolor: rich reds and teals, a drive-in sign glow. */
-.era-1950 img { filter: saturate(1.8) contrast(1.15) brightness(0.6) hue-rotate(-8deg) !important; }
-.era-1950 .browse-era { background: linear-gradient(160deg, rgb(230 57 70 / 0.5), transparent 55%, rgb(42 157 143 / 0.55)); }
-.era-1950 .browse-big { font-family: "Brush Script MT", "Segoe Script", cursive; font-weight: 400; font-style: italic; color: #ffe8a3; text-shadow: 0 0 12px rgb(255 120 80 / 0.8); }
-/* 1960s pop art: halftone dots and flat colour. */
-.era-1960 img { filter: grayscale(1) contrast(1.6) brightness(0.8) !important; mix-blend-mode: multiply; }
-.era-1960 { background: #f2c14e !important; }
-.era-1960 .browse-era { background: radial-gradient(rgb(220 40 90 / 0.55) 22%, transparent 24%) 0 0 / 8px 8px; }
-.era-1960 .browse-big { color: #fff; -webkit-text-stroke: 2px #111; text-shadow: 4px 4px 0 #111; }
-/* 1970s: warm film stock and those brown-orange stripes. */
-.era-1970 img { filter: sepia(0.5) saturate(1.4) brightness(0.55) !important; }
-.era-1970 .browse-era { background: linear-gradient(180deg, transparent 52%, #f4a259 52% 60%, #e76f51 60% 68%, #9c4a1a 68% 76%, transparent 76%); opacity: 0.85; }
-.era-1970 .browse-big { font-family: "Cooper Black", "Arial Rounded MT Bold", Georgia, serif; font-weight: 900; color: #fff1d6; }
-/* 1980s synthwave: neon grid and a sunset. */
-.era-1980 img { filter: brightness(0.4) saturate(1.5) hue-rotate(260deg) !important; }
-.era-1980 .browse-era { background: linear-gradient(transparent 55%, rgb(255 0 170 / 0.35)), linear-gradient(90deg, rgb(0 240 255 / 0.4) 1px, transparent 1px) 0 100% / 14px 45% no-repeat, repeating-linear-gradient(transparent 0 10px, rgb(0 240 255 / 0.35) 10px 11px) 0 100% / 100% 45% no-repeat; }
-.era-1980 .browse-big { font-style: italic; color: #fff; text-shadow: 0 0 6px #ff2bd6, 0 0 18px #ff2bd6, 0 0 30px #00f0ff; }
-/* 1990s VHS: scanlines and colour bleeding at the edges. */
-.era-1990 img { filter: saturate(1.3) contrast(1.1) brightness(0.55) blur(0.4px) !important; }
-.era-1990 .browse-era { background: repeating-linear-gradient(transparent 0 2px, rgb(0 0 0 / 0.35) 2px 3px); }
-.era-1990 .browse-big { font-family: "Courier New", monospace; color: #fff; text-shadow: -3px 0 rgb(255 0 60 / 0.8), 3px 0 rgb(0 200 255 / 0.8); }
-/* 2000s Y2K: chrome lettering on a glossy blue. */
-.era-2000 img { filter: brightness(0.5) saturate(0.8) hue-rotate(180deg) !important; }
-.era-2000 .browse-era { background: linear-gradient(180deg, rgb(255 255 255 / 0.28) 0 42%, transparent 42%), linear-gradient(160deg, rgb(70 130 255 / 0.4), rgb(160 220 255 / 0.15)); }
-.era-2000 .browse-big { background: linear-gradient(180deg, #fff 0 45%, #9aa8b8 50%, #e9f1fb 80%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 2px 2px rgb(0 0 0 / 0.5)); }
-/* 2010s: the soft gradient filters of the phone-photo years. */
-.era-2010 img { filter: brightness(0.6) saturate(1.1) !important; }
-.era-2010 .browse-era { background: linear-gradient(45deg, rgb(253 29 29 / 0.45), rgb(131 58 180 / 0.45) 50%, rgb(252 176 69 / 0.4)); }
-.era-2010 .browse-big { font-weight: 300; letter-spacing: -0.03em; }
-/* 2020s: full colour, clean, frosted glass. */
-.era-2020 img { filter: brightness(0.7) saturate(1.2) !important; }
-.era-2020 .browse-era { inset: auto 8px 8px 8px; height: 44%; border-radius: 12px; background: rgb(255 255 255 / 0.12); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgb(255 255 255 / 0.2); }
-.era-2020 .browse-big { padding-left: 6px; }
-.browse-card.is-decade:hover img { filter: brightness(0.8) !important; }
+/* Decades: no posters, each card is made the way design looked in that decade, type included. */
+.browse-card.is-decade::before { display: none; }
+.browse-era { position: absolute; inset: 0; z-index: 0; pointer-events: none; border-radius: inherit; }
+.browse-card.is-decade .browse-big { z-index: 1; }
+
+/* Silent film title card: black, a double white frame, ornate serif. */
+:is(.era-1900, .era-1910) { background: #0d0d0d !important; justify-content: center; align-items: center; }
+:is(.era-1900, .era-1910) .browse-era { inset: 8px; border: 3px double #e9e3d3; border-radius: 4px; box-shadow: inset 0 0 0 4px #0d0d0d, inset 0 0 0 5px rgb(233 227 211 / 0.4); }
+:is(.era-1900, .era-1910) .browse-big { font-family: Didot, "Bodoni 72", Georgia, serif; font-style: italic; font-weight: 400; letter-spacing: 0; color: #e9e3d3; }
+
+/* 1920s Art Deco: black and gold, a sunburst rising from the bottom, thin capitals. */
+.era-1920 { background: #111 !important; align-items: center; }
+.era-1920 .browse-era { background: repeating-conic-gradient(from -70deg at 50% 105%, #c9a227 0 3deg, transparent 3deg 10deg); -webkit-mask: linear-gradient(transparent 20%, #000); mask: linear-gradient(transparent 20%, #000); box-shadow: inset 0 0 0 2px #c9a227, inset 0 0 0 6px #111, inset 0 0 0 7px #c9a227; }
+.era-1920 .browse-big { font-family: Didot, "Bodoni 72", Georgia, serif; font-weight: 400; letter-spacing: 0.08em; color: #e8c766; background: #111; padding: 2px 8px; margin-bottom: 4px; }
+
+/* 1930s Hollywood: a silver screen under a spotlight, tall silver serif. */
+.era-1930 { background: linear-gradient(180deg, #2b2f36, #0e1013) !important; }
+.era-1930 .browse-era { background: conic-gradient(from 160deg at 50% -10%, transparent 0deg, rgb(255 255 255 / 0.35) 15deg, rgb(255 255 255 / 0.35) 25deg, transparent 40deg); }
+.era-1930 .browse-big { font-family: "Bodoni 72", Didot, Georgia, serif; font-weight: 700; background: linear-gradient(180deg, #fff 30%, #9aa1ab 55%, #e7ebef); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+/* 1940s film noir: dark room, light through venetian blinds, typewriter. */
+.era-1940 { background: #161616 !important; }
+.era-1940 .browse-era { background: repeating-linear-gradient(-30deg, rgb(255 255 255 / 0.18) 0 10px, transparent 10px 22px); -webkit-mask: radial-gradient(90% 70% at 85% 10%, #000, transparent); mask: radial-gradient(90% 70% at 85% 10%, #000, transparent); }
+.era-1940 .browse-big { font-family: "American Typewriter", "Courier New", monospace; font-weight: 700; letter-spacing: -0.03em; color: #eee; }
+
+/* 1950s atomic age: turquoise, a pink boomerang and starbursts, a diner script. */
+.era-1950 { background: #5ec4b6 !important; }
+.era-1950 .browse-era { background:
+  radial-gradient(circle, #fff 0 3px, transparent 4px) 14px 14px / 44px 44px no-repeat,
+  repeating-conic-gradient(#fff 0 5deg, transparent 5deg 30deg) 14px 14px / 44px 44px no-repeat,
+  radial-gradient(circle, #fff 0 2px, transparent 3px) 66% 52% / 22px 22px no-repeat,
+  repeating-conic-gradient(#fff 0 6deg, transparent 6deg 45deg) 66% 52% / 22px 22px no-repeat,
+  radial-gradient(60% 34% at 95% 14%, #f07aa0 60%, transparent 61%);
+  -webkit-mask: none; mask: none; }
+.era-1950 .browse-era::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.era-1950 .browse-big { font-family: "Brush Script MT", "Snell Roundhand", "Segoe Script", cursive; font-weight: 400; font-style: italic; font-size: 3.2rem; color: #c8264f; text-shadow: 2px 2px 0 #fff; letter-spacing: 0; }
+
+/* 1960s pop art: yellow, red halftone dots, outlined comic numbers. */
+.era-1960 { background: #ffd23f !important; }
+.era-1960 .browse-era { background: radial-gradient(#e63946 28%, transparent 30%) 0 0 / 9px 9px; -webkit-mask: linear-gradient(135deg, #000, transparent 70%); mask: linear-gradient(135deg, #000, transparent 70%); }
+.era-1960 .browse-big { font-family: Impact, "Arial Black", sans-serif; font-weight: 900; color: #fff; -webkit-text-stroke: 2px #111; text-shadow: 4px 4px 0 #111; letter-spacing: 0; }
+
+/* 1970s: cream, curved orange and brown stripes, a fat rounded serif. */
+.era-1970 { background: #f3e3c3 !important; }
+.era-1970 .browse-era { background: radial-gradient(circle at 110% -10%, transparent 22%, #e9a23b 22% 32%, #d1602d 32% 42%, #8c3b1c 42% 52%, transparent 52%); }
+.era-1970 .browse-big { font-family: "Cooper Black", "Arial Rounded MT Bold", Georgia, serif; font-weight: 900; color: #5a2a12; letter-spacing: -0.04em; }
+
+/* 1980s synthwave: a striped sun over a neon grid, chrome italics. */
+.era-1980 { background: linear-gradient(180deg, #1a0533, #3b0a57 55%, #12002a 56%) !important; }
+.era-1980 .browse-era { background:
+  linear-gradient(180deg, transparent 0 22%, transparent 22%) ,
+  repeating-linear-gradient(180deg, transparent 0 5px, #3b0a57 5px 7px) 50% 14% / 70% 42% no-repeat,
+  radial-gradient(circle at 50% 100%, #ffb347, #ff2e88 70%, transparent 71%) 50% 14% / 70% 42% no-repeat,
+  repeating-linear-gradient(90deg, rgb(0 240 255 / 0.7) 0 1px, transparent 1px 16px) 0 100% / 100% 44% no-repeat,
+  repeating-linear-gradient(180deg, rgb(0 240 255 / 0.7) 0 1px, transparent 1px 9px) 0 100% / 100% 44% no-repeat; }
+.era-1980 .browse-big { font-family: "Arial Black", Impact, sans-serif; font-style: italic; background: linear-gradient(180deg, #fff 0 45%, #ff6ad5 50%, #fff 90%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 6px #ff2bd6); }
+
+/* 1990s Memphis: white with squiggles, confetti shapes and chunky black type. */
+.era-1990 { background: #fdfdfd !important; }
+.era-1990 .browse-era { background:
+  conic-gradient(from 150deg at 80% 22%, #2ec4f1 0 60deg, transparent 60deg) ,
+  radial-gradient(circle at 20% 22%, #ff4f9a 0 11px, transparent 12px),
+  repeating-linear-gradient(45deg, transparent 0 6px, #111 6px 8px) 62% 55% / 34px 34px no-repeat,
+  radial-gradient(circle at 84% 70%, transparent 8px, #ffc900 9px 14px, transparent 15px); }
+.era-1990 .browse-big { font-family: "Arial Black", Impact, sans-serif; color: #111; text-shadow: 3px 3px 0 #ff4f9a; }
+
+/* 2000s Y2K: a glossy aqua bubble and chrome lettering. */
+.era-2000 { background: radial-gradient(120% 90% at 30% 0%, #bff3ff, #2a8fd8 55%, #0b3d7a) !important; }
+.era-2000 .browse-era { background: radial-gradient(80% 45% at 50% 0%, rgb(255 255 255 / 0.75), transparent 70%); }
+.era-2000 .browse-big { font-family: Verdana, Tahoma, sans-serif; font-weight: 700; background: linear-gradient(180deg, #fff 0 45%, #7d8ea3 52%, #f2f7fc 85%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 2px 2px rgb(0 40 90 / 0.6)); }
+
+/* 2010s flat design: one bold colour and a long shadow on thin type. */
+.era-2010 { background: #e8505b !important; overflow: hidden; }
+.era-2010 .browse-big { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-weight: 300; letter-spacing: -0.04em; text-shadow: 1px 1px #c43d48, 2px 2px #c43d48, 3px 3px #c43d48, 4px 4px #c43d48, 5px 5px #c43d48, 6px 6px #c43d48, 7px 7px #c43d48, 8px 8px #c43d48, 9px 9px #c43d48, 10px 10px #c43d48, 12px 12px #c43d48, 14px 14px #c43d48, 16px 16px #c43d48, 20px 20px #c43d48, 26px 26px #c43d48; }
+
+/* 2020s: soft colour blobs under frosted glass, clean geometric type. */
+.era-2020 { background: #0f0f14 !important; }
+.era-2020 .browse-era { background: radial-gradient(circle at 25% 25%, #7c5cff 0 22%, transparent 45%), radial-gradient(circle at 80% 40%, #ff6b9a 0 18%, transparent 42%), radial-gradient(circle at 50% 90%, #2dd4bf 0 18%, transparent 45%); filter: blur(10px); }
+.era-2020::after { content: ""; position: absolute; inset: auto 8px 8px; height: 46%; z-index: 0; border-radius: 12px; background: rgb(255 255 255 / 0.12); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid rgb(255 255 255 / 0.22); }
+.era-2020 .browse-big { padding-left: 6px; font-weight: 600; letter-spacing: -0.05em; }
+
 .browse-big.is-long { font-size: 2rem; }
-.era-1960::before { display: none; }
