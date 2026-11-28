@@ -111,7 +111,6 @@ export default async function ExplorePage() {
               {x.browse.decades.map((d) => (
                 <li key={d.href}>
                   <Link href={d.href} className={`browse-card is-decade era-${d.label.slice(0, 4)}`}>
-                    {d.poster && <img src={d.poster} alt="" loading="lazy" />}
                     <span className={`browse-big${Number(d.label.slice(0, 4)) < 1930 ? " is-long" : ""}`}>{Number(d.label.slice(0, 4)) < 1930 ? d.label : `’${d.label.slice(2)}`}</span>
                     <span className="browse-era" aria-hidden="true" />
                   </Link>
