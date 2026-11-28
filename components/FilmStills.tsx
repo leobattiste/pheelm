@@ -1,5 +1,6 @@
 "use client";
 
+import Icon from "@/components/Icon";
 import { useEffect, useRef, useState } from "react";
 
 // A strip of stills; tapping one opens it large in a modal (swipe or arrow keys to move between them).
@@ -38,27 +39,26 @@ export default function FilmStills({ stills, title }: { stills: string[]; title:
           </li>
         ))}
       </ul>
-      <dialog ref={ref} className="still-modal" onClose={() => setOpen(null)} onClick={(e) => { if (e.target === ref.current) setOpen(null); }}>
-        {open !== null && (
-          <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={stills[open].replace("/w1280/", "/original/")}
-              alt={`Still ${open + 1} from ${title}`}
-              draggable={false}
-              onClick={(e) => e.stopPropagation()}
-              onTouchStart={(e) => { startX.current = e.touches[0].clientX; }}
-              onTouchEnd={(e) => {
-                if (startX.current === null) return;
-                const dx = e.changedTouches[0].clientX - startX.current;
-                startX.current = null;
-                if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
-              }}
-            />
-            <span className="still-count">{open + 1} / {stills.length}</span>
-            <button type="button" className="still-close" onClick={() => setOpen(null)} aria-label="Close">×</button>
-          </>
-        )}
+      <dialog ref={ref} className="trailer-dialog" aria-label={`${title} stills`} onClose={() => setOpen(null)} onClick={(e) => { if (e.target === ref.current) setOpen(null); }}>
+        <div className="trailer-head">
+          <span className="still-count">{open !== null ? `${open + 1} / ${stills.length}` : ""}</span>
+          <button type="button" className="icon-button" onClick={() => setOpen(null)} aria-label="Close"><Icon name="close" /></button>
+        </div>
+        <div
+          className="trailer-frame still-frame"
+          onTouchStart={(e) => { startX.current = e.touches[0].clientX; }}
+          onTouchEnd={(e) => {
+            if (startX.current === null) return;
+            const dx = e.changedTouches[0].clientX - startX.current;
+            startX.current = null;
+            if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
+          }}
+        >
+          {open !== null && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={stills[open].replace("/w1280/", "/original/")} alt={`Still ${open + 1} from ${title}`} draggable={false} />
+          )}
+        </div>
       </dialog>
     </>
   );
