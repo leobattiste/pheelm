@@ -52,19 +52,31 @@ export async function FilmPageView({ params }: Params) {
   const companions = new Set(community.flatMap((c) => c.filmSlugs));
   const directorIds = new Set(film.directors.map((d) => d.id));
   const moreByDirector = all.filter((f) => f.id !== film.id && f.directors.some((d) => directorIds.has(d.id)));
-  // More like this: films in the same genre. The more genres they share the better, then being in a
-  // collection together, the same country and the same decade; closer years break ties.
+  // More like this: TMDB's own recommendations for this film come first (when they're on Pheelm),
+  // then films sharing genres and themes, being in a watchlist together, the same country and the
+  // same decade; closer years break ties.
   const decade = Math.floor(film.year / 10);
+  const recs = new Set(film.tmdb_recs ?? []);
+  const themes = new Set(film.keywords ?? []);
   const related = all
-    .filter((f) => f.id !== film.id && !moreByDirector.includes(f) && f.genres.some((g) => film.genres.includes(g)))
-    .map((f) => ({
-      f,
-      score:
-        f.genres.filter((g) => film.genres.includes(g)).length * 2 +
-        (companions.has(f.slug) ? 2 : 0) +
-        f.countries.filter((c) => film.countries.includes(c)).length +
-        (Math.floor(f.year / 10) === decade ? 1 : 0),
-    }))
+    .filter((f) => f.id !== film.id && !moreByDirector.includes(f))
+    .map((f) => {
+      const recommended = (f.tmdb_id != null && recs.has(f.tmdb_id)) || (film.tmdb_id != null && (f.tmdb_recs ?? []).includes(film.tmdb_id));
+      const genres = f.genres.filter((g) => film.genres.includes(g)).length;
+      return {
+        f,
+        recommended,
+        genres,
+        score:
+          (recommended ? 6 : 0) +
+          genres * 2 +
+          Math.min(3, (f.keywords ?? []).filter((k) => themes.has(k)).length) +
+          (companions.has(f.slug) ? 2 : 0) +
+          f.countries.filter((c) => film.countries.includes(c)).length +
+          (Math.floor(f.year / 10) === decade ? 1 : 0),
+      };
+    })
+    .filter((r) => r.recommended || r.genres > 0)
     .sort((a, b) => b.score - a.score || Math.abs(a.f.year - film.year) - Math.abs(b.f.year - film.year))
     .slice(0, 16)
     .map((r) => r.f);
@@ -217,6 +229,22 @@ export async function FilmPageView({ params }: Params) {
               </ul>
             )}
           </section>
+
+          {(film.stills?.length ?? 0) > 1 && (
+            <section className="film-section" aria-labelledby="stills-h">
+              <h2 id="stills-h">Stills</h2>
+              <ul className="film-stills">
+                {film.stills!.map((src, i) => (
+                  <li key={src}>
+                    <a href={src.replace("/w1280/", "/original/")} target="_blank" rel="noopener noreferrer" aria-label={`Still ${i + 1} from ${film.title}, full size`}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={src.replace("/w1280/", "/w780/")} alt="" loading="lazy" decoding="async" />
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
           {/* 3. Awards: the first two (wins first), then every win and nomination in a sheet. */}
           {(wins.length > 0 || noms.length > 0) && (
             <section className="film-section" aria-labelledby="awards-h">
