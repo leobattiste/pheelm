@@ -136,13 +136,6 @@ export async function FilmPageView({ params }: Params) {
         <Breadcrumbs parent="Films" href="/films" current={film.title} currentHref={filmPath(film.slug, film.directors)} />
 
         <div className="film-art">
-          {/* A blurred copy of the poster behind it, so its colours spread into the page as a soft glow. */}
-          {film.poster_url && (
-            <div className="film-glow" aria-hidden="true">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={film.poster_url} alt="" decoding="async" />
-            </div>
-          )}
           <Poster title={film.title} year={film.year} directors={directorNames} src={film.poster_url} sizes="(min-width: 800px) 46vw, 100vw" priority hero />
         </div>
 
