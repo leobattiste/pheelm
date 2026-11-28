@@ -3475,17 +3475,16 @@ html:root:root:root:root:root:root .composer textarea { background: transparent 
 .explore-more:hover { color: var(--ink); }
 
 /* Movie of the week: laid out like a film page header, poster then title, line and buttons. */
-.motw { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-24); justify-items: start; }
-.motw-poster { display: block; width: min(64%, 260px); }
+.motw { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-24); }
+.motw-poster { display: block; width: 100%; }
 .motw-poster .poster { border-radius: var(--r-media); }
 .motw-text { display: grid; gap: var(--space-8); align-content: start; min-width: 0; }
-.motw-title { font-size: var(--t-2xl); line-height: var(--lh-tight); letter-spacing: -0.02em; overflow-wrap: anywhere; }
+.motw-title { font-size: var(--t-3xl); line-height: var(--lh-tight); letter-spacing: -0.03em; overflow-wrap: anywhere; }
 .motw-meta { color: var(--muted); font-size: var(--t-sm); }
 .motw-actions { margin-top: var(--space-8); }
 @media (min-width: 800px) {
   .motw { grid-template-columns: 280px minmax(0, 640px); gap: var(--space-40); align-items: center; justify-items: stretch; }
   .motw-poster { width: auto; }
-  .motw-title { font-size: var(--t-3xl); }
 }
 
 /* Director spotlight: the photo at profile size, with the name and country beside it. */
@@ -3508,11 +3507,7 @@ html:root:root:root:root:root:root .composer textarea { background: transparent 
 }
 @media (min-width: 1100px) { .explore-lists { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 
-/* Join in: a plain list, one line each. */
-.explore-actions { display: grid; list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--line); }
-.explore-actions li { border-bottom: 1px solid var(--line); }
-.explore-actions :is(a, button) { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--space-12); align-items: center; width: 100%; padding: var(--space-16) var(--space-4); border: 0; background: transparent; color: inherit; font: inherit; text-align: left; text-decoration: none; cursor: pointer; }
-.explore-actions :is(a, button):hover { background: var(--hover); }
-.explore-actions .icon { width: var(--control-icon, 20px); height: var(--control-icon, 20px); }
-.explore-actions :is(a, button) > .icon:last-child { color: var(--muted); }
-@media (min-width: 900px) { .explore-actions { max-width: 640px; } }
+/* Keep exploring: a few lines of chips, each opening the Films page filtered that way. */
+.explore-chips { display: grid; gap: var(--space-8); margin-top: var(--space-24); }
+.explore-chips h3 { font-size: var(--t-sm); font-weight: 600; color: var(--muted); }
+.explore-chips ul { display: flex; flex-wrap: wrap; gap: var(--space-8); list-style: none; padding: 0; margin: 0; }
