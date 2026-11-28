@@ -1771,25 +1771,6 @@ a.person-row-name:hover { text-decoration: underline; text-underline-offset: 0.2
 :is(.menu-setting, .setting-row) :is(.segmented, .theme-toggle) { width: 156px; }
 :is(.menu-setting, .setting-row) :is(.segmented, .theme-toggle) button { flex: 1; width: auto; min-width: 0; padding: 0; }
 
-/* Add to Home Screen banner (phones only), floating above the bottom edge and any film bar. */
-.install-banner {
-  position: fixed; z-index: 60; left: var(--space-12); right: var(--space-12);
-  bottom: calc(var(--space-12) + env(safe-area-inset-bottom));
-  display: flex; align-items: center; gap: var(--space-12);
-  padding: var(--space-12) var(--space-8) var(--space-12) var(--space-12);
-  border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); box-shadow: var(--shadow);
-  animation: install-in 0.4s var(--ease) both;
-}
-.install-icon { flex-shrink: 0; width: 44px; height: 44px; border-radius: var(--r); }
-.install-text { display: grid; flex: 1; min-width: 0; gap: 2px; line-height: 1.35; }
-.install-text strong { color: var(--ink); font-weight: 700; }
-.install-text span { color: var(--muted); }
-.install-text b { color: var(--text); font-weight: 700; }
-.install-inline { display: inline-block; width: var(--control-icon); height: var(--control-icon); vertical-align: -0.2em; color: var(--text); }
-.install-close { flex-shrink: 0; }
-@keyframes install-in { from { opacity: 0; transform: translateY(16px); } }
-@media (prefers-reduced-motion: reduce) { .install-banner { animation: none; } }
-
 /* Opened from the home screen: behave like an app. */
 @media (display-mode: standalone) {
   body { overscroll-behavior-y: none; -webkit-tap-highlight-color: transparent; }
@@ -1833,7 +1814,7 @@ html[data-auth="in"] .visitor-only { display: none !important; }
    The header stays only to hold the menu and sign-in sheets, which open from the pill's ⋯. */
 .tab-bar { display: none; }
 /* The admin has its own sidebar: no site header, footer or menu bar there. */
-html[data-chrome="admin"] .site-header > :not(dialog), html[data-chrome="admin"] .site-footer, html[data-chrome="admin"] .back-to-top, html[data-chrome="admin"] .install-banner { display: none !important; }
+html[data-chrome="admin"] .site-header > :not(dialog), html[data-chrome="admin"] .site-footer, html[data-chrome="admin"] .back-to-top { display: none !important; }
 html[data-chrome="admin"] .site-header { display: contents; }
 html[data-chrome="app"] {
   --tab-gap: calc(var(--space-12) + env(safe-area-inset-bottom));
@@ -2418,18 +2399,9 @@ html[data-chrome="app"] body:is(:has(.floating-controls), :has(.pagination-contr
 html[data-chrome="app"] body:has(.floating-controls):not(:has(.pagination-controls)) {
   padding-bottom: calc(var(--floating-bottom) + var(--above-bar-controls));
 }
-html[data-chrome="app"] body .install-banner {
-  left: 50%;
-  right: auto;
-  width: var(--floating-width);
-  bottom: calc(var(--floating-bottom) + var(--above-bar-controls));
-  transform: translateX(-50%);
-  animation: menu-rise .22s var(--ease);
-}
 html[data-chrome="app"] .welcome-foot {
   bottom: calc(var(--floating-bottom) + var(--above-bar-controls));
 }
-body:has(dialog:modal) .install-banner { visibility: hidden; }
 
 /* Desktop: actions to the left, navigation in the middle, top control to the right.
    Pagination remains at the end of the list; dialogs remain centered above navigation. */
@@ -2463,9 +2435,6 @@ body:has(dialog:modal) .install-banner { visibility: hidden; }
   html[data-chrome="app"] body:has(.pagination-controls) {
     padding-bottom: var(--tab-gap);
   }
-}
-@media (prefers-reduced-motion: reduce) {
-  html[data-chrome="app"] body .install-banner { animation: none; }
 }
 
 /* Tabs remain horizontally scrollable without a visible scrollbar. */
