@@ -3458,15 +3458,10 @@ html:root:root:root .trailer-dialog[open] { display: grid; gap: var(--space-12);
 .trailer-head .icon-button:hover { background: rgb(255 255 255 / 0.22); }
 .tour-x svg { width: 18px; height: 18px; }
 
-/* Phone: the poster stays a rounded card where it was, with its own colours glowing softly behind it.
-   The glow alone reaches up past the breadcrumb into the status-bar area at the top of the screen. */
+/* Phone: the poster is a plain rounded card on the normal page background (no glow), with clear
+   space before the title. */
 @media (max-width: 799px) {
   .film-page { row-gap: var(--space-24); }
   .film-art { position: relative; top: auto; margin-bottom: var(--space-8); }
-  .film-glow {
-    inset: calc(-1 * (env(safe-area-inset-top) + var(--page-top) + 120px)) -20% -10%;
-    -webkit-mask-image: linear-gradient(to bottom, #000 75%, transparent 100%);
-    mask-image: linear-gradient(to bottom, #000 75%, transparent 100%);
-  }
-  .film-glow img { opacity: 0.7; }
+  .film-glow { display: none; }
 }
