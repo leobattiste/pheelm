@@ -53,8 +53,10 @@ function rotate<T>(pool: T[], week: number, count: number) {
   return Array.from({ length: n }, (_, i) => pool[(start + i) % pool.length]);
 }
 
-const popularity = (f: Film) => f.popularity ?? 0;
-const byPopularity = (a: Film, b: Film) => popularity(b) - popularity(a) || b.year - a.year;
+// "Popular" on Pheelm means the most awarded: wins first, then nominations, then newer films.
+const wins = (f: Film) => f.awards.filter((a) => a.result === "won").length;
+const noms = (f: Film) => f.awards.length;
+const byPopularity = (a: Film, b: Film) => wins(b) - wins(a) || noms(b) - noms(a) || b.year - a.year;
 const complete = (f: Film) => !!f.poster_url && !!f.backdrop_url && !!f.synopsis;
 
 async function pinnedFilmId(week: string) {
@@ -126,11 +128,9 @@ export async function getExplore(now = Date.now()): Promise<Explore> {
     pinnedFilmId(start),
   ]);
   const usable = films.filter((f) => !!f.poster_url);
-  const hasPopularity = usable.some((f) => f.popularity != null);
 
-  // Most popular: TMDB's worldwide score. Until the job has run, the films with the most wins stand in.
-  const wins = (f: Film) => f.awards.filter((a) => a.result === "won").length;
-  const popular = [...usable].sort(hasPopularity ? byPopularity : (a, b) => wins(b) - wins(a) || b.year - a.year).slice(0, 12);
+  // Most popular: the most awarded films.
+  const popular = [...usable].sort(byPopularity).slice(0, 12);
 
   // Movie of the week: the pinned film, or one of the 300 most popular films that have a synopsis
   // (and a trailer, when enough do), in turn.
@@ -145,8 +145,8 @@ export async function getExplore(now = Date.now()): Promise<Explore> {
     .slice(0, 12);
 
   // Director spotlight: four directors a week, all with at least five films on Pheelm. Two are
-  // among the best known (judged by their most popular film) and two are less known, so the row mixes both.
-  const fame = (d: { films: Film[] }) => Math.max(0, ...d.films.map(popularity)) || d.films.reduce((n, f) => n + wins(f), 0);
+  // among the best known (judged by their films' awards) and two are less known, so the row mixes both.
+  const fame = (d: { films: Film[] }) => d.films.reduce((n, f) => n + wins(f) * 3 + noms(f), 0);
   const eligible = directors.filter((d) => d.in_directory !== false && d.films.length >= 5);
   const ranked = [...eligible].sort((a, b) => fame(b) - fame(a) || a.id.localeCompare(b.id));
   const cut = Math.ceil(ranked.length / 3);
