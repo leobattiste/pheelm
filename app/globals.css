@@ -3477,28 +3477,34 @@ html:root:root:root:root:root:root .composer textarea { background: transparent 
 .explore-more { color: var(--muted); font-size: var(--t-sm); }
 .explore-more:hover { color: var(--ink); }
 
-/* Movie of the week: the whole poster, uncut, at the top of a rounded card. Below it the card
-   carries on in a blurred copy of the same poster, so the poster melts into it; the title, line
-   and buttons sit in white where the two meet. The whole card opens the film. */
-.motw { position: relative; display: grid; color: #fff; border-radius: var(--r); }
-.motw::before { content: ""; display: block; aspect-ratio: 2 / 3; grid-area: 1 / 1; }
+/* Movie of the week: fills the screen above the tab bar. The whole poster, uncut, sits at the top,
+   as tall as the space allows; the card carries on around and below it in a blurred copy of the
+   same poster, so the poster melts into it. Title, line and round icon buttons sit at the bottom
+   left, in white. The whole card opens the film. */
+.motw { position: relative; display: flex; flex-direction: column; height: max(520px, calc(100svh - var(--motw-offset, 250px))); color: #fff; border-radius: var(--r); }
 .motw-media { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; background: #111; }
-.motw-bg { position: absolute; inset: -12%; width: 124%; height: 124%; object-fit: cover; object-position: 50% 100%; filter: blur(40px) saturate(1.3) brightness(0.55); transform: scale(1.1); }
-.motw-poster { position: absolute; inset: 0 0 auto; display: block; -webkit-mask: linear-gradient(180deg, #000 84%, transparent 100%); mask: linear-gradient(180deg, #000 84%, transparent 100%); }
-.motw-poster .poster { width: 100%; aspect-ratio: 2 / 3; border-radius: 0; box-shadow: none; }
+.motw-bg { position: absolute; inset: -12%; width: 124%; height: 124%; object-fit: cover; filter: blur(40px) saturate(1.3) brightness(0.5); transform: scale(1.1); }
+.motw-poster { position: absolute; inset: 0 0 var(--motw-info, 150px); display: flex; justify-content: center; }
+/* The poster's edges fade into the blur on every side but the top, so there's no hard line. */
+.motw-poster .poster { -webkit-mask: linear-gradient(180deg, #000 78%, transparent 100%), linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); -webkit-mask-composite: source-in; mask: linear-gradient(180deg, #000 78%, transparent 100%) intersect, linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); }
+.motw-poster .poster { height: 100%; width: auto; max-width: 100%; aspect-ratio: 2 / 3; border-radius: 0; box-shadow: none; }
 .motw-link { position: absolute; inset: 0; z-index: 1; border-radius: inherit; }
-.motw-text { position: relative; z-index: 2; grid-area: 2 / 1; display: grid; gap: var(--space-8); justify-items: center; margin-top: -36px; padding: 0 var(--space-16) var(--space-24); text-align: center; min-width: 0; pointer-events: none; }
-.motw-text > * { pointer-events: auto; }
-.motw-title, .motw-meta { pointer-events: none !important; }
+.motw-text { position: relative; z-index: 2; display: grid; gap: var(--space-4); justify-items: start; margin-top: auto; padding: 0 var(--space-16) var(--space-16); text-align: left; min-width: 0; pointer-events: none; }
+.motw-actions { pointer-events: auto; display: flex; gap: var(--space-12); margin-top: var(--space-12); }
 .motw-title { font-size: var(--t-3xl); line-height: var(--lh-tight); letter-spacing: -0.03em; overflow-wrap: anywhere; text-shadow: 0 2px 16px rgb(0 0 0 / 0.45); }
 .motw-meta { color: rgb(255 255 255 / 0.85); font-size: var(--t-sm); text-shadow: 0 1px 8px rgb(0 0 0 / 0.4); }
-.motw-actions { justify-content: center; margin-top: var(--space-8); }
-html:root:root:root:root:root:root:root .motw .film-actions > .pill-button.primary { background: #fff !important; color: #111 !important; border-color: #fff !important; }
-html:root:root:root:root:root:root:root .motw .film-actions > .pill-button:not(.primary),
-html:root:root:root:root:root:root:root .motw .film-actions .more-button { color: #fff !important; border-color: rgb(255 255 255 / 0.6) !important; background: transparent !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
-.motw .more-panel { z-index: 20; color: var(--ink); text-align: left; }
+/* Round icon buttons: Trailer filled white, Watchlist and Watched outlined and see-through. */
+html:root:root:root:root:root:root:root .motw :is(.motw-btn, .motw-watchlist .pill-button) { display: grid; place-items: center; width: 48px; height: 48px; min-width: 0; padding: 0; border: 1px solid rgb(255 255 255 / 0.6) !important; border-radius: 50%; background: transparent !important; color: #fff !important; font-size: 0 !important; gap: 0; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; cursor: pointer; }
+html:root:root:root:root:root:root:root .motw :is(.motw-btn, .motw-watchlist .pill-button) svg { width: 22px; height: 22px; margin: 0; }
+html:root:root:root:root:root:root:root .motw .motw-btn.is-primary { background: #fff !important; color: #111 !important; border-color: #fff !important; }
+html:root:root:root:root:root:root:root .motw .motw-btn.is-primary svg { margin-left: 2px; fill: currentColor; stroke: none; }
+/* The tab bar floats over the bottom of the screen: the next heading starts below it. */
+.explore-section:has(.motw) + .row.explore-row { padding-top: 128px; }
+@media (min-width: 800px) { .explore-section:has(.motw) + .row.explore-row { padding-top: clamp(80px, 11vw, 144px); } }
+html:root:root:root:root:root:root:root .motw :is(.motw-btn, .motw-watchlist .pill-button)[aria-pressed="true"] { background: rgb(255 255 255 / 0.2) !important; }
+.motw-watchlist { display: contents; }
 @media (min-width: 800px) {
-  .motw { max-width: 440px; margin-inline: auto; }
+  .motw { max-width: 440px; height: auto; aspect-ratio: 2 / 3.6; margin-inline: auto; }
 }
 
 /* Director spotlight: the photo at profile size, with the name and country beside it. */

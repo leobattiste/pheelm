@@ -3,7 +3,8 @@ import Link from "next/link";
 import CommunityTile from "@/components/CommunityTile";
 import DirectorCard from "@/components/DirectorCard";
 import FilmCard from "@/components/FilmCard";
-import FilmMenu from "@/components/FilmMenu";
+import Icon from "@/components/Icon";
+import WatchedButton from "@/components/WatchedButton";
 import Poster from "@/components/Poster";
 import Row from "@/components/Row";
 import TrailerButton from "@/components/TrailerButton";
@@ -47,23 +48,24 @@ export default async function ExplorePage() {
               <p className="motw-meta">
                 {[motw.directors.map((d) => d.name).join(" and "), String(motw.year), runtimeLabel(motw.runtime)].filter(Boolean).join(" · ")}
               </p>
-              <div className="motw-actions film-actions">
+              <div className="motw-actions">
                 {embed ? (
-                  <TrailerButton embed={embed} title={motw.title} className="pill-button primary" label="Trailer" action="trailer" />
+                  <TrailerButton embed={embed} title={motw.title} className="motw-btn is-primary" label="Trailer" action="trailer" />
                 ) : (
                   <a
-                    className="pill-button primary"
+                    className="motw-btn is-primary"
                     data-action="trailer"
                     aria-label="Find trailer on YouTube"
+                    title="Trailer"
                     href={`https://www.youtube.com/results?search_query=${encodeURIComponent([motw.title, motw.year, ...motw.directors.map((d) => d.name), "trailer"].join(" "))}`}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Trailer
+                    <Icon name="play" className="solid" />
                   </a>
                 )}
-                <WatchlistButton filmId={motw.id} filmTitle={motw.title} />
-                <FilmMenu filmId={motw.id} slug={motw.slug} title={motw.title} />
+                <span className="motw-watchlist"><WatchlistButton filmId={motw.id} filmTitle={motw.title} /></span>
+                <WatchedButton filmId={motw.id} title={motw.title} className="motw-btn" iconOnly filmHref={filmPath(motw.slug, motw.directors)} />
               </div>
             </div>
           </article>
