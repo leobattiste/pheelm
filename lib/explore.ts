@@ -38,6 +38,14 @@ function shuffled<T>(items: T[], id: (item: T) => string) {
 }
 
 /** `count` items starting at this week's place in the pool, wrapping round. */
+/** The same items, reordered (as little as possible) so no two neighbours share a key. */
+function spread<T>(items: T[], key: (item: T) => string): T[] {
+  const ok = (list: T[]) => list.every((x, i) => i === 0 || key(x) !== key(list[i - 1]));
+  if (ok(items)) return items;
+  const perms = (list: T[]): T[][] => list.length <= 1 ? [list] : list.flatMap((x, i) => perms([...list.slice(0, i), ...list.slice(i + 1)]).map((rest) => [x, ...rest]));
+  return perms(items).find(ok) ?? items;
+}
+
 function rotate<T>(pool: T[], week: number, count: number) {
   if (!pool.length) return [];
   const n = Math.min(count, pool.length);
@@ -144,7 +152,25 @@ export async function getExplore(now = Date.now()): Promise<Explore> {
   const cut = Math.ceil(ranked.length / 3);
   const known = shuffled(ranked.slice(0, cut), (d) => d.id);
   const lesser = shuffled(ranked.slice(cut), (d) => d.id);
-  const spotlights = [...rotate(known, week, 2), ...rotate(lesser, week, 2)].map(toDirectorSummary);
+  // No more than two from one country, and never two from the same country side by side.
+  const picked: typeof eligible = [];
+  const perCountry = new Map<string, number>();
+  const take = (pool: typeof eligible, n: number) => {
+    const start = rotate(pool, week, 1)[0];
+    if (!start) return;
+    const from = pool.indexOf(start);
+    for (let i = 0, got = 0; i < pool.length && got < n; i++) {
+      const d = pool[(from + i) % pool.length];
+      const c = d.country ?? `none-${d.id}`;
+      if ((perCountry.get(c) ?? 0) >= 2 || picked.includes(d)) continue;
+      perCountry.set(c, (perCountry.get(c) ?? 0) + 1);
+      picked.push(d);
+      got++;
+    }
+  };
+  take(known, 2);
+  take(lesser, 2);
+  const spotlights = spread(picked, (d) => d.country ?? d.id).map(toDirectorSummary);
 
   // Around the world: eight countries a week, one popular film from each. Countries need at least
   // three films, so the film can change too: each country's turn takes the next of its top five.
