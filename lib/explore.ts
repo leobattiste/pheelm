@@ -81,7 +81,7 @@ export type Explore = {
 
 /** What "Keep exploring" links to: each card opens the Films page filtered that way. */
 export type BrowseCard = { label: string; href: string; count: number; poster?: string | null; posters?: (string | null)[]; color?: string | null; logo?: string | null };
-export type Browse = { decades: BrowseCard[]; genres: BrowseCard[]; services: BrowseCard[] };
+export type Browse = { decades: BrowseCard[]; genres: BrowseCard[]; services: BrowseCard[]; themes: BrowseCard[]; studios: BrowseCard[] };
 
 // The big streaming services, in the order people look for them; only those with films here show.
 const SERVICES = ["Netflix", "Max", "HBO Max", "Hulu", "Amazon Prime Video", "Disney Plus", "Apple TV Plus", "Apple TV", "Paramount Plus", "Peacock", "Criterion Channel", "MUBI", "Tubi"];
@@ -115,7 +115,23 @@ function browseLinks(films: Film[]): Browse {
   for (const f of films) for (const w of f.watch ?? []) if (w.logo && !logos.has(w.provider)) logos.set(w.provider, w.logo.replace("/w92/", "/w300/"));
   const services = SERVICES.filter((s) => streams.has(s)).map((s) => ({ label: s.replace(" Plus", "+"), href: q("provider", s), count: streams.get(s)!.length, logo: logos.get(s) ?? null }));
 
-  return { decades, genres, services };
+  // Themes: TMDB's keywords shared by the most films, leaving out places and decades (other rows
+  // cover those). Each card carries four posters for its mosaic.
+  const notTheme = /,|\bcity$|^\d{4}s$|^(africa|nigeria|senegal|ghana|kenya|south africa|jamaica|brazil|cuba|haiti|london|paris|harlem|brooklyn|chicago|atlanta|new york|los angeles)\b/i;
+  const themes = [...group((f) => (f.keywords ?? []).filter((k) => !notTheme.test(k)))]
+    .filter(([, list]) => list.length >= 8)
+    .sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]))
+    .slice(0, 16)
+    .map(([t, list]) => ({ label: t, href: q("theme", t), count: list.length, posters: top(list).slice(0, 4).map((f) => f.poster_url) }));
+
+  // Studios with the most films here, each with a strip of three of its posters.
+  const studios = [...group((f) => f.companies ?? [])]
+    .filter(([, list]) => list.length >= 8)
+    .sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]))
+    .slice(0, 14)
+    .map(([c, list]) => ({ label: c, href: q("studio", c), count: list.length, posters: top(list).slice(0, 3).map((f) => f.poster_url) }));
+
+  return { decades, genres, services, themes, studios };
 }
 
 export async function getExplore(now = Date.now()): Promise<Explore> {
