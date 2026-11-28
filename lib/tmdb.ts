@@ -293,11 +293,6 @@ export async function getImdbId(id: number): Promise<string | null> {
 }
 
 /** Just a film's where-to-watch options, for refreshing them without a full import. */
-/** TMDB's worldwide popularity score for a film (views, votes, watchlists and releases over the last few days). */
-export async function getPopularity(id: number): Promise<number | null> {
-  const m = await get<{ popularity?: number }>(`/movie/${id}`, {}, AbortSignal.timeout(8000));
-  return typeof m.popularity === "number" ? m.popularity : null;
-}
 
 export async function getWatch(id: number): Promise<WatchOption[]> {
   const data = await get<{ results?: Record<string, TmdbRegionProviders> }>(`/movie/${id}/watch/providers`);
