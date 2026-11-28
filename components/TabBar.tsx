@@ -5,16 +5,14 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import Icon, { type IconName } from "./Icon";
 import { chromeFor } from "@/lib/chrome";
-import { openSignIn } from "./SignInSheet";
 import NavProgressLine from "./NavProgressLine";
 
 type Me = { handle: string | null; unread: number };
 
 /**
- * The menu bar on every page but the landing page, a floating pill of icons: Films, Watchlists,
- * Directors, your profile (Sign in for visitors), and ⋯ for everything else (notifications,
- * Watchlist, settings, support, and what the footer holds). Which fourth tab shows is decided
- * before paint (data-auth), so it never flashes.
+ * The menu bar on every page but the landing page, a floating pill of icons: Explore, Films, Watchlists,
+ * Directors, and ⋯ for everything else (your profile first, then notifications,
+ * Watchlist, settings, support, and what the footer holds).
  */
 export default function TabBar() {
   const path = decodeURIComponent(usePathname());
@@ -31,18 +29,18 @@ export default function TabBar() {
     return () => window.removeEventListener("pheelm:me", on);
   }, []);
 
-  const profile = me?.handle ? `/@${me.handle}` : "/profile";
   const at = (href: string) => path === href || path.startsWith(`${href}/`);
   const tabs: { href: string; label: string; icon: IconName; on: boolean; only?: string; heavy?: boolean }[] = [
+    { href: "/explore", label: "Explore", icon: "discover", on: at("/explore") },
     { heavy: true, href: "/films", label: "Films", icon: "film", on: at("/films") },
     { heavy: true, href: "/watchlists", label: "Watchlists", icon: "stack", on: at("/watchlists") || path.startsWith("/c/") },
     { heavy: true, href: "/directors", label: "Directors", icon: "userMultiple", on: at("/directors") || path.startsWith("/people/") },
-    { href: profile, label: "Profile", icon: "userAccount", on: at(profile) || path === "/profile", only: "member-only" },
   ];
 
-  // The outline sits over the open page's tab: 0 Films, 1 Watchlists, 2 Directors, 3 Profile or Sign in.
+  // The outline sits over the open page's tab: 0 Explore, 1 Films, 2 Watchlists, 3 Directors.
+  // Your profile, notifications and sign-in live in ⋯ (Profile first).
   const open = tabs.findIndex((t) => t.on);
-  const ring = open >= 0 ? open : path === "/login" ? 3 : -1;
+  const ring = open;
   // It slides between tabs, but when it first appears (a page with no open tab, or your profile
   // before we know your handle) it just fades in at the right tab instead of sliding from the left.
   const was = useRef(ring);
@@ -60,11 +58,6 @@ export default function TabBar() {
           <Icon name={t.icon} />
         </Link>
       ))}
-      {/* Signed out, the profile tab signs you in. Getting early access is only on the landing page. */}
-      <Link href="/login" className="tab visitor-only" aria-current={path === "/login" ? "page" : undefined} aria-label="Sign in" title="Sign in"
-        onClick={(e) => { if (openSignIn("signin")) e.preventDefault(); }}>
-        <Icon name="userAccount" />
-      </Link>
       <button type="button" className="tab" aria-haspopup="dialog" aria-label={me?.unread ? `More, ${me.unread} new notifications` : "More"} title="More"
         onClick={() => window.dispatchEvent(new Event("pheelm:menu"))}>
         <span className="tab-icon">

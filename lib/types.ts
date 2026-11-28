@@ -24,6 +24,8 @@ export type FilmRow = {
   backdrop_url: string | null;
   /** Sharp's dominant-bin colour from the poster. Used for the soft tint behind cards. */
   color?: string | null;
+  /** TMDB's worldwide popularity score, kept fresh by Admin > Automation (supabase/migrations/20261128040000_explore.sql). */
+  popularity?: number | null;
   trailer_url: string | null;
   awards: Award[];
   watch: WatchOption[];

@@ -5,7 +5,7 @@
  */
 import type { ReactNode } from "react";
 import {
-  Edit04Icon, Camera01Icon, Delete02Icon, TiktokIcon, YoutubeIcon, NewTwitterIcon, Facebook01Icon, BlueskyIcon, Linkedin01Icon, DashboardCircleSettingsIcon, Add01Icon, ArrowDown01Icon, ArrowUpDownIcon, DiceFaces03Icon, Tag01Icon, ArrowLeft01Icon, ArrowRight01Icon, ArrowTurnBackwardIcon, ArrowUp02Icon, AtIcon, Award01Icon,
+  DiscoverCircleIcon, Edit04Icon, Camera01Icon, Delete02Icon, TiktokIcon, YoutubeIcon, NewTwitterIcon, Facebook01Icon, BlueskyIcon, Linkedin01Icon, DashboardCircleSettingsIcon, Add01Icon, ArrowDown01Icon, ArrowUpDownIcon, DiceFaces03Icon, Tag01Icon, ArrowLeft01Icon, ArrowRight01Icon, ArrowTurnBackwardIcon, ArrowUp02Icon, AtIcon, Award01Icon,
   Bookmark02Icon, ShoppingBag02Icon, Calendar03Icon, ClapperboardIcon, Cancel01Icon, FlimSlateIcon, Clock01Icon, Comment01Icon, Door01Icon,
   FavouriteIcon, FilterHorizontalIcon, Film02Icon, Flag02Icon, Globe02Icon, InstagramIcon, Layers01Icon,
   LinkSquare02Icon, Login03Icon, Logout03Icon, Mail01Icon, Moon02Icon, Sun03Icon, Megaphone01Icon, InformationCircleIcon, MailSend01Icon, EllipsisIcon, Notification03Icon,
@@ -29,6 +29,7 @@ const ICONS = {
   bluesky: BlueskyIcon,
   linkedin: Linkedin01Icon,
   dashboardSettings: DashboardCircleSettingsIcon,
+  discover: DiscoverCircleIcon,
   film: Film02Icon,
   clapper: FlimSlateIcon,
   clapperboard: ClapperboardIcon,

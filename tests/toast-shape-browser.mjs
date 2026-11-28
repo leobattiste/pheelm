@@ -21,9 +21,8 @@ try {
   const many = await radius();
   assert(many.multi && many.radius === 18, `wrapped text gets card corners ${JSON.stringify(many)}`);
 
-  // Visitors get Sign in where members see their profile; both sit in the bar.
-  const tab = page.locator('.tab-bar .tab[aria-label="Sign in"]');
-  assert.equal(await tab.getAttribute('href'), '/login');
+  // Explore, Films, Watchlists, Directors and ⋯; your profile and Sign in live in ⋯.
+  assert.equal(await page.locator('.tab-bar .tab[aria-label=Explore]').getAttribute('href'), '/explore');
   assert.equal(await page.locator('.tab-bar .tab[aria-label=Profile]:visible').count(),0);
   assert.equal(await page.locator('.tab-bar .tab:visible').count(), 5, 'five tabs');
   await page.locator('.tab-bar button.tab').click();

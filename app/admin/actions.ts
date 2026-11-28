@@ -14,6 +14,7 @@ import { addFilmByTitle, importFilm, posterColour, type AddResult } from "@/lib/
 import { probeTmdbAwards, tmdbEnabled } from "@/lib/tmdb";
 import type { Award, Role, WatchOption } from "@/lib/types";
 import { queueCatalogSnapshot } from "@/lib/catalog-snapshot";
+import { weekStart } from "@/lib/explore";
 
 export type Result = { ok: boolean; message: string };
 
@@ -406,4 +407,24 @@ export async function resolveReport(f: FormData) {
   if (error) throw new Error(error.message);
   await logAdminActivity(db, "Dismissed watchlist report", "collection", id);
   revalidatePath("/admin/community");
+}
+
+/** Pins a film as this week's Movie of the week on Explore (or clears the pin), until next Monday. */
+export async function pinMovieOfTheWeek(filmId: string, pin: boolean) {
+  try {
+    const db = await adminClient();
+    const week = weekStart();
+    const { data: film } = await db.from("films").select("id, title, status").eq("id", filmId).maybeSingle();
+    if (!film) return { ok: false as const, message: "That film wasn’t found." };
+    if (pin && film.status !== "published") return { ok: false as const, message: "Publish the film first." };
+    const { error } = pin
+      ? await db.from("explore_pins").upsert({ week, film_id: filmId }, { onConflict: "week" })
+      : await db.from("explore_pins").delete().eq("week", week).eq("film_id", filmId);
+    if (error) throw error;
+    await logAdminActivity(db, pin ? "Pinned movie of the week" : "Unpinned movie of the week", "film", filmId, `${film.title} · week of ${week}`);
+    revalidatePath("/explore");
+    return { ok: true as const, week };
+  } catch (e) {
+    return { ok: false as const, message: e instanceof Error ? e.message : "Something went wrong." };
+  }
 }

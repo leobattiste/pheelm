@@ -21,13 +21,13 @@ export const MENU_TOUR: Tour = {
   match: () => true,
   doneLabel: "Start exploring",
   steps: (member) => [
+    { targets: [tab("Explore")], title: "Explore", text: "This week on Pheelm: the movie of the week, a director in the spotlight, and films from around the world." },
     { targets: [tab("Films")], title: "Films", text: "Browse films by Black directors from around the world. Search, filter, and find something new to watch." },
     { targets: [tab("Watchlists")], title: "Watchlists", text: "Discover and create watchlists, share your favorites, and connect with other film enthusiasts through comments." },
     { targets: [tab("Directors")], title: "Directors", text: "Learn about filmmakers, explore their work, and follow your favorites." },
-    { targets: [tab("Profile"), tab("Sign in")], ...(member
-      ? { title: "Your profile", text: "View your profile, share your interests, and connect with other film enthusiasts." }
-      : { title: "Join the community", text: "Sign in or create a free account to save films, follow directors, and join conversations." }) },
-    { targets: [tab("More")], title: "More", text: "Access your settings, notifications, help, and other pages on Pheelm." },
+    { targets: [tab("More")], ...(member
+      ? { title: "Your profile", text: "Your profile, notifications and settings are here, with help and every other page on Pheelm." }
+      : { title: "Join the community", text: "Sign in here, or create a free account to save films, follow directors and join conversations." }) },
   ],
 };
 
