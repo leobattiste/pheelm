@@ -27,6 +27,11 @@ export type SearchEntry = {
     }[];
     /** When it was added to Pheelm (milliseconds), for Latest added. 0 when unknown. */
     added: number;
+    /** From TMDB: themes (keywords), age rating, studios and the series it belongs to. */
+    themes: string[];
+    rating: string | null;
+    studios: string[];
+    series: string | null;
     count: number;
     filmography: {
         year: number;
@@ -35,12 +40,12 @@ export type SearchEntry = {
     film?: FilmCard;
     director?: DirectorSummary;
 };
-export const SEARCH_KEYS = ['q', 'sort', 'country', 'decade', 'language', 'genre', 'type', 'from', 'to', 'minRuntime', 'maxRuntime', 'award', 'festival', 'provider', 'region', 'min'] as const;
+export const SEARCH_KEYS = ['q', 'sort', 'country', 'decade', 'language', 'genre', 'type', 'from', 'to', 'minRuntime', 'maxRuntime', 'award', 'festival', 'provider', 'region', 'min', 'theme', 'rating', 'studio', 'series'] as const;
 export type SearchKey = typeof SEARCH_KEYS[number];
 export type SearchState = Partial<Record<SearchKey, string>>;
 export type SearchMode = 'films' | 'directors';
 /** In the order they appear in the Filters sheet, after Sort by. */
-export const FILM_FILTERS: SearchKey[] = ['genre', 'type', 'country', 'decade', 'language', 'provider'];
+export const FILM_FILTERS: SearchKey[] = ['genre', 'type', 'country', 'decade', 'language', 'provider', 'theme', 'rating', 'studio', 'series'];
 export const DIRECTOR_FILTERS: SearchKey[] = ['country', 'decade', 'type', 'min'];
 export const TYPE_LABELS: Record<string, string> = { feature: 'Feature', documentary: 'Documentary', short: 'Short', animation: 'Animation' };
 export const SORTS: Record<SearchMode, [
@@ -52,6 +57,13 @@ export const SORTS: Record<SearchMode, [
 };
 const normalized = (s: string) => plain(s).replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 const unique = (xs: string[]) => [...new Set(xs.filter(Boolean))].sort((a, b) => a.localeCompare(b));
+/** Values shared by at least `min` entries, A to Z: keeps one-off themes and studios out of the menus. */
+const common = (xs: string[], min: number) => {
+    const n = new Map<string, number>();
+    for (const x of xs) if (x) n.set(x, (n.get(x) ?? 0) + 1);
+    return [...n].filter(([, c]) => c >= min).map(([x]) => x).sort((a, b) => a.localeCompare(b));
+};
+const RATING_ORDER = ['G', 'PG', 'PG-13', 'R', 'NC-17', 'NR', 'TV-Y', 'TV-G', 'TV-PG', 'TV-14', 'TV-MA'];
 export function buildFacets(entries: SearchEntry[]) {
     return {
         country: unique(entries.flatMap(e => e.countries)),
@@ -60,6 +72,10 @@ export function buildFacets(entries: SearchEntry[]) {
         type: unique(entries.flatMap(e => e.types)), festival: unique(entries.flatMap(e => e.awards)),
         provider: unique(entries.flatMap(e => e.availability.map(w => w.provider))),
         region: unique(entries.flatMap(e => e.availability.map(w => w.region))),
+        theme: common(entries.flatMap(e => e.themes), 6),
+        rating: common(entries.flatMap(e => e.rating ? [e.rating] : []), 3).sort((a, b) => (RATING_ORDER.indexOf(a) + 1 || 99) - (RATING_ORDER.indexOf(b) + 1 || 99) || a.localeCompare(b)),
+        studio: common(entries.flatMap(e => e.studios), 4),
+        series: common(entries.flatMap(e => e.series ? [e.series] : []), 2),
     };
 }
 export type SearchFacets = ReturnType<typeof buildFacets>;
@@ -108,6 +124,10 @@ export function filterLabel(k: SearchKey, v: string) {
         return v + '+ films';
     if (k === 'award')
         return v === 'won' ? 'Award winners' : 'Award nominees';
+    if (k === 'rating')
+        return 'Rated ' + v;
+    if (k === 'series')
+        return v + ' series';
     return v;
 }
 export function matchesFilters(e: SearchEntry, s: SearchState, mode: SearchMode) {
@@ -122,6 +142,8 @@ export function matchesFilters(e: SearchEntry, s: SearchState, mode: SearchMode)
     if (s.minRuntime && (e.runtime === null || e.runtime < +s.minRuntime) || s.maxRuntime && (e.runtime === null || e.runtime > +s.maxRuntime))
         return false;
     if (s.award === 'won' && !e.wins || s.award === 'nominated' && !e.nominations || s.festival && !e.awards.includes(s.festival))
+        return false;
+    if (s.theme && !e.themes.includes(s.theme) || s.rating && e.rating !== s.rating || s.studio && !e.studios.includes(s.studio) || s.series && e.series !== s.series)
         return false;
     // Provider and region must describe the same viewing option.
     if ((s.provider || s.region) && !e.availability.some(w => (!s.provider || w.provider === s.provider) && (!s.region || w.region === s.region)))
@@ -279,19 +301,20 @@ export function spellingCorrection(index: IndexedEntry[], query: string): string
  * out by `unpack` when the page opens, rather than being sent twice.
  */
 export type PackedEntry =
-    | { f: FilmCard; also: string[]; names: string[]; nominations: number; awards: string[]; availability: SearchEntry['availability']; added: number }
+    | { f: FilmCard; also: string[]; names: string[]; nominations: number; awards: string[]; availability: SearchEntry['availability']; added: number; th?: string[]; r?: string; st?: string[]; se?: string }
     | { d: DirectorSummary; also: string[]; filmography: SearchEntry['filmography']; wins: number; added: number };
 
 /** Builds the entry the search and filters work on. Cheap: it only re-labels what is already there. */
 export function unpack(packed: PackedEntry): SearchEntry {
-    const shared = { aliases: packed.also, added: packed.added, runtime: null as number | null };
+    const shared = { aliases: packed.also, added: packed.added, runtime: null as number | null, themes: [] as string[], rating: null as string | null, studios: [] as string[], series: null as string | null };
     if ('f' in packed) {
         const f = packed.f;
         return { ...shared, id: f.id, slug: f.slug, title: f.title, image: f.poster_url,
             subtitle: f.year + ' • ' + f.directors.join(', '), names: packed.names,
             countries: f.countries, languages: f.languages, genres: f.genres, types: [f.type], years: [f.year],
             runtime: f.runtime, wins: f.wins, nominations: packed.nominations, awards: packed.awards,
-            availability: packed.availability, count: 1, filmography: [{ year: f.year, type: f.type }], film: f };
+            availability: packed.availability, count: 1, filmography: [{ year: f.year, type: f.type }], film: f,
+            themes: packed.th ?? [], rating: packed.r ?? null, studios: packed.st ?? [], series: packed.se ?? null };
     }
     const d = packed.d;
     return { ...shared, id: d.id, slug: d.slug, title: d.name, image: d.photo_url,
