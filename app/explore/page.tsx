@@ -42,9 +42,15 @@ export default async function ExplorePage() {
             {motw.poster_url && <img className="motw-blur" src={motw.poster_url} alt="" aria-hidden="true" />}
             <Link href={filmPath(motw.slug, motw.directors)} className="motw-link" aria-label={`${motw.title}, ${motw.year}`} />
             <div className="motw-text">
-              <h2 className="motw-title">{motw.title}</h2>
+              {motw.logo_url ? (
+                <h2 className="motw-title has-logo">
+                  <img className="motw-logo" src={motw.logo_url} alt={motw.title} />
+                </h2>
+              ) : (
+                <h2 className="motw-title">{motw.title}</h2>
+              )}
               <p className="motw-meta">
-                {[motw.directors.map((d) => d.name).join(" and "), String(motw.year), runtimeLabel(motw.runtime)].filter(Boolean).join(" · ")}
+                {[motw.directors.map((d) => d.name).join(" and "), String(motw.year), runtimeLabel(motw.runtime), motw.certification && (!motw.certification_country || motw.certification_country === "US") ? motw.certification : null].filter(Boolean).join(" · ")}
               </p>
               <div className="motw-actions">
                 {embed ? (
@@ -156,6 +162,40 @@ export default async function ExplorePage() {
                       <span className="browse-logo browse-initial">{v.label[0]}</span>
                     )}
                     <span className="browse-name">{v.label}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {x.browse.themes.length > 0 && (
+          <div className="browse">
+            <h3>Themes</h3>
+            <ul className="browse-track">
+              {x.browse.themes.map((t) => (
+                <li key={t.href}>
+                  <Link href={t.href} className="browse-card is-theme">
+                    <span className="browse-mosaic" aria-hidden="true">
+                      {(t.posters ?? []).map((p, i) => (p ? <img key={i} src={p} alt="" loading="lazy" /> : <span key={i} />))}
+                    </span>
+                    <span className="browse-name">{t.label}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {x.browse.studios.length > 0 && (
+          <div className="browse">
+            <h3>Studios</h3>
+            <ul className="browse-track">
+              {x.browse.studios.map((c) => (
+                <li key={c.href}>
+                  <Link href={c.href} className="browse-card is-studio">
+                    <span className="browse-name">{c.label}</span>
+                    <span className="browse-strip" aria-hidden="true">
+                      {(c.posters ?? []).map((p, i) => (p ? <img key={i} src={p} alt="" loading="lazy" /> : <span key={i} />))}
+                    </span>
                   </Link>
                 </li>
               ))}
